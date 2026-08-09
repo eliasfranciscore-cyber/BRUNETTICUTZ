@@ -378,7 +378,21 @@ export default function Dashboard() {
   // momentum scroll de iOS/PWA. Sólo afecta a /panel (no a la web pública).
   useEffect(() => {
     document.body.classList.add('dash-mode')
-    return () => document.body.classList.remove('dash-mode')
+    // iOS Safari ignora `user-scalable=no` del viewport y, en PWA standalone,
+    // sigue disparando los eventos `gesture*` (no estándar, sólo WebKit) al
+    // pellizcar con dos dedos. Bloquearlos SOLO acá (no en la web pública,
+    // que conserva el zoom por accesibilidad).
+    const stopGesture = (e) => e.preventDefault()
+    const opts = { passive: false }
+    document.addEventListener('gesturestart', stopGesture, opts)
+    document.addEventListener('gesturechange', stopGesture, opts)
+    document.addEventListener('gestureend', stopGesture, opts)
+    return () => {
+      document.body.classList.remove('dash-mode')
+      document.removeEventListener('gesturestart', stopGesture, opts)
+      document.removeEventListener('gesturechange', stopGesture, opts)
+      document.removeEventListener('gestureend', stopGesture, opts)
+    }
   }, [])
 
   // Deep-link desde una notificación push (recordatorio, nueva reserva o
