@@ -62,15 +62,25 @@ export function addLocalBooking(booking) {
   return entry
 }
 
-/* Combina reservas del backend/demo con las locales sin duplicar
-   (clave: barbero|fecha|hora). Las locales tienen prioridad de estado. */
+/* Combina reservas del backend/demo con las locales sin duplicar.
+   Cada reserva del servidor tiene un id real único: se indexa por id, NO por
+   barbero|fecha|hora, porque ese horario puede haber tenido más de una
+   reserva a lo largo del tiempo (una cancelada y luego otra persona reservó
+   la misma hora libre) — indexar por ese trío colapsaba ambas filas en una
+   sola entrada del Map y, según el orden en que llegara del servidor, la
+   reserva cancelada podía pisar a la reserva activa real, haciéndola
+   desaparecer por completo del panel.
+   Las locales (creadas offline, sin id real todavía) sí se detectan por
+   barbero|fecha|hora: solo se muestran si ese horario no tiene ya una
+   reserva real del servidor. */
 export function mergeBookings(serverBookings = []) {
   const local = readLocalBookings()
-  const byKey = new Map()
-  const keyOf = (b) => `${Number(b.barberId)}|${b.date}|${b.time}`
-  serverBookings.forEach((b) => byKey.set(keyOf(b), b))
-  local.forEach((b) => { if (!byKey.has(keyOf(b))) byKey.set(keyOf(b), b) })
-  return [...byKey.values()]
+  const byId = new Map()
+  const slotKeyOf = (b) => `${Number(b.barberId)}|${b.date}|${b.time}`
+  serverBookings.forEach((b) => byId.set(String(b.id), b))
+  const occupiedSlots = new Set(serverBookings.map(slotKeyOf))
+  local.forEach((b) => { if (!occupiedSlots.has(slotKeyOf(b))) byId.set(String(b.id), b) })
+  return [...byId.values()]
 }
 
 /* Una reserva local es "huérfana" cuando nunca recibió un id real del

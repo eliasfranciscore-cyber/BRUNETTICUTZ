@@ -5,8 +5,8 @@ import { requireInternal } from "./_auth.js"
    ------------------------------------------------------------------
    POST   (sesión interna): guarda la suscripción del barbero autenticado.
    DELETE (sesión interna): elimina una suscripción por endpoint.
-   GET ?job=reminders (CRON_SECRET, no sesión de barbero): dispara los
-     recordatorios de 60min/15min antes de cada reserva. Vive acá (en vez de
+   GET ?job=reminders (CRON_SECRET, no sesión de barbero): dispara el
+     recordatorio de 1 hora antes de cada reserva. Vive acá (en vez de
      en su propio archivo api/) porque el plan Hobby de Vercel tope a 12
      funciones serverless por deployment — sumar un archivo más lo pasaba.
    notifyBarber(barberId, payload): envía un push SOLO al barbero indicado.
@@ -17,13 +17,18 @@ import { requireInternal } from "./_auth.js"
 
 const BUSINESS_TZ = "America/Santiago"
 
-// Pensado para correr cada 5 minutos vía un disparador externo (cron-job.org,
+// Pensado para correr cada 40 minutos vía un disparador externo (cron-job.org,
 // GitHub Actions, etc. — Vercel Hobby no soporta cron nativo de esa
 // frecuencia). Protegido con CRON_SECRET: el llamador debe enviar
 // Authorization: Bearer <CRON_SECRET>.
 //
-// La ventana de +55/+65 y +10/+20 minutos absorbe el margen entre disparos
-// del cron para no perder reservas si corre unos minutos tarde.
+// Solo queda el recordatorio de "1 hora antes" (se sacó el de 15 minutos:
+// con un cron cada 40 min, la ventana necesaria para no perderlo tendría
+// que ser de ≥40 min de ancho, y ya no representaría "15 minutos" de forma
+// honesta). La ventana +60/+105 garantiza que el aviso llegue SIEMPRE con
+// al menos 1 hora de anticipación (nunca con menos) y que ningún disparo
+// del cron la salte, ya que sus 45 min de ancho superan el intervalo de
+// 40 min entre disparos.
 //
 // `column` viene siempre de una lista fija interna (nunca de input externo),
 // así que se arma el texto del SQL directamente — el driver de Neon no
@@ -182,9 +187,8 @@ export default async function handler(req, res) {
     }
     try {
       const sql = neon(process.env.DATABASE_URL)
-      const sent60 = await sendDueReminders(sql, { column: "reminder_60_sent", label: "1 hora", fromMin: 55, toMin: 65 })
-      const sent15 = await sendDueReminders(sql, { column: "reminder_15_sent", label: "15 minutos", fromMin: 10, toMin: 20 })
-      return res.json({ ok: true, sent60, sent15 })
+      const sent60 = await sendDueReminders(sql, { column: "reminder_60_sent", label: "1 hora", fromMin: 60, toMin: 105 })
+      return res.json({ ok: true, sent60 })
     } catch (err) {
       console.error("push reminders job error:", err)
       return res.status(500).json({ ok: false, error: "reminder job failed" })

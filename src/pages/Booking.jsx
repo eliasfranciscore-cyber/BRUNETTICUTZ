@@ -16,6 +16,18 @@ function localBlockKey(barberId, date, slot) {
   return `${barberId}|${date}|${slot}`
 }
 
+// Cuántos bloques de 1h consecutivos ocupa un servicio (75 min → 2 bloques),
+// y qué horarios exactos ocuparía si empezara en `startSlot`. null si no
+// alcanza a caber antes del cierre.
+function blocksFor(service) {
+  return Math.max(1, Math.ceil((service?.min || 60) / 60))
+}
+function spanFor(startSlot, blocks) {
+  const idx = ALL_BOOKING_SLOTS.indexOf(startSlot)
+  if (idx === -1 || idx + blocks > ALL_BOOKING_SLOTS.length) return null
+  return ALL_BOOKING_SLOTS.slice(idx, idx + blocks)
+}
+
 // Componentes locales, no UTC: en Chile (UTC-3/-4) toISOString() hace
 // rollover al día siguiente durante la noche, lo que corría la ventana de
 // reserva un día antes de lo esperado para quien reserva de noche.
@@ -326,14 +338,23 @@ export default function Booking() {
               {/* HORAS DISPONIBLES */}
               {dateKey && (
                 <div className="animate-up booking-hours" style={{ display: "grid", gap: ".6rem" }}>
+                  {service && blocksFor(service) > 1 && (
+                    <div style={{ fontSize: ".68rem", color: "var(--muted)" }}>
+                      Este servicio dura {blocksFor(service)} horas: se bloquean {blocksFor(service)} horarios seguidos.
+                    </div>
+                  )}
                   {Object.entries(SLOT_GROUPS).map(([grp, list]) => (
                     <div key={grp}>
                       <div style={{ fontSize: ".65rem", letterSpacing: ".12em", textTransform: "uppercase", color: "var(--muted)", marginBottom: ".4rem", fontWeight: 600 }}>{grp}</div>
                       <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: ".3rem" }}>
                         {list.map((t) => {
-                          const fromApi = availableSlots.find((item) => item.slot === t)
-                          const st = fromApi ? (fromApi.available ? "free" : "booked") : slotState(barberId, dateKey, t)
-                          const taken = st !== "free" || isSlotTooSoon(dateKey, t, todayKey, now)
+                          const slotFree = (s) => {
+                            const fromApi = availableSlots.find((item) => item.slot === s)
+                            const st = fromApi ? (fromApi.available ? "free" : "booked") : slotState(barberId, dateKey, s)
+                            return st === "free" && !isSlotTooSoon(dateKey, s, todayKey, now)
+                          }
+                          const span = spanFor(t, blocksFor(service))
+                          const taken = !span || !span.every(slotFree)
                           const sel = slot === t
                           return (
                             <button key={t} disabled={taken} onClick={() => setSlot(t)} className="booking-slot" style={{

@@ -1,7 +1,7 @@
 # Graph Report - PIMPSTUDIO-desarrollo  (2026-07-21)
 
 ## Corpus Check
-- 136 files · ~1,989,844 words
+- 136 files · ~1,989,926 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary

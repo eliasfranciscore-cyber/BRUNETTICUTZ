@@ -40,8 +40,8 @@
     "semantic_hash": ""
   },
   "api/bookings.js": {
-    "mtime": 1784603767.990752,
-    "ast_hash": "fbd379d221225730ab6430e46685d532",
+    "mtime": 1786300073.1433322,
+    "ast_hash": "efdaf61605c8c821bdb32bc3835911f8",
     "semantic_hash": ""
   },
   "api/clients.js": {
@@ -60,8 +60,8 @@
     "semantic_hash": ""
   },
   "api/push.js": {
-    "mtime": 1784592798.1236744,
-    "ast_hash": "20be0b4e87489f06152930a4b1d110f8",
+    "mtime": 1785157850.0758624,
+    "ast_hash": "8f38fbb694994d087880d65cab0a6a09",
     "semantic_hash": ""
   },
   "api/register-client.js": {
@@ -190,8 +190,8 @@
     "semantic_hash": ""
   },
   "src/bookingsStore.js": {
-    "mtime": 1784593220.5573266,
-    "ast_hash": "c39b0f33aa6f9ab2475c4b618d1a9ead",
+    "mtime": 1786298939.8559198,
+    "ast_hash": "ee5f3f3f1974b81233e53a65782196a1",
     "semantic_hash": ""
   },
   "src/components/BarberModal.jsx": {
@@ -315,8 +315,8 @@
     "semantic_hash": ""
   },
   "src/pages/Dashboard.jsx": {
-    "mtime": 1784617534.4819226,
-    "ast_hash": "3ad0ab7346777152950a4a1419c1a0c4",
+    "mtime": 1786297908.8913987,
+    "ast_hash": "1e394757084bbaa4ae423ec4923e73c1",
     "semantic_hash": ""
   },
   "src/pages/EncuentraEstilo.jsx": {
@@ -365,8 +365,8 @@
     "semantic_hash": "8821dc65ef6d88a32b3d71aa793563c1"
   },
   "CLAUDE.md": {
-    "mtime": 1784237294.975412,
-    "ast_hash": "ee548ab391750eb3ddbef0cae8199d35",
+    "mtime": 1785157868.21058,
+    "ast_hash": "8a556577b1522d24f97e5966de91c9ce",
     "semantic_hash": ""
   },
   "IMPLEMENTATION_PLAN.md": {

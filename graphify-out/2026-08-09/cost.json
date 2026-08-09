@@ -1,0 +1,66 @@
+{
+  "runs": [
+    {
+      "date": "2026-06-23T11:13:51.922462+00:00",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "files": 94
+    },
+    {
+      "date": "2026-06-23T19:37:22.282183+00:00",
+      "input_tokens": 12700,
+      "output_tokens": 4600,
+      "files": 94
+    },
+    {
+      "date": "2026-06-24T01:17:22.814317+00:00",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "files": 7,
+      "note": "incremental --update: domain migration meta"
+    },
+    {
+      "date": "2026-06-24T01:31:04.630655+00:00",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "files": 11,
+      "note": "incremental --update: deep rebrand PIMP STUDIO->Brunetti (code-only AST)"
+    },
+    {
+      "date": "2026-06-24T02:50:50.172412+00:00",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "files": 2,
+      "note": "workshop ASCENSIÓN repalette+footer (code-only AST)"
+    },
+    {
+      "date": "2026-06-24T14:43:48.017908+00:00",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "files": 4,
+      "note": "incremental update: hero gooey removal + light mode"
+    },
+    {
+      "date": "2026-06-24T19:52:28.302543+00:00",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "files": 8,
+      "note": "update: /style module + light-mode"
+    },
+    {
+      "date": "2026-06-25T19:48:36.835543+00:00",
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "files": 13,
+      "mode": "update-code-only"
+    },
+    {
+      "date": "2026-07-04T20:56:09.012138+00:00",
+      "input_tokens": 56088,
+      "output_tokens": 26484,
+      "files": 192
+    }
+  ],
+  "total_input_tokens": 68788,
+  "total_output_tokens": 31084
+}
