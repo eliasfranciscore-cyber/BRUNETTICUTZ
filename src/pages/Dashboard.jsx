@@ -279,6 +279,26 @@ export default function Dashboard() {
   const revenueTotal = completedBookings.reduce((sum, item) => sum + Number(item.price || 0), 0)
   const avgTicket = completedBookings.length ? Math.round(revenueTotal / completedBookings.length) : 0
   const visibleBookings = admin ? bookings : bookings.filter((item) => Number(item.barberId) === Number(barber?.id))
+  // Un servicio de +60min ocupa varios bloques seguidos (ver api/_slots.js),
+  // pero la reserva solo trae la hora de INICIO. Antes, la agenda buscaba la
+  // reserva de un bloque comparando la hora exacta (`b.time === t`): el
+  // bloque de inicio calzaba, pero el/los bloque(s) siguientes quedaban
+  // pintados como "Reservado" sin encontrar la reserva -> clic sin efecto,
+  // vista Línea sin nombre/servicio. Acá resolvemos por rango de bloques,
+  // igual que hace el servidor para marcar el slot como "booked".
+  const svcMinByName = {}
+  services.forEach((s) => { svcMinByName[s.name] = Number(s.min) || 60 })
+  const bookingForSlot = (dayKey, t) => {
+    const idx = AGENDA_SLOTS.indexOf(t)
+    if (idx === -1) return null
+    return visibleBookings.find((b) => {
+      if (b.date !== dayKey || b.status === "cancelada") return false
+      const startIdx = AGENDA_SLOTS.indexOf(b.time)
+      if (startIdx === -1) return false
+      const blocks = minToBlocks(svcMinByName[b.service])
+      return idx >= startIdx && idx < startIdx + blocks
+    }) || null
+  }
   const ranking = barbers.map((b) => {
     const own = bookings.filter((item) => Number(item.barberId) === Number(b.id) && item.status !== "cancelada" && (item.date || "") >= periodStartKey)
     return { id: b.id, cuts: own.filter((item) => item.status === "completada").length || own.length, rev: own.reduce((sum, item) => sum + Number(item.price || 0), 0) }
@@ -1210,7 +1230,7 @@ export default function Dashboard() {
                           const slotInfo = (availability[agendaDayKey] || []).find((item) => item.slot === t)
                           const state = slotInfo?.state || (slotInfo?.available === false ? "blocked" : "free")
                           const busy = agendaBusy === `${agendaDayKey}-${t}`
-                          const bk = state === "booked" ? visibleBookings.find((b) => b.date === agendaDayKey && b.time === t && b.status !== "cancelada") : null
+                          const bk = state === "booked" ? bookingForSlot(agendaDayKey, t) : null
                           const tag = state === "booked" ? "Reservado" : state === "blocked" ? "Bloqueado" : "Libre"
                           const applyToggle = () => {
                             toggleSlot(agendaDayKey, t, state)
@@ -1252,7 +1272,7 @@ export default function Dashboard() {
                     {AGENDA_SLOTS.map((t) => {
                       const slotInfo = (availability[agendaDayKey] || []).find((item) => item.slot === t)
                       const state = slotInfo?.state || (slotInfo?.available === false ? "blocked" : "free")
-                      const bk = state === "booked" ? visibleBookings.find((b) => b.date === agendaDayKey && b.time === t && b.status !== "cancelada") : null
+                      const bk = state === "booked" ? bookingForSlot(agendaDayKey, t) : null
                       return (
                         <div
                           key={t}

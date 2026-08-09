@@ -5,11 +5,12 @@ import { sendBookingConfirmationEmail } from "./_email.js"
 import { syncBookingToNotion, updateNotionBookingStatus } from "./_notion.js"
 import { rateLimit, clientIp } from "./_rateLimit.js"
 import { logBookingAttempt } from "./_bookingAudit.js"
+import { blocksForDuration, slotsForBooking, busySlotsForBarberDate } from "./_slots.js"
 
 const MIN_CANCEL_NOTICE_HOURS = 10
 const MAX_LEAD_DAYS = 7
-const MAX_BOOKINGS_PER_DAY = 2
 const MIN_BOOKING_LEAD_MINUTES = 55
+const MAX_BOOKINGS_PER_DAY = 2
 const BUSINESS_TZ = "America/Santiago"
 
 // Vercel ejecuta las funciones en UTC: calcular "hoy" con new Date() ahí
@@ -129,12 +130,14 @@ export default async function handler(req, res) {
             updated_at = NOW()
           RETURNING id
         `
-        const [taken] = await sql`
-          SELECT id FROM bookings
-          WHERE barber_id = ${barberId} AND booking_date = ${date} AND booking_time = ${time}
-          AND status NOT IN ('cancelada')
-        `
-        if (taken) return res.status(409).json({ ok: false, error: "Ese horario ya está tomado" })
+        // Un servicio de más de 1h bloquea varios horarios consecutivos, no
+        // solo el que se eligió: hay que revisar que TODOS estén libres.
+        const [svcRow] = serviceId ? await sql`SELECT name, duration_min FROM services WHERE id = ${Number(serviceId)}` : [null]
+        const blocks = blocksForDuration(svcRow?.duration_min)
+        const requiredSlots = slotsForBooking(String(time).slice(0, 5), blocks)
+        if (!requiredSlots) return res.status(422).json({ ok: false, error: "Este servicio no cabe en el horario disponible. Elige una hora más temprana." })
+        const busy = await busySlotsForBarberDate(sql, barberId, date)
+        if (requiredSlots.some((s) => busy.has(s))) return res.status(409).json({ ok: false, error: "Ese horario ya está tomado" })
         const customPrice = price != null && price !== "" && Number.isFinite(Number(price)) ? Math.round(Number(price)) : null
         const [booking] = await sql`
           INSERT INTO bookings (client_id, barber_id, service_id, booking_date, booking_time, status, custom_service, custom_price)
@@ -146,7 +149,6 @@ export default async function handler(req, res) {
         // reserva ya creada si Notion no está configurado o falla.
         try {
           const [barberRow] = await sql`SELECT name FROM barbers WHERE id = ${Number(barberId)}`
-          const [svcRow] = serviceId ? await sql`SELECT name, duration_min FROM services WHERE id = ${Number(serviceId)}` : [null]
           const synced = await syncBookingToNotion({
             client: String(client).trim(),
             phone: cleanPhone,
@@ -250,16 +252,29 @@ export default async function handler(req, res) {
         AND status NOT IN ('cancelada')
       `
       if (dayCount >= MAX_BOOKINGS_PER_DAY) {
+        await logBookingAttempt(sql, { ...auditBase, outcome: "rejected", reason: "límite diario alcanzado" })
         return res.status(422).json({ error: `Ya tienes ${MAX_BOOKINGS_PER_DAY} reservas para ese día. No puedes agendar más.` })
       }
 
-      // Check availability
-      const [existing] = await sql`
-        SELECT id FROM bookings
-        WHERE barber_id = ${barberId} AND booking_date = ${date} AND booking_time = ${time}
-        AND status NOT IN ('cancelada')
+      // Datos del servicio/cliente/barbero: se usan para calcular cuántos
+      // bloques de 1h ocupa la reserva y también para el aviso al barbero.
+      const [info] = await sql`
+        SELECT u.name as client, u.email as email, s.name as service, s.price as price,
+               s.duration_min as "durationMin", br.name as barber
+        FROM users u, services s, barbers br
+        WHERE u.id = ${user.id} AND s.id = ${serviceId} AND br.id = ${barberId}
       `
-      if (existing) {
+
+      // Un servicio de más de 1h bloquea varios horarios consecutivos, no
+      // solo el que se eligió: hay que revisar que TODOS estén libres.
+      const blocks = blocksForDuration(info?.durationMin)
+      const requiredSlots = slotsForBooking(String(time).slice(0, 5), blocks)
+      if (!requiredSlots) {
+        await logBookingAttempt(sql, { ...auditBase, outcome: "rejected", reason: "servicio no cabe en el horario" })
+        return res.status(422).json({ error: "Este servicio no cabe en el horario disponible. Elige una hora más temprana." })
+      }
+      const busy = await busySlotsForBarberDate(sql, barberId, date)
+      if (requiredSlots.some((s) => busy.has(s))) {
         await logBookingAttempt(sql, { ...auditBase, outcome: "rejected", reason: "horario no disponible" })
         return res.status(409).json({ error: "Horario no disponible" })
       }
@@ -277,12 +292,6 @@ export default async function handler(req, res) {
       // Aviso push al barbero + correo de confirmación al cliente. Ninguno
       // de los dos bloquea la respuesta ni la reserva ya creada.
       try {
-        const [info] = await sql`
-          SELECT u.name as client, u.email as email, s.name as service, s.price as price,
-                 s.duration_min as "durationMin", br.name as barber
-          FROM users u, services s, barbers br
-          WHERE u.id = ${user.id} AND s.id = ${serviceId} AND br.id = ${barberId}
-        `
         await notifyBarber(barberId, {
           title: "Nueva reserva",
           body: `${info?.client || "Cliente"} · ${info?.service || "Servicio"} · ${date} ${String(time).slice(0, 5)}`,

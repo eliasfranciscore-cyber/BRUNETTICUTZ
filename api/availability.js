@@ -1,7 +1,7 @@
 import { neon } from "@neondatabase/serverless"
 import { requireInternal } from "./_auth.js"
+import { ALL_SLOTS, blocksForDuration, slotsForBooking } from "./_slots.js"
 
-const ALL_SLOTS = ["09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00"]
 const BUSINESS_TZ = "America/Santiago"
 const MIN_LEAD_MINUTES = 55
 
@@ -55,14 +55,23 @@ export default async function handler(req, res) {
     if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" })
 
     const booked = await sql`
-      SELECT booking_time::text as slot FROM bookings
-      WHERE barber_id = ${barberId} AND booking_date = ${date} AND status NOT IN ('cancelada')
+      SELECT b.booking_time::text as slot, COALESCE(s.duration_min, 60) as "durationMin"
+      FROM bookings b
+      LEFT JOIN services s ON b.service_id = s.id
+      WHERE b.barber_id = ${barberId} AND b.booking_date = ${date} AND b.status NOT IN ('cancelada')
     `
     const blocked = await sql`
       SELECT slot_time::text as slot FROM availability_blocks
       WHERE barber_id = ${barberId} AND block_date = ${date}
     `
-    const bookedSet = new Set(booked.map(r => r.slot?.slice(0,5)))
+    // Un servicio de más de 1h ocupa varios bloques consecutivos, no solo el
+    // horario en el que se agendó (ver api/_slots.js).
+    const bookedSet = new Set()
+    for (const r of booked) {
+      const start = r.slot?.slice(0, 5)
+      const span = slotsForBooking(start, blocksForDuration(r.durationMin)) || [start]
+      span.forEach((s) => bookedSet.add(s))
+    }
     const blockedSet = new Set(blocked.map(r => r.slot?.slice(0,5)))
     const unavailable = new Set([...bookedSet, ...blockedSet])
     const isToday = date === businessDateKey(new Date())
