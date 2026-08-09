@@ -1425,7 +1425,7 @@ export default function Dashboard() {
             </Panel>
 
             <Panel title="Movimientos" action={<span className="chip">{sortedFinanceRows.length} en el periodo</span>}>
-              <div className="fin-table-head" style={{ gridTemplateColumns: admin ? "100px 1.3fr 1.1fr 110px 90px 100px" : "100px 1.3fr 1.1fr 90px 100px" }}>
+              <div className="fin-table-head" style={{ "--fin-cols": admin ? "100px 1.3fr 1.1fr 110px 90px 100px" : "100px 1.3fr 1.1fr 90px 100px" }}>
                 <button type="button" onClick={() => toggleFinanceSort("date")} className={financeSort.key === "date" ? "is-sorted" : ""}>Fecha {financeSort.key === "date" && (financeSort.dir === "asc" ? "↑" : "↓")}</button>
                 <button type="button" onClick={() => toggleFinanceSort("client")} className={financeSort.key === "client" ? "is-sorted" : ""}>Cliente {financeSort.key === "client" && (financeSort.dir === "asc" ? "↑" : "↓")}</button>
                 <button type="button" onClick={() => toggleFinanceSort("service")} className={financeSort.key === "service" ? "is-sorted" : ""}>Servicio {financeSort.key === "service" && (financeSort.dir === "asc" ? "↑" : "↓")}</button>
@@ -1438,13 +1438,13 @@ export default function Dashboard() {
                   {sortedFinanceRows.map((b) => {
                     const bb = barberById(b.barberId)
                     return (
-                      <div key={b.id} className="fin-row" style={{ gridTemplateColumns: admin ? "100px 1.3fr 1.1fr 110px 90px 100px" : "100px 1.3fr 1.1fr 90px 100px" }}>
-                        <div><strong>{b.date?.slice(5)}</strong><span>{b.time}</span></div>
-                        <div><strong>{b.client}</strong></div>
-                        <div><span>{b.service}</span></div>
-                        {admin && <div><span>{bb?.short || bb?.name || "—"}</span></div>}
-                        <div><strong className="gold-text">{CLP(b.price)}</strong></div>
-                        <span className="chip">{b.status}</span>
+                      <div key={b.id} className="fin-row" style={{ "--fin-cols": admin ? "100px 1.3fr 1.1fr 110px 90px 100px" : "100px 1.3fr 1.1fr 90px 100px" }}>
+                        <div className="fin-c-date"><strong>{b.date?.slice(5)}</strong><span>{b.time}</span></div>
+                        <div className="fin-c-client"><strong>{b.client}</strong></div>
+                        <div className="fin-c-svc"><span>{b.service}</span></div>
+                        {admin && <div className="fin-c-barber"><span>{bb?.short || bb?.name || "—"}</span></div>}
+                        <div className="fin-c-price"><strong className="gold-text">{CLP(b.price)}</strong></div>
+                        <span className="chip fin-c-status">{b.status}</span>
                       </div>
                     )
                   })}

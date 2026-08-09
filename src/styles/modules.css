@@ -500,13 +500,13 @@ a.home-footer-access { display: inline-flex; align-items: center; gap: .4rem; te
    listado — solo charts. Ahora hay un periodo (semana/mes/año) que recorta
    ingresos/ranking, más una tabla densa ordenable con total sticky al pie. */
 .fin-toolbar { display: flex; align-items: center; justify-content: space-between; gap: .8rem; flex-wrap: wrap; }
-.fin-table-head { display: grid; gap: .7rem; padding: 0 .78rem .4rem; }
+.fin-table-head { display: grid; grid-template-columns: var(--fin-cols); gap: .7rem; padding: 0 .78rem .4rem; }
 .fin-table-head button { background: none; border: 0; padding: 0; text-align: left; display: flex; align-items: center; gap: .2rem; font-family: var(--font-display); font-size: .66rem; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); cursor: pointer; }
 .fin-table-head button:hover, .fin-table-head button.is-sorted { color: var(--gold-lt); }
 .fin-table-head span { font-size: .66rem; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
 .fin-mov-scroll { max-height: 460px; overflow-y: auto; }
 .fin-mov-list { display: grid; gap: .55rem; }
-.fin-row { display: grid; gap: .7rem; align-items: center; padding: .6rem .78rem; border: 1px solid var(--hair); border-radius: var(--r-sm); background: rgba(255,255,255,.02); transition: border-color .15s, background .15s; }
+.fin-row { display: grid; grid-template-columns: var(--fin-cols); gap: .7rem; align-items: center; padding: .6rem .78rem; border: 1px solid var(--hair); border-radius: var(--r-sm); background: rgba(255,255,255,.02); transition: border-color .15s, background .15s; }
 .fin-row:hover { border-color: var(--gold-line); background: rgba(201,161,78,.06); }
 .fin-row strong { display: block; font-size: .85rem; color: var(--ink); font-weight: 500; font-variant-numeric: tabular-nums; }
 .fin-row span { display: block; font-size: .72rem; color: var(--muted); margin-top: .1rem; }
@@ -515,14 +515,29 @@ a.home-footer-access { display: inline-flex; align-items: center; gap: .4rem; te
 .fin-row-total span { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: .68rem; }
 [data-theme="light"] .fin-row { background: #fff; }
 [data-theme="light"] .fin-row-total { background: rgba(255,255,255,.96); }
-/* Mobile: la tabla no reflowea a cards (6 columnas de datos heterogéneos no
-   caben en 2 líneas legibles) — en vez de eso scrollea horizontal, con la
-   cabecera de columnas oculta (ya redundante al lado del dato en la fila). */
+/* Mobile: antes 400px de columnas FIJAS (var(--fin-cols)) en ~302px de
+   ancho real → cada una de las 285 filas pedía scroll lateral para leerse.
+   Ahora: tarjeta de 2 columnas (contenido | precio), cabecera de columnas
+   pasa a chips de orden (el ordenar no se pierde, solo cambia de forma). */
 @media (max-width: 760px) {
-  .fin-table-head { display: none; }
-  .fin-mov-scroll { overflow-x: auto; }
-  .fin-mov-list { min-width: 560px; }
-  .fin-row-total { min-width: 560px; }
+  .fin-mov-scroll { overflow-x: clip; max-height: 60vh; }
+  .fin-mov-list, .fin-row-total { min-width: 0; }
+  .fin-table-head { display: flex; flex-wrap: wrap; grid-template-columns: none; gap: .4rem; padding: 0 0 .6rem; }
+  .fin-table-head > span { display: none; }
+  .fin-table-head button { min-height: 40px; padding: .45rem .8rem; border: 1px solid var(--hair-2); border-radius: 999px; }
+  .fin-table-head button.is-sorted { border-color: var(--gold-line); background: rgba(201,161,78,.14); }
+  .fin-row {
+    grid-template-columns: minmax(0,1fr) auto;
+    grid-template-areas: "client price" "svc price" "meta status";
+    gap: .12rem .7rem; padding: .7rem .8rem; align-items: baseline;
+  }
+  .fin-c-client { grid-area: client; }
+  .fin-c-svc    { grid-area: svc; }
+  .fin-c-price  { grid-area: price; align-self: center; justify-self: end; }
+  .fin-c-price strong { font-size: 1rem; }
+  .fin-c-status { grid-area: status; justify-self: end; align-self: center; }
+  .fin-c-date   { grid-area: meta; justify-self: start; display: flex; gap: .35rem; align-items: baseline; }
+  .fin-c-barber { grid-area: meta; justify-self: end; }
 }
 
 /* ---------- Booking: selección de barbero (Bruno destacado arriba) ---------- */
