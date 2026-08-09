@@ -922,6 +922,27 @@ select.input { text-overflow: ellipsis; }
   }
 }
 
+@media (max-width: 560px) {
+  /* Clientes: cada fila apilaba nombre/visitas/total/Editar en 4 líneas
+     (~150px). :has() aísla el rediseño a la fila de Clientes (única con
+     .client-row-edit) sin tocar el otro consumidor de .client-row
+     (EnrollmentsPanel, que sigue apilado — su contenido no tiene botón). */
+  .client-row:has(.client-row-edit) {
+    grid-template-columns: 1fr 1fr auto;
+    grid-template-areas: "who who edit" "visits total edit";
+    gap: .15rem .6rem;
+    padding: .65rem .8rem;
+  }
+  .client-row:has(.client-row-edit) > *:nth-child(1) { grid-area: who; }
+  .client-row:has(.client-row-edit) > *:nth-child(2) { grid-area: visits; }
+  .client-row:has(.client-row-edit) > *:nth-child(3) { grid-area: total; }
+  .client-row-edit {
+    grid-area: edit; width: 44px; height: 44px; padding: 0;
+    justify-content: center; align-self: center;
+  }
+  .client-row-edit .btn-label { display: none; }
+}
+
 /* ---------- Public home refresh ---------- */
 /* Navbar FIJO al viewport (no sticky): el sticky se rompía/escondía en iOS
    Safari y en la PWA; `position: fixed` nunca se desplaza con el scroll. La
@@ -3609,6 +3630,46 @@ select.input { text-overflow: ellipsis; }
   .psn-status-seg, .psn-inbox-filters, .cfg-nav, .dashboard-nav, .fin-mov-scroll {
     overscroll-behavior-x: contain;
   }
+}
+
+/* ============================================================
+   PANEL INTERNO — objetivos táctiles ≥44px
+   No agrandar visualmente los iconos compactos del topbar (rompería la
+   cabecera densa): se les extiende el ÁREA DE TOQUE con un ::after
+   transparente de 44×44 centrado. `.btn` no puede usar el mismo truco
+   (overflow:hidden por el sheen de .btn-gold lo recortaría) — ahí sube
+   min-height directamente.
+   ============================================================ */
+@media (pointer: coarse) {
+  .btn { min-height: 44px; }
+  .btn-sm { padding: .62rem 1rem; min-height: 44px; }
+
+  /* Dos chips de 38px con área de 44px se solapan ~1px por lado con el
+     gap original de .45rem. */
+  .dashboard-topbar-actions { gap: .5rem; }
+
+  .theme-toggle, .burger-btn, .notif-pill, .user-chip-btn,
+  .agenda-search-clear, .psn-search-clear,
+  .psn-res-quick button, .psn-res-quick a { position: relative; }
+  .theme-toggle::after, .burger-btn::after, .notif-pill::after, .user-chip-btn::after,
+  .agenda-search-clear::after, .psn-search-clear::after,
+  .psn-res-quick button::after, .psn-res-quick a::after {
+    content: ""; position: absolute; left: 50%; top: 50%;
+    width: max(100%, 44px); height: max(100%, 44px); transform: translate(-50%, -50%);
+  }
+
+  /* Estos sí crecen de verdad: a 24-28px no se leen como tocables. */
+  .agenda-view-tab { min-height: 36px; padding: .5rem .85rem; }
+  .agenda-period-toggle { min-height: 36px; padding: .45rem .75rem; }
+  .psn-status-seg button, .psn-seg button, .psn-view-toggle button { min-height: 38px; }
+  .psn-res-status, .psn-barber-filter,
+  .input, .client-search, .agenda-search,
+  .psn-inbox-search, .global-search-field { min-height: 44px; }
+
+  /* iOS hace zoom automático al enfocar un input con font-size < 16px. */
+  .input, .agenda-search-input, .client-search input,
+  .psn-inbox-search input, .global-search-field input,
+  .psn-res-status, .psn-barber-filter { font-size: 16px; }
 }
 
 /* ============================================================

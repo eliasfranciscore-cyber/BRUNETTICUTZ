@@ -1522,7 +1522,7 @@ export default function Dashboard() {
                     <div><strong>{client.visits || 0}</strong><span>visitas</span></div>
                     <div><strong>{CLP(client.totalSpent || 0)}</strong><span>{client.lastVisit || "sin visitas"}</span></div>
                     <button className="btn btn-dark btn-sm client-row-edit" onClick={(e) => { e.stopPropagation(); openClient(client, { edit: true }) }}>
-                      <Icon name="user" size={13} /> Editar
+                      <Icon name="user" size={13} /> <span className="btn-label">Editar</span>
                     </button>
                   </div>
                 ))}
