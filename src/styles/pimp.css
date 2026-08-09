@@ -3266,6 +3266,13 @@ select.input { text-overflow: ellipsis; }
 .agenda-search-clear { display: grid; place-items: center; border: 0; background: none; color: var(--muted); cursor: pointer; flex-shrink: 0; }
 .agenda-search-clear:hover { color: var(--ink); }
 [data-theme="light"] .agenda-search { background: rgba(0,0,0,.02); }
+@media (max-width: 560px) {
+  /* El topbar global ya trae logo/título: este kicker (no el de dentro del
+     hero, "AGENDA DE BRUNETTI") queda redundante y le resta una línea a la
+     agenda antes del contenido real. */
+  .agenda-topline > .agenda-kicker { display: none; }
+  .agenda-search { width: 100%; min-height: 44px; }
+}
 
 /* Chip "Próximo" del hero */
 .agenda-next-chip { display: inline-flex; align-items: center; gap: .35rem; margin-top: .35rem; padding: .28rem .65rem; border-radius: 999px; background: var(--gold-soft); color: var(--gold-bright); font-size: .72rem; font-weight: 500; }

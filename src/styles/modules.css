@@ -396,6 +396,19 @@ a.home-footer-access { display: inline-flex; align-items: center; gap: .4rem; te
   .psn-hk { min-height: 68px; }
   .psn-hk > b { font-size: 1.35rem; }
   .psn-hk-time { font-size: 1.45rem; }
+
+  /* Antes: .psn-seg, .psn-week-toggle (3 botones) y .psn-week-sum se
+     envolvían en un flex-wrap sin orden fijo — hasta 3 filas para leer la
+     semana. Una fila por bloque: segmento de rango, los 3 botones en grid
+     (Calendario colapsa a icono para que quepan Esta semana/Siguiente sin
+     recortarse) y el resumen al final. */
+  .psn-week-head { display: grid; grid-template-columns: 1fr; gap: .5rem; }
+  .psn-week-head > .psn-seg { justify-self: start; }   /* no estirar el pill Hoy/Semana/Todas */
+  .psn-week-toggle { display: grid; grid-template-columns: 1fr 1fr auto; gap: .4rem; width: 100%; }
+  .psn-week-toggle .btn { min-height: 44px; padding-inline: .6rem; min-width: 0; }
+  .psn-cal-btn { width: 44px; padding: 0; }
+  .psn-cal-btn .btn-label { display: none; }
+  .psn-week-sum { font-size: .74rem; white-space: normal; }
 }
 
 /* ---------- Reservas: tarjeta tappable + selector + modal de gestión ---------- */

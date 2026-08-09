@@ -531,7 +531,7 @@ export default function BookingsInbox({ bookings = [], barbers = [], barber, adm
             <div className="psn-week-toggle">
               <button type="button" className={`btn btn-sm ${weekOffset === 0 ? 'btn-gold' : 'btn-dark'}`} onClick={() => goToWeek(0)}>Esta semana</button>
               <button type="button" className={`btn btn-sm ${weekOffset === 1 ? 'btn-gold' : 'btn-dark'}`} onClick={() => goToWeek(1)}>Siguiente</button>
-              <button type="button" className="btn btn-dark btn-sm" onClick={() => setCalOpen(true)}><Icon name="calendar" size={13} /> Calendario</button>
+              <button type="button" className="btn btn-dark btn-sm psn-cal-btn" onClick={() => setCalOpen(true)}><Icon name="calendar" size={13} /> <span className="btn-label">Calendario</span></button>
             </div>
           )}
           <span className="psn-week-sum">{weekCount} reservas esta semana · <b className="gold-text">{CLP(weekRevenue)}</b></span>
