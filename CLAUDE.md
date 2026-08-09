@@ -204,9 +204,9 @@ npx web-push generate-vapid-keys
 
 ### Deploy to production
 ```bash
-git push origin desarrollo  # Push to branch
-npx vercel --prod --yes     # Deploy (project already linked in .vercel/)
+git push origin main  # Vercel is connected to this repo (main branch): pushing auto-deploys to brunetticutz.cl
 ```
+No `desarrollo`/staging branch — `main` is the only branch. A manual `npx vercel --prod --yes` still works as a fallback if a deploy needs to be redone without a new commit.
 
 ## Key Files to Know
 
@@ -223,13 +223,12 @@ npx vercel --prod --yes     # Deploy (project already linked in .vercel/)
 
 ## Deployment Checklist
 
-Before `npx vercel --prod`:
+Before pushing to `main`:
 1. Verify `PS_SESSION_SECRET` is set in Vercel (≥16 chars)
 2. Verify `DATABASE_URL` is accessible and schema is initialized
 3. If using Flow, verify `FLOW_API_KEY` and `FLOW_SECRET_KEY` are set
 4. Run `npm run build` locally and test with `npm run preview`
-5. Push to `desarrollo` branch first (staging; domain auto-deployed)
-6. Then `npx vercel --prod` for production (`brunetticutz.cl`)
+5. `git push origin main` — Vercel auto-deploys straight to production (`brunetticutz.cl`). There is no staging branch, so anything pushed to `main` goes live immediately.
 
 ## Visual Editor (dev-only)
 
