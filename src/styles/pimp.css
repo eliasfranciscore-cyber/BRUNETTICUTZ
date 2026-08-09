@@ -3064,51 +3064,9 @@ select.input { text-overflow: ellipsis; }
   flex-wrap: wrap;
   gap: .5rem;
 }
-.agenda-bulk-actions .btn { flex: 1 1 auto; min-width: 140px; white-space: nowrap; }
+.agenda-bulk-actions .btn { flex: 1 1 120px; min-width: 0; white-space: nowrap; }
+.agenda-bulk-actions .agenda-cal-wrap { flex: 0 0 auto; }
 
-/* Franja de días con scroll horizontal — permite recorrer varias semanas
-   con el dedo para elegir el día a configurar, en vez de un <select> ciego. */
-.agenda-day-scroll {
-  display: flex;
-  gap: .5rem;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scroll-snap-type: x proximity;
-  padding: .15rem .1rem .5rem;
-  margin: -.15rem -.1rem -.5rem;
-}
-.agenda-day-scroll::-webkit-scrollbar { display: none; }
-.agenda-day-pill {
-  flex: 0 0 auto;
-  scroll-snap-align: start;
-  display: grid;
-  justify-items: center;
-  gap: .25rem;
-  min-width: 52px;
-  padding: .55rem .4rem;
-  border-radius: 14px;
-  border: 1px solid var(--hair);
-  background: var(--panel);
-  color: var(--ink);
-  cursor: pointer;
-  transition: border-color .18s, background .18s, color .18s;
-}
-.agenda-day-pill:hover:not(.is-active) { border-color: var(--gold-line); background: rgba(201,161,78,.05); }
-.agenda-day-pill.is-active {
-  border-color: var(--gold-line);
-  background: rgba(201,161,78,.14);
-  color: var(--gold-lt);
-  box-shadow: 0 0 0 1px var(--gold-line) inset;
-}
-.agenda-day-pill-dow {
-  font-size: .64rem;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: var(--muted);
-  font-family: var(--font-display);
-}
-.agenda-day-pill.is-active .agenda-day-pill-dow { color: var(--gold-lt); }
-.agenda-day-pill-num { font-family: var(--font-display); font-weight: 600; font-size: 1rem; }
 
 .agenda-day-list {
   display: grid;
@@ -3312,19 +3270,13 @@ select.input { text-overflow: ellipsis; }
 /* Chip "Próximo" del hero */
 .agenda-next-chip { display: inline-flex; align-items: center; gap: .35rem; margin-top: .35rem; padding: .28rem .65rem; border-radius: 999px; background: var(--gold-soft); color: var(--gold-bright); font-size: .72rem; font-weight: 500; }
 
-/* Franja de días + botón calendario */
-.agenda-day-row { display: flex; align-items: flex-start; gap: .5rem; }
-.agenda-day-row .agenda-day-scroll { flex: 1; min-width: 0; }
+/* Botón calendario — ahora vive en .agenda-bulk-actions, junto a "Esta
+   semana"/"Siguiente" (ver .daypick más abajo para la franja de días). */
 .agenda-cal-wrap { position: relative; flex-shrink: 0; }
 .agenda-cal-btn { padding: .55rem .65rem; }
 .agenda-bulk-row { align-items: center; }
 .agenda-drag-hint { font-size: .72rem; color: var(--muted); margin-left: auto; align-self: center; white-space: nowrap; }
 @media (max-width: 560px) { .agenda-drag-hint { display: none; } }
-
-/* Punto indicador de reservas en la píldora de día */
-.agenda-day-pill-dot { width: 5px; height: 5px; border-radius: 50%; background: transparent; margin-top: 1px; }
-.agenda-day-pill-dot.is-on { background: var(--gold-bright); }
-.agenda-day-pill.is-active .agenda-day-pill-dot.is-on { background: var(--on-gold); }
 
 /* Toggle de vista Bloques / Línea */
 .agenda-view-toggle { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; border: 1px solid var(--hair-2); background: var(--hair); flex: 0 0 auto; }

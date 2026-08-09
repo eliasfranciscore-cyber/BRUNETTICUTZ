@@ -195,16 +195,60 @@
 .psn-week-head { display: flex; align-items: center; justify-content: space-between; gap: .6rem; flex-wrap: wrap; }
 .psn-week-toggle { display: flex; gap: .4rem; flex-wrap: wrap; }
 .psn-week-sum { font-size: .8rem; color: var(--muted); white-space: nowrap; }
-.psn-day-scroll { display: flex; gap: .5rem; overflow-x: auto; -webkit-overflow-scrolling: touch; padding: .3rem 0 .2rem; scrollbar-width: none; }
-.psn-day-scroll::-webkit-scrollbar { display: none; }
-.psn-day-pill { position: relative; flex: 1 0 auto; min-width: 58px; display: grid; justify-items: center; gap: .1rem; padding: .5rem .3rem; border-radius: 12px; border: 1px solid var(--hair); background: rgba(255,255,255,.02); cursor: pointer; color: var(--ink); transition: border-color .15s, background .15s; }
-.psn-day-dow { font-size: .62rem; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
-.psn-day-num { font-family: var(--font-display); font-size: 1.15rem; font-weight: 600; }
-.psn-day-pill.is-today { border-color: var(--gold-line); }
-.psn-day-pill.is-today .psn-day-dow { color: var(--gold-lt); }
-.psn-day-pill.is-active { border-color: var(--gold); background: rgba(201,161,78,.1); }
-.psn-day-pill.is-active .psn-day-num { color: var(--gold-lt); }
-.psn-day-badge { position: absolute; top: -6px; right: -4px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 99px; background: var(--gold-grad); color: #1a1206; font-size: .64rem; font-weight: 700; display: grid; place-items: center; box-shadow: 0 2px 6px rgba(0,0,0,.4); }
+/* ---------- Selector de día compartido (Agenda + Reservas) ----------
+   Antes: dos rieles con scroll horizontal (.agenda-day-scroll/.psn-day-scroll)
+   que pedían 415px en 301-343px disponibles — la píldora de hoy quedaba
+   FUERA de pantalla y los badges de conteo se recortaban contra el borde
+   superior del riel. Grilla de 7 columnas: semana completa, cero scroll
+   horizontal, un solo lenguaje visual (Dashboard.jsx y BookingsInbox.jsx). */
+.daypick { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .35rem; width: 100%; min-width: 0; }
+.daypick-btn {
+  position: relative; display: grid; justify-items: center; align-content: center; gap: .12rem;
+  min-height: 56px;                    /* ≥44pt HIG con holgura para dow+num+indicador */
+  padding: .45rem .15rem; border-radius: 12px;
+  border: 1px solid var(--hair); background: var(--fill-card, rgba(255,255,255,.02));
+  color: var(--ink); font: inherit; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: border-color .15s, background .15s, color .15s, transform .12s;
+}
+.daypick-btn:active { transform: scale(.96); }
+@media (hover: hover) {
+  .daypick-btn:hover:not(.is-active) { border-color: var(--gold-line); background: var(--gold-soft); }
+}
+.dp-dow { font-family: var(--font-display); font-size: .6rem; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); line-height: 1; }
+.dp-num { font-family: var(--font-display); font-weight: 600; font-size: 1.05rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+/* Altura fija: el botón no cambia de alto haya o no indicador, y el
+   indicador vive DENTRO del botón (el badge absoluto en top:-6px se
+   recortaba contra el borde superior del riel). */
+.dp-ind { height: 14px; display: grid; place-items: center; }
+.dp-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--gold-bright); }
+.dp-count {
+  min-width: 16px; height: 14px; padding: 0 4px; border-radius: 99px; background: var(--gold-soft);
+  color: var(--gold-lt); font-family: var(--font-display); font-size: .58rem; font-weight: 700;
+  display: grid; place-items: center; font-variant-numeric: tabular-nums;
+}
+.daypick-btn.is-today { border-color: var(--gold-line); }
+.daypick-btn.is-today .dp-dow { color: var(--gold-lt); }
+/* Día activo: dorado sólido (no un borde tenue) — se lee de un vistazo con
+   el teléfono en la mano, como el calendario nativo de iOS. */
+.daypick-btn.is-active { background: var(--gold-grad); border-color: transparent; color: var(--on-gold); box-shadow: 0 2px 10px rgba(201,161,78,.28); }
+.daypick-btn.is-active .dp-dow { color: var(--on-gold); opacity: .82; }
+.daypick-btn.is-active .dp-dot { background: var(--on-gold); }
+.daypick-btn.is-active .dp-count { background: var(--on-gold); color: var(--gold-lt); }
+@media (max-width: 360px) { .daypick { gap: .25rem; } .dp-num { font-size: .95rem; } .dp-dow { font-size: .55rem; } }
+[data-theme="light"] .daypick-btn:not(.is-active) { background: #fff; }
+
+/* Se queda pegado bajo el topbar mientras se scrollea la agenda/reservas:
+   es el control que más se toca en la jornada. */
+@media (max-width: 1024px) {
+  .daypick-sticky {
+    position: sticky; top: 48px; z-index: 20;
+    padding: .5rem 0; margin: 0 -.7rem; padding-inline: .7rem;
+    background: color-mix(in srgb, var(--surface) 88%, transparent);
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--hair);
+  }
+}
 .psn-search-clear { background: none; border: 0; color: var(--muted); cursor: pointer; display: grid; place-items: center; padding: 0 .1rem; }
 .psn-search-note { font-size: .78rem; color: var(--muted); display: flex; align-items: center; gap: .35rem; margin: -.35rem 0 0; }
 
@@ -352,7 +396,6 @@ a.home-footer-access { display: inline-flex; align-items: center; gap: .4rem; te
   .psn-hk { min-height: 68px; }
   .psn-hk > b { font-size: 1.35rem; }
   .psn-hk-time { font-size: 1.45rem; }
-  .psn-day-pill { min-width: 52px; }
 }
 
 /* ---------- Reservas: tarjeta tappable + selector + modal de gestión ---------- */
@@ -515,9 +558,7 @@ a.home-footer-access { display: inline-flex; align-items: center; gap: .4rem; te
 [data-theme="light"] .psn-hk-state.confirmada > b { color: #2f8f52; }
 [data-theme="light"] .psn-hk-state.en-curso > b { color: #3d6bd6; }
 [data-theme="light"] .psn-hk-time em { color: #2f8f52; background: rgba(111,191,134,.18); }
-[data-theme="light"] .psn-day-pill,
 [data-theme="light"] .psn-cal-day { background: #fff; }
-[data-theme="light"] .psn-day-pill.is-active,
 [data-theme="light"] .psn-cal-day.is-sel { background: rgba(201,161,78,.14); }
 [data-theme="light"] .psn-ring-bg { stroke: rgba(0,0,0,.1); }
 [data-theme="light"] .psn-donut::after { background: #fff; }

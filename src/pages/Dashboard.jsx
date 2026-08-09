@@ -1141,28 +1141,9 @@ export default function Dashboard() {
                 <button type="button" className={`btn btn-sm ${weekOffset === 1 ? "btn-gold" : "btn-dark"}`} onClick={() => goToWeek(1)}>
                   Semana siguiente
                 </button>
-              </div>
-              <div className="agenda-day-row">
-                <div className="agenda-day-scroll">
-                  {weekDays.map((d) => {
-                    const isActive = d.key === agendaDayKey
-                    const isToday = d.key === isoDate(new Date())
-                    const hasBookings = (availability[d.key] || []).some((s) => s.state === "booked")
-                    const [dow, num] = d.label.split(" ")
-                    return (
-                      <button
-                        key={d.key}
-                        type="button"
-                        className={`agenda-day-pill ${isActive ? "is-active" : ""}`}
-                        onClick={() => setAgendaDayKey(d.key)}
-                      >
-                        <span className="agenda-day-pill-dow">{isToday ? "Hoy" : dow}</span>
-                        <span className="agenda-day-pill-num">{num}</span>
-                        <span className={`agenda-day-pill-dot ${hasBookings ? "is-on" : ""}`} />
-                      </button>
-                    )
-                  })}
-                </div>
+                {/* El botón de calendario vive acá (no en la franja de días): a 320px
+                    de ancho, sacarlo de esa fila es lo que hace viable mostrar los
+                    7 días en una grilla sin scroll horizontal. */}
                 <div className="agenda-cal-wrap" ref={calRef}>
                   <button type="button" className="btn btn-dark btn-sm agenda-cal-btn" onClick={() => setCalOpen((v) => !v)} aria-label="Elegir fecha">
                     <Icon name="calendar" size={14} />
@@ -1179,6 +1160,27 @@ export default function Dashboard() {
                     />
                   )}
                 </div>
+              </div>
+              <div className="daypick daypick-sticky" role="group" aria-label="Día de la semana">
+                {weekDays.map((d) => {
+                  const isActive = d.key === agendaDayKey
+                  const isToday = d.key === isoDate(new Date())
+                  const hasBookings = (availability[d.key] || []).some((s) => s.state === "booked")
+                  const [dow, num] = d.label.split(" ")
+                  return (
+                    <button
+                      key={d.key}
+                      type="button"
+                      className={`daypick-btn ${isActive ? "is-active" : ""} ${isToday ? "is-today" : ""}`}
+                      aria-pressed={isActive}
+                      onClick={() => setAgendaDayKey(d.key)}
+                    >
+                      <span className="dp-dow">{isToday ? "Hoy" : dow}</span>
+                      <span className="dp-num">{num}</span>
+                      <span className="dp-ind">{hasBookings && <span className="dp-dot" />}</span>
+                    </button>
+                  )
+                })}
               </div>
               {/* Antes eran 6 botones sueltos (mañana/tarde/día/semana × bloquear/
                   habilitar) todos visibles a la vez. Mañana/tarde ahora son un

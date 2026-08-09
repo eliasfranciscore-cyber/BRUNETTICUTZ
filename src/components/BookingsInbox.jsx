@@ -280,7 +280,6 @@ export default function BookingsInbox({ bookings = [], barbers = [], barber, adm
   const [selectedDay, setSelectedDay] = useState(() => isoDate())
   const [calOpen, setCalOpen] = useState(false)
   const [slideKey, setSlideKey] = useState(0) // re-dispara animate-in al cambiar de día
-  const dayScrollRef = useRef(null)
   const touchX = useRef(null)
 
   useEffect(() => { try { localStorage.setItem('ps_res_view', viewMode) } catch {} }, [viewMode])
@@ -403,11 +402,6 @@ export default function BookingsInbox({ bookings = [], barbers = [], barber, adm
       if (buildWeek(o).some((d) => d.key === key)) { setWeekOffset(o); break }
     }
   }
-  // Auto-scroll del día activo a la vista.
-  useEffect(() => {
-    const el = dayScrollRef.current?.querySelector('.is-active')
-    el?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
-  }, [selectedDay, weekOffset])
 
   // Foco externo (desde la búsqueda global): salta a una fecha ARBITRARIA.
   // pickFromCalendar sólo escanea −1..+4 semanas, así que aquí calculamos el
@@ -542,16 +536,16 @@ export default function BookingsInbox({ bookings = [], barbers = [], barber, adm
           )}
           <span className="psn-week-sum">{weekCount} reservas esta semana · <b className="gold-text">{CLP(weekRevenue)}</b></span>
         </div>
-        {dateScope !== 'todas' && <div className="psn-day-scroll" ref={dayScrollRef}>
+        {dateScope !== 'todas' && <div className="daypick" role="group" aria-label="Día de la semana">
           {weekDays.map((d) => {
             const n = countsByDay[d.key] || 0
             const isActive = d.key === selectedDay && dateScope === 'dia'
             const isTdy = d.key === todayKey
             return (
-              <button key={d.key} type="button" className={`psn-day-pill ${isActive ? 'is-active' : ''} ${isTdy ? 'is-today' : ''}`} onClick={() => selectDay(d.key)}>
-                <span className="psn-day-dow">{isTdy ? 'Hoy' : d.dow}</span>
-                <span className="psn-day-num">{d.num}</span>
-                {n > 0 && <span className="psn-day-badge">{n}</span>}
+              <button key={d.key} type="button" className={`daypick-btn ${isActive ? 'is-active' : ''} ${isTdy ? 'is-today' : ''}`} aria-pressed={isActive} onClick={() => selectDay(d.key)}>
+                <span className="dp-dow">{isTdy ? 'Hoy' : d.dow}</span>
+                <span className="dp-num">{d.num}</span>
+                <span className="dp-ind">{n > 0 && <span className="dp-count">{n}</span>}</span>
               </button>
             )
           })}
