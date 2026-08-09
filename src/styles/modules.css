@@ -810,18 +810,31 @@ a.home-footer-access { display: inline-flex; align-items: center; gap: .4rem; te
   .dk-hero-grid, .dk-hero-grid.cols-5, .dk-hero-grid.cols-6 { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 560px) {
-  .dk-hero { padding: .9rem .95rem; }
-  .dk-hero-grid, .dk-hero-grid.cols-5, .dk-hero-grid.cols-6 { grid-template-columns: 1fr; gap: .8rem; }
+  .dk-hero { padding: .85rem .9rem; }
+  /* Antes: 1 columna. En Agenda las 4 KpiTile quedaban 310×76 apiladas y el
+     hero medía 548px de 812 (67% de la pantalla) — había que scrollear todo
+     el encabezado antes de ver la agenda real. 2 columnas + lead/botón a
+     ancho completo. Vale para los 3 consumidores de dk-hero-grid (Agenda
+     cols-6, Gastos cols-5, Resumen 4-col) sin tocar su JSX. */
+  .dk-hero-grid, .dk-hero-grid.cols-5, .dk-hero-grid.cols-6 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .6rem; }
+  .dk-hero-grid > *:first-child { grid-column: 1 / -1; }
+  .dk-hero-grid > .btn { grid-column: 1 / -1; width: 100%; justify-content: center; min-height: 48px; }
+  .dk-hero-grid.cols-5 > *:nth-child(4) { grid-column: 1 / -1; }  /* Gastos: 3 tiles, la 3ª ocupa la fila */
   .dk-hero-big { font-size: 1.7rem; }
-  .dk-kpi { min-height: 64px; }
-  .dk-kpi-val { font-size: 1.25rem; }
+  .dk-kpi { min-height: 58px; padding: .5rem .6rem .5rem .75rem; }
+  .dk-kpi-val { font-size: 1.2rem; }
+  .dk-kpi-lbl { font-size: .58rem; letter-spacing: .06em; }
   .dk-cat-grid { grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); }
+
+  /* Encoger el anillo con precisión: sólo el <svg> del AnimatedRing dentro
+     del bloque lead, nunca un Sparkline u otro svg del hero. */
+  .dk-hero-lead { display: flex; align-items: center; gap: .9rem; min-width: 0; }
+  .dk-hero-lead > div { min-width: 0; }
+  .dk-hero-lead > svg { width: 64px; height: 64px; }   /* viewBox 0 0 84 84 escala limpio */
+  .dk-hero-lead .agenda-kicker-hero { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 }
 @media (max-width: 360px) {
   .agenda-tile-grid { grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); }
-}
-@media (max-width: 560px) {
-  .dk-hero-grid.cols-6 > .btn { width: 100%; justify-content: center; }
 }
 
 /* --- Modo claro --- */

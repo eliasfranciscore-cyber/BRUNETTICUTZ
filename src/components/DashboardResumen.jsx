@@ -328,7 +328,7 @@ export default function DashboardResumen({ bookings = [], barbers = [], expenses
             )}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '.7rem' }}>
+          <div className="dk-hero-lead">
             <AnimatedRing pct={occupancy} size={84} />
             <div>
               <b style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem' }}>{bookedToday}/{bookedToday + freeToday}</b>

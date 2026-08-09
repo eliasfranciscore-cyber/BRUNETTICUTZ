@@ -1106,7 +1106,7 @@ export default function Dashboard() {
               return (
                 <div className="dk-hero">
                   <div className="dk-hero-grid cols-6 dk-stagger">
-                    <div style={{ display: "flex", alignItems: "center", gap: ".9rem" }}>
+                    <div className="dk-hero-lead">
                       <AnimatedRing pct={dayOcc} size={84} label="del día" />
                       <div>
                         <span className="agenda-kicker agenda-kicker-hero">AGENDA DE BRUNETTI</span>
