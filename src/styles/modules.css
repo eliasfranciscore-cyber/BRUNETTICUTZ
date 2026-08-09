@@ -113,6 +113,27 @@
 .psn-actions { display: grid; gap: .55rem; }
 .psn-actions-note { margin: .4rem 0 0; font-size: .74rem; color: var(--muted); }
 
+/* Bottom sheet en móvil para los modales centrados (ResModal, ConfirmDelete,
+   CalendarModal, NewBookingModal, BookingDetailModal — todos comparten
+   .psn-modal/.psn-modal-card). El drawer lateral (.is-drawer, Gastos) ya
+   tiene su propio tratamiento y queda excluido. Sube desde abajo: el pulgar
+   llega directo a las acciones, como el resto del sistema en iOS. */
+@media (max-width: 560px) {
+  .psn-modal:not(.is-drawer) { align-items: flex-end; }
+  .psn-modal:not(.is-drawer) .psn-modal-card {
+    width: 100%; max-width: none; max-height: 88vh; overflow-y: auto;
+    border-radius: 20px 20px 0 0;
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+    animation: sheet-up .28s cubic-bezier(.2,.8,.2,1);
+  }
+  .psn-modal:not(.is-drawer) .psn-modal-card::before {
+    content: ""; display: block; width: 36px; height: 4px; border-radius: 99px;
+    background: var(--hair-2); margin: -.2rem auto .8rem;
+  }
+}
+@keyframes sheet-up { from { transform: translateY(14%); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .psn-modal-card { animation: none; } }
+
 /* ---------- 2) RESERVAS bandeja ---------- */
 .psn-inbox, .psn-dash { display: grid; gap: 1.1rem; }
 .psn-inbox-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: .7rem; }
