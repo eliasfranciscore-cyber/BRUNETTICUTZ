@@ -13,6 +13,19 @@ const MIN_BOOKING_LEAD_MINUTES = 55
 const MAX_BOOKINGS_PER_DAY = 2
 const BUSINESS_TZ = "America/Santiago"
 
+// Puente de servicio para PimpStudio: Bruno tiene una sola agenda, pero se
+// reserva/gestiona desde dos sitios con bases de datos separadas. PimpStudio
+// llama estos endpoints servidor-a-servidor (nunca desde el navegador del
+// cliente) con este secreto compartido, acotado siempre a su propio barbero.
+const BRIDGE_SECRET = process.env.PIMPSTUDIO_BRIDGE_SECRET || ""
+const BRIDGE_BARBER_ID = 6
+
+function isBridgeRequest(req) {
+  if (!BRIDGE_SECRET) return false
+  const key = req.headers["x-bridge-secret"]
+  return typeof key === "string" && key === BRIDGE_SECRET
+}
+
 // Vercel ejecuta las funciones en UTC: calcular "hoy" con new Date() ahí
 // corre la fecha un día durante la noche/madrugada en Chile. Formateamos en
 // la zona horaria del negocio para que coincida con lo que ve el cliente.
@@ -62,8 +75,14 @@ export default async function handler(req, res) {
         }
       }
       if (!phone) {
-        const session = requireInternal(req, res)
-        if (!session) return
+        const bridge = isBridgeRequest(req)
+        if (!bridge) {
+          const session = requireInternal(req, res)
+          if (!session) return
+        }
+        // El puente solo puede ver la agenda de Bruno, sin importar qué
+        // barberId le pasen: nunca datos de otros barberos de PimpStudio.
+        const scopeBarberId = bridge ? BRIDGE_BARBER_ID : barberId || null
         const bookings = await sql`
           SELECT b.id, b.booking_date::text as date, b.booking_time::text as time,
                  b.barber_id as "barberId", br.name as barber, u.name as client, u.phone,
@@ -73,7 +92,7 @@ export default async function handler(req, res) {
           JOIN users u ON b.client_id = u.id
           LEFT JOIN services s ON b.service_id = s.id
           JOIN barbers br ON b.barber_id = br.id
-          WHERE (${barberId || null}::int IS NULL OR b.barber_id = ${barberId || null}::int)
+          WHERE (${scopeBarberId}::int IS NULL OR b.barber_id = ${scopeBarberId}::int)
             AND (${date || null}::date IS NULL OR b.booking_date = ${date || null}::date)
           ORDER BY b.booking_date DESC, b.booking_time DESC
           LIMIT 160
@@ -329,11 +348,22 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "PATCH") {
-      const session = requireInternal(req, res)
-      if (!session) return
+      const bridge = isBridgeRequest(req)
+      if (!bridge) {
+        const session = requireInternal(req, res)
+        if (!session) return
+      }
       const { id, status } = req.body || {}
       const allowed = new Set(["pendiente", "confirmada", "en curso", "completada", "cancelada"])
       if (!id || !allowed.has(status)) return res.status(400).json({ ok: false, error: "Estado invalido" })
+      if (bridge) {
+        // El secreto compartido nunca debe poder tocar reservas de otro
+        // barbero, aunque hoy solo exista Bruno en esta base de datos.
+        const [target] = await sql`SELECT barber_id as "barberId" FROM bookings WHERE id = ${Number(id)}`
+        if (!target || Number(target.barberId) !== BRIDGE_BARBER_ID) {
+          return res.status(403).json({ ok: false, error: "No autorizado" })
+        }
+      }
       const [booking] = await sql`
         UPDATE bookings
         SET status = ${status}, updated_at = NOW()
