@@ -5,6 +5,20 @@ import { ALL_SLOTS, blocksForDuration, slotsForBooking } from "./_slots.js"
 const BUSINESS_TZ = "America/Santiago"
 const MIN_LEAD_MINUTES = 55
 
+// Mismo secreto/patrón que bookings.js: PimpStudio llama estos endpoints
+// servidor-a-servidor para que Bruno pueda bloquear/abrir sus propios
+// horarios desde el panel de PimpStudio. Acotado siempre a su propio
+// barbero (BRIDGE_BARBER_ID) — el secreto no debe poder tocar la
+// disponibilidad de nadie más.
+const BRIDGE_SECRET = process.env.PIMPSTUDIO_BRIDGE_SECRET || ""
+const BRIDGE_BARBER_ID = 6
+
+function isBridgeRequest(req) {
+  if (!BRIDGE_SECRET) return false
+  const key = req.headers["x-bridge-secret"]
+  return typeof key === "string" && key === BRIDGE_SECRET
+}
+
 // Igual que en bookings.js: calculamos "hoy" y la hora actual en la zona
 // horaria del negocio, no en UTC (Vercel corre las funciones en UTC).
 function businessDateKey(date) {
@@ -29,12 +43,17 @@ export default async function handler(req, res) {
   try {
     const sql = neon(process.env.DATABASE_URL)
     if (req.method === "POST") {
-      const session = requireInternal(req, res)
-      if (!session) return
+      const bridge = isBridgeRequest(req)
+      if (bridge) {
+        if (Number(barberId) !== BRIDGE_BARBER_ID) return res.status(403).json({ ok: false, error: "No autorizado" })
+      } else {
+        const session = requireInternal(req, res)
+        if (!session) return
+      }
       if (!slot) return res.status(400).json({ ok: false, error: "slot requerido" })
       const [block] = await sql`
         INSERT INTO availability_blocks (barber_id, block_date, slot_time, reason)
-        VALUES (${Number(barberId)}, ${date}, ${slot}, ${reason || "Bloqueado desde panel"})
+        VALUES (${Number(barberId)}, ${date}, ${slot}, ${reason || (bridge ? "Bloqueado desde PimpStudio" : "Bloqueado desde panel")})
         ON CONFLICT (barber_id, block_date, slot_time) DO UPDATE SET reason = EXCLUDED.reason
         RETURNING id, barber_id as "barberId", block_date::text as date, slot_time::text as slot, reason
       `
@@ -42,8 +61,13 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "DELETE") {
-      const session = requireInternal(req, res)
-      if (!session) return
+      const bridge = isBridgeRequest(req)
+      if (bridge) {
+        if (Number(barberId) !== BRIDGE_BARBER_ID) return res.status(403).json({ ok: false, error: "No autorizado" })
+      } else {
+        const session = requireInternal(req, res)
+        if (!session) return
+      }
       if (!slot) return res.status(400).json({ ok: false, error: "slot requerido" })
       await sql`
         DELETE FROM availability_blocks
