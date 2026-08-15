@@ -25,6 +25,14 @@ export const ICONS = {
   calendar: "M7 3v3M17 3v3M3.5 9h17M5 5h14a1.5 1.5 0 0 1 1.5 1.5V19A1.5 1.5 0 0 1 19 20.5H5A1.5 1.5 0 0 1 3.5 19V6.5A1.5 1.5 0 0 1 5 5z",
   clock: "M12 7v5l3 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z",
   user: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4.5 20a7.5 7.5 0 0 1 15 0",
+  users: "M16 14a4 4 0 1 0-4-4M2 20a6 6 0 0 1 12 0M22 20a5 5 0 0 0-7-4.6",
+  megaphone: "M3 11v2a1 1 0 0 0 1 1h2l6 4V6L6 10H4a1 1 0 0 0-1 1zM16 9a4 4 0 0 1 0 6M6 14v5",
+  apple: "M12 7c-1.6-1.9-4.3-1.6-5.6.3-1.4 2-1 5.2.7 7.9 1 1.6 2.1 2.8 3.2 2.8.8 0 1.2-.5 2.2-.5s1.3.5 2.2.5c1.1 0 2.1-1.2 3-2.7.6-1 .9-1.9 1-2.2-2.2-.9-2.6-4-.4-5.3-.9-1.2-2.3-1.6-3.5-1.3M12.5 5.5a2.7 2.7 0 0 0 1.9-2.4 2.8 2.8 0 0 0-2.2 1",
+  android: "M6 11a6 6 0 0 1 12 0v6a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1zM8 8L6.5 5.5M16 8l1.5-2.5M9.5 11h.01M14.5 11h.01",
+  target: "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM12 13.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z",
+  mail: "M3.5 6h17a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1h-17a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1zM3 7l9 6 9-6",
+  send: "M21 3L10.5 13.5M21 3l-6.5 18-4-8-8-4L21 3z",
+  percent: "M6 18L18 6M7.5 9a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zM16.5 18a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z",
   phone: "M5 4h3l1.5 5-2 1.5a11 11 0 0 0 5 5l1.5-2 5 1.5v3a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z",
   chart: "M4 20V4M4 20h16M8 16v-4M12 16V8M16 16v-6M20 16v-9",
   wallet: "M4 7h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4zM4 7V6a2 2 0 0 1 2-2h10M17 13h.5",
@@ -84,17 +92,21 @@ export function Reveal({ children, className = "", as = "div", stagger = false, 
   return <Tag ref={ref} className={`${base} ${seen ? "is-in" : ""} ${className}`} style={style}>{children}</Tag>
 }
 
-export function Stat({ icon, label, value, delta, suffix, accent }) {
+export function Stat({ icon, label, value, delta, suffix, accent, hint }) {
   const up = delta >= 0
   return (
     <div className="card" style={{ padding: "1.1rem 1.2rem", display: "grid", gap: ".6rem", borderTop: accent ? "1px solid var(--gold-line)" : undefined }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: ".4rem" }}>
-        <span style={{ fontSize: ".66rem", letterSpacing: ".12em", textTransform: "uppercase", color: "var(--muted)", fontFamily: "var(--font-display)", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</span>
-        <span style={{ color: accent ? "var(--gold)" : "var(--muted)", flexShrink: 0, display: "inline-flex" }}><Icon name={icon} size={17} /></span>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: ".5rem" }}>
+        {/* El label se parte en hasta 2 líneas en vez de cortarse con "…":
+            en el ancho de un celular, etiquetas como "Corte gratis listo"
+            quedaban ilegibles con un solo renglón y ellipsis. */}
+        <span style={{ fontSize: ".66rem", letterSpacing: ".1em", textTransform: "uppercase", color: "var(--muted)", fontFamily: "var(--font-display)", minWidth: 0, lineHeight: 1.25, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", overflowWrap: "anywhere" }}>{label}</span>
+        <span style={{ color: accent ? "var(--gold)" : "var(--muted)", flexShrink: 0, display: "inline-flex", marginTop: "-.1rem" }}><Icon name={icon} size={17} /></span>
       </div>
       <div style={{ fontFamily: "var(--font-display)", fontSize: "clamp(1.35rem, 5vw, 1.85rem)", fontWeight: 600, letterSpacing: "-.01em", fontVariantNumeric: "tabular-nums", color: accent ? "var(--gold)" : "var(--ink)", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
         {value}{suffix && <span style={{ fontSize: "1rem", color: "var(--muted)", marginLeft: ".15em" }}>{suffix}</span>}
       </div>
+      {hint && <div style={{ fontSize: ".7rem", color: "var(--muted-2)", lineHeight: 1.35, marginTop: "-.2rem" }}>{hint}</div>}
       {delta != null && (
         <div style={{ display: "flex", alignItems: "center", gap: ".35rem", fontSize: ".74rem", color: up ? "#9fd0a0" : "#d99a8f" }}>
           <Icon name="trend" size={14} style={{ transform: up ? "none" : "scaleY(-1)" }} />

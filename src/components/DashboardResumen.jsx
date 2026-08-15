@@ -169,7 +169,7 @@ function mondayOf(date) {
   return d
 }
 
-export default function DashboardResumen({ bookings = [], barbers = [], expenses = [], clients = [], todaySlots = [], onNewBooking, onGoToPending }) {
+export default function DashboardResumen({ bookings = [], barbers = [], expenses = [], clients = [], todaySlots = [], walletStats = null, onNewBooking, onGoToPending, onGoToMarketing }) {
   const todayKey = localDateKey(new Date())
   const monthKey = todayKey.slice(0, 7)
   const today = useMemo(() => bookings.filter((b) => !b.date || b.date === todayKey).sort((a, b) => String(a.time).localeCompare(String(b.time))), [bookings, todayKey])
@@ -352,6 +352,15 @@ export default function DashboardResumen({ bookings = [], barbers = [], expenses
         <KpiTile icon="close"  label="Tasa de cancelación"  value={cancelRatePct} suffix="%" color="#e0897a" sub="últimos 30 días" />
         <KpiTile icon="user"   label="Clientes nuevos"      value={newClients} />
         <KpiTile icon="spark"  label="Clientes recurrentes" value={retention} suffix="%" color="var(--gold-lt)" />
+        {/* Adopción de la tarjeta de fidelidad. Las cifras vienen del puente
+            con PimpStudio (el programa es uno solo, ver CLAUDE.md): mientras
+            no lleguen, la tarjeta no se dibuja — un 0 acá se leería como
+            "nadie la instaló" y es solo que todavía está cargando. */}
+        {walletStats && (
+          <KpiTile icon="wallet" label="Tarjetas en Wallet" value={walletStats.installed}
+            sub={`${walletStats.installRate}% de ${walletStats.passesIssued} emitidas`}
+            onClick={onGoToMarketing} />
+        )}
       </div>
 
       <div className="psn-bento">

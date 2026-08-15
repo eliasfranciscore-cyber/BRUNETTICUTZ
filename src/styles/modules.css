@@ -894,3 +894,202 @@ a.home-footer-access { display: inline-flex; align-items: center; gap: .4rem; te
 [data-theme="light"] .dk-ring-track { stroke: rgba(0,0,0,.09); }
 [data-theme="light"] .dk-progress { background: rgba(0,0,0,.09); }
 [data-theme="light"] .dk-suggest { background: #fff; box-shadow: 0 18px 50px rgba(30,25,15,.18); }
+
+/* ===========================================================================
+   Pestaña Marketing (panel) — layout compartido por BrunettiCutz y PimpStudio
+   ---------------------------------------------------------------------------
+   Existe porque la pestaña se veía rota instalada como PWA en el celular: los
+   estilos iban inline con anchos fijos (inputs de 150/210px en fila, un
+   <select> de audiencias, botones que no bajaban de línea), así que en 360px
+   se salían del ancho y los textos quedaban cortados con "…".
+
+   Regla de este archivo: nada con ancho fijo. Todo es grid con minmax() o
+   flex con wrap, y en móvil los controles ocupan el ancho completo.
+   ========================================================================= */
+
+.mkt { display: grid; gap: 1.1rem; }
+
+/* KPIs — 2 columnas en celular, las que quepan en escritorio. minmax(150px)
+   y no 180px: con 180 el iPhone SE cae a una sola columna y la lista de
+   métricas se vuelve un scroll larguísimo. */
+.mkt-kpis {
+  display: grid;
+  gap: .7rem;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+@media (max-width: 400px) { .mkt-kpis { gap: .55rem; grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Encabezado de bloque dentro de un Panel */
+.mkt-sub {
+  font-size: .7rem;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+}
+.mkt-note { margin: 0; font-size: .74rem; line-height: 1.5; color: var(--muted); }
+.mkt-block { display: grid; gap: .6rem; padding-top: .85rem; border-top: 1px solid var(--hair); }
+
+/* Audiencias — botones tipo chip con su contador. Reemplazan al <select>:
+   en móvil un select nativo esconde el tamaño de cada audiencia justo cuando
+   es el dato que decide el envío. Se envuelven, no hacen scroll horizontal
+   (una audiencia fuera de vista es una audiencia que no se elige). */
+.mkt-auds { display: flex; flex-wrap: wrap; gap: .4rem; }
+.mkt-aud {
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .45rem .7rem;
+  border-radius: 999px;
+  border: 1px solid var(--hair-2);
+  background: rgba(0, 0, 0, .22);
+  color: var(--muted);
+  font-size: .74rem;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: border-color .18s ease, color .18s ease, background .18s ease;
+  /* 44px de alto real: es un control táctil, no un link */
+  min-height: 38px;
+}
+.mkt-aud:hover { color: var(--ink); border-color: var(--gold-line, var(--hair-2)); }
+.mkt-aud.is-on {
+  color: var(--ink);
+  border-color: var(--gold);
+  background: rgba(201, 161, 78, .14);
+}
+.mkt-aud b { font-weight: 600; }
+.mkt-aud .n {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  font-size: .7rem;
+  padding: .05rem .38rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .07);
+  color: var(--muted-2);
+}
+.mkt-aud.is-on .n { background: var(--gold-grad, rgba(201, 161, 78, .3)); color: #1a1408; }
+.mkt-aud:disabled { opacity: .4; cursor: not-allowed; }
+
+/* Redactar */
+.mkt-ta {
+  width: 100%;
+  resize: vertical;
+  min-height: 84px;
+  padding: .7rem .8rem;
+  border-radius: 12px;
+  border: 1px solid var(--hair-2);
+  background: rgba(0, 0, 0, .25);
+  color: var(--ink);
+  font: inherit;
+  font-size: .88rem;
+  line-height: 1.45;
+  /* 16px reales al enfocar evitan el zoom automático de iOS Safari, que
+     dejaba el panel desalineado al volver del teclado. */
+}
+@media (max-width: 640px) { .mkt-ta { font-size: 16px; } }
+.mkt-ta:focus { outline: none; border-color: var(--gold); }
+
+.mkt-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: .6rem;
+  flex-wrap: wrap;
+  font-size: .7rem;
+  color: var(--muted-2);
+}
+.mkt-count { font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.mkt-count.is-near { color: var(--gold); }
+
+/* Plantillas rápidas */
+.mkt-tpls { display: flex; flex-wrap: wrap; gap: .35rem; }
+.mkt-tpl {
+  border: 1px dashed var(--hair-2);
+  background: transparent;
+  color: var(--muted);
+  border-radius: 999px;
+  padding: .32rem .6rem;
+  font-size: .7rem;
+  cursor: pointer;
+  min-height: 32px;
+}
+.mkt-tpl:hover { color: var(--ink); border-color: var(--gold-line, var(--hair-2)); border-style: solid; }
+
+/* Vista previa: imita la franja de mensaje del pase en Wallet */
+.mkt-preview {
+  display: grid;
+  gap: .3rem;
+  padding: .75rem .85rem;
+  border-radius: 12px;
+  border: 1px solid var(--hair-2);
+  background: linear-gradient(160deg, rgba(201, 161, 78, .12), rgba(0, 0, 0, .3));
+}
+.mkt-preview .who {
+  font-size: .64rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.mkt-preview .msg { font-size: .86rem; line-height: 1.45; color: var(--ink); overflow-wrap: anywhere; }
+.mkt-preview .to { font-size: .68rem; color: var(--muted-2); }
+
+/* Acciones: en móvil van a ancho completo y en columna. Antes eran botones
+   sueltos en flex-wrap y "Enviar" terminaba solo en una línea, medio ancho. */
+.mkt-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+.mkt-actions > * { flex: 1 1 auto; }
+@media (max-width: 520px) {
+  .mkt-actions { flex-direction: column; }
+  .mkt-actions > * { width: 100%; }
+}
+
+/* Campos del envío por correo: se apilan solos, sin anchos fijos en px */
+.mkt-fields { display: grid; gap: .5rem; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+.mkt-input {
+  width: 100%;
+  padding: .55rem .7rem;
+  border-radius: 10px;
+  border: 1px solid var(--hair-2);
+  background: rgba(0, 0, 0, .25);
+  color: var(--ink);
+  font: inherit;
+  font-size: .82rem;
+}
+@media (max-width: 640px) { .mkt-input { font-size: 16px; } }
+.mkt-input:focus { outline: none; border-color: var(--gold); }
+
+/* Historial — dos líneas por campaña, el mensaje puede envolver. La versión
+   anterior usaba nowrap + ellipsis y el barbero no podía leer lo que mandó. */
+.mkt-hist { display: grid; gap: .7rem; }
+.mkt-hist-row { display: grid; gap: .2rem; font-size: .78rem; }
+.mkt-hist-row .msg { color: var(--ink); line-height: 1.4; overflow-wrap: anywhere; }
+.mkt-hist-row .meta {
+  font-size: .68rem;
+  color: var(--muted-2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: .3rem .5rem;
+}
+.mkt-hist-row .meta .src {
+  border: 1px solid var(--hair-2);
+  border-radius: 999px;
+  padding: 0 .4rem;
+}
+
+/* Histograma de estrellas 0..10 */
+.mkt-bars {
+  display: grid;
+  grid-template-columns: repeat(11, 1fr);
+  gap: .25rem;
+  align-items: end;
+  height: 92px;
+}
+.mkt-bar { display: grid; gap: .25rem; justify-items: center; align-content: end; height: 100%; }
+.mkt-bar i { width: 100%; max-width: 26px; border-radius: 4px 4px 0 0; background: rgba(201, 161, 78, .32); display: block; }
+.mkt-bar.is-goal i { background: var(--gold-grad, var(--gold)); }
+.mkt-bar span { font-size: .6rem; color: var(--muted-2); font-variant-numeric: tabular-nums; }
+
+/* Barra de progreso simple (adopción de Wallet) */
+.mkt-meter { height: 7px; border-radius: 999px; background: rgba(255, 255, 255, .07); overflow: hidden; }
+.mkt-meter i { display: block; height: 100%; border-radius: 999px; background: var(--gold-grad, var(--gold)); }

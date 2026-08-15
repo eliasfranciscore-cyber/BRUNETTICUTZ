@@ -216,6 +216,43 @@ function BookingDetailModal({ booking, clients, onClose, onConfirm, onCancel, on
   ), document.body)
 }
 
+/* ============================================================
+   Campañas por Wallet — audiencias y plantillas
+   ------------------------------------------------------------
+   Los ids TIENEN que calzar con CAMPAIGN_AUDIENCES en api/_loyalty.js del
+   proyecto PimpStudio: es allá donde se traducen a un SELECT (el programa de
+   fidelidad es uno solo, ver CLAUDE.md). Si acá aparece un id que allá no
+   existe, el backend lo degrada silenciosamente a "todos" — que es
+   exactamente el error caro: mandarle a los 200 lo que era para 12.
+
+   Brunetti y Pimp Studio comparten el pase, pero no el ticket: los servicios
+   de Brunetti valen bastante más, así que las audiencias `brunetti` / `pimp`
+   existen para poder mandar promos con precios distintos a cada grupo sin
+   que se crucen. Quien va a los dos locales cuenta como cliente de Brunetti.
+   ============================================================ */
+const AUDIENCES = [
+  { id: "all",            icon: "users",     label: "Todos",            desc: "Todos los que tienen la tarjeta agregada." },
+  { id: "brunetti",       icon: "scissors",  label: "Solo Brunetti",    desc: "Clientes que se atienden acá. Ticket más alto: promos propias." },
+  { id: "pimp",           icon: "star",      label: "Solo Pimp Studio", desc: "Clientes del otro local. Quien va a los dos cuenta como Brunetti." },
+  { id: "free_cut_ready", icon: "gift",      label: "Corte gratis",     desc: "Con 10 estrellas: el próximo corte les sale gratis." },
+  { id: "almost_free",    icon: "target",    label: "A punto",          desc: "Entre 7 y 9 estrellas. Les falta poco, es el mejor empujón." },
+  { id: "five_plus",      icon: "percent",   label: "5+ estrellas",     desc: "Ya tienen 30% en productos." },
+  { id: "starters",       icon: "user",      label: "Recién parten",    desc: "0 o 1 estrella: todavía hay que engancharlos." },
+  { id: "active",         icon: "trend",     label: "Vinieron hace poco", desc: "Con una hora en los últimos 30 días." },
+  { id: "inactive",       icon: "clock",     label: "Sin venir 30+ días", desc: "El público de una promo de reactivación." },
+]
+const AUDIENCE_BY_ID = Object.fromEntries(AUDIENCES.map((a) => [a.id, a]))
+const AUDIENCE_LABEL = Object.fromEntries(AUDIENCES.map((a) => [a.id, a.label]))
+
+/* Arranques de mensaje, no textos definitivos: rellenan el textarea para que
+   el barbero edite en vez de mirar un campo en blanco. */
+const CAMPAIGN_TEMPLATES = [
+  "Esta semana: 20% en perfilado de barba de lunes a miércoles.",
+  "Te queda poco para el corte gratis. Te esperamos.",
+  "Liberamos horas para el fin de semana — reserva en brunetticutz.cl",
+  "Tanto tiempo. Vuelve esta semana y te dejamos el corte listo.",
+]
+
 export default function Dashboard() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
@@ -274,6 +311,10 @@ export default function Dashboard() {
   const [campaignMessage, setCampaignMessage] = useState("")
   const [campaignAudience, setCampaignAudience] = useState("all")
   const [campaignSending, setCampaignSending] = useState(false)
+  // Confirmación en dos toques: el push sale al celular de decenas de
+  // clientes y no existe el "deshacer". Se resetea con cualquier cambio de
+  // mensaje o audiencia para que nunca se confirme algo distinto a lo leído.
+  const [campaignConfirming, setCampaignConfirming] = useState(false)
   const [cardTestPhone, setCardTestPhone] = useState("")
   const [cardTestEmail, setCardTestEmail] = useState("")
   const [cardSending, setCardSending] = useState(false)
@@ -892,16 +933,32 @@ export default function Dashboard() {
      dos round-trips al otro proyecto, no hay para qué pagarlos en cada carga
      del panel). */
   useEffect(() => {
-    if (tab !== "marketing" || !barber) return
-    fetch("/api/clients?mode=wallet-stats", { headers: authHeaders() })
-      .then((r) => r.json())
-      .then((data) => { if (data?.stats) setWalletStats(data.stats) })
-      .catch(() => {})
-    fetch("/api/clients?mode=wallet-campaigns", { headers: authHeaders() })
-      .then((r) => r.json())
-      .then((data) => { if (data?.campaigns) setCampaigns(data.campaigns) })
-      .catch(() => {})
+    if (!barber) return
+    // Las cifras también las usa el Resumen (la tarjeta "Tarjetas en
+    // Wallet"), así que se piden en las dos pestañas — pero una sola vez:
+    // sin el guard, cada ida y vuelta entre Resumen y Marketing pagaba otro
+    // round-trip al otro proyecto.
+    if (tab !== "marketing" && tab !== "resumen") return
+    if (!walletStats) {
+      fetch("/api/clients?mode=wallet-stats", { headers: authHeaders() })
+        .then((r) => r.json())
+        .then((data) => { if (data?.stats) setWalletStats(data.stats) })
+        .catch(() => {})
+    }
+    // El historial de campañas solo interesa en Marketing.
+    if (tab === "marketing" && !campaigns.length) {
+      fetch("/api/clients?mode=wallet-campaigns", { headers: authHeaders() })
+        .then((r) => r.json())
+        .then((data) => { if (data?.campaigns) setCampaigns(data.campaigns) })
+        .catch(() => {})
+    }
   }, [tab, barber])
+
+  /* Cuántos clientes caen en una audiencia. Lo calcula el backend junto con
+     el resto de las métricas (api/_loyalty.js de PimpStudio) — acá no se
+     replica el criterio, justamente para que el número del chip y el del
+     envío no puedan discrepar. */
+  const audienceCount = (id) => walletStats?.audienceCounts?.[id] ?? 0
 
   const sendCampaign = async () => {
     if (!campaignMessage.trim()) return
@@ -919,6 +976,7 @@ export default function Dashboard() {
       }
       window.alert(`Enviado a ${data.recipients} cliente${data.recipients === 1 ? "" : "s"}.`)
       setCampaignMessage("")
+      setCampaignConfirming(false)
       setCampaigns((list) => [{ ...data.campaign, message: campaignMessage.trim(), audience: campaignAudience, recipientCount: data.recipients, source: "brunetti" }, ...list])
     } catch {
       window.alert("No se pudo enviar la campaña. Revisa tu conexión.")
@@ -1208,7 +1266,7 @@ export default function Dashboard() {
         {tab === "resumen" && (
           <div style={{ display: "grid", gap: "1.1rem" }}>
             <BookingSyncIssues />
-            <DashboardResumen bookings={bookings} barbers={barbers} expenses={expenses} clients={clients} todaySlots={availability[isoDate(new Date())] || []} onNewBooking={() => setNewBookingOpen(true)} onGoToPending={goToPendingInReservas} />
+            <DashboardResumen bookings={bookings} barbers={barbers} expenses={expenses} clients={clients} todaySlots={availability[isoDate(new Date())] || []} walletStats={walletStats} onNewBooking={() => setNewBookingOpen(true)} onGoToPending={goToPendingInReservas} onGoToMarketing={() => setTab("marketing")} />
           </div>
         )}
 
@@ -2075,19 +2133,140 @@ export default function Dashboard() {
 
         {/* MARKETING */}
         {tab === "marketing" && (
-          <div className="animate-in" style={{ display: "grid", gap: "1.1rem" }}>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: "1rem" }}>
-              <Stat icon="user"  label="Clientes nuevos hoy" value={newClientsCount} accent />
-              <Stat icon="trend" label="Recurrencia"         value={recurringPct} suffix="%" />
-              <Stat icon="users" label="Clientes activos"    value={activeClients.length} />
-              <Stat icon="star"  label="Clientes frecuentes" value={topClients.length} />
+          <div className="animate-in mkt">
+            {/* KPIs. Los que dependen del puente muestran "—" mientras cargan
+                en vez de 0: un 0 se lee como "nadie instaló la tarjeta" y ya
+                pasó que se tomaran decisiones mirando un dato que aún no
+                llegaba. */}
+            <div className="mkt-kpis">
+              <Stat icon="wallet" label="Tarjetas en Wallet" accent
+                value={walletStats ? walletStats.installed : "—"}
+                hint={walletStats ? `${walletStats.installRate}% de ${walletStats.passesIssued} emitidas` : "Cargando…"} />
+              <Stat icon="star" label="Estrellas del mes"
+                value={walletStats ? walletStats.starsThisMonth : "—"}
+                hint={walletStats ? `${walletStats.starsAllTime} desde el inicio` : null} />
+              <Stat icon="gift" label="Corte gratis listo"
+                value={walletStats ? walletStats.freeCutReady : "—"}
+                hint={walletStats ? `${walletStats.freeCutsRedeemed} canjeados ya` : null} />
+              <Stat icon="target" label="A punto (7-9)"
+                value={walletStats ? (walletStats.audienceCounts?.almost_free ?? 0) : "—"}
+                hint="Les falta poco" />
+              <Stat icon="users" label="Clientes activos" value={activeClients.length} hint={`${recurringPct}% vuelve`} />
+              <Stat icon="user" label="Nuevos hoy" value={newClientsCount} />
+              <Stat icon="megaphone" label="Campañas del mes"
+                value={walletStats ? walletStats.campaignsThisMonth : "—"}
+                hint={walletStats ? `${walletStats.campaignsSent} en total` : null} />
+              <Stat icon="percent" label="Promedio de estrellas"
+                value={walletStats ? walletStats.avgStars : "—"}
+                hint={walletStats ? `sobre ${walletStats.clientsWithStars} clientes` : null} />
             </div>
-            {/* Origen de clientes / promociones se retiraron: no hay ningún dato
-                real que las respalde todavía (no se registra canal de captación
-                ni códigos de promo). Mejor no mostrar nada que inventar cifras. */}
-            {/* Tarjeta de fidelidad — mismas cifras que ve el panel de Pimp
-                Studio: el programa de estrellas es uno solo para los dos
-                locales (ver api/_loyaltyBridge.js). */}
+
+            {/* Campañas — el bloque principal de la pestaña, primero y no
+                después de las métricas: es lo que el barbero viene a hacer. */}
+            <Panel
+              title="Campaña push"
+              action={walletStats ? <span className="chip chip-gold">{audienceCount(campaignAudience)} destinatarios</span> : null}
+            >
+              <div style={{ display: "grid", gap: ".9rem" }}>
+                <p className="mkt-note">
+                  El mensaje aparece en la tarjeta del cliente y dispara una notificación en su celular. Solo llega a quien tiene el pase agregado — el resto no se entera.
+                </p>
+
+                <div style={{ display: "grid", gap: ".5rem" }}>
+                  <span className="mkt-sub"><Icon name="target" size={13} /> A quién</span>
+                  <div className="mkt-auds">
+                    {AUDIENCES.map((a) => {
+                      const n = audienceCount(a.id)
+                      return (
+                        <button
+                          key={a.id}
+                          type="button"
+                          className={`mkt-aud${campaignAudience === a.id ? " is-on" : ""}`}
+                          disabled={walletStats && n === 0}
+                          title={a.desc}
+                          onClick={() => { setCampaignAudience(a.id); setCampaignConfirming(false) }}
+                        >
+                          <Icon name={a.icon} size={13} />
+                          <b>{a.label}</b>
+                          <span className="n">{walletStats ? n : "…"}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                  <p className="mkt-note">{AUDIENCE_BY_ID[campaignAudience]?.desc}</p>
+                </div>
+
+                <div className="mkt-block">
+                  <span className="mkt-sub"><Icon name="send" size={13} /> Mensaje</span>
+                  <div className="mkt-tpls">
+                    {CAMPAIGN_TEMPLATES.map((t) => (
+                      <button key={t} type="button" className="mkt-tpl"
+                        onClick={() => { setCampaignMessage(t); setCampaignConfirming(false) }}>
+                        {t.length > 34 ? `${t.slice(0, 34)}…` : t}
+                      </button>
+                    ))}
+                  </div>
+                  <textarea
+                    className="mkt-ta"
+                    value={campaignMessage}
+                    onChange={(e) => { setCampaignMessage(e.target.value.slice(0, 180)); setCampaignConfirming(false) }}
+                    placeholder="Ej: Este viernes, 20% en barba. Te esperamos."
+                    rows={3}
+                  />
+                  <div className="mkt-meta">
+                    <span>Se ve en la tarjeta hasta que mandes otro mensaje.</span>
+                    <span className={`mkt-count${campaignMessage.length > 150 ? " is-near" : ""}`}>{campaignMessage.length}/180</span>
+                  </div>
+
+                  {campaignMessage.trim() && (
+                    <div className="mkt-preview">
+                      <span className="who">Brunetti Cutz</span>
+                      <span className="msg">{campaignMessage.trim()}</span>
+                      <span className="to">→ {AUDIENCE_LABEL[campaignAudience]} · {audienceCount(campaignAudience)} cliente{audienceCount(campaignAudience) === 1 ? "" : "s"}</span>
+                    </div>
+                  )}
+
+                  {/* Dos toques para enviar. Es irreversible: el push sale al
+                      celular de decenas de clientes y no hay "deshacer". */}
+                  {!campaignConfirming ? (
+                    <button className="btn btn-gold btn-block"
+                      disabled={!campaignMessage.trim() || campaignSending || (walletStats && audienceCount(campaignAudience) === 0)}
+                      onClick={() => setCampaignConfirming(true)}>
+                      <Icon name="megaphone" size={15} /> Enviar campaña
+                    </button>
+                  ) : (
+                    <div className="mkt-actions">
+                      <button className="btn btn-ghost" disabled={campaignSending} onClick={() => setCampaignConfirming(false)}>Cancelar</button>
+                      <button className="btn btn-gold" disabled={campaignSending} onClick={sendCampaign}>
+                        <Icon name="check" size={15} /> {campaignSending ? "Enviando…" : `Confirmar · ${audienceCount(campaignAudience)}`}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {campaigns.length > 0 && (
+                  <div className="mkt-block">
+                    <span className="mkt-sub"><Icon name="clock" size={13} /> Historial</span>
+                    <div className="mkt-hist">
+                      {campaigns.slice(0, 8).map((c) => (
+                        <div key={c.id} className="mkt-hist-row">
+                          <span className="msg">{c.message}</span>
+                          <span className="meta">
+                            <span>{AUDIENCE_LABEL[c.audience] || c.audience}</span>
+                            <span>· {c.recipientCount} destinatarios</span>
+                            <span>· {String(c.createdAt || "").slice(0, 10)}</span>
+                            <span className="src">{c.source === "brunetti" ? "Brunetti" : "Pimp Studio"}</span>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </Panel>
+
+            {/* Adopción de la tarjeta: emitidas vs realmente agregadas, y en
+                qué punto del camino al corte gratis está la gente. */}
             <Panel
               title="Tarjeta de fidelidad"
               action={walletStats ? <span className="chip chip-gold">{walletStats.passesIssued} emitidas</span> : null}
@@ -2095,109 +2274,75 @@ export default function Dashboard() {
               {!walletStats && <p style={{ color: "var(--muted)", fontSize: ".84rem" }}>Cargando métricas…</p>}
               {walletStats && (
                 <div style={{ display: "grid", gap: "1rem" }}>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: ".8rem" }}>
-                    <Stat icon="wallet" label="Instaladas (Apple)" value={walletStats.appleInstalled} accent />
-                    <Stat icon="wallet" label="Instaladas (Google)" value={walletStats.googleInstalled} />
-                    <Stat icon="star"   label="Con 5+ estrellas"    value={walletStats.withFiveOrMore} />
-                    <Stat icon="gift"   label="Corte gratis listo"  value={walletStats.freeCutReady} />
+                  <div style={{ display: "grid", gap: ".4rem" }}>
+                    <div className="mkt-meta">
+                      <span className="mkt-sub">Instaladas</span>
+                      <span>{walletStats.installed} de {walletStats.passesIssued} · {walletStats.installRate}%</span>
+                    </div>
+                    <div className="mkt-meter"><i style={{ width: `${Math.min(100, walletStats.installRate)}%` }} /></div>
                   </div>
 
-                  {/* Distribución de saldo: dónde está atascada la gente en el
-                      camino al corte gratis. */}
-                  <div style={{ display: "grid", gap: ".35rem" }}>
-                    <span style={{ fontSize: ".72rem", color: "var(--muted-2)", textTransform: "uppercase", letterSpacing: ".06em" }}>Clientes por estrellas</span>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(11, 1fr)", gap: ".2rem", alignItems: "end", height: 70 }}>
+                  <div className="mkt-kpis">
+                    <Stat icon="apple"   label="En iPhone"  value={walletStats.appleInstalled} />
+                    <Stat icon="android" label="En Android" value={walletStats.googleInstalled} />
+                    <Stat icon="star"    label="Con 5+ estrellas" value={walletStats.withFiveOrMore} />
+                    <Stat icon="gift"    label="Corte gratis listo" value={walletStats.freeCutReady} accent />
+                  </div>
+
+                  <div style={{ display: "grid", gap: ".4rem" }}>
+                    <span className="mkt-sub">Clientes por estrellas</span>
+                    <div className="mkt-bars">
                       {walletStats.byStars.map((n, i) => {
                         const max = Math.max(1, ...walletStats.byStars)
                         return (
-                          <div key={i} style={{ display: "grid", gap: ".2rem", justifyItems: "center" }} title={`${n} cliente${n === 1 ? "" : "s"} con ${i} estrella${i === 1 ? "" : "s"}`}>
-                            <div style={{ width: "100%", height: `${Math.round((n / max) * 52)}px`, minHeight: n ? 3 : 1, borderRadius: 3, background: i >= 10 ? "var(--gold-grad)" : "rgba(201,161,78,.35)" }} />
-                            <span style={{ fontSize: ".58rem", color: "var(--muted-2)" }}>{i}</span>
+                          <div key={i} className={`mkt-bar${i >= 10 ? " is-goal" : ""}`} title={`${n} cliente${n === 1 ? "" : "s"} con ${i} estrella${i === 1 ? "" : "s"}`}>
+                            <i style={{ height: `${Math.max(n ? 4 : 1, Math.round((n / max) * 62))}px` }} />
+                            <span>{i}</span>
                           </div>
                         )
                       })}
                     </div>
                   </div>
-
-                  {/* Envío del link de la tarjeta por correo. Va por tandas
-                      desde el navegador (ver ?mode=wallet-send-cards): así se
-                      ve el avance y se puede detener a mitad. */}
-                  <div style={{ display: "grid", gap: ".5rem", paddingTop: ".4rem", borderTop: "1px solid var(--hair)" }}>
-                    <span style={{ fontSize: ".72rem", color: "var(--muted-2)", textTransform: "uppercase", letterSpacing: ".06em" }}>Mandar la tarjeta por correo</span>
-                    <p style={{ margin: 0, fontSize: ".72rem", color: "var(--muted)", lineHeight: 1.5 }}>
-                      Cada cliente recibe su propio link. Al abrirlo desde el celular le aparece un solo botón: Apple Wallet en iPhone, Google Wallet en Android. Se omite a quien ya la tiene agregada.
-                    </p>
-                    <div style={{ display: "flex", gap: ".4rem", flexWrap: "wrap", alignItems: "center" }}>
-                      <input
-                        value={cardTestPhone}
-                        onChange={(e) => setCardTestPhone(e.target.value.replace(/\D/g, "").slice(0, 9))}
-                        placeholder="9 dígitos (prueba)"
-                        inputMode="numeric"
-                        style={{ width: 150, padding: ".45rem .6rem", borderRadius: 10, border: "1px solid var(--hair-2)", background: "rgba(0,0,0,.25)", color: "var(--ink)", fontSize: ".78rem" }}
-                      />
-                      <input
-                        value={cardTestEmail}
-                        onChange={(e) => setCardTestEmail(e.target.value.trim())}
-                        placeholder="correo de prueba (opcional)"
-                        inputMode="email"
-                        style={{ width: 210, padding: ".45rem .6rem", borderRadius: 10, border: "1px solid var(--hair-2)", background: "rgba(0,0,0,.25)", color: "var(--ink)", fontSize: ".78rem" }}
-                      />
-                      <button className="btn btn-dark btn-sm" disabled={cardTestPhone.length !== 9 || cardSending} onClick={() => sendLoyaltyCards({ onlyPhone: cardTestPhone, again: true, includeInstalled: true, testEmail: cardTestEmail || null })}>
-                        <Icon name="wallet" size={14} /> Probar con uno
-                      </button>
-                      <button className="btn btn-gold btn-sm" disabled={cardSending} onClick={() => sendLoyaltyCards({})}>
-                        <Icon name="spark" size={14} /> {cardSending ? "Enviando…" : "Enviar a los que faltan"}
-                      </button>
-                      {cardSending && (
-                        <button className="btn btn-ghost btn-sm" onClick={() => { cardStopRef.current = true }}>Detener</button>
-                      )}
-                    </div>
-                    {cardProgress && <span style={{ fontSize: ".7rem", color: "var(--muted)" }}>{cardProgress}</span>}
-                  </div>
-
-                  {/* Campaña: escribe en la tarjeta de cada cliente y dispara
-                      una notificación en su celular. Solo llega a quien tiene
-                      el pase agregado. */}
-                  <div style={{ display: "grid", gap: ".5rem", paddingTop: ".4rem", borderTop: "1px solid var(--hair)" }}>
-                    <span style={{ fontSize: ".72rem", color: "var(--muted-2)", textTransform: "uppercase", letterSpacing: ".06em" }}>Enviar novedad</span>
-                    <textarea
-                      value={campaignMessage}
-                      onChange={(e) => setCampaignMessage(e.target.value.slice(0, 180))}
-                      placeholder="Ej: Este viernes, 20% en barba. Te esperamos."
-                      rows={2}
-                      style={{ width: "100%", resize: "vertical", padding: ".6rem .7rem", borderRadius: 10, border: "1px solid var(--hair-2)", background: "rgba(0,0,0,.25)", color: "var(--ink)", fontSize: ".82rem" }}
-                    />
-                    <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap", alignItems: "center" }}>
-                      <select value={campaignAudience} onChange={(e) => setCampaignAudience(e.target.value)}
-                        style={{ padding: ".45rem .6rem", borderRadius: 10, border: "1px solid var(--hair-2)", background: "rgba(0,0,0,.25)", color: "var(--ink)", fontSize: ".78rem" }}>
-                        <option value="all">Todos los que tienen la tarjeta</option>
-                        <option value="five_plus">Con 5 o más estrellas</option>
-                        <option value="free_cut_ready">Con corte gratis disponible</option>
-                        <option value="inactive">Sin venir hace 30+ días</option>
-                      </select>
-                      <button className="btn btn-gold btn-sm" disabled={!campaignMessage.trim() || campaignSending} onClick={sendCampaign}>
-                        <Icon name="spark" size={14} /> {campaignSending ? "Enviando…" : "Enviar"}
-                      </button>
-                      <span style={{ fontSize: ".68rem", color: "var(--muted-2)" }}>{campaignMessage.length}/180</span>
-                    </div>
-                    <p style={{ margin: 0, fontSize: ".68rem", color: "var(--muted-2)" }}>
-                      El mensaje aparece en la tarjeta del cliente hasta que mandes otro. Llega a todos los que tienen el pase, sean de Brunetti o de Pimp Studio.
-                    </p>
-                    {campaigns.length > 0 && (
-                      <div style={{ display: "grid", gap: ".3rem", marginTop: ".3rem" }}>
-                        {campaigns.slice(0, 5).map((c) => (
-                          <div key={c.id} style={{ display: "flex", justifyContent: "space-between", gap: ".6rem", fontSize: ".72rem", color: "var(--muted)" }}>
-                            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.message}</span>
-                            <span style={{ flexShrink: 0, color: "var(--muted-2)" }}>
-                              {c.recipientCount} · {String(c.createdAt || "").slice(0, 10)}{c.source === "brunetti" ? " · Brunetti" : ""}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
                 </div>
               )}
+            </Panel>
+
+            {/* Envío del link de la tarjeta por correo. Va por tandas desde el
+                navegador (ver ?mode=wallet-send-cards): así se ve el avance y
+                se puede detener a mitad. */}
+            <Panel title="Mandar la tarjeta por correo">
+              <div style={{ display: "grid", gap: ".7rem" }}>
+                <p className="mkt-note">
+                  Cada cliente recibe su propio link. Al abrirlo desde el celular le aparece un solo botón: Apple Wallet en iPhone, Google Wallet en Android. Se omite a quien ya la tiene agregada.
+                </p>
+                <div className="mkt-fields">
+                  <input
+                    className="mkt-input"
+                    value={cardTestPhone}
+                    onChange={(e) => setCardTestPhone(e.target.value.replace(/\D/g, "").slice(0, 9))}
+                    placeholder="9 dígitos (prueba)"
+                    inputMode="numeric"
+                  />
+                  <input
+                    className="mkt-input"
+                    value={cardTestEmail}
+                    onChange={(e) => setCardTestEmail(e.target.value.trim())}
+                    placeholder="correo de prueba (opcional)"
+                    inputMode="email"
+                  />
+                </div>
+                <div className="mkt-actions">
+                  <button className="btn btn-dark" disabled={cardTestPhone.length !== 9 || cardSending}
+                    onClick={() => sendLoyaltyCards({ onlyPhone: cardTestPhone, again: true, includeInstalled: true, testEmail: cardTestEmail || null })}>
+                    <Icon name="wallet" size={14} /> Probar con uno
+                  </button>
+                  <button className="btn btn-gold" disabled={cardSending} onClick={() => sendLoyaltyCards({})}>
+                    <Icon name="mail" size={14} /> {cardSending ? "Enviando…" : "Enviar a los que faltan"}
+                  </button>
+                  {cardSending && <button className="btn btn-ghost" onClick={() => { cardStopRef.current = true }}>Detener</button>}
+                </div>
+                {cardProgress && <span style={{ fontSize: ".74rem", color: "var(--muted)" }}>{cardProgress}</span>}
+              </div>
             </Panel>
 
             <Panel title="Clientes frecuentes" action={<span className="chip chip-gold">3+ visitas</span>}>
