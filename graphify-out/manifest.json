@@ -45,8 +45,8 @@
     "semantic_hash": ""
   },
   "api/clients.js": {
-    "mtime": 1786757403.7512834,
-    "ast_hash": "07efaba688bc31a583c4375f5aafec8d",
+    "mtime": 1786757569.39333,
+    "ast_hash": "65ed217956d3920e6acc4f60275690b5",
     "semantic_hash": ""
   },
   "api/enrollments.js": {
@@ -315,8 +315,8 @@
     "semantic_hash": ""
   },
   "src/pages/Dashboard.jsx": {
-    "mtime": 1786757432.7873201,
-    "ast_hash": "8f1716b50376d46375dd3eb4f819ea3d",
+    "mtime": 1786757584.9058332,
+    "ast_hash": "346c85c0ae34122167ff7566d215fcb0",
     "semantic_hash": ""
   },
   "src/pages/EncuentraEstilo.jsx": {

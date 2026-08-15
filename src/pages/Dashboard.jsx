@@ -275,6 +275,7 @@ export default function Dashboard() {
   const [campaignAudience, setCampaignAudience] = useState("all")
   const [campaignSending, setCampaignSending] = useState(false)
   const [cardTestPhone, setCardTestPhone] = useState("")
+  const [cardTestEmail, setCardTestEmail] = useState("")
   const [cardSending, setCardSending] = useState(false)
   const [cardProgress, setCardProgress] = useState("")
   const cardStopRef = useRef(false)
@@ -931,7 +932,7 @@ export default function Dashboard() {
      límite de 2/s de Resend), así que el bucle vive acá: se ve el avance en
      vivo y el botón "Detener" corta entre tandas sin dejar a nadie a medias
      — cada cliente enviado queda marcado en el momento. */
-  const sendLoyaltyCards = async ({ onlyPhone = null, again = false, includeInstalled = false }) => {
+  const sendLoyaltyCards = async ({ onlyPhone = null, again = false, includeInstalled = false, testEmail = null }) => {
     const bulk = !onlyPhone
     if (bulk && !window.confirm("Se le va a enviar el correo con su tarjeta de fidelidad a todos los clientes con correo que todavía no la tienen. ¿Seguimos?")) return
     setCardSending(true)
@@ -942,7 +943,7 @@ export default function Dashboard() {
         const res = await fetch("/api/clients?mode=wallet-send-cards", {
           method: "POST",
           headers: authHeaders({ "Content-Type": "application/json" }),
-          body: JSON.stringify({ limit: onlyPhone ? 1 : 5, onlyPhone, again, includeInstalled }),
+          body: JSON.stringify({ limit: onlyPhone ? 1 : 5, onlyPhone, again, includeInstalled, testEmail }),
         })
         const data = await res.json().catch(() => ({}))
         if (!res.ok || data?.ok === false) {
@@ -2134,7 +2135,14 @@ export default function Dashboard() {
                         inputMode="numeric"
                         style={{ width: 150, padding: ".45rem .6rem", borderRadius: 10, border: "1px solid var(--hair-2)", background: "rgba(0,0,0,.25)", color: "var(--ink)", fontSize: ".78rem" }}
                       />
-                      <button className="btn btn-dark btn-sm" disabled={cardTestPhone.length !== 9 || cardSending} onClick={() => sendLoyaltyCards({ onlyPhone: cardTestPhone, again: true, includeInstalled: true })}>
+                      <input
+                        value={cardTestEmail}
+                        onChange={(e) => setCardTestEmail(e.target.value.trim())}
+                        placeholder="correo de prueba (opcional)"
+                        inputMode="email"
+                        style={{ width: 210, padding: ".45rem .6rem", borderRadius: 10, border: "1px solid var(--hair-2)", background: "rgba(0,0,0,.25)", color: "var(--ink)", fontSize: ".78rem" }}
+                      />
+                      <button className="btn btn-dark btn-sm" disabled={cardTestPhone.length !== 9 || cardSending} onClick={() => sendLoyaltyCards({ onlyPhone: cardTestPhone, again: true, includeInstalled: true, testEmail: cardTestEmail || null })}>
                         <Icon name="wallet" size={14} /> Probar con uno
                       </button>
                       <button className="btn btn-gold btn-sm" disabled={cardSending} onClick={() => sendLoyaltyCards({})}>

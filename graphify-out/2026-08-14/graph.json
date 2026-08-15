@@ -176,10 +176,20 @@
       "norm_label": "sendbookingconfirmationemail()"
     },
     {
+      "label": "sendLoyaltyCardEmail()",
+      "file_type": "code",
+      "source_file": "api/_email.js",
+      "source_location": "L93",
+      "_origin": "ast",
+      "id": "api_email_sendloyaltycardemail",
+      "community": 4,
+      "norm_label": "sendloyaltycardemail()"
+    },
+    {
       "label": "sendWorkshopConfirmationEmail()",
       "file_type": "code",
       "source_file": "api/_email.js",
-      "source_location": "L88",
+      "source_location": "L128",
       "_origin": "ast",
       "id": "api_email_sendworkshopconfirmationemail",
       "community": 4,
@@ -582,7 +592,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_auth_barber",
-      "community": 4,
+      "community": 140,
       "norm_label": "auth-barber.js"
     },
     {
@@ -592,7 +602,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "api_auth_barber_sha256",
-      "community": 4,
+      "community": 140,
       "norm_label": "sha256()"
     },
     {
@@ -602,7 +612,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "api_auth_barber_isadmin",
-      "community": 4,
+      "community": 140,
       "norm_label": "isadmin()"
     },
     {
@@ -612,7 +622,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "api_auth_barber_isvalidpassword",
-      "community": 4,
+      "community": 140,
       "norm_label": "isvalidpassword()"
     },
     {
@@ -622,7 +632,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "api_auth_barber_barber_profiles",
-      "community": 4,
+      "community": 140,
       "norm_label": "barber_profiles"
     },
     {
@@ -632,7 +642,7 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "api_auth_barber_fallbackpasswords",
-      "community": 4,
+      "community": 140,
       "norm_label": "fallbackpasswords()"
     },
     {
@@ -642,7 +652,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "api_auth_barber_fallbacklogin",
-      "community": 4,
+      "community": 140,
       "norm_label": "fallbacklogin()"
     },
     {
@@ -652,7 +662,7 @@
       "source_location": "L53",
       "_origin": "ast",
       "id": "api_auth_barber_handlelogin",
-      "community": 4,
+      "community": 140,
       "norm_label": "handlelogin()"
     },
     {
@@ -662,7 +672,7 @@
       "source_location": "L87",
       "_origin": "ast",
       "id": "api_auth_barber_handlechangepassword",
-      "community": 4,
+      "community": 140,
       "norm_label": "handlechangepassword()"
     },
     {
@@ -672,7 +682,7 @@
       "source_location": "L110",
       "_origin": "ast",
       "id": "api_auth_barber_handler",
-      "community": 4,
+      "community": 140,
       "norm_label": "handler()"
     },
     {
@@ -859,7 +869,7 @@
       "label": "DEMO_CLIENTS",
       "file_type": "code",
       "source_file": "api/clients.js",
-      "source_location": "L9",
+      "source_location": "L10",
       "_origin": "ast",
       "id": "api_clients_demo_clients",
       "community": 4,
@@ -869,7 +879,7 @@
       "label": "cleanPhone()",
       "file_type": "code",
       "source_file": "api/clients.js",
-      "source_location": "L15",
+      "source_location": "L16",
       "_origin": "ast",
       "id": "api_clients_cleanphone",
       "community": 4,
@@ -879,7 +889,7 @@
       "label": "validateClient()",
       "file_type": "code",
       "source_file": "api/clients.js",
-      "source_location": "L19",
+      "source_location": "L20",
       "_origin": "ast",
       "id": "api_clients_validateclient",
       "community": 4,
@@ -889,7 +899,7 @@
       "label": "handler()",
       "file_type": "code",
       "source_file": "api/clients.js",
-      "source_location": "L29",
+      "source_location": "L30",
       "_origin": "ast",
       "id": "api_clients_handler",
       "community": 4,
@@ -1242,7 +1252,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_apiclient_swift",
-      "community": 9,
+      "community": 18,
       "norm_label": "apiclient.swift"
     },
     {
@@ -1253,7 +1263,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "foundation",
-      "community": 0,
+      "community": 15,
       "norm_label": "foundation"
     },
     {
@@ -1263,7 +1273,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_apiclient_apierror",
-      "community": 9,
+      "community": 141,
       "norm_label": "apierror"
     },
     {
@@ -1273,7 +1283,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "error",
-      "community": 9,
+      "community": 141,
       "norm_label": "error"
     },
     {
@@ -1283,7 +1293,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "localizederror",
-      "community": 9,
+      "community": 141,
       "norm_label": "localizederror"
     },
     {
@@ -1293,7 +1303,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_apiclient_apierror_invalidurl",
-      "community": 9,
+      "community": 141,
       "norm_label": "invalidurl"
     },
     {
@@ -1303,7 +1313,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_apiclient_apierror_badstatus",
-      "community": 9,
+      "community": 141,
       "norm_label": "badstatus"
     },
     {
@@ -1323,7 +1333,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_apiclient_apierror_missingdata",
-      "community": 9,
+      "community": 141,
       "norm_label": "missingdata"
     },
     {
@@ -1343,7 +1353,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_apiclient_loginresponse",
-      "community": 9,
+      "community": 18,
       "norm_label": "loginresponse"
     },
     {
@@ -1353,7 +1363,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "decodable",
-      "community": 9,
+      "community": 18,
       "norm_label": "decodable"
     },
     {
@@ -1373,7 +1383,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_apiclient_bookingsresponse",
-      "community": 9,
+      "community": 18,
       "norm_label": "bookingsresponse"
     },
     {
@@ -1393,7 +1403,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_apiclient_clientsresponse",
-      "community": 9,
+      "community": 18,
       "norm_label": "clientsresponse"
     },
     {
@@ -1403,7 +1413,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_apiclient_servicesresponse",
-      "community": 9,
+      "community": 18,
       "norm_label": "servicesresponse"
     },
     {
@@ -1413,7 +1423,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_apiclient_expensesresponse",
-      "community": 9,
+      "community": 18,
       "norm_label": "expensesresponse"
     },
     {
@@ -1423,7 +1433,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_apiclient_availabilityresponse",
-      "community": 9,
+      "community": 18,
       "norm_label": "availabilityresponse"
     },
     {
@@ -1433,7 +1443,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_apiclient_bookingresponse",
-      "community": 9,
+      "community": 18,
       "norm_label": "bookingresponse"
     },
     {
@@ -1443,7 +1453,7 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_apiclient_clientresponse",
-      "community": 9,
+      "community": 18,
       "norm_label": "clientresponse"
     },
     {
@@ -1453,7 +1463,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_apiclient_barbersresponse",
-      "community": 9,
+      "community": 18,
       "norm_label": "barbersresponse"
     },
     {
@@ -1463,7 +1473,7 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_apiclient_enrollmentsresponse",
-      "community": 9,
+      "community": 18,
       "norm_label": "enrollmentsresponse"
     },
     {
@@ -1473,7 +1483,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_apiclient_genericresponse",
-      "community": 9,
+      "community": 18,
       "norm_label": "genericresponse"
     },
     {
@@ -1753,7 +1763,7 @@
       "source_location": "L285",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_apiclient_emptyresponse",
-      "community": 9,
+      "community": 18,
       "norm_label": "emptyresponse"
     },
     {
@@ -1763,7 +1773,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_brunettiappintents_swift",
-      "community": 18,
+      "community": 15,
       "norm_label": "brunettiappintents.swift"
     },
     {
@@ -1774,7 +1784,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "appintents",
-      "community": 18,
+      "community": 15,
       "norm_label": "appintents"
     },
     {
@@ -1784,7 +1794,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_brunettiappintents_intentkeys",
-      "community": 18,
+      "community": 15,
       "norm_label": "intentkeys"
     },
     {
@@ -1794,7 +1804,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_brunettiappintents_apptab",
-      "community": 18,
+      "community": 15,
       "norm_label": "apptab"
     },
     {
@@ -1804,7 +1814,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "appenum",
-      "community": 18,
+      "community": 15,
       "norm_label": "appenum"
     },
     {
@@ -1814,7 +1824,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "displayrepresentation",
-      "community": 18,
+      "community": 15,
       "norm_label": "displayrepresentation"
     },
     {
@@ -1824,7 +1834,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_brunettiappintents_openbrunettimoduleintent",
-      "community": 18,
+      "community": 15,
       "norm_label": "openbrunettimoduleintent"
     },
     {
@@ -1834,7 +1844,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "appintent",
-      "community": 18,
+      "community": 15,
       "norm_label": "appintent"
     },
     {
@@ -1844,7 +1854,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "localizedstringresource",
-      "community": 18,
+      "community": 15,
       "norm_label": "localizedstringresource"
     },
     {
@@ -1854,7 +1864,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_brunettiappintents_openbrunettimoduleintent_init",
-      "community": 18,
+      "community": 15,
       "norm_label": ".init()"
     },
     {
@@ -1864,7 +1874,7 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_brunettiappintents_openbrunettimoduleintent_perform",
-      "community": 18,
+      "community": 15,
       "norm_label": ".perform()"
     },
     {
@@ -1874,7 +1884,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "intentresult",
-      "community": 18,
+      "community": 15,
       "norm_label": "intentresult"
     },
     {
@@ -1884,7 +1894,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_brunettiappintents_brunettishortcuts",
-      "community": 18,
+      "community": 15,
       "norm_label": "brunettishortcuts"
     },
     {
@@ -1894,7 +1904,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "appshortcutsprovider",
-      "community": 18,
+      "community": 15,
       "norm_label": "appshortcutsprovider"
     },
     {
@@ -1904,7 +1914,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "appshortcut",
-      "community": 18,
+      "community": 15,
       "norm_label": "appshortcut"
     },
     {
@@ -1935,7 +1945,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_brunetticutzapp_brunetticutzapp",
-      "community": 90,
+      "community": 15,
       "norm_label": "brunetticutzapp"
     },
     {
@@ -1945,7 +1955,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "app",
-      "community": 90,
+      "community": 15,
       "norm_label": "app"
     },
     {
@@ -1975,7 +1985,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "scene",
-      "community": 90,
+      "community": 15,
       "norm_label": "scene"
     },
     {
@@ -1985,7 +1995,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_brunetticutzapp_brunetticutzapp_applypendingintent",
-      "community": 90,
+      "community": 15,
       "norm_label": ".applypendingintent()"
     },
     {
@@ -2025,7 +2035,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_dashboardmodel_swift",
-      "community": 0,
+      "community": 15,
       "norm_label": "dashboardmodel.swift"
     },
     {
@@ -2036,7 +2046,7 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "observation",
-      "community": 0,
+      "community": 15,
       "norm_label": "observation"
     },
     {
@@ -2046,7 +2056,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_dashboardmodel_dashboardmodel",
-      "community": 9,
+      "community": 0,
       "norm_label": "dashboardmodel"
     },
     {
@@ -2086,7 +2096,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_dashboardmodel_dashboardmodel_init",
-      "community": 9,
+      "community": 0,
       "norm_label": ".init()"
     },
     {
@@ -2116,7 +2126,7 @@
       "source_location": "L98",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_dashboardmodel_dashboardmodel_refresh",
-      "community": 9,
+      "community": 0,
       "norm_label": ".refresh()"
     },
     {
@@ -2126,7 +2136,7 @@
       "source_location": "L121",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_dashboardmodel_dashboardmodel_refreshagenda",
-      "community": 9,
+      "community": 0,
       "norm_label": ".refreshagenda()"
     },
     {
@@ -2136,7 +2146,7 @@
       "source_location": "L127",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_dashboardmodel_dashboardmodel_update",
-      "community": 9,
+      "community": 0,
       "norm_label": ".update()"
     },
     {
@@ -2146,7 +2156,7 @@
       "source_location": "L138",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_dashboardmodel_dashboardmodel_savebookingedits",
-      "community": 9,
+      "community": 0,
       "norm_label": ".savebookingedits()"
     },
     {
@@ -2156,7 +2166,7 @@
       "source_location": "L152",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_dashboardmodel_dashboardmodel_openclient",
-      "community": 9,
+      "community": 0,
       "norm_label": ".openclient()"
     },
     {
@@ -2166,7 +2176,7 @@
       "source_location": "L160",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_dashboardmodel_dashboardmodel_saveclient",
-      "community": 9,
+      "community": 0,
       "norm_label": ".saveclient()"
     },
     {
@@ -2176,7 +2186,7 @@
       "source_location": "L169",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_dashboardmodel_dashboardmodel_deleteclient",
-      "community": 9,
+      "community": 0,
       "norm_label": ".deleteclient()"
     },
     {
@@ -2186,7 +2196,7 @@
       "source_location": "L174",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_dashboardmodel_dashboardmodel_beginbooking",
-      "community": 9,
+      "community": 0,
       "norm_label": ".beginbooking()"
     },
     {
@@ -2196,7 +2206,7 @@
       "source_location": "L187",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_dashboardmodel_dashboardmodel_createbooking",
-      "community": 9,
+      "community": 0,
       "norm_label": ".createbooking()"
     },
     {
@@ -2206,7 +2216,7 @@
       "source_location": "L380",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_dashboardmodel_dashboardmodel_parseisodate",
-      "community": 9,
+      "community": 0,
       "norm_label": ".parseisodate()"
     },
     {
@@ -2226,7 +2236,7 @@
       "source_location": "L388",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_dashboardmodel_dashboardfocus",
-      "community": 92,
+      "community": 0,
       "norm_label": "dashboardfocus"
     },
     {
@@ -2256,7 +2266,7 @@
       "source_location": "L389",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_dashboardmodel_dashboardfocus_dia",
-      "community": 92,
+      "community": 0,
       "norm_label": "dia"
     },
     {
@@ -2266,7 +2276,7 @@
       "source_location": "L390",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_dashboardmodel_dashboardfocus_semana",
-      "community": 92,
+      "community": 0,
       "norm_label": "semana"
     },
     {
@@ -2276,7 +2286,7 @@
       "source_location": "L391",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_dashboardmodel_dashboardfocus_workshop",
-      "community": 92,
+      "community": 0,
       "norm_label": "workshop"
     },
     {
@@ -2417,7 +2427,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_demodata_swift",
-      "community": 90,
+      "community": 15,
       "norm_label": "demodata.swift"
     },
     {
@@ -2427,7 +2437,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_demodata_demodata",
-      "community": 90,
+      "community": 15,
       "norm_label": "demodata"
     },
     {
@@ -3049,7 +3059,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_keychainstore_swift",
-      "community": 0,
+      "community": 15,
       "norm_label": "keychainstore.swift"
     },
     {
@@ -3060,7 +3070,7 @@
       "source_location": "L2",
       "_origin": "ast",
       "id": "security",
-      "community": 0,
+      "community": 15,
       "norm_label": "security"
     },
     {
@@ -3190,7 +3200,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "string",
-      "community": 12,
+      "community": 1,
       "norm_label": "string"
     },
     {
@@ -3260,7 +3270,7 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_thememode",
-      "community": 15,
+      "community": 92,
       "norm_label": "thememode"
     },
     {
@@ -3280,7 +3290,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_thememode_system",
-      "community": 15,
+      "community": 92,
       "norm_label": "system"
     },
     {
@@ -3290,7 +3300,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_thememode_light",
-      "community": 15,
+      "community": 92,
       "norm_label": "light"
     },
     {
@@ -3300,7 +3310,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_thememode_dark",
-      "community": 15,
+      "community": 92,
       "norm_label": "dark"
     },
     {
@@ -3310,7 +3320,7 @@
       "source_location": "L50",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_bookingstatus",
-      "community": 92,
+      "community": 142,
       "norm_label": "bookingstatus"
     },
     {
@@ -3320,7 +3330,7 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_bookingstatus_pendiente",
-      "community": 92,
+      "community": 142,
       "norm_label": "pendiente"
     },
     {
@@ -3330,7 +3340,7 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_bookingstatus_confirmada",
-      "community": 92,
+      "community": 142,
       "norm_label": "confirmada"
     },
     {
@@ -3340,7 +3350,7 @@
       "source_location": "L53",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_bookingstatus_encurso",
-      "community": 92,
+      "community": 142,
       "norm_label": "encurso"
     },
     {
@@ -3350,7 +3360,7 @@
       "source_location": "L54",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_bookingstatus_completada",
-      "community": 92,
+      "community": 142,
       "norm_label": "completada"
     },
     {
@@ -3360,7 +3370,7 @@
       "source_location": "L55",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_bookingstatus_cancelada",
-      "community": 92,
+      "community": 142,
       "norm_label": "cancelada"
     },
     {
@@ -3710,7 +3720,7 @@
       "source_location": "L252",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_paymentsessionresponse",
-      "community": 12,
+      "community": 18,
       "norm_label": "paymentsessionresponse"
     },
     {
@@ -3730,7 +3740,7 @@
       "source_location": "L265",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_clp",
-      "community": 12,
+      "community": 1,
       "norm_label": "clp()"
     },
     {
@@ -3740,7 +3750,7 @@
       "source_location": "L275",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_isodate",
-      "community": 12,
+      "community": 1,
       "norm_label": "isodate()"
     },
     {
@@ -3781,7 +3791,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_moduleviews_hoyview",
-      "community": 12,
+      "community": 145,
       "norm_label": "hoyview"
     },
     {
@@ -3811,7 +3821,7 @@
       "source_location": "L258",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_moduleviews_hoyview_slots",
-      "community": 12,
+      "community": 145,
       "norm_label": ".slots()"
     },
     {
@@ -3821,7 +3831,7 @@
       "source_location": "L266",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_moduleviews_hoyview_handleslot",
-      "community": 12,
+      "community": 145,
       "norm_label": ".handleslot()"
     },
     {
@@ -3831,7 +3841,7 @@
       "source_location": "L278",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_moduleviews_barberchartmode",
-      "community": 12,
+      "community": 92,
       "norm_label": "barberchartmode"
     },
     {
@@ -3841,7 +3851,7 @@
       "source_location": "L279",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_moduleviews_barberchartmode_ingresos",
-      "community": 12,
+      "community": 92,
       "norm_label": "ingresos"
     },
     {
@@ -3851,7 +3861,7 @@
       "source_location": "L280",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_moduleviews_barberchartmode_servicios",
-      "community": 12,
+      "community": 92,
       "norm_label": "servicios"
     },
     {
@@ -3981,7 +3991,7 @@
       "source_location": "L940",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_moduleviews_settingsview",
-      "community": 12,
+      "community": 144,
       "norm_label": "settingsview"
     },
     {
@@ -3991,7 +4001,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "unauthorizationstatus",
-      "community": 12,
+      "community": 144,
       "norm_label": "unauthorizationstatus"
     },
     {
@@ -4001,7 +4011,7 @@
       "source_location": "L1391",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_moduleviews_settingsview_permissionbadges",
-      "community": 12,
+      "community": 144,
       "norm_label": ".permissionbadges()"
     },
     {
@@ -4051,7 +4061,7 @@
       "source_location": "L1496",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_moduleviews_view",
-      "community": 12,
+      "community": 143,
       "norm_label": "view"
     },
     {
@@ -4061,7 +4071,7 @@
       "source_location": "L1497",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_moduleviews_view_slotactionstyle",
-      "community": 12,
+      "community": 143,
       "norm_label": ".slotactionstyle()"
     },
     {
@@ -4071,7 +4081,7 @@
       "source_location": "L1508",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_moduleviews_weekstrip",
-      "community": 12,
+      "community": 143,
       "norm_label": "weekstrip"
     },
     {
@@ -4091,7 +4101,7 @@
       "source_location": "L1542",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_moduleviews_searchfield",
-      "community": 12,
+      "community": 143,
       "norm_label": "searchfield"
     },
     {
@@ -4101,7 +4111,7 @@
       "source_location": "L1560",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_moduleviews_filterchip",
-      "community": 12,
+      "community": 143,
       "norm_label": "filterchip"
     },
     {
@@ -4121,7 +4131,7 @@
       "source_location": "L1579",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_moduleviews_progressrow",
-      "community": 12,
+      "community": 143,
       "norm_label": "progressrow"
     },
     {
@@ -4151,7 +4161,7 @@
       "source_location": "L1616",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_moduleviews_servicerevenue",
-      "community": 12,
+      "community": 1,
       "norm_label": "servicerevenue()"
     },
     {
@@ -4221,7 +4231,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_sessionstore_swift",
-      "community": 0,
+      "community": 15,
       "norm_label": "sessionstore.swift"
     },
     {
@@ -4232,7 +4242,7 @@
       "source_location": "L3",
       "_origin": "ast",
       "id": "localauthentication",
-      "community": 0,
+      "community": 15,
       "norm_label": "localauthentication"
     },
     {
@@ -4412,7 +4422,7 @@
       "source_location": "L209",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_sessionstore_keys",
-      "community": 0,
+      "community": 15,
       "norm_label": "keys"
     },
     {
@@ -6292,7 +6302,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_sitenav",
-      "community": 37,
+      "community": 38,
       "norm_label": "sitenav.jsx"
     },
     {
@@ -6302,7 +6312,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "src_components_sitenav_nav",
-      "community": 37,
+      "community": 38,
       "norm_label": "nav"
     },
     {
@@ -6312,7 +6322,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "src_components_sitenav_sitenav",
-      "community": 37,
+      "community": 38,
       "norm_label": "sitenav()"
     },
     {
@@ -6872,7 +6882,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_ui_lamp",
-      "community": 38,
+      "community": 37,
       "norm_label": "lamp.jsx"
     },
     {
@@ -6882,7 +6892,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "src_components_ui_lamp_lamp",
-      "community": 38,
+      "community": 37,
       "norm_label": "lamp()"
     },
     {
@@ -7849,7 +7859,7 @@
       "label": "CFG_SECTIONS",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2145",
+      "source_location": "L2217",
       "_origin": "ast",
       "id": "src_pages_dashboard_cfg_sections",
       "community": 22,
@@ -7859,7 +7869,7 @@
       "label": "EnrollmentsPanel()",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2164",
+      "source_location": "L2236",
       "_origin": "ast",
       "id": "src_pages_dashboard_enrollmentspanel",
       "community": 5,
@@ -7869,7 +7879,7 @@
       "label": "ConfigSwitch()",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2247",
+      "source_location": "L2319",
       "_origin": "ast",
       "id": "src_pages_dashboard_configswitch",
       "community": 22,
@@ -7879,7 +7889,7 @@
       "label": "CfgRow()",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2271",
+      "source_location": "L2343",
       "_origin": "ast",
       "id": "src_pages_dashboard_cfgrow",
       "community": 22,
@@ -7889,7 +7899,7 @@
       "label": "PushCard()",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2286",
+      "source_location": "L2358",
       "_origin": "ast",
       "id": "src_pages_dashboard_pushcard",
       "community": 22,
@@ -7899,7 +7909,7 @@
       "label": "isStrongPassword()",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2369",
+      "source_location": "L2441",
       "_origin": "ast",
       "id": "src_pages_dashboard_isstrongpassword",
       "community": 22,
@@ -7909,7 +7919,7 @@
       "label": "ConfigPanel()",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2373",
+      "source_location": "L2445",
       "_origin": "ast",
       "id": "src_pages_dashboard_configpanel",
       "community": 22,
@@ -7919,7 +7929,7 @@
       "label": "DashboardShell()",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2858",
+      "source_location": "L2930",
       "_origin": "ast",
       "id": "src_pages_dashboard_dashboardshell",
       "community": 22,
@@ -7929,7 +7939,7 @@
       "label": "timeAgo()",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2888",
+      "source_location": "L2960",
       "_origin": "ast",
       "id": "src_pages_dashboard_timeago",
       "community": 22,
@@ -7939,7 +7949,7 @@
       "label": "DashboardTopbar()",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2898",
+      "source_location": "L2970",
       "_origin": "ast",
       "id": "src_pages_dashboard_dashboardtopbar",
       "community": 22,
@@ -13202,7 +13212,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L105",
+      "source_location": "L106",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_auth_requireinternal"
@@ -13372,6 +13382,17 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "imports_from",
+      "context": "import",
+      "confidence": "EXTRACTED",
+      "source_file": "api/clients.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "api_clients",
+      "target": "api_email",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
@@ -13405,6 +13426,16 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
+      "source_location": "L93",
+      "weight": 1.0,
+      "source": "api_email",
+      "target": "api_email_sendloyaltycardemail",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "api/_email.js",
       "source_location": "L13",
       "weight": 1.0,
       "source": "api_email",
@@ -13415,7 +13446,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L88",
+      "source_location": "L128",
       "weight": 1.0,
       "source": "api_email",
       "target": "api_email_sendworkshopconfirmationemail",
@@ -13448,7 +13479,18 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L107",
+      "source_location": "L125",
+      "weight": 1.0,
+      "source": "api_email_sendloyaltycardemail",
+      "target": "api_email_sendviaresend",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "api/_email.js",
+      "source_location": "L147",
       "weight": 1.0,
       "source": "api_email_sendworkshopconfirmationemail",
       "target": "api_email_sendviaresend",
@@ -13502,6 +13544,28 @@
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
+      "source_file": "api/clients.js",
+      "source_location": "L4",
+      "weight": 1.0,
+      "source": "api_clients",
+      "target": "api_email_sendloyaltycardemail",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "api/clients.js",
+      "source_location": "L182",
+      "weight": 1.0,
+      "source": "api_clients_handler",
+      "target": "api_email_sendloyaltycardemail"
+    },
+    {
+      "relation": "imports",
+      "context": "import",
+      "confidence": "EXTRACTED",
       "source_file": "api/enrollments.js",
       "source_location": "L4",
       "weight": 1.0,
@@ -13536,7 +13600,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "api/clients.js",
-      "source_location": "L4",
+      "source_location": "L5",
       "weight": 1.0,
       "source": "api_clients",
       "target": "api_loyaltybridge",
@@ -13717,7 +13781,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "api/clients.js",
-      "source_location": "L4",
+      "source_location": "L5",
       "weight": 1.0,
       "source": "api_clients",
       "target": "api_loyaltybridge_isloyaltybridgeconfigured",
@@ -13729,7 +13793,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L43",
+      "source_location": "L44",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_loyaltybridge_isloyaltybridgeconfigured"
@@ -13938,7 +14002,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/bookings.js",
-      "source_location": "L425",
+      "source_location": "L428",
       "weight": 1.0,
       "source": "api_bookings_handler",
       "target": "api_loyaltybridge_creditstar"
@@ -13960,7 +14024,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/bookings.js",
-      "source_location": "L428",
+      "source_location": "L431",
       "weight": 1.0,
       "source": "api_bookings_handler",
       "target": "api_loyaltybridge_revertstar"
@@ -13982,7 +14046,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/bookings.js",
-      "source_location": "L391",
+      "source_location": "L394",
       "weight": 1.0,
       "source": "api_bookings_handler",
       "target": "api_loyaltybridge_redeemfreecut"
@@ -14004,7 +14068,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/bookings.js",
-      "source_location": "L399",
+      "source_location": "L402",
       "weight": 1.0,
       "source": "api_bookings_handler",
       "target": "api_loyaltybridge_cancelredeem"
@@ -14014,7 +14078,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "api/clients.js",
-      "source_location": "L4",
+      "source_location": "L5",
       "weight": 1.0,
       "source": "api_clients",
       "target": "api_loyaltybridge_loyaltyfor",
@@ -14026,7 +14090,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L99",
+      "source_location": "L100",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_loyaltybridge_loyaltyfor"
@@ -14036,7 +14100,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "api/clients.js",
-      "source_location": "L4",
+      "source_location": "L5",
       "weight": 1.0,
       "source": "api_clients",
       "target": "api_loyaltybridge_loyaltyforphones",
@@ -14048,7 +14112,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L185",
+      "source_location": "L165",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_loyaltybridge_loyaltyforphones"
@@ -14058,7 +14122,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "api/clients.js",
-      "source_location": "L4",
+      "source_location": "L5",
       "weight": 1.0,
       "source": "api_clients",
       "target": "api_loyaltybridge_sharetoken",
@@ -14070,7 +14134,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L63",
+      "source_location": "L64",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_loyaltybridge_sharetoken"
@@ -14080,7 +14144,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "api/clients.js",
-      "source_location": "L4",
+      "source_location": "L5",
       "weight": 1.0,
       "source": "api_clients",
       "target": "api_loyaltybridge_applepassbytes",
@@ -14092,7 +14156,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L77",
+      "source_location": "L78",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_loyaltybridge_applepassbytes"
@@ -14102,7 +14166,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "api/clients.js",
-      "source_location": "L4",
+      "source_location": "L5",
       "weight": 1.0,
       "source": "api_clients",
       "target": "api_loyaltybridge_googlesaveurl",
@@ -14114,7 +14178,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L69",
+      "source_location": "L70",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_loyaltybridge_googlesaveurl"
@@ -14124,7 +14188,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "api/clients.js",
-      "source_location": "L4",
+      "source_location": "L5",
       "weight": 1.0,
       "source": "api_clients",
       "target": "api_loyaltybridge_tarjetainfo",
@@ -14136,7 +14200,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L89",
+      "source_location": "L90",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_loyaltybridge_tarjetainfo"
@@ -14146,7 +14210,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "api/clients.js",
-      "source_location": "L4",
+      "source_location": "L5",
       "weight": 1.0,
       "source": "api_clients",
       "target": "api_loyaltybridge_walletstats",
@@ -14158,7 +14222,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L122",
+      "source_location": "L123",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_loyaltybridge_walletstats"
@@ -14168,7 +14232,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "api/clients.js",
-      "source_location": "L4",
+      "source_location": "L5",
       "weight": 1.0,
       "source": "api_clients",
       "target": "api_loyaltybridge_walletcampaigns",
@@ -14180,7 +14244,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L128",
+      "source_location": "L129",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_loyaltybridge_walletcampaigns"
@@ -14190,7 +14254,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "api/clients.js",
-      "source_location": "L4",
+      "source_location": "L5",
       "weight": 1.0,
       "source": "api_clients",
       "target": "api_loyaltybridge_sendwalletcampaign",
@@ -14202,7 +14266,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L132",
+      "source_location": "L203",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_loyaltybridge_sendwalletcampaign"
@@ -14383,7 +14447,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/bookings.js",
-      "source_location": "L415",
+      "source_location": "L418",
       "weight": 1.0,
       "source": "api_bookings_handler",
       "target": "api_notion_updatenotionbookingstatus"
@@ -14629,7 +14693,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L44",
+      "source_location": "L45",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_ratelimit_clientip"
@@ -14695,7 +14759,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L49",
+      "source_location": "L50",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_ratelimit_ratelimit"
@@ -15362,7 +15426,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/bookings.js",
-      "source_location": "L513",
+      "source_location": "L516",
       "weight": 1.0,
       "source": "api_bookings_handler",
       "target": "api_push_notifyall"
@@ -15382,7 +15446,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/clients.js",
-      "source_location": "L15",
+      "source_location": "L16",
       "weight": 1.0,
       "source": "api_clients",
       "target": "api_clients_cleanphone",
@@ -15392,7 +15456,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/clients.js",
-      "source_location": "L9",
+      "source_location": "L10",
       "weight": 1.0,
       "source": "api_clients",
       "target": "api_clients_demo_clients",
@@ -15402,7 +15466,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/clients.js",
-      "source_location": "L29",
+      "source_location": "L30",
       "weight": 1.0,
       "source": "api_clients",
       "target": "api_clients_handler",
@@ -15412,7 +15476,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/clients.js",
-      "source_location": "L19",
+      "source_location": "L20",
       "weight": 1.0,
       "source": "api_clients",
       "target": "api_clients_validateclient",
@@ -15424,7 +15488,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L235",
+      "source_location": "L306",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_clients_demo_clients"
@@ -15434,7 +15498,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/clients.js",
-      "source_location": "L57",
+      "source_location": "L58",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_clients_cleanphone",
@@ -15445,7 +15509,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/clients.js",
-      "source_location": "L21",
+      "source_location": "L22",
       "weight": 1.0,
       "source": "api_clients_validateclient",
       "target": "api_clients_cleanphone",
@@ -15456,7 +15520,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/clients.js",
-      "source_location": "L197",
+      "source_location": "L268",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_clients_validateclient",
@@ -21815,7 +21879,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2165",
+      "source_location": "L2237",
       "weight": 1.0,
       "source": "src_pages_dashboard_enrollmentspanel",
       "target": "users_elija_documents_github_pimpstudio_desarrollo_package_dependencies_react"
@@ -22835,7 +22899,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L609",
+      "source_location": "L613",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_bookingsstore_readlocalbookings"
@@ -23011,7 +23075,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L797",
+      "source_location": "L801",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_bookingsstore_addlocalbooking"
@@ -27076,7 +27140,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2436",
+      "source_location": "L2508",
       "weight": 1.0,
       "source": "src_pages_dashboard_configpanel",
       "target": "src_components_theme_usetheme",
@@ -28318,7 +28382,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L1512",
+      "source_location": "L1555",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_data_clp"
@@ -28450,7 +28514,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L384",
+      "source_location": "L388",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_data_barberbyid"
@@ -28494,7 +28558,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L834",
+      "source_location": "L838",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_data_cleanphone"
@@ -28516,7 +28580,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L286",
+      "source_location": "L290",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_data_isadminuser"
@@ -28976,7 +29040,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2176",
+      "source_location": "L2248",
       "weight": 1.0,
       "source": "src_pages_dashboard_enrollmentspanel",
       "target": "src_enrollmentsstore_mergeenrollments",
@@ -29585,7 +29649,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2145",
+      "source_location": "L2217",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_cfg_sections",
@@ -29595,7 +29659,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2271",
+      "source_location": "L2343",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_cfgrow",
@@ -29605,7 +29669,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2373",
+      "source_location": "L2445",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_configpanel",
@@ -29615,7 +29679,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2247",
+      "source_location": "L2319",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_configswitch",
@@ -29635,7 +29699,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2858",
+      "source_location": "L2930",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_dashboardshell",
@@ -29645,7 +29709,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2898",
+      "source_location": "L2970",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_dashboardtopbar",
@@ -29675,7 +29739,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2164",
+      "source_location": "L2236",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_enrollmentspanel",
@@ -29705,7 +29769,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2369",
+      "source_location": "L2441",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_isstrongpassword",
@@ -29755,7 +29819,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2286",
+      "source_location": "L2358",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_pushcard",
@@ -29775,7 +29839,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2888",
+      "source_location": "L2960",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_timeago",
@@ -29929,7 +29993,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L314",
+      "source_location": "L318",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_pages_dashboard_agenda_slots"
@@ -29939,7 +30003,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L320",
+      "source_location": "L324",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_pages_dashboard_mintoblocks",
@@ -29950,7 +30014,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L1750",
+      "source_location": "L1793",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_pages_dashboard_blockstomin",
@@ -29961,7 +30025,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L1718",
+      "source_location": "L1761",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_pages_dashboard_getsvcicon",
@@ -30005,7 +30069,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L494",
+      "source_location": "L498",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_pages_dashboard_buildweek",
@@ -30016,7 +30080,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L509",
+      "source_location": "L513",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_pages_dashboard_localblockkey",
@@ -30027,7 +30091,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L507",
+      "source_location": "L511",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_pages_dashboard_readlocalblocks",
@@ -30038,7 +30102,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L995",
+      "source_location": "L1038",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_pages_dashboard_writelocalblocks",
@@ -30050,7 +30114,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L456",
+      "source_location": "L460",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_push_authheaders"
@@ -30061,7 +30125,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L618",
+      "source_location": "L622",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_push_notifybarberofbooking"
@@ -30072,7 +30136,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L618",
+      "source_location": "L622",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_push_pushenabledfor"
@@ -30083,7 +30147,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L607",
+      "source_location": "L611",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_push_registerserviceworker"
@@ -30093,7 +30157,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2297",
+      "source_location": "L2369",
       "weight": 1.0,
       "source": "src_pages_dashboard_pushcard",
       "target": "src_push_disablepush",
@@ -30104,7 +30168,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2301",
+      "source_location": "L2373",
       "weight": 1.0,
       "source": "src_pages_dashboard_pushcard",
       "target": "src_push_enablepush",
@@ -30115,7 +30179,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2292",
+      "source_location": "L2364",
       "weight": 1.0,
       "source": "src_pages_dashboard_pushcard",
       "target": "src_push_isios",
@@ -30126,7 +30190,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2292",
+      "source_location": "L2364",
       "weight": 1.0,
       "source": "src_pages_dashboard_pushcard",
       "target": "src_push_isstandalone",
@@ -30137,7 +30201,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2320",
+      "source_location": "L2392",
       "weight": 1.0,
       "source": "src_pages_dashboard_pushcard",
       "target": "src_push_notifylocal",
@@ -30148,7 +30212,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2287",
+      "source_location": "L2359",
       "weight": 1.0,
       "source": "src_pages_dashboard_pushcard",
       "target": "src_push_permissionstate",
@@ -30159,7 +30223,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2288",
+      "source_location": "L2360",
       "weight": 1.0,
       "source": "src_pages_dashboard_pushcard",
       "target": "src_push_pushenabledfor",
@@ -30170,7 +30234,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2291",
+      "source_location": "L2363",
       "weight": 1.0,
       "source": "src_pages_dashboard_pushcard",
       "target": "src_push_pushsupported",
@@ -30181,7 +30245,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2396",
+      "source_location": "L2468",
       "weight": 1.0,
       "source": "src_pages_dashboard_configpanel",
       "target": "src_pages_dashboard_isstrongpassword",
@@ -30192,7 +30256,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L3014",
+      "source_location": "L3086",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboardtopbar",
       "target": "src_pages_dashboard_timeago",
@@ -35065,5 +35129,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "ca75a0205f7bbcc15e7d9a32966efcfb2cd50145"
+  "built_at_commit": "ae714297e9f10f0f21dee61f25bc09e1f9a8d279"
 }

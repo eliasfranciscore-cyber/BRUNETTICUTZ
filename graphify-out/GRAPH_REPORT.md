@@ -1,7 +1,7 @@
 # Graph Report - BRUNETTICUTZ  (2026-08-14)
 
 ## Corpus Check
-- 141 files · ~2,001,641 words
+- 141 files · ~2,001,775 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `ae714297`
+- Built from commit: `60fe67af`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -325,12 +325,12 @@ Cohesion: 0.17
 Nodes (11): Diagnóstico (estado actual), Etapa 0 — Fundaciones adaptativas (sistema, no parches), Etapa 1 — Agenda (el módulo con más aire muerto), Etapa 2 — Clientes (cards → tabla densa), Etapa 3 — Reservas (inbox operativo), Etapa 4 — Resumen (dashboard ejecutivo), Etapa 5 — Finanzas + Gastos, Etapa 6 — Servicios, Inscripciones, Marketing, Config (+3 more)
 
 ### Community 37 - "Proposal Generator Script"
-Cohesion: 0.12
-Nodes (16): EditContext, ContainerScroll(), InteractiveSelector(), Lamp(), CARD_IMAGES, CARDS, CAT_TAG, FALLBACK_SERVICES (+8 more)
+Cohesion: 0.11
+Nodes (17): EditContext, NAV, SiteNav(), ContainerScroll(), InteractiveSelector(), CARD_IMAGES, CARDS, CAT_TAG (+9 more)
 
 ### Community 38 - "CSS Stylesheets"
-Cohesion: 0.14
-Nodes (12): EditableText(), CHECKOUT_ITEMS, FlowCheckout(), ICONS, ModuleFooter(), NAV, SiteNav(), Sparkles() (+4 more)
+Cohesion: 0.15
+Nodes (11): EditableText(), CHECKOUT_ITEMS, FlowCheckout(), ICONS, ModuleFooter(), Lamp(), Sparkles(), INCLUDE_ICONS (+3 more)
 
 ### Community 39 - "Claude Dev Wrapper Script"
 Cohesion: 0.44

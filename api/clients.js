@@ -139,8 +139,16 @@ export default async function handler(req, res) {
          inconsistente — `loyalty_card_emailed_at` marca cliente por cliente
          quién ya recibió el suyo. */
       if (req.method === "POST" && mode === "wallet-send-cards") {
-        const { limit = 5, onlyPhone = null, again = false, includeInstalled = false } = req.body || {}
+        const { limit = 5, onlyPhone = null, again = false, includeInstalled = false, testEmail = null } = req.body || {}
         const batch = Math.min(Math.max(Number(limit) || 5, 1), 8)
+
+        // Correo de prueba: manda la tarjeta REAL de un cliente (su link, su
+        // saldo) a otra dirección, para revisar cómo llega antes de tocar la
+        // lista. Exige onlyPhone y no marca nada: no es un envío al cliente.
+        const testTo = testEmail ? String(testEmail).trim().toLowerCase() : null
+        if (testTo && (!onlyPhone || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(testTo))) {
+          return res.status(400).json({ ok: false, error: "Para la prueba hace falta un teléfono y un correo válido" })
+        }
 
         await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS loyalty_card_emailed_at TIMESTAMPTZ`
 
@@ -180,13 +188,14 @@ export default async function handler(req, res) {
             if (!share.ok) throw new Error(share.error || "no se pudo generar el link")
             const bonus = await loyaltyFor(client.phone, ip).catch(() => null)
             const result = await sendLoyaltyCardEmail({
-              to: client.email,
+              to: testTo || client.email,
               name: client.name,
               url: `https://brunetticutz.cl/tarjeta?t=${share.token}`,
               stars: bonus?.loyalty?.stars || 0,
             })
             if (!result.ok) throw new Error(result.reason || "resend")
-            await sql`UPDATE users SET loyalty_card_emailed_at = NOW() WHERE id = ${client.id}`
+            // La prueba no marca al cliente: no recibió nada.
+            if (!testTo) await sql`UPDATE users SET loyalty_card_emailed_at = NOW() WHERE id = ${client.id}`
             sent++
           } catch (err) {
             failed++
