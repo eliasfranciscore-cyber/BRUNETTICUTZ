@@ -156,7 +156,7 @@ function AgendaDatePicker({ month, year, selectedKey, onPrevMonth, onNextMonth, 
 
 // Modal de detalle de una reserva (click en un slot "booked" o en la lista de
 // Reservas del día). Portal a document.body, mismo patrón que NewBookingModal.
-function BookingDetailModal({ booking, clients, onClose, onConfirm, onCancel }) {
+function BookingDetailModal({ booking, clients, onClose, onConfirm, onCancel, onRedeemFreeCut }) {
   useEffect(() => {
     if (!booking) return
     const onKey = (e) => { if (e.key === "Escape") onClose() }
@@ -188,6 +188,21 @@ function BookingDetailModal({ booking, clients, onClose, onConfirm, onCancel }) 
           <div className="agenda-detail-cell"><span>Fecha</span><b>{booking.date}</b></div>
           <div className="agenda-detail-cell"><span>Precio</span><b>{CLP(Number(booking.price || 0))}</b></div>
         </div>
+        {/* Fidelidad: el saldo viene de la lista de clientes (una sola llamada
+            al puente por carga del panel, no una por reserva). El canje solo
+            se ofrece si le alcanza y si esta reserva no está ya en $0. */}
+        {client?.loyalty && (
+          <div style={{ display: "grid", gap: ".4rem", margin: ".2rem 0 .4rem" }}>
+            <span className="chip chip-gold" style={{ justifySelf: "start", fontSize: ".68rem" }}>
+              <Icon name="star" size={11} /> {client.loyalty.stars}/{client.loyalty.goal} estrellas
+            </span>
+            {client.loyalty.freeCutReady && Number(booking.price || 0) > 0 && onRedeemFreeCut && (
+              <button type="button" className="btn btn-gold btn-block" onClick={() => onRedeemFreeCut(booking)}>
+                <Icon name="gift" size={15} /> Canjear corte gratis
+              </button>
+            )}
+          </div>
+        )}
         <div className="agenda-detail-actions">
           <button type="button" className="btn btn-gold btn-block" onClick={() => onConfirm(booking)}>
             <Icon name="check" size={15} /> Confirmar
@@ -252,6 +267,13 @@ export default function Dashboard() {
   const [newBookingOpen, setNewBookingOpen] = useState(false)
   const [newClientOpen, setNewClientOpen] = useState(false)
   const [inboxFocus, setInboxFocus] = useState(null)
+  // Fidelidad (pestaña Marketing): las cifras y las campañas viven en Pimp
+  // Studio y llegan por el puente — ver api/_loyaltyBridge.js.
+  const [walletStats, setWalletStats] = useState(null)
+  const [campaigns, setCampaigns] = useState([])
+  const [campaignMessage, setCampaignMessage] = useState("")
+  const [campaignAudience, setCampaignAudience] = useState("all")
+  const [campaignSending, setCampaignSending] = useState(false)
   const [editSvcId, setEditSvcId] = useState(null)
   const [deleteSvc, setDeleteSvc] = useState(null)
   const [barberDraft, setBarberDraft] = useState({ name: "", code: "", role: "Barbero", tier: "general", pin: "1234", canViewFinance: false, canManageTeam: false, canEditServices: false, canManageBlocks: true })
@@ -790,6 +812,52 @@ export default function Dashboard() {
     }).catch(() => null)
     if (res && !res.ok) {
       setBookings((items) => items.map((item) => item.id === booking.id ? booking : item))
+      return
+    }
+    // Al completar, el servidor le suma la estrella al cliente en el programa
+    // de Pimp Studio y devuelve el saldo nuevo: se refleja de inmediato en la
+    // lista de clientes (badge y botón de canje) sin recargar el panel.
+    const data = await res?.json?.().catch(() => null)
+    if (data?.loyalty) {
+      applyClientLoyalty(booking.phone, data.loyalty)
+      if (status === "completada") {
+        pushToast("⭐", data.loyalty.freeCutReady
+          ? `${booking.client}: ¡corte gratis disponible!`
+          : `${booking.client}: ${data.loyalty.stars}/${data.loyalty.goal} estrellas`)
+      }
+    }
+  }
+
+  // El saldo de fidelidad vive en la lista de clientes (llega junto con ella
+  // desde el puente); acá se actualiza en memoria tras un cambio puntual.
+  const applyClientLoyalty = (phone, loyalty) => {
+    const digits = cleanPhone(phone)
+    setClients((list) => list.map((c) => cleanPhone(c.phone) === digits ? { ...c, loyalty } : c))
+  }
+
+  /* Canje del corte gratis: descuenta 10 estrellas en Pimp Studio y deja esta
+     reserva en $0. El servidor hace las dos cosas en orden y devuelve las
+     estrellas si la segunda falla, así que acá basta con reflejar el
+     resultado. */
+  const redeemFreeCut = async (booking) => {
+    if (!window.confirm(`¿Canjear el corte gratis de ${booking.client}? Se descuentan 10 estrellas y esta reserva queda en $0.`)) return
+    try {
+      const res = await fetch("/api/bookings", {
+        method: "PATCH",
+        headers: authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ id: booking.id, redeem: "free_cut" }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || data?.ok === false) {
+        window.alert(data?.error || "No se pudo canjear el corte gratis.")
+        return
+      }
+      setBookings((items) => items.map((item) => item.id === booking.id ? { ...item, price: 0 } : item))
+      setDetail((d) => (d && d.id === booking.id ? { ...d, price: 0 } : d))
+      if (data.loyalty) applyClientLoyalty(booking.phone, data.loyalty)
+      pushToast("🎁", `Corte gratis aplicado a ${booking.client}`)
+    } catch {
+      window.alert("No se pudo canjear el corte gratis. Revisa tu conexión.")
     }
   }
 
@@ -813,6 +881,65 @@ export default function Dashboard() {
       .then((r) => r.headers.get("content-type")?.includes("application/json") ? r.json() : Promise.reject(new Error("api unavailable")))
       .catch(() => ({ bookings: local }))
     setClientHistory(data.bookings?.length ? data.bookings : local)
+  }
+
+  /* Métricas e historial de campañas: solo al abrir la pestaña Marketing (son
+     dos round-trips al otro proyecto, no hay para qué pagarlos en cada carga
+     del panel). */
+  useEffect(() => {
+    if (tab !== "marketing" || !barber) return
+    fetch("/api/clients?mode=wallet-stats", { headers: authHeaders() })
+      .then((r) => r.json())
+      .then((data) => { if (data?.stats) setWalletStats(data.stats) })
+      .catch(() => {})
+    fetch("/api/clients?mode=wallet-campaigns", { headers: authHeaders() })
+      .then((r) => r.json())
+      .then((data) => { if (data?.campaigns) setCampaigns(data.campaigns) })
+      .catch(() => {})
+  }, [tab, barber])
+
+  const sendCampaign = async () => {
+    if (!campaignMessage.trim()) return
+    setCampaignSending(true)
+    try {
+      const res = await fetch("/api/clients?mode=wallet-campaign", {
+        method: "POST",
+        headers: authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ message: campaignMessage.trim(), audience: campaignAudience }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || data?.ok === false) {
+        window.alert(data?.error || "No se pudo enviar la campaña.")
+        return
+      }
+      window.alert(`Enviado a ${data.recipients} cliente${data.recipients === 1 ? "" : "s"}.`)
+      setCampaignMessage("")
+      setCampaigns((list) => [{ ...data.campaign, message: campaignMessage.trim(), audience: campaignAudience, recipientCount: data.recipients, source: "brunetti" }, ...list])
+    } catch {
+      window.alert("No se pudo enviar la campaña. Revisa tu conexión.")
+    } finally {
+      setCampaignSending(false)
+    }
+  }
+
+  /* "Enviar tarjeta de fidelización": pide al backend el link personal del
+     cliente (/tarjeta?t=…, token opaco: no lleva su teléfono escrito) y abre
+     WhatsApp con el mensaje listo. La tarjeta es la del programa de Pimp
+     Studio — una sola, sirve en los dos locales. */
+  const sendLoyaltyCard = async (client) => {
+    try {
+      const res = await fetch(`/api/clients?mode=wallet-share-link&phone=${encodeURIComponent(client.phone)}`, { headers: authHeaders() })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || !data?.url) {
+        window.alert(data?.error || "No se pudo generar la tarjeta. Intenta de nuevo.")
+        return
+      }
+      const first = (client.name || "").split(" ")[0] || "Hola"
+      const text = `Hola ${first} 👋 Te dejamos tu tarjeta de fidelidad de Brunetti: cada corte suma una estrella y a las 10 el tuyo va gratis. Agrégala a tu celular acá: ${data.url}`
+      window.open(`https://wa.me/56${String(client.phone || "").replace(/\D/g, "")}?text=${encodeURIComponent(text)}`, "_blank", "noopener")
+    } catch {
+      window.alert("No se pudo generar la tarjeta. Revisa tu conexión.")
+    }
   }
 
   const clientKey = (c) => c.id ?? c.phone
@@ -1519,11 +1646,32 @@ export default function Dashboard() {
                       <strong>{client.name}</strong>
                       <span>+56 {client.phone} · {client.email || "sin correo"}</span>
                     </div>
-                    <div><strong>{client.visits || 0}</strong><span>visitas</span></div>
+                    <div>
+                      <strong>{client.visits || 0}</strong>
+                      <span>
+                        visitas
+                        {client.loyalty && (
+                          <span className="chip chip-gold" style={{ marginLeft: ".35rem", fontSize: ".62rem", padding: ".1rem .35rem" }} title={`${client.loyalty.stars} de ${client.loyalty.goal} estrellas`}>
+                            <Icon name="star" size={9} /> {client.loyalty.stars}
+                          </span>
+                        )}
+                      </span>
+                    </div>
                     <div><strong>{CLP(client.totalSpent || 0)}</strong><span>{client.lastVisit || "sin visitas"}</span></div>
-                    <button className="btn btn-dark btn-sm client-row-edit" onClick={(e) => { e.stopPropagation(); openClient(client, { edit: true }) }}>
-                      <Icon name="user" size={13} /> <span className="btn-label">Editar</span>
-                    </button>
+                    <div style={{ display: "flex", gap: ".3rem", justifyContent: "flex-end" }}>
+                      {/* Enviar la tarjeta por WhatsApp: solo a quien todavía no
+                          la tiene agregada — a los demás no hay nada que
+                          ofrecerles. */}
+                      {!client.walletHasPass && (
+                        <button className="btn btn-dark btn-sm client-row-edit" title="Enviar tarjeta de fidelización por WhatsApp"
+                          onClick={(e) => { e.stopPropagation(); sendLoyaltyCard(client) }}>
+                          <Icon name="wallet" size={13} /> <span className="btn-label">Tarjeta</span>
+                        </button>
+                      )}
+                      <button className="btn btn-dark btn-sm client-row-edit" onClick={(e) => { e.stopPropagation(); openClient(client, { edit: true }) }}>
+                        <Icon name="user" size={13} /> <span className="btn-label">Editar</span>
+                      </button>
+                    </div>
                   </div>
                 ))}
                 {!sortedClients.length && (
@@ -1779,6 +1927,7 @@ export default function Dashboard() {
           onClose={() => setDetail(null)}
           onConfirm={(bk) => { updateBookingStatus(bk, "confirmada"); pushToast("✓", "Cita confirmada"); setDetail(null) }}
           onCancel={(bk) => { updateBookingStatus(bk, "cancelada"); pushToast("✕", `Cita de ${bk.client} cancelada`); setDetail(null); loadAgenda() }}
+          onRedeemFreeCut={redeemFreeCut}
         />
 
         {/* TOASTS de la agenda */}
@@ -1892,6 +2041,85 @@ export default function Dashboard() {
             {/* Origen de clientes / promociones se retiraron: no hay ningún dato
                 real que las respalde todavía (no se registra canal de captación
                 ni códigos de promo). Mejor no mostrar nada que inventar cifras. */}
+            {/* Tarjeta de fidelidad — mismas cifras que ve el panel de Pimp
+                Studio: el programa de estrellas es uno solo para los dos
+                locales (ver api/_loyaltyBridge.js). */}
+            <Panel
+              title="Tarjeta de fidelidad"
+              action={walletStats ? <span className="chip chip-gold">{walletStats.passesIssued} emitidas</span> : null}
+            >
+              {!walletStats && <p style={{ color: "var(--muted)", fontSize: ".84rem" }}>Cargando métricas…</p>}
+              {walletStats && (
+                <div style={{ display: "grid", gap: "1rem" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: ".8rem" }}>
+                    <Stat icon="wallet" label="Instaladas (Apple)" value={walletStats.appleInstalled} accent />
+                    <Stat icon="wallet" label="Instaladas (Google)" value={walletStats.googleInstalled} />
+                    <Stat icon="star"   label="Con 5+ estrellas"    value={walletStats.withFiveOrMore} />
+                    <Stat icon="gift"   label="Corte gratis listo"  value={walletStats.freeCutReady} />
+                  </div>
+
+                  {/* Distribución de saldo: dónde está atascada la gente en el
+                      camino al corte gratis. */}
+                  <div style={{ display: "grid", gap: ".35rem" }}>
+                    <span style={{ fontSize: ".72rem", color: "var(--muted-2)", textTransform: "uppercase", letterSpacing: ".06em" }}>Clientes por estrellas</span>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(11, 1fr)", gap: ".2rem", alignItems: "end", height: 70 }}>
+                      {walletStats.byStars.map((n, i) => {
+                        const max = Math.max(1, ...walletStats.byStars)
+                        return (
+                          <div key={i} style={{ display: "grid", gap: ".2rem", justifyItems: "center" }} title={`${n} cliente${n === 1 ? "" : "s"} con ${i} estrella${i === 1 ? "" : "s"}`}>
+                            <div style={{ width: "100%", height: `${Math.round((n / max) * 52)}px`, minHeight: n ? 3 : 1, borderRadius: 3, background: i >= 10 ? "var(--gold-grad)" : "rgba(201,161,78,.35)" }} />
+                            <span style={{ fontSize: ".58rem", color: "var(--muted-2)" }}>{i}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Campaña: escribe en la tarjeta de cada cliente y dispara
+                      una notificación en su celular. Solo llega a quien tiene
+                      el pase agregado. */}
+                  <div style={{ display: "grid", gap: ".5rem", paddingTop: ".4rem", borderTop: "1px solid var(--hair)" }}>
+                    <span style={{ fontSize: ".72rem", color: "var(--muted-2)", textTransform: "uppercase", letterSpacing: ".06em" }}>Enviar novedad</span>
+                    <textarea
+                      value={campaignMessage}
+                      onChange={(e) => setCampaignMessage(e.target.value.slice(0, 180))}
+                      placeholder="Ej: Este viernes, 20% en barba. Te esperamos."
+                      rows={2}
+                      style={{ width: "100%", resize: "vertical", padding: ".6rem .7rem", borderRadius: 10, border: "1px solid var(--hair-2)", background: "rgba(0,0,0,.25)", color: "var(--ink)", fontSize: ".82rem" }}
+                    />
+                    <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap", alignItems: "center" }}>
+                      <select value={campaignAudience} onChange={(e) => setCampaignAudience(e.target.value)}
+                        style={{ padding: ".45rem .6rem", borderRadius: 10, border: "1px solid var(--hair-2)", background: "rgba(0,0,0,.25)", color: "var(--ink)", fontSize: ".78rem" }}>
+                        <option value="all">Todos los que tienen la tarjeta</option>
+                        <option value="five_plus">Con 5 o más estrellas</option>
+                        <option value="free_cut_ready">Con corte gratis disponible</option>
+                        <option value="inactive">Sin venir hace 30+ días</option>
+                      </select>
+                      <button className="btn btn-gold btn-sm" disabled={!campaignMessage.trim() || campaignSending} onClick={sendCampaign}>
+                        <Icon name="spark" size={14} /> {campaignSending ? "Enviando…" : "Enviar"}
+                      </button>
+                      <span style={{ fontSize: ".68rem", color: "var(--muted-2)" }}>{campaignMessage.length}/180</span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: ".68rem", color: "var(--muted-2)" }}>
+                      El mensaje aparece en la tarjeta del cliente hasta que mandes otro. Llega a todos los que tienen el pase, sean de Brunetti o de Pimp Studio.
+                    </p>
+                    {campaigns.length > 0 && (
+                      <div style={{ display: "grid", gap: ".3rem", marginTop: ".3rem" }}>
+                        {campaigns.slice(0, 5).map((c) => (
+                          <div key={c.id} style={{ display: "flex", justifyContent: "space-between", gap: ".6rem", fontSize: ".72rem", color: "var(--muted)" }}>
+                            <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.message}</span>
+                            <span style={{ flexShrink: 0, color: "var(--muted-2)" }}>
+                              {c.recipientCount} · {String(c.createdAt || "").slice(0, 10)}{c.source === "brunetti" ? " · Brunetti" : ""}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </Panel>
+
             <Panel title="Clientes frecuentes" action={<span className="chip chip-gold">3+ visitas</span>}>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(200px,1fr))", gap: ".8rem" }}>
                 {!topClients.length && <p style={{ color: "var(--muted)", fontSize: ".84rem" }}>Sin datos aún.</p>}

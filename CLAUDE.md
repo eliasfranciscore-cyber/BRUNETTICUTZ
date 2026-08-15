@@ -267,6 +267,29 @@ cards, testimonial photos) are intentionally NOT tagged — their images come fr
 (`src/data/*.js`), so edit those, not per-item overrides. To tag a new fixed image, wrap its `<img>`
 in `<Editable as="img" editId="…" …/>`. The native iOS app cannot be edited by this web tool.
 
+## Puente con PimpStudio (agenda de Bruno + tarjeta de fidelidad)
+
+BrunettiCutz y PimpStudio (`pimpstudio.cl`) son dos proyectos con bases de datos Neon separadas, unidos por un secreto compartido (`PIMPSTUDIO_BRIDGE_SECRET`, el mismo valor en los dos Vercel). El puente va en **las dos direcciones** y cada una tiene su dueño de datos:
+
+| Qué | Dónde viven los datos | Quién llama a quién |
+|---|---|---|
+| Agenda de Bruno (barbero 6) | **Acá** (`bookings`, `availability_blocks`) | PimpStudio → acá, vía su `api/bruno-agenda.js` con header `X-Bridge-Secret`, aceptado en `api/bookings.js` y `api/availability.js` |
+| Programa de fidelidad (estrellas + pases de Wallet) | **PimpStudio** (`loyalty_events`, `wallet_passes`, `wallet_registrations`) | Acá → PimpStudio, vía `api/_loyaltyBridge.js` a los modos `bridge-*` de su `api/clients.js` y `api/push.js` |
+
+**Fidelidad — no hay sistema propio, se reusa el de PimpStudio.** Una sola tarjeta ("Pimp Studio", `pass.cl.pimpstudio.loyalty`) sirve en los dos locales y suma con los cortes de ambos; los clientes se cruzan por teléfono (9 dígitos). Reglas: 1 estrella por servicio completado, 5 → 30% en productos, 10 → corte gratis.
+
+**Un solo escritor (regla crítica).** La estrella la acredita SIEMPRE el `PATCH` de `api/bookings.js` de este proyecto, porque es el que ejecutan los dos paneles: el de acá directamente, y el de PimpStudio a través del puente de agenda. Antes `bruno-agenda.js` también acreditaba y una reserva completada desde allá sumaba dos estrellas. El identificador de idempotencia es `bridge_ref = "brunetti:<id de la reserva acá>"`, con índices únicos parciales en el `db/schema.sql` de PimpStudio (earn y redeem por separado).
+
+**Superficie en el front:**
+- `src/walletPrompt.js` + `src/components/WalletPrompt.jsx` — popup "Agregar a Wallet" (iOS descarga el `.pkpass`; Android pide un link firmado). Montado en `Booking.jsx` (paso 3, con 4,5 s de respiro) y en `Account.jsx`.
+- `Account.jsx` — tarjeta de estrellas con los 10 sellos y botón de instalación.
+- `/tarjeta` (`src/pages/CardShare.jsx`) — página pública del link que el barbero manda por WhatsApp; el token es opaco, nunca lleva el teléfono.
+- `Dashboard.jsx` — badge de estrellas y botón "Tarjeta" (WhatsApp) en la lista de clientes; canje del corte gratis en el detalle de reserva; pestaña **Marketing** con métricas de adopción y envío de campañas (las mismas cifras y la misma audiencia que ve el panel de PimpStudio — el programa es uno solo).
+
+**Todo el puente es best-effort.** `api/_loyaltyBridge.js` usa timeout de 6 s y devuelve error suave: si pimpstudio.cl no responde, se registra en consola y la operación local (reserva, cambio de estado, carga del panel) sigue igual. Los modos de Wallet nunca caen al fallback de datos de demo — devuelven 502, para que el front no crea que generó un pase.
+
+**Cupo de funciones:** este proyecto está en 12/12 Serverless Functions (tope del plan Hobby), así que **no se puede agregar ningún archivo nuevo a `api/`**. Todo lo de fidelidad va como `?mode=wallet-*` dentro de `api/clients.js`, y la lógica compartida en archivos con prefijo `_` (que Vercel no cuenta).
+
 ## Native iOS App
 
 `ios/BrunettiCutz/` is a native SwiftUI companion app (barber dashboard client), separate from the web PWA above. It talks to the same `/api` backend.

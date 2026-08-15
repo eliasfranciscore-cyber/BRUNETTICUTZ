@@ -4,6 +4,7 @@ import { Emblem, Icon, MobileScreen } from '../components/ui.jsx'
 import { GlareCard } from '../components/GlareCard.jsx'
 import { BARBERS, SERVICES, SERVICE_BARBERS, SLOT_GROUPS, DAYS_ES, MONTHS_ES, slotState, barberById, CLP, tne } from '../data.js'
 import { addLocalBooking } from '../bookingsStore.js'
+import WalletPrompt, { useAutoWalletPrompt } from '../components/WalletPrompt.jsx'
 
 const ALL_BOOKING_SLOTS = Object.values(SLOT_GROUPS).flat()
 
@@ -145,6 +146,14 @@ export default function Booking() {
   const canGoNextMonth = month < 11 && nextMonthFirstKey <= maxDateKey
 
   const [bookingError, setBookingError] = useState(null)
+
+  // Tarjeta de fidelidad: se ofrece recién en el paso 3 (reserva confirmada) y
+  // con unos segundos de respiro, para no tapar el "¡Reserva confirmada!" que
+  // el cliente vino a ver. Si ya la tiene instalada, no aparece.
+  const clientPhone = (() => {
+    try { return JSON.parse(localStorage.getItem("ps_user") || "{}")?.phone || null } catch { return null }
+  })()
+  const [walletOpen, closeWallet] = useAutoWalletPrompt(step === 3, clientPhone, 4500)
 
   const confirm = async () => {
     setSaving(true)
@@ -423,6 +432,8 @@ export default function Booking() {
           </button>
         </div>
       )}
+
+      <WalletPrompt open={walletOpen} onClose={closeWallet} phone={clientPhone} />
     </MobileScreen>
   )
 }

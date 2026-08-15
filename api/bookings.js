@@ -6,6 +6,7 @@ import { syncBookingToNotion, updateNotionBookingStatus } from "./_notion.js"
 import { rateLimit, clientIp } from "./_rateLimit.js"
 import { logBookingAttempt } from "./_bookingAudit.js"
 import { blocksForDuration, slotsForBooking, busySlotsForBarberDate } from "./_slots.js"
+import { creditStar, revertStar, redeemFreeCut, cancelRedeem } from "./_loyaltyBridge.js"
 
 const MIN_CANCEL_NOTICE_HOURS = 10
 const MAX_LEAD_DAYS = 7
@@ -347,23 +348,66 @@ export default async function handler(req, res) {
       return res.json({ ok: true, booking })
     }
 
+    /* PATCH — dos operaciones del panel sobre una reserva existente:
+         { id, status }                 → cambio de estado
+         { id, redeem: "free_cut" }     → canjear el corte gratis de fidelidad
+
+       Este PATCH es el ÚNICO lugar que acredita estrellas, aunque el programa
+       viva en PimpStudio: la reserva de Bruno se puede completar desde los dos
+       paneles, y el de PimpStudio lo hace llamando justo acá (con el secreto
+       del puente). Un solo escritor = una estrella por corte. Ver
+       api/_loyaltyBridge.js. */
     if (req.method === "PATCH") {
       const bridge = isBridgeRequest(req)
       if (!bridge) {
         const session = requireInternal(req, res)
         if (!session) return
       }
-      const { id, status } = req.body || {}
-      const allowed = new Set(["pendiente", "confirmada", "en curso", "completada", "cancelada"])
-      if (!id || !allowed.has(status)) return res.status(400).json({ ok: false, error: "Estado invalido" })
-      if (bridge) {
+      const { id, status, redeem } = req.body || {}
+      if (!id) return res.status(400).json({ ok: false, error: "Falta id" })
+
+      // Estado previo + datos del cliente: hacen falta para el control del
+      // puente, para decidir si la transición otorga o quita la estrella, y
+      // para identificar al cliente en PimpStudio (se cruzan por teléfono).
+      const [before] = await sql`
+        SELECT b.id, b.status, b.barber_id as "barberId", u.name as client, u.phone
+        FROM bookings b LEFT JOIN users u ON u.id = b.client_id
+        WHERE b.id = ${Number(id)}
+      `
+      // LEFT JOIN, no JOIN: una reserva cuyo cliente ya no existe igual tiene
+      // que poder cambiar de estado — solo se queda sin estrella (sin teléfono
+      // no hay a quién acreditársela).
+      if (!before) return res.status(404).json({ ok: false, error: "Reserva no encontrada" })
+      if (bridge && Number(before.barberId) !== BRIDGE_BARBER_ID) {
         // El secreto compartido nunca debe poder tocar reservas de otro
         // barbero, aunque hoy solo exista Bruno en esta base de datos.
-        const [target] = await sql`SELECT barber_id as "barberId" FROM bookings WHERE id = ${Number(id)}`
-        if (!target || Number(target.barberId) !== BRIDGE_BARBER_ID) {
-          return res.status(403).json({ ok: false, error: "No autorizado" })
-        }
+        return res.status(403).json({ ok: false, error: "No autorizado" })
       }
+
+      // --- Canje del corte gratis -------------------------------------------
+      // Orden a propósito: primero se debitan las estrellas en PimpStudio (la
+      // fuente de verdad, con su propio índice de idempotencia) y recién
+      // después se deja la reserva en $0 acá. Si el segundo paso falla, se
+      // devuelven las estrellas: el cliente nunca queda debitado sin premio.
+      if (redeem === "free_cut") {
+        const ip = clientIp(req)
+        const result = await redeemFreeCut({ bookingId: id, phone: before.phone, name: before.client, ip })
+        if (!result.ok) {
+          return res.status(result.status >= 400 ? result.status : 502).json({ ok: false, error: result.error || "No se pudo canjear el corte gratis" })
+        }
+        try {
+          await sql`UPDATE bookings SET custom_price = 0, updated_at = NOW() WHERE id = ${Number(id)}`
+        } catch (err) {
+          console.error("redeem local update error:", err)
+          await cancelRedeem({ bookingId: id, ip }).catch(() => {})
+          return res.status(500).json({ ok: false, error: "No se pudo aplicar el corte gratis. Intenta de nuevo." })
+        }
+        return res.json({ ok: true, price: 0, loyalty: result.loyalty })
+      }
+
+      const allowed = new Set(["pendiente", "confirmada", "en curso", "completada", "cancelada"])
+      if (!allowed.has(status)) return res.status(400).json({ ok: false, error: "Estado invalido" })
+
       const [booking] = await sql`
         UPDATE bookings
         SET status = ${status}, updated_at = NOW()
@@ -373,7 +417,25 @@ export default async function handler(req, res) {
       if (booking?.notionPageId) {
         updateNotionBookingStatus(booking.notionPageId, status).catch((err) => console.error("notion status update error:", err))
       }
-      return res.json({ ok: true, booking: { ...booking, time: booking.time?.slice(0, 5) } })
+
+      // Fidelidad: la estrella sigue al estado de la reserva. Best-effort en su
+      // propio try/catch — si PimpStudio no responde, el cambio de estado (lo
+      // importante, ya guardado arriba) no se revierte ni falla la respuesta.
+      let loyalty = null
+      try {
+        const ip = clientIp(req)
+        if (before.status !== "completada" && status === "completada") {
+          const result = await creditStar({ bookingId: id, phone: before.phone, name: before.client, ip })
+          loyalty = result.loyalty
+        } else if (before.status === "completada" && status !== "completada") {
+          const result = await revertStar({ bookingId: id, ip })
+          loyalty = result.loyalty
+        }
+      } catch (err) {
+        console.error("loyalty bridge error:", err?.message || err)
+      }
+
+      return res.json({ ok: true, booking: { ...booking, time: booking.time?.slice(0, 5) }, loyalty })
     }
 
     if (req.method === "DELETE") {
@@ -384,7 +446,12 @@ export default async function handler(req, res) {
       if (purge) {
         const session = requireInternal(req, res)
         if (!session) return
-        await sql`DELETE FROM bookings WHERE id = ${Number(id)}`
+        const [deleted] = await sql`DELETE FROM bookings WHERE id = ${Number(id)} RETURNING status`
+        // Si la reserva borrada estaba completada, su estrella era una
+        // proyección de ese estado: sin reserva, no hay estrella.
+        if (deleted?.status === "completada") {
+          revertStar({ bookingId: id, ip: clientIp(req) }).catch((err) => console.error("loyalty revert error:", err?.message || err))
+        }
         return res.json({ ok: true })
       }
 
@@ -392,7 +459,7 @@ export default async function handler(req, res) {
       // marca la reserva como cancelada en vez de borrarla.
       const [existing] = await sql`
         SELECT b.id, b.booking_date::text as date, b.booking_time::text as time,
-               b.barber_id as "barberId", u.name as client, b.notion_page_id as "notionPageId"
+               b.barber_id as "barberId", b.status, u.name as client, b.notion_page_id as "notionPageId"
         FROM bookings b JOIN users u ON b.client_id = u.id
         WHERE b.id = ${Number(id)}
       `
@@ -420,6 +487,9 @@ export default async function handler(req, res) {
         }
       } catch (notifyErr) {
         console.error("notify cancel error:", notifyErr)
+      }
+      if (existing.status === "completada") {
+        revertStar({ bookingId: id, ip: clientIp(req) }).catch((err) => console.error("loyalty revert error:", err?.message || err))
       }
       return res.json({ ok: true, booking })
     }

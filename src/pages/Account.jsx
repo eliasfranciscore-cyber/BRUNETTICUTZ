@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { Brandmark, Icon, MobileScreen } from '../components/ui.jsx'
 import { CLIENT_APPTS, barberById, CLP, MONTHS_ES } from '../data.js'
 import { readLocalBookings, cancelLocalBooking, isCancelled, isOrphanLocalBooking, removeOrphanLocalBooking, markLocalBookingSynced } from '../bookingsStore.js'
+import WalletPrompt, { useAutoWalletPrompt } from '../components/WalletPrompt.jsx'
+import { walletPlatform, walletPassURL, fetchGoogleWalletSaveURL } from '../walletPrompt.js'
 
 /* Reservas locales "huérfanas" (creadas offline, sin id real del backend):
    reintenta guardarlas de verdad ahora que hay conexión, y si el servidor
@@ -118,6 +120,30 @@ export default function Account() {
   const past = appts.filter((a) => a.when === "past")
   const nb = next && barberById(next.barberId)
 
+  // Fidelidad: el saldo viene del programa de Pimp Studio (la misma tarjeta
+  // sirve en los dos locales) a través del puente del backend. `loyalty` va
+  // null si el puente no está disponible: en ese caso no se muestra nada, en
+  // vez de inventar un saldo en 0 que confundiría al cliente.
+  const loyalty = user?.loyalty || null
+  const [walletOpen, closeWallet] = useAutoWalletPrompt(Boolean(user?.phone) && !user?.walletHasPass, user?.phone)
+  const [walletBusy, setWalletBusy] = useState(false)
+  const platform = walletPlatform()
+
+  const addToWallet = async () => {
+    if (platform === "android") {
+      setWalletBusy(true)
+      try {
+        window.location.href = await fetchGoogleWalletSaveURL(user.phone)
+      } catch {
+        window.alert("No se pudo generar el pase. Intenta de nuevo más tarde.")
+      } finally {
+        setWalletBusy(false)
+      }
+      return
+    }
+    window.location.href = walletPassURL(user.phone)
+  }
+
   if (!user) return null
 
   return (
@@ -144,6 +170,51 @@ export default function Account() {
           <div className="card"><strong style={{ fontSize: "1.1rem" }}>{CLP(user.totalSpent || past.reduce((sum, item) => sum + Number(item.price || 0), 0))}</strong><span>Gastado</span></div>
           <div className="card"><strong style={{ fontSize: "1rem" }}>{next ? next.date : "Sin cita"}</strong><span>Próxima</span></div>
         </div>
+
+        {loyalty && (
+          <div className="card card-line animate-up" style={{ padding: ".9rem", display: "grid", gap: ".6rem", animationDelay: ".03s" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: ".5rem" }}>
+              <div>
+                <div className="font-display" style={{ fontWeight: 600, fontSize: ".95rem" }}>Tarjeta de fidelidad</div>
+                <div style={{ color: "var(--muted)", fontSize: ".72rem" }}>
+                  {loyalty.freeCutReady
+                    ? "¡Tu próximo corte va gratis! Avísale a tu barbero."
+                    : `${loyalty.cutsToFreeCut} ${loyalty.cutsToFreeCut === 1 ? "corte más" : "cortes más"} para tu corte gratis`}
+                </div>
+              </div>
+              <span className="chip chip-gold" style={{ flexShrink: 0, fontSize: ".7rem" }}>
+                <Icon name="star" size={11} /> {loyalty.stars}/{loyalty.goal}
+              </span>
+            </div>
+
+            {/* Diez sellos, uno por estrella — el mismo dibujo que trae el pase
+                en Wallet, para que el cliente reconozca que es lo mismo. */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(10, 1fr)", gap: ".25rem" }}>
+              {Array.from({ length: loyalty.goal }, (_, i) => (
+                <span key={i} style={{
+                  aspectRatio: "1", borderRadius: 999, display: "grid", placeItems: "center",
+                  background: i < loyalty.stars ? "var(--gold-grad)" : "rgba(255,255,255,.04)",
+                  border: `1px solid ${i < loyalty.stars ? "transparent" : "var(--hair-2)"}`,
+                  color: i < loyalty.stars ? "var(--on-gold)" : "var(--muted-2)",
+                }}>
+                  <Icon name="star" size={10} />
+                </span>
+              ))}
+            </div>
+
+            {loyalty.productDiscountReady && (
+              <div className="chip" style={{ fontSize: ".68rem", justifySelf: "start" }}>
+                {loyalty.productDiscountPct}% de descuento en productos, activo en tu próxima visita
+              </div>
+            )}
+
+            {platform && !user.walletHasPass && (
+              <button className="btn btn-gold btn-block" onClick={addToWallet} disabled={walletBusy} style={{ fontSize: ".75rem", padding: ".5rem" }}>
+                <Icon name="wallet" size={14} /> {walletBusy ? "Generando…" : `Agregar a ${platform === "android" ? "Google Wallet" : "Apple Wallet"}`}
+              </button>
+            )}
+          </div>
+        )}
 
         <div className="animate-up" style={{ animationDelay: ".06s" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: ".4rem" }}>
@@ -203,6 +274,8 @@ export default function Account() {
 
         <button className="btn btn-gold btn-block" onClick={() => navigate("/reservar")} style={{ fontSize: ".8rem", padding: ".6rem" }}><Icon name="calendar" size={14} /> Agendar nueva cita</button>
       </div>
+
+      <WalletPrompt open={walletOpen} onClose={closeWallet} phone={user?.phone} />
     </MobileScreen>
   )
 }

@@ -1,6 +1,10 @@
 import { neon } from "@neondatabase/serverless"
 import { requireInternal } from "./_auth.js"
 import { rateLimit, clientIp } from "./_rateLimit.js"
+import {
+  isLoyaltyBridgeConfigured, shareToken, applePassBytes, googleSaveURL, tarjetaInfo,
+  loyaltyFor, loyaltyForPhones, walletStats, walletCampaigns, sendWalletCampaign,
+} from "./_loyaltyBridge.js"
 
 const DEMO_CLIENTS = [
   { id: 1, name: "Carlos Rodriguez", phone: "987654321", email: "carlos@ejemplo.com", visits: 4, totalSpent: 68960, lastVisit: "2026-05-22", status: "activo" },
@@ -26,6 +30,112 @@ export default async function handler(req, res) {
   try {
     const sql = neon(process.env.DATABASE_URL)
 
+    /* Tarjeta de fidelidad (Apple/Google Wallet) — el programa de puntos es el
+       de PimpStudio y vive en su base de datos; acá solo se hace de puente
+       para que el navegador del cliente nunca llame a otro dominio (CORS/CSP)
+       ni su teléfono viaje en una URL ajena. Ver api/_loyaltyBridge.js.
+
+       Va antes del dispatch normal porque son modos, no rutas: comparten
+       archivo con el resto de clientes por el tope de 12 funciones
+       serverless del plan Hobby (ver CLAUDE.md). */
+    const mode = String(req.query.mode || "")
+    if (mode.startsWith("wallet-")) {
+      if (!isLoyaltyBridgeConfigured()) return res.status(501).json({ ok: false, error: "Tarjeta de fidelidad no configurada" })
+      const ip = clientIp(req)
+
+      // --- Modos públicos: el "login" del cliente es saber su propio teléfono,
+      // mismo criterio que la búsqueda por teléfono de más abajo.
+      if (mode === "wallet-pass" || mode === "wallet-pass-google") {
+        const allowed = await rateLimit(sql, `wallet-pass:${ip}`, { max: 10, windowSeconds: 60 })
+        if (!allowed) return res.status(429).json({ ok: false, error: "Demasiadas solicitudes. Intenta de nuevo en un momento." })
+
+        // Dos identificadores posibles: ?t= (link personal de /tarjeta, ya es
+        // un token) o ?phone= (cliente identificado en /cuenta o en el popup
+        // tras reservar), que se convierte en token antes de salir de acá.
+        let token = String(req.query.t || "")
+        if (!token) {
+          const phone = cleanPhone(req.query.phone)
+          if (phone.length !== 9) return res.status(400).json({ ok: false, error: "Telefono invalido" })
+          const [client] = await sql`SELECT name FROM users WHERE phone = ${phone}`
+          if (!client) return res.status(404).json({ ok: false, error: "Cliente no registrado" })
+          // El pase se pide SIEMPRE por token, nunca por teléfono: así el
+          // número no queda escrito en ninguna request a otro dominio.
+          const share = await shareToken({ phone, name: client.name, ip })
+          if (!share.ok) return res.status(share.status >= 400 ? share.status : 502).json({ ok: false, error: share.error })
+          token = share.token
+        }
+
+        if (mode === "wallet-pass-google") {
+          const result = await googleSaveURL(token, ip)
+          if (!result.ok) return res.status(result.status >= 400 ? result.status : 502).json({ ok: false, error: result.error })
+          return res.json({ ok: true, saveUrl: result.saveUrl })
+        }
+
+        // iOS: se reenvían los bytes del .pkpass ya firmado por PimpStudio tal
+        // cual. Firmarlo acá exigiría duplicar certificados de Apple en dos
+        // proyectos para el MISMO pase, que es justo lo que no queremos.
+        const pass = await applePassBytes(token, ip)
+        if (pass.status >= 400 || !pass.buffer?.length) {
+          return res.status(pass.status >= 400 ? pass.status : 502).json({ ok: false, error: "No se pudo generar el pase" })
+        }
+        res.setHeader("Content-Type", "application/vnd.apple.pkpass")
+        res.setHeader("Content-Disposition", "attachment; filename=brunetti.pkpass")
+        return res.status(200).send(pass.buffer)
+      }
+
+      // Saludo de /tarjeta: resuelve el token del link de WhatsApp a un
+      // nombre. El teléfono no vuelve nunca por acá.
+      if (mode === "wallet-tarjeta-info") {
+        const info = await tarjetaInfo(String(req.query.t || ""), ip)
+        if (!info.ok) return res.status(info.status >= 400 ? info.status : 502).json({ ok: false, error: info.error })
+        return res.json({ ok: true, name: info.name })
+      }
+
+      // ¿Ya lo agregó? Verdad de servidor (registro real del dispositivo en
+      // Wallet), no un flag local que se desincroniza si cambia de teléfono.
+      if (mode === "wallet-status") {
+        const phone = cleanPhone(req.query.phone)
+        if (phone.length !== 9) return res.status(400).json({ ok: false, error: "Telefono invalido" })
+        const result = await loyaltyFor(phone, ip)
+        if (!result) return res.json({ ok: true, hasPass: false, loyalty: null })
+        return res.json({ ok: true, hasPass: result.hasPass, loyalty: result.loyalty })
+      }
+
+      // --- Modos del panel (sesión de barbero) ------------------------------
+      const session = requireInternal(req, res)
+      if (!session) return
+
+      // Link personal para mandarle la tarjeta al cliente por WhatsApp.
+      if (mode === "wallet-share-link") {
+        const phone = cleanPhone(req.query.phone)
+        if (phone.length !== 9) return res.status(400).json({ ok: false, error: "Telefono invalido" })
+        const [client] = await sql`SELECT name FROM users WHERE phone = ${phone}`
+        if (!client) return res.status(404).json({ ok: false, error: "Cliente no registrado" })
+        const share = await shareToken({ phone, name: client.name, ip })
+        if (!share.ok) return res.status(share.status >= 400 ? share.status : 502).json({ ok: false, error: share.error })
+        return res.json({ ok: true, url: `https://brunetticutz.cl/tarjeta?t=${share.token}`, name: client.name })
+      }
+
+      // Pestaña Marketing: las cifras son las MISMAS que ve el panel de
+      // PimpStudio — el programa de puntos es uno solo para los dos negocios.
+      if (mode === "wallet-stats") {
+        const stats = await walletStats(ip)
+        if (!stats) return res.status(502).json({ ok: false, error: "No se pudieron cargar las métricas" })
+        return res.json({ ok: true, stats })
+      }
+
+      if (mode === "wallet-campaigns") {
+        return res.json({ ok: true, campaigns: await walletCampaigns(ip) })
+      }
+
+      if (req.method === "POST" && mode === "wallet-campaign") {
+        const { status, data } = await sendWalletCampaign({ message: req.body?.message, audience: req.body?.audience, ip })
+        return res.status(status).json(data)
+      }
+
+      return res.status(404).json({ ok: false, error: "Modo no reconocido" })
+    }
+
     if (req.method === "GET") {
       const phone = cleanPhone(req.query.phone)
       if (phone) {
@@ -48,7 +158,11 @@ export default async function handler(req, res) {
           GROUP BY u.id
         `
         if (!client) return res.status(404).json({ ok: false, error: "Cliente no registrado" })
-        return res.json({ ok: true, client })
+        // Estrellas del programa de PimpStudio para la cuenta del cliente. Si
+        // el puente no responde va `null` y la página simplemente no muestra
+        // la tarjeta — nunca se cae por esto.
+        const bonus = await loyaltyFor(client.phone, clientIp(req)).catch(() => null)
+        return res.json({ ok: true, client: { ...client, loyalty: bonus?.loyalty || null, walletHasPass: Boolean(bonus?.hasPass) } })
       }
 
       const session = requireInternal(req, res)
@@ -66,7 +180,17 @@ export default async function handler(req, res) {
         ORDER BY MAX(u.updated_at) DESC NULLS LAST, u.id DESC
         LIMIT 100
       `
-      return res.json({ ok: true, clients })
+      // Saldos de toda la lista en UNA llamada al puente (no una por cliente:
+      // serían 100 round-trips entre dos deployments por cada carga del panel).
+      const byPhone = await loyaltyForPhones(clients.map((c) => c.phone), clientIp(req)).catch(() => ({}))
+      return res.json({
+        ok: true,
+        clients: clients.map((c) => ({
+          ...c,
+          loyalty: byPhone[c.phone]?.loyalty || null,
+          walletHasPass: Boolean(byPhone[c.phone]?.hasPass),
+        })),
+      })
     }
 
     if (req.method === "POST") {
@@ -100,6 +224,11 @@ export default async function handler(req, res) {
     return res.status(405).json({ ok: false, error: "Method not allowed" })
   } catch (err) {
     console.error("clients error:", err)
+    // Los modos de Wallet no tienen equivalente en datos de demo: devolver la
+    // lista falsa acá haría que el front creyera que generó un pase.
+    if (String(req.query.mode || "").startsWith("wallet-")) {
+      return res.status(502).json({ ok: false, error: "No se pudo procesar la tarjeta de fidelidad" })
+    }
     if (req.method === "GET") {
       const phone = cleanPhone(req.query.phone)
       if (phone) {

@@ -1,16 +1,16 @@
-# Graph Report - BRUNETTICUTZ  (2026-08-14)
+# Graph Report - BRUNETTICUTZ  (2026-08-09)
 
 ## Corpus Check
-- 141 files · ~2,000,181 words
+- 136 files · ~1,990,407 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1257 nodes · 2123 edges · 140 communities (65 shown, 75 thin omitted)
+- 1189 nodes · 1963 edges · 139 communities (64 shown, 75 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 37 edges (avg confidence: 0.82)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `ca75a020`
+- Built from commit: `b9caee9a`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -151,19 +151,18 @@
 - Date
 - Int
 - String
-- walletPrompt.js
 
 ## God Nodes (most connected - your core abstractions)
 1. `CLP()` - 27 edges
 2. `APIClient` - 25 edges
 3. `requireInternal()` - 22 edges
-4. `handler()` - 21 edges
-5. `Dashboard()` - 21 edges
-6. `Apple Design` - 20 edges
-7. `Icon()` - 18 edges
-8. `handler()` - 17 edges
-9. `SessionStore` - 16 edges
-10. `Design Engineering` - 16 edges
+4. `Dashboard()` - 21 edges
+5. `Apple Design` - 20 edges
+6. `handler()` - 16 edges
+7. `SessionStore` - 16 edges
+8. `Icon()` - 16 edges
+9. `Design Engineering` - 16 edges
+10. `Animation Standards Reference` - 16 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `PIMP STUDIO Logo (JPG, used as brand header/footer image)` --semantically_similar_to--> `PIMP STUDIO Logo JPG (web/assets copy)`  [INFERRED] [semantically similar]
@@ -180,7 +179,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (140 total, 75 thin omitted)
+## Communities (139 total, 75 thin omitted)
 
 ### Community 0 - "iOS Data Models"
 Cohesion: 0.29
@@ -191,16 +190,16 @@ Cohesion: 0.23
 Nodes (22): Codable, Hashable, Identifiable, APIEndpointStatus, APIHealth, AvailabilitySlot, Barber, Booking (+14 more)
 
 ### Community 2 - "Backend Auth & Project Docs"
-Cohesion: 0.12
-Nodes (16): Account, App(), BarberLogin, Booking, CardShare, Cursos, Dashboard, EncuentraEstilo (+8 more)
+Cohesion: 0.13
+Nodes (15): Account, App(), BarberLogin, Booking, Cursos, Dashboard, EncuentraEstilo, Essentials (+7 more)
 
 ### Community 3 - "Workshop Page & Content"
 Cohesion: 0.06
 Nodes (35): FEATURE_CARDS, TESTIMONIALS, WK_BASE, WK_DIAS, WK_ED, WK_MESES, WORKSHOP, WORKSHOP_DATES (+27 more)
 
 ### Community 4 - "Vercel API Handlers"
-Cohesion: 0.05
-Nodes (86): b64url(), BARBER_PROFILES, fallbackLogin(), fallbackPasswords(), handleChangePassword(), handleLogin(), handler(), isAdmin() (+78 more)
+Cohesion: 0.06
+Nodes (67): b64url(), BARBER_PROFILES, fallbackLogin(), fallbackPasswords(), handleChangePassword(), handleLogin(), handler(), isAdmin() (+59 more)
 
 ### Community 5 - "Cursos.jsx"
 Cohesion: 0.08
@@ -208,7 +207,7 @@ Nodes (35): addDays(), Bars(), BUSINESS_HOURS, CAT_COLORS, DashboardResumen(), D
 
 ### Community 6 - "Legacy Static Site (web/app.js)"
 Cohesion: 0.07
-Nodes (28): API Error Handling, Architecture, Backend (Vercel Functions), Build & Deployment, Build for production, Common Tasks, Database (PostgreSQL), Database schema setup (after cloning) (+20 more)
+Nodes (27): API Error Handling, Architecture, Backend (Vercel Functions), Build & Deployment, Build for production, Common Tasks, Database (PostgreSQL), Database schema setup (after cloning) (+19 more)
 
 ### Community 7 - "UI Components & Login"
 Cohesion: 0.07
@@ -235,8 +234,8 @@ Cohesion: 0.09
 Nodes (38): Charts, ServiceRevenue, String, UNAuthorizationStatus, clp(), isoDate(), PaymentSessionResponse, BarberChartMode (+30 more)
 
 ### Community 13 - "ExpensesModule.jsx"
-Cohesion: 0.07
-Nodes (27): 1.1 Helper de puente entrante, 1.2 Mover la lógica de acreditación a `api/_loyalty.js`, 1.3 Modos nuevos en `api/clients.js` (PimpStudio), 1.4 Quitar la acreditación de `bruno-agenda.js`, 1.5 Migración SQL, 1. Qué ya existe (no se rehace nada de esto), 2.1 Cliente del puente: `api/_loyaltyBridge.js` (archivo nuevo con `_`, no cuenta como función), 2.2 Hook en el `PATCH` de `api/bookings.js` (BrunettiCutz, ~línea 350) (+19 more)
+Cohesion: 0.34
+Nodes (14): PushCard(), authHeaders(), disablePush(), enablePush(), isIOS(), isStandalone(), notifyBarberOfBooking(), notifyLocal() (+6 more)
 
 ### Community 14 - "workshop.js"
 Cohesion: 0.09
@@ -251,8 +250,8 @@ Cohesion: 0.24
 Nodes (16): Admin Key Authentication (shared internal password pattern), Barber Availability Management (barber sets available slots per day), Barber Authentication Flow (username/password, sets active barber session), Dual Authentication System (client auth via phone vs barber/admin auth via username+password), Phone Number as Client Identity (celular = ID de cliente), Manual Slot Blocking (admin blocks time slots per barber per day), TNE Discount (20% for Tarjeta Nacional Estudiantil, non-Bruno services), PIMP STUDIO Logo (JPG, used as brand header/footer image) (+8 more)
 
 ### Community 17 - "ui.jsx"
-Cohesion: 0.10
-Nodes (17): ALL_MODULE_IDS, BarberModal(), emptyBarber, MODULES, PERMS, BookingSyncIssues(), MobileDock(), Emblem() (+9 more)
+Cohesion: 0.09
+Nodes (18): ALL_MODULE_IDS, BarberModal(), emptyBarber, MODULES, PERMS, BookingSyncIssues(), MobileDock(), Brandmark() (+10 more)
 
 ### Community 18 - "iOS App Intents & Shortcuts"
 Cohesion: 0.15
@@ -271,8 +270,8 @@ Cohesion: 0.17
 Nodes (19): ASSETS_DIR, CONTENT_DIR, CORS, fileFromEditId(), fileQueues, handleListAssets(), handleSave(), handleSaveOverride() (+11 more)
 
 ### Community 22 - "BookingsInbox.jsx"
-Cohesion: 0.12
-Nodes (34): isAdminUser(), AGENDA_SLOTS, AgendaDatePicker(), blocksToMin(), buildWeek(), CFG_SECTIONS, ConfigPanel(), Dashboard() (+26 more)
+Cohesion: 0.13
+Nodes (20): isAdminUser(), AGENDA_SLOTS, AgendaDatePicker(), blocksToMin(), buildWeek(), CFG_SECTIONS, ConfigPanel(), Dashboard() (+12 more)
 
 ### Community 23 - "index.html PWA Setup"
 Cohesion: 0.22
@@ -319,12 +318,12 @@ Cohesion: 0.17
 Nodes (11): Diagnóstico (estado actual), Etapa 0 — Fundaciones adaptativas (sistema, no parches), Etapa 1 — Agenda (el módulo con más aire muerto), Etapa 2 — Clientes (cards → tabla densa), Etapa 3 — Reservas (inbox operativo), Etapa 4 — Resumen (dashboard ejecutivo), Etapa 5 — Finanzas + Gastos, Etapa 6 — Servicios, Inscripciones, Marketing, Config (+3 more)
 
 ### Community 37 - "Proposal Generator Script"
-Cohesion: 0.11
-Nodes (17): EditContext, NAV, SiteNav(), ContainerScroll(), InteractiveSelector(), CARD_IMAGES, CARDS, CAT_TAG (+9 more)
+Cohesion: 0.12
+Nodes (16): EditContext, ContainerScroll(), InteractiveSelector(), Sparkles(), CARD_IMAGES, CARDS, CAT_TAG, FALLBACK_SERVICES (+8 more)
 
 ### Community 38 - "CSS Stylesheets"
-Cohesion: 0.15
-Nodes (11): EditableText(), CHECKOUT_ITEMS, FlowCheckout(), ICONS, ModuleFooter(), Lamp(), Sparkles(), INCLUDE_ICONS (+3 more)
+Cohesion: 0.14
+Nodes (12): EditableText(), CHECKOUT_ITEMS, FlowCheckout(), ICONS, ModuleFooter(), NAV, SiteNav(), Lamp() (+4 more)
 
 ### Community 39 - "Claude Dev Wrapper Script"
 Cohesion: 0.44
@@ -347,8 +346,8 @@ Cohesion: 0.22
 Nodes (8): Base de datos (Neon), Brunetti · Barber Studio — Web + Panel, Deploy, Estructura, Puesta en marcha (PC nuevo), Requisitos, Scripts, Variables de entorno
 
 ### Community 51 - "interactive-selector.jsx"
-Cohesion: 0.35
-Nodes (14): addLocalBooking(), cancelKeyOf(), cancelLocalBooking(), isCancelled(), isOrphanLocalBooking(), markLocalBookingSynced(), matchKeyOf(), mergeBookings() (+6 more)
+Cohesion: 0.34
+Nodes (15): addLocalBooking(), cancelKeyOf(), cancelLocalBooking(), isCancelled(), isOrphanLocalBooking(), markLocalBookingSynced(), matchKeyOf(), mergeBookings() (+7 more)
 
 ### Community 52 - "Component Building Principles"
 Cohesion: 0.25
@@ -426,12 +425,8 @@ Nodes (11): App, ColorScheme, SafariServices, Scene, SwiftUI, BrunettiCutzApp, R
 Cohesion: 0.11
 Nodes (18): CaseIterable, Sendable, DashboardFocus, dia, semana, workshop, AppTab, clientes (+10 more)
 
-### Community 139 - "walletPrompt.js"
-Cohesion: 0.24
-Nodes (16): Brandmark(), useAutoWalletPrompt(), WalletPrompt(), Account(), CardShare(), fetchGoogleWalletSaveURL(), fetchGoogleWalletSaveURLByToken(), fetchTarjetaInfo() (+8 more)
-
 ## Knowledge Gaps
-- **426 isolated node(s):** `dev-wrapper.sh script`, `NVM_DIR`, `BASE`, `DEMO_PRODUCTS`, `STATIC_BARBERS` (+421 more)
+- **401 isolated node(s):** `dev-wrapper.sh script`, `NVM_DIR`, `DEMO_PRODUCTS`, `STATIC_BARBERS`, `DEMO_BOOKINGS` (+396 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **75 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -439,16 +434,16 @@ Nodes (16): Brandmark(), useAutoWalletPrompt(), WalletPrompt(), Account(), CardS
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `dependencies` connect `package.json Config` to `Cursos.jsx`?**
-  _High betweenness centrality (0.026) - this node is a cross-community bridge._
+  _High betweenness centrality (0.016) - this node is a cross-community bridge._
 - **Why does `react` connect `Cursos.jsx` to `package.json Config`, `BarberLogin.jsx`?**
-  _High betweenness centrality (0.026) - this node is a cross-community bridge._
+  _High betweenness centrality (0.016) - this node is a cross-community bridge._
 - **Why does `EnrollmentsPanel()` connect `Cursos.jsx` to `Workshop Page & Content`, `BookingsInbox.jsx`?**
-  _High betweenness centrality (0.017) - this node is a cross-community bridge._
-- **What connects `dev-wrapper.sh script`, `NVM_DIR`, `BASE` to the rest of the system?**
-  _433 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _High betweenness centrality (0.013) - this node is a cross-community bridge._
+- **What connects `dev-wrapper.sh script`, `NVM_DIR`, `DEMO_PRODUCTS` to the rest of the system?**
+  _408 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Backend Auth & Project Docs` be split into smaller, more focused modules?**
-  _Cohesion score 0.12105263157894737 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.1286549707602339 - nodes in this community are weakly interconnected._
 - **Should `Workshop Page & Content` be split into smaller, more focused modules?**
   _Cohesion score 0.05952380952380952 - nodes in this community are weakly interconnected._
 - **Should `Vercel API Handlers` be split into smaller, more focused modules?**
-  _Cohesion score 0.050597460791635546 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05823293172690763 - nodes in this community are weakly interconnected._
