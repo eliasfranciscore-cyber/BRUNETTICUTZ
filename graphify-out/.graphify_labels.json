@@ -138,5 +138,11 @@
   "136": "Date",
   "137": "Int",
   "138": "String",
-  "139": "walletPrompt.js"
+  "139": "walletPrompt.js",
+  "140": "auth-barber.js",
+  "141": "APIError",
+  "142": "BookingStatus",
+  "143": "View",
+  "144": "SettingsView",
+  "145": "HoyView"
 }

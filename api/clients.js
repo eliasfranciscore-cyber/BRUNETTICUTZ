@@ -1,6 +1,7 @@
 import { neon } from "@neondatabase/serverless"
 import { requireInternal } from "./_auth.js"
 import { rateLimit, clientIp } from "./_rateLimit.js"
+import { sendLoyaltyCardEmail } from "./_email.js"
 import {
   isLoyaltyBridgeConfigured, shareToken, applePassBytes, googleSaveURL, tarjetaInfo,
   loyaltyFor, loyaltyForPhones, walletStats, walletCampaigns, sendWalletCampaign,
@@ -126,6 +127,76 @@ export default async function handler(req, res) {
 
       if (mode === "wallet-campaigns") {
         return res.json({ ok: true, campaigns: await walletCampaigns(ip) })
+      }
+
+      /* Envío por correo de la tarjeta: a cada cliente su link personal
+         /tarjeta?t=… (abre el pase de Apple o de Google según su teléfono).
+
+         Va POR TANDAS, no de una: 167 correos a ~600 ms cada uno (el límite
+         de Resend son 2/s) son minutos, y una función de Vercel se corta
+         mucho antes. El panel llama esto en bucle hasta que `remaining`
+         llega a 0, así que además se puede detener a mitad sin dejar nada
+         inconsistente — `loyalty_card_emailed_at` marca cliente por cliente
+         quién ya recibió el suyo. */
+      if (req.method === "POST" && mode === "wallet-send-cards") {
+        const { limit = 5, onlyPhone = null, again = false, includeInstalled = false } = req.body || {}
+        const batch = Math.min(Math.max(Number(limit) || 5, 1), 8)
+
+        await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS loyalty_card_emailed_at TIMESTAMPTZ`
+
+        // El filtro del correo es el mismo de validateClient: sin un correo
+        // con forma de correo, Resend rebota y gasta cuota.
+        const only = onlyPhone ? cleanPhone(onlyPhone) : null
+        const pending = await sql`
+          SELECT id, name, phone, email
+          FROM users
+          WHERE email ~ '^[^@[:space:]]+@[^@[:space:]]+\.[^@[:space:]]+$'
+            AND (${only}::text IS NULL OR phone = ${only}::text)
+            AND (${again}::boolean OR loyalty_card_emailed_at IS NULL)
+          ORDER BY updated_at DESC NULLS LAST, id DESC
+          LIMIT 400
+        `
+        if (!pending.length) return res.json({ ok: true, sent: 0, failed: 0, remaining: 0, done: true })
+
+        // Quién ya agregó el pase: molestarlo con el correo no aporta nada.
+        // Una sola llamada al puente para toda la tanda pendiente.
+        let candidates = pending
+        if (!includeInstalled) {
+          const byPhone = await loyaltyForPhones(pending.map((c) => c.phone), ip).catch(() => ({}))
+          candidates = pending.filter((c) => !byPhone[c.phone]?.hasPass)
+          // Los que ya lo tienen se marcan como "listos" para que no vuelvan
+          // a contarse como pendientes en cada vuelta del bucle.
+          const installed = pending.filter((c) => byPhone[c.phone]?.hasPass).map((c) => c.id)
+          if (installed.length) await sql`UPDATE users SET loyalty_card_emailed_at = NOW() WHERE id = ANY(${installed})`
+        }
+        if (!candidates.length) return res.json({ ok: true, sent: 0, failed: 0, remaining: 0, done: true })
+
+        const slice = candidates.slice(0, batch)
+        let sent = 0, failed = 0
+        const errors = []
+        for (const client of slice) {
+          try {
+            const share = await shareToken({ phone: client.phone, name: client.name, ip })
+            if (!share.ok) throw new Error(share.error || "no se pudo generar el link")
+            const bonus = await loyaltyFor(client.phone, ip).catch(() => null)
+            const result = await sendLoyaltyCardEmail({
+              to: client.email,
+              name: client.name,
+              url: `https://brunetticutz.cl/tarjeta?t=${share.token}`,
+              stars: bonus?.loyalty?.stars || 0,
+            })
+            if (!result.ok) throw new Error(result.reason || "resend")
+            await sql`UPDATE users SET loyalty_card_emailed_at = NOW() WHERE id = ${client.id}`
+            sent++
+          } catch (err) {
+            failed++
+            errors.push(`${client.name || client.phone}: ${err.message}`)
+            console.error("wallet-send-cards error:", client.phone, err?.message || err)
+          }
+        }
+
+        const remaining = Math.max(0, candidates.length - slice.length)
+        return res.json({ ok: true, sent, failed, remaining, done: remaining === 0, errors: errors.slice(0, 3) })
       }
 
       if (req.method === "POST" && mode === "wallet-campaign") {

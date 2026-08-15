@@ -40,13 +40,13 @@
     "semantic_hash": ""
   },
   "api/bookings.js": {
-    "mtime": 1786755653.394887,
-    "ast_hash": "5790b7ea3b66b100e05661e84e4c155a",
+    "mtime": 1786756225.995678,
+    "ast_hash": "420211f9d6bbece036dc34262db349f5",
     "semantic_hash": ""
   },
   "api/clients.js": {
-    "mtime": 1786755872.705279,
-    "ast_hash": "6d22625b315afff7def7093d61ed2bec",
+    "mtime": 1786757403.7512834,
+    "ast_hash": "07efaba688bc31a583c4375f5aafec8d",
     "semantic_hash": ""
   },
   "api/enrollments.js": {
@@ -75,8 +75,8 @@
     "semantic_hash": ""
   },
   "db/schema.sql": {
-    "mtime": 1784592614.4628046,
-    "ast_hash": "edc0cb6c45c678abe325055d3e531146",
+    "mtime": 1786757453.372163,
+    "ast_hash": "78cc80638c4b045c300a2e52ed292a4c",
     "semantic_hash": ""
   },
   "db/seed.sql": {
@@ -315,8 +315,8 @@
     "semantic_hash": ""
   },
   "src/pages/Dashboard.jsx": {
-    "mtime": 1786756066.5510278,
-    "ast_hash": "7502add503d93155e632a854ef8c0630",
+    "mtime": 1786757432.7873201,
+    "ast_hash": "8f1716b50376d46375dd3eb4f819ea3d",
     "semantic_hash": ""
   },
   "src/pages/EncuentraEstilo.jsx": {
@@ -1160,8 +1160,8 @@
     "semantic_hash": ""
   },
   "api/_email.js": {
-    "mtime": 1783892017.3505049,
-    "ast_hash": "00746d5ee6cd3614a1c8b70923ad1af2",
+    "mtime": 1786757379.5480568,
+    "ast_hash": "62d0ce7419f008125e05213efc5cbd3c",
     "semantic_hash": ""
   },
   "src/components/ui/container-scroll-animation.jsx": {

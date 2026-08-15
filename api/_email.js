@@ -85,6 +85,46 @@ export async function sendBookingConfirmationEmail({ to, name, service, barber, 
   return sendViaResend({ to, subject: "Tu reserva en Brunetticutz está confirmada", html })
 }
 
+/* Tarjeta de fidelidad: le manda al cliente su link personal /tarjeta?t=…
+   El correo NO lleva el .pkpass adjunto a propósito — ese archivo solo sirve
+   en iPhone, y el link resuelve las dos plataformas con un mismo mensaje: al
+   abrirlo desde el celular aparece un único botón, Apple Wallet o Google
+   Wallet según el teléfono. */
+export async function sendLoyaltyCardEmail({ to, name, url, stars = 0 }) {
+  const first = String(name || "").trim().split(" ")[0] || ""
+  const saldo = stars > 0
+    ? `Ya llevas <strong>${stars} ${stars === 1 ? "estrella" : "estrellas"}</strong>${stars >= 10 ? " — tu próximo corte va gratis." : `, te faltan ${10 - stars} para el corte gratis.`}`
+    : "Se te suma la primera estrella con tu próximo corte."
+
+  const html = `
+    <div style="font-family: Georgia, 'Times New Roman', serif; background: #f7f3ea; padding: 32px 16px;">
+      <div style="max-width: 480px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e7e0d1;">
+        <div style="background: #16130f; padding: 24px; text-align: center;">
+          <img src="${LOGO_URL}" alt="Brunetticutz" width="220" style="width: 220px; max-width: 70%; height: auto; display: inline-block;" />
+        </div>
+        <div style="padding: 28px 24px;">
+          <h1 style="margin: 0 0 4px; font-size: 20px; color: #1c1a17;">Tu tarjeta de fidelidad${first ? `, ${first}` : ""}</h1>
+          <p style="margin: 0 0 18px; color: #4a453d; font-size: 14px; line-height: 1.6;">
+            Cada corte suma una estrella. A las 5 tienes 30% de descuento en productos, y a las 10 tu corte va gratis. ${saldo}
+          </p>
+          <div style="text-align: center; margin: 24px 0 10px;">
+            <a href="${url}" style="display: inline-block; background: #d9b158; color: #1c1a17; text-decoration: none; font-weight: 600; font-size: 15px; padding: 14px 30px; border-radius: 999px;">Agregar mi tarjeta al celular</a>
+          </div>
+          <p style="margin: 0 0 18px; color: #8a847d; font-size: 12px; text-align: center; line-height: 1.6;">
+            Ábrelo desde tu teléfono: se agrega a Apple Wallet si tienes iPhone, o a Google Wallet si tienes Android.
+            Se actualiza sola cada vez que te cortas el pelo, sin instalar ninguna app.
+          </p>
+          <p style="margin: 0; padding-top: 14px; border-top: 1px solid #eee6d8; color: #a49c90; font-size: 11px; text-align: center; line-height: 1.6;">
+            La tarjeta la compartimos con Pimp Studio: tus estrellas suman y se canjean en los dos locales.
+          </p>
+        </div>
+      </div>
+    </div>
+  `.trim()
+
+  return sendViaResend({ to, subject: `${first ? `${first}, tu` : "Tu"} tarjeta de fidelidad de Brunetticutz`, html })
+}
+
 export async function sendWorkshopConfirmationEmail({ to, name, edition }) {
   const html = `
     <div style="font-family: Georgia, 'Times New Roman', serif; background: #f4f0f9; padding: 32px 16px;">

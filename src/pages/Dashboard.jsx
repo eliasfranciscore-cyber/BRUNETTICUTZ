@@ -274,6 +274,10 @@ export default function Dashboard() {
   const [campaignMessage, setCampaignMessage] = useState("")
   const [campaignAudience, setCampaignAudience] = useState("all")
   const [campaignSending, setCampaignSending] = useState(false)
+  const [cardTestPhone, setCardTestPhone] = useState("")
+  const [cardSending, setCardSending] = useState(false)
+  const [cardProgress, setCardProgress] = useState("")
+  const cardStopRef = useRef(false)
   const [editSvcId, setEditSvcId] = useState(null)
   const [deleteSvc, setDeleteSvc] = useState(null)
   const [barberDraft, setBarberDraft] = useState({ name: "", code: "", role: "Barbero", tier: "general", pin: "1234", canViewFinance: false, canManageTeam: false, canEditServices: false, canManageBlocks: true })
@@ -919,6 +923,45 @@ export default function Dashboard() {
       window.alert("No se pudo enviar la campaña. Revisa tu conexión.")
     } finally {
       setCampaignSending(false)
+    }
+  }
+
+  /* Envío masivo del link de la tarjeta. El backend manda de a pocos por
+     llamada (una función serverless no aguanta 167 correos seguidos con el
+     límite de 2/s de Resend), así que el bucle vive acá: se ve el avance en
+     vivo y el botón "Detener" corta entre tandas sin dejar a nadie a medias
+     — cada cliente enviado queda marcado en el momento. */
+  const sendLoyaltyCards = async ({ onlyPhone = null, again = false, includeInstalled = false }) => {
+    const bulk = !onlyPhone
+    if (bulk && !window.confirm("Se le va a enviar el correo con su tarjeta de fidelidad a todos los clientes con correo que todavía no la tienen. ¿Seguimos?")) return
+    setCardSending(true)
+    cardStopRef.current = false
+    let sent = 0, failed = 0
+    try {
+      for (;;) {
+        const res = await fetch("/api/clients?mode=wallet-send-cards", {
+          method: "POST",
+          headers: authHeaders({ "Content-Type": "application/json" }),
+          body: JSON.stringify({ limit: onlyPhone ? 1 : 5, onlyPhone, again, includeInstalled }),
+        })
+        const data = await res.json().catch(() => ({}))
+        if (!res.ok || data?.ok === false) {
+          setCardProgress(data?.error || "No se pudo enviar.")
+          break
+        }
+        sent += data.sent || 0
+        failed += data.failed || 0
+        setCardProgress(`Enviados ${sent}${failed ? ` · ${failed} con problema` : ""}${data.remaining ? ` · faltan ${data.remaining}` : ""}`)
+        if (data.errors?.length) console.error("wallet-send-cards:", data.errors)
+        if (data.done || onlyPhone || cardStopRef.current) {
+          setCardProgress(`Listo: ${sent} enviado${sent === 1 ? "" : "s"}${failed ? `, ${failed} con problema (revisa la consola)` : ""}${cardStopRef.current && !data.done ? " · detenido" : ""}`)
+          break
+        }
+      }
+    } catch {
+      setCardProgress("Se cortó la conexión. Los que ya salieron quedaron marcados: puedes retomar sin repetirlos.")
+    } finally {
+      setCardSending(false)
     }
   }
 
@@ -2073,6 +2116,35 @@ export default function Dashboard() {
                         )
                       })}
                     </div>
+                  </div>
+
+                  {/* Envío del link de la tarjeta por correo. Va por tandas
+                      desde el navegador (ver ?mode=wallet-send-cards): así se
+                      ve el avance y se puede detener a mitad. */}
+                  <div style={{ display: "grid", gap: ".5rem", paddingTop: ".4rem", borderTop: "1px solid var(--hair)" }}>
+                    <span style={{ fontSize: ".72rem", color: "var(--muted-2)", textTransform: "uppercase", letterSpacing: ".06em" }}>Mandar la tarjeta por correo</span>
+                    <p style={{ margin: 0, fontSize: ".72rem", color: "var(--muted)", lineHeight: 1.5 }}>
+                      Cada cliente recibe su propio link. Al abrirlo desde el celular le aparece un solo botón: Apple Wallet en iPhone, Google Wallet en Android. Se omite a quien ya la tiene agregada.
+                    </p>
+                    <div style={{ display: "flex", gap: ".4rem", flexWrap: "wrap", alignItems: "center" }}>
+                      <input
+                        value={cardTestPhone}
+                        onChange={(e) => setCardTestPhone(e.target.value.replace(/\D/g, "").slice(0, 9))}
+                        placeholder="9 dígitos (prueba)"
+                        inputMode="numeric"
+                        style={{ width: 150, padding: ".45rem .6rem", borderRadius: 10, border: "1px solid var(--hair-2)", background: "rgba(0,0,0,.25)", color: "var(--ink)", fontSize: ".78rem" }}
+                      />
+                      <button className="btn btn-dark btn-sm" disabled={cardTestPhone.length !== 9 || cardSending} onClick={() => sendLoyaltyCards({ onlyPhone: cardTestPhone, again: true, includeInstalled: true })}>
+                        <Icon name="wallet" size={14} /> Probar con uno
+                      </button>
+                      <button className="btn btn-gold btn-sm" disabled={cardSending} onClick={() => sendLoyaltyCards({})}>
+                        <Icon name="spark" size={14} /> {cardSending ? "Enviando…" : "Enviar a los que faltan"}
+                      </button>
+                      {cardSending && (
+                        <button className="btn btn-ghost btn-sm" onClick={() => { cardStopRef.current = true }}>Detener</button>
+                      )}
+                    </div>
+                    {cardProgress && <span style={{ fontSize: ".7rem", color: "var(--muted)" }}>{cardProgress}</span>}
                   </div>
 
                   {/* Campaña: escribe en la tarjeta de cada cliente y dispara

@@ -10,6 +10,14 @@ CREATE TABLE IF NOT EXISTS users (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Marca a quién ya se le mandó por correo el link de su tarjeta de fidelidad
+-- (panel → Marketing → "Mandar la tarjeta por correo", api/clients.js
+-- ?mode=wallet-send-cards). Es lo que hace que el envío se pueda cortar y
+-- retomar sin escribirle dos veces al mismo cliente. La crea el propio
+-- endpoint con ADD COLUMN IF NOT EXISTS, igual que push_subscriptions: acá
+-- queda documentada.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS loyalty_card_emailed_at TIMESTAMPTZ;
+
 CREATE TABLE IF NOT EXISTS barbers (
   id         INTEGER PRIMARY KEY,
   name       VARCHAR(200) NOT NULL,

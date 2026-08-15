@@ -30,8 +30,8 @@
     "semantic_hash": ""
   },
   "api/availability.js": {
-    "mtime": 1784603720.6544719,
-    "ast_hash": "fbd109a731b0ecb1a7b1880fe9906f8f",
+    "mtime": 1786392704.550563,
+    "ast_hash": "21b3f9aa8acb0aed52e5eae9aaddfbbe",
     "semantic_hash": ""
   },
   "api/barbers.js": {
@@ -40,13 +40,13 @@
     "semantic_hash": ""
   },
   "api/bookings.js": {
-    "mtime": 1786300073.1433322,
-    "ast_hash": "efdaf61605c8c821bdb32bc3835911f8",
+    "mtime": 1786755653.394887,
+    "ast_hash": "5790b7ea3b66b100e05661e84e4c155a",
     "semantic_hash": ""
   },
   "api/clients.js": {
-    "mtime": 1784592964.1290843,
-    "ast_hash": "811cf068847666c67ace027720664265",
+    "mtime": 1786755872.705279,
+    "ast_hash": "6d22625b315afff7def7093d61ed2bec",
     "semantic_hash": ""
   },
   "api/enrollments.js": {
@@ -60,7 +60,7 @@
     "semantic_hash": ""
   },
   "api/push.js": {
-    "mtime": 1785157850.0758624,
+    "mtime": 1786300256.3280299,
     "ast_hash": "8f38fbb694994d087880d65cab0a6a09",
     "semantic_hash": ""
   },
@@ -185,12 +185,12 @@
     "semantic_hash": ""
   },
   "src/App.jsx": {
-    "mtime": 1784242405.6735377,
-    "ast_hash": "b2376a65174e7aa67ef88fc8de394c53",
+    "mtime": 1786755911.6578383,
+    "ast_hash": "232e6f36d1fa4ea2a080b39d188c1775",
     "semantic_hash": ""
   },
   "src/bookingsStore.js": {
-    "mtime": 1786298939.8559198,
+    "mtime": 1786300256.333526,
     "ast_hash": "ee5f3f3f1974b81233e53a65782196a1",
     "semantic_hash": ""
   },
@@ -205,8 +205,8 @@
     "semantic_hash": "b8baf870791352a85cf36d45660fcde1"
   },
   "src/components/BookingsInbox.jsx": {
-    "mtime": 1784407184.4542658,
-    "ast_hash": "67af505e85d000e77af207bdc2a54b3b",
+    "mtime": 1786307578.8977728,
+    "ast_hash": "ca54e1d73729502881209ab9f80cd72c",
     "semantic_hash": ""
   },
   "src/components/ClientModal.jsx": {
@@ -215,8 +215,8 @@
     "semantic_hash": "29ad3edc81d0444c32187d7bc47a7e08"
   },
   "src/components/DashboardResumen.jsx": {
-    "mtime": 1784404264.0684054,
-    "ast_hash": "06b11bfe6b606d7c919625f867e999fa",
+    "mtime": 1786305318.2499168,
+    "ast_hash": "c73a31b2538d0583dd528823fc96884a",
     "semantic_hash": ""
   },
   "src/components/GlareCard.jsx": {
@@ -295,8 +295,8 @@
     "semantic_hash": "fa09f92bf84f0f879d5f118545f0e4f5"
   },
   "src/pages/Account.jsx": {
-    "mtime": 1784593256.0389557,
-    "ast_hash": "2952988365ddf1a4fc8e404e25b69706",
+    "mtime": 1786755832.1734579,
+    "ast_hash": "abc5c0ba2e68b59351773dad48ee8ea6",
     "semantic_hash": ""
   },
   "src/pages/BarberLogin.jsx": {
@@ -305,8 +305,8 @@
     "semantic_hash": "ec9017c0886e63a56a742ab2208a4771"
   },
   "src/pages/Booking.jsx": {
-    "mtime": 1784603788.626724,
-    "ast_hash": "6210b25ee5c293b16e03d5a57cc09db1",
+    "mtime": 1786755791.9450529,
+    "ast_hash": "e678e5b76b7ae30011e817fc478084e8",
     "semantic_hash": ""
   },
   "src/pages/Cursos.jsx": {
@@ -315,8 +315,8 @@
     "semantic_hash": ""
   },
   "src/pages/Dashboard.jsx": {
-    "mtime": 1786297908.8913987,
-    "ast_hash": "1e394757084bbaa4ae423ec4923e73c1",
+    "mtime": 1786756066.5510278,
+    "ast_hash": "7502add503d93155e632a854ef8c0630",
     "semantic_hash": ""
   },
   "src/pages/EncuentraEstilo.jsx": {
@@ -365,8 +365,8 @@
     "semantic_hash": "8821dc65ef6d88a32b3d71aa793563c1"
   },
   "CLAUDE.md": {
-    "mtime": 1785157868.21058,
-    "ast_hash": "8a556577b1522d24f97e5966de91c9ce",
+    "mtime": 1786756126.996506,
+    "ast_hash": "cce8c3d438500548b42b552ac839789a",
     "semantic_hash": ""
   },
   "IMPLEMENTATION_PLAN.md": {
@@ -388,16 +388,6 @@
     "mtime": 1784245274.838214,
     "ast_hash": "f0d32c428429f8db900ac2f4b84a6c98",
     "semantic_hash": ""
-  },
-  "output/pdf/Vincent Flow Fade - correcciones finales.pdf": {
-    "mtime": 1782788367.3299286,
-    "ast_hash": "d72d1f40c9bc71073f4acc35e705f675",
-    "semantic_hash": "d72d1f40c9bc71073f4acc35e705f675"
-  },
-  "output/pdf/Vincent Flow Fade - ultimas slides corregidas.pdf": {
-    "mtime": 1782784525.1390722,
-    "ast_hash": "2999fa75af1e02a94c00c483967e7bfe",
-    "semantic_hash": "2999fa75af1e02a94c00c483967e7bfe"
   },
   "tmp/pdfs/absolute-control-comprimido.pdf": {
     "mtime": 1782786184.693513,
@@ -550,12 +540,12 @@
     "semantic_hash": "e27b4bd09b7a608b8151623bbfd648f6"
   },
   "public/assets/pimp-studio-logo.jpg": {
-    "mtime": 1782685632.9306889,
+    "mtime": 1786308354.2946093,
     "ast_hash": "c685d8656fe24042572176e9de7b4aaf",
     "semantic_hash": "c685d8656fe24042572176e9de7b4aaf"
   },
   "public/assets/pimp-studio-mark.svg": {
-    "mtime": 1782685632.9283543,
+    "mtime": 1786308354.294933,
     "ast_hash": "271d134b3865677f3971c6b3a2e50893",
     "semantic_hash": "271d134b3865677f3971c6b3a2e50893"
   },
@@ -1315,13 +1305,38 @@
     "semantic_hash": ""
   },
   "api/_slots.js": {
-    "mtime": 1784603708.6545768,
+    "mtime": 1786300256.3276129,
     "ast_hash": "56a845d9f79847d2bc866ceeac03a8d9",
     "semantic_hash": ""
   },
   "docs/agenda-redesign-plan.md": {
     "mtime": 1784604759.1028347,
     "ast_hash": "e0f71947f1a02060692226bf2dc812d5",
+    "semantic_hash": ""
+  },
+  "api/_loyaltyBridge.js": {
+    "mtime": 1786755846.4122024,
+    "ast_hash": "1a6763ccb8bcc7d1b85754e2669e11e1",
+    "semantic_hash": ""
+  },
+  "src/components/WalletPrompt.jsx": {
+    "mtime": 1786755765.8710093,
+    "ast_hash": "84879544694de72e276865f5890672cc",
+    "semantic_hash": ""
+  },
+  "src/pages/CardShare.jsx": {
+    "mtime": 1786755901.9412498,
+    "ast_hash": "6b0a5f98914f088f5400e8b80cce8f5f",
+    "semantic_hash": ""
+  },
+  "src/walletPrompt.js": {
+    "mtime": 1786755882.2226331,
+    "ast_hash": "5d1d8d67e36d7ceac0c675c00a8203bb",
+    "semantic_hash": ""
+  },
+  "docs/wallet-lealtad-plan.md": {
+    "mtime": 1786756195.0101793,
+    "ast_hash": "dfa386ac531474ff20e3961e3d6d97b3",
     "semantic_hash": ""
   }
 }
