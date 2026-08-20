@@ -168,8 +168,8 @@ export const WORKSHOP = {
     location: "Viña del Mar",
     handle: "@brunetticutz",
     whatsapp: "+56 9 8748 3279",
-    priceNow: 97000,
-    priceWas: 184000,
+    priceNow: 49990,
+    priceWas: 99990,
     off: "-50%",
     seatsTotal: 20,
     seatsTaken: 13,
@@ -316,7 +316,7 @@ export const WORKSHOP = {
     },
     {
       q: "¿El valor incluye todo?",
-      a: "Sí. La inversión de $97.000 incluye la jornada completa, el certificado, el toolkit de templates y el acceso a la comunidad VIP.",
+      a: "Sí. La inversión de $49.990 incluye la jornada completa, el certificado, el toolkit de templates y el acceso a la comunidad VIP.",
     },
   ],
 };
