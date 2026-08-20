@@ -134,10 +134,10 @@ export const WORKSHOP_VIDEOS = [
    Reemplaza los enlaces de photos por /assets propias cuando tengas las fotos definitivas.
    ============================================================ */
 
-/* Fecha del workshop: 23 de agosto. Si ya pasó respecto al reloj actual,
+/* Fecha del workshop: 30 de agosto. Si ya pasó respecto al reloj actual,
    avanza al próximo año para que el countdown nunca quede en 00.
    Para fijar una fecha exacta, edita BASE_MONTH/BASE_DAY/BASE_HOUR. */
-const WK_BASE = { month: 8, day: 23, hour: 9, minute: 30 };
+const WK_BASE = { month: 8, day: 30, hour: 9, minute: 30 };
 const WK_MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 const WK_DIAS = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
 function wkEditionDate() {

@@ -508,7 +508,7 @@ function Pricing({ onReserve }) {
 
 /* ============================================================ REGISTER */
 function Register({ formRef }) {
-  const [form, setForm] = useState({ name: "", phone: "", email: "", edition: "23 de agosto" });
+  const [form, setForm] = useState({ name: "", phone: "", email: "", edition: WK.meta.dateLabel });
   const [errors, setErrors] = useState({});
   const [sent, setSent] = useState(false);
   const m = WK.meta;
@@ -601,7 +601,7 @@ function Register({ formRef }) {
               <div className="wks-field">
                 <label>Edición</label>
                 <select value={form.edition} onChange={set("edition")}>
-                  <option>23 de agosto</option>
+                  <option>{m.dateLabel}</option>
                   <option>Próxima edición · lista de espera</option>
                 </select>
               </div>
