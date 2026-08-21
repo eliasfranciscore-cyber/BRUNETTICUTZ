@@ -5,14 +5,14 @@ import SiteNav from '../components/SiteNav.jsx'
 import ModuleFooter from '../components/ModuleFooter.jsx'
 import { Lamp } from '../components/ui/lamp.jsx'
 import { Sparkles } from '../components/ui/sparkles.jsx'
-import FlowCheckout from '../components/FlowCheckout.jsx'
+import MercadoPagoCheckout from '../components/MercadoPagoCheckout.jsx'
 import { EditableText } from '../components/edit/EditableText.jsx'
 import { Editable } from '../components/edit/Editable.jsx'
 import CURSOS from '../data/content/cursos.json'
 
 /* ================================================================
    CURSOS BRUNETTI — Formación en visagismo & barbería
-   Flujo: usuario ve módulos → paga vía Flow → accede a Skool
+   Flujo: usuario ve módulos → paga vía Mercado Pago → accede a Skool
    ================================================================ */
 
 // La duración de cada lección es dato fijo (no editable por texto libre); el
@@ -155,7 +155,7 @@ export default function Cursos() {
               <p><EditableText file="cursos" path="checkout.body" as="span">{CURSOS.checkout.body}</EditableText></p>
             </div>
 
-            <FlowCheckout />
+            <MercadoPagoCheckout />
           </div>
         </section>
         </div>

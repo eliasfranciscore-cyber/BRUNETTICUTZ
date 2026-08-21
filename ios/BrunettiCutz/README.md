@@ -37,7 +37,7 @@ La app usa por defecto `http://127.0.0.1:3003`.
 - `/api/barbers`: listar equipo/permisos.
 - `/api/enrollments`: listar/crear inscripciones de cursos/workshop.
 - `/api/auth-login`: lookup de cuenta cliente.
-- `/api/flow-payments`: crear checkout, confirmar y consultar estado de pago vía Flow.
+- `/api/mp-payments`: crear checkout, confirmar y consultar estado de pago vía Mercado Pago Checkout Pro.
 - `/api/push`: endpoint Web Push de la PWA. Push nativo real requiere APNs y soporte backend adicional.
 
 ## Sesion interna y fallback

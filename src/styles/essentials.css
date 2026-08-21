@@ -428,6 +428,18 @@
 }
 .essentials-checkout-btn { margin-bottom: 0.6rem; }
 .essentials-drawer-note { margin: 0; text-align: center; font-size: 0.72rem; color: var(--muted-2); line-height: 1.5; }
+.essentials-drawer-contact { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.8rem; }
+.essentials-drawer-contact input {
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid var(--hair-2);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--ink);
+  font-size: 0.85rem;
+}
+.essentials-drawer-contact input::placeholder { color: var(--muted-2); }
+.essentials-drawer-contact input:focus { outline: none; border-color: var(--gold-line, var(--gold)); }
 
 /* Espacio inferior para el CTA flotante móvil (site-nav-cta-bar). */
 @media (max-width: 899px) {

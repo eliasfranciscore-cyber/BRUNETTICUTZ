@@ -16,6 +16,8 @@ import NewClientModal from '../components/NewClientModal.jsx'
 import ExpensesModule, { EXPENSE_CATEGORIES, CATEGORY_META } from '../components/ExpensesModule.jsx'
 import { KpiTile, AnimatedRing } from '../components/DashKit.jsx'
 import ClientModal from '../components/ClientModal.jsx'
+import EnrollmentModal from '../components/EnrollmentModal.jsx'
+import NewEnrollmentModal from '../components/NewEnrollmentModal.jsx'
 import BarberModal from '../components/BarberModal.jsx'
 import {
   registerServiceWorker, notifyBarberOfBooking, pushEnabledFor,
@@ -1804,7 +1806,7 @@ export default function Dashboard() {
 
         {/* INSCRIPCIONES */}
         {tab === "inscripciones" && (
-          <EnrollmentsPanel />
+          <EnrollmentsPanel clients={clients} authHeaders={authHeaders} onCreateClient={createClient} />
         )}
 
         {/* SERVICIOS */}
@@ -2386,11 +2388,13 @@ const CFG_SECTIONS = [
    Carga desde /api/enrollments (requiere sesión interna).
    Categoriza con colores del módulo: azul = cursos, morado = workshop.
    ============================================================ */
-function EnrollmentsPanel() {
+function EnrollmentsPanel({ clients = [], authHeaders = () => ({}), onCreateClient = async () => {} }) {
   const [rows, setRows] = React.useState([])
   const [loading, setLoading] = React.useState(true)
   const [filter, setFilter] = React.useState("todos") // todos | cursos | workshop
   const [query, setQuery] = React.useState("")
+  const [selected, setSelected] = React.useState(null)
+  const [creating, setCreating] = React.useState(false)
 
   React.useEffect(() => {
     // Combina lo del backend con el respaldo local (inscripciones hechas desde
@@ -2401,6 +2405,39 @@ function EnrollmentsPanel() {
       .then((d) => { setRows(mergeEnrollments(d.enrollments || [])); setLoading(false) })
       .catch(() => { setRows(mergeEnrollments([])); setLoading(false) })
   }, [])
+
+  const saveEnrollment = async (updated) => {
+    setRows((list) => list.map((r) => (r.id === updated.id ? { ...r, ...updated } : r)))
+    setSelected((r) => (r && r.id === updated.id ? { ...r, ...updated } : r))
+    try {
+      const res = await fetch(`/api/enrollments?id=${updated.id}`, {
+        method: "PATCH",
+        headers: authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify(updated),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || data?.ok === false) throw new Error(data?.error || "No se pudo guardar")
+    } catch (err) {
+      console.error("saveEnrollment:", err?.message)
+    }
+  }
+
+  const deleteEnrollment = async (enrollment) => {
+    setRows((list) => list.filter((r) => r.id !== enrollment.id))
+    setSelected(null)
+    fetch(`/api/enrollments?id=${enrollment.id}`, { method: "DELETE", headers: authHeaders() }).catch(() => {})
+  }
+
+  const createEnrollment = async (draft) => {
+    const res = await fetch("/api/enrollments", {
+      method: "POST",
+      headers: authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify(draft),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok || data?.ok === false) throw new Error(data?.error || "No se pudo guardar la inscripción.")
+    setRows((list) => [{ id: data.id, ...draft, created_at: new Date().toISOString() }, ...list])
+  }
 
   const filtered = rows.filter((r) => {
     if (filter !== "todos" && r.source !== filter) return false
@@ -2428,10 +2465,15 @@ function EnrollmentsPanel() {
         <Stat icon="scissors" label="Workshop" value={rows.filter(r => r.source === "workshop").length} />
       </div>
       <Panel title="Inscripciones" action={
-        <div className="psn-seg" role="group" aria-label="Filtrar por origen">
-          {["todos","cursos","workshop"].map(f => (
-            <button key={f} type="button" className={filter === f ? "is-on" : ""} style={{ textTransform: "capitalize" }} onClick={() => setFilter(f)}>{f}</button>
-          ))}
+        <div style={{ display: "flex", gap: ".6rem", alignItems: "center", flexWrap: "wrap" }}>
+          <div className="psn-seg" role="group" aria-label="Filtrar por origen">
+            {["todos","cursos","workshop"].map(f => (
+              <button key={f} type="button" className={filter === f ? "is-on" : ""} style={{ textTransform: "capitalize" }} onClick={() => setFilter(f)}>{f}</button>
+            ))}
+          </div>
+          <button type="button" className="btn btn-gold btn-sm" onClick={() => setCreating(true)}>
+            <Icon name="user" size={14} /> Nueva inscripción
+          </button>
         </div>
       }>
         <div className="client-search">
@@ -2448,7 +2490,7 @@ function EnrollmentsPanel() {
           {loading && <div className="empty-state">Cargando inscripciones…</div>}
           {!loading && !filtered.length && <div className="empty-state">No hay inscripciones que coincidan.</div>}
           {filtered.map((r) => (
-            <div key={r.id} className="client-row" style={{ gridTemplateColumns: "1.4fr 1fr auto auto", cursor: "default" }}>
+            <div key={r.id} className="client-row" style={{ gridTemplateColumns: "1.4fr 1fr auto auto" }} onClick={() => setSelected(r)}>
               <div style={{ minWidth: 0 }}>
                 <strong>{r.name}</strong>
                 <span>{r.phone} · {r.email}</span>
@@ -2465,6 +2507,23 @@ function EnrollmentsPanel() {
           ))}
         </div>
       </Panel>
+
+      {selected && (
+        <EnrollmentModal
+          enrollment={selected}
+          clients={clients}
+          onClose={() => setSelected(null)}
+          onSave={saveEnrollment}
+          onDelete={deleteEnrollment}
+          onCreateClient={onCreateClient}
+        />
+      )}
+
+      <NewEnrollmentModal
+        open={creating}
+        onClose={() => setCreating(false)}
+        onCreate={createEnrollment}
+      />
     </div>
   )
 }

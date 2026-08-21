@@ -131,6 +131,39 @@ CREATE TABLE IF NOT EXISTS push_subscriptions (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Inscripciones a Cursos / Workshop. api/enrollments.js (inscripción manual
+-- desde el panel) y api/mp-payments.js (webhook de Mercado Pago, tras pago
+-- aprobado) crean esta tabla en caliente si no existe.
+CREATE TABLE IF NOT EXISTS enrollments (
+  id         SERIAL PRIMARY KEY,
+  name       TEXT NOT NULL,
+  phone      TEXT NOT NULL,
+  email      TEXT NOT NULL,
+  source     TEXT NOT NULL DEFAULT 'cursos',   -- 'cursos' | 'workshop'
+  level      TEXT,
+  message    TEXT,
+  edition    TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Pedidos pagados del módulo "Essentials" (tienda de clientes) vía Mercado
+-- Pago Checkout Pro. api/mp-payments.js crea la orden en 'pending' al armar
+-- la preferencia de pago y la pasa a 'paid' desde el webhook, tras validar
+-- el pago real contra la API de Mercado Pago (nunca confía en el retorno del
+-- navegador). `items` guarda un snapshot de {productId,name,price,qty} por
+-- ítem — el precio se congela al momento de pagar, no sigue al catálogo.
+CREATE TABLE IF NOT EXISTS shop_orders (
+  id            SERIAL PRIMARY KEY,
+  name          TEXT NOT NULL,
+  phone         TEXT NOT NULL,
+  email         TEXT NOT NULL,
+  items         JSONB NOT NULL,
+  amount        INTEGER NOT NULL,
+  status        TEXT NOT NULL DEFAULT 'pending', -- 'pending' | 'paid'
+  mp_payment_id TEXT,
+  created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 -- Catálogo de productos del módulo "Essentials" (tienda de clientes).
 -- Gestionado desde el panel interno (pestaña Essentials); api/_products.js
 -- también crea esta tabla en caliente si no existe (igual que enrollments).
@@ -171,4 +204,5 @@ CREATE INDEX IF NOT EXISTS idx_bookings_barber_date  ON bookings(barber_id, book
 CREATE INDEX IF NOT EXISTS idx_bookings_client       ON bookings(client_id);
 CREATE INDEX IF NOT EXISTS idx_users_phone           ON users(phone);
 CREATE INDEX IF NOT EXISTS idx_products_sort         ON products(sort_order, id);
+CREATE INDEX IF NOT EXISTS idx_shop_orders_status     ON shop_orders(status, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_expenses_date         ON expenses(expense_date);

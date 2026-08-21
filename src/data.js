@@ -79,7 +79,11 @@ export function CLP(n) { return "$" + Number(n || 0).toLocaleString("es-CL") }
 export function CLPk(n) { return "$" + (Math.round(Number(n) / 1000)).toLocaleString("es-CL") + "k" }
 export function barberById(id) { return BARBERS.find((b) => b.id === id) || null }
 export function tne(price) { return Math.round(price * 0.8) }
-export function cleanPhone(v) { return String(v || "").replace(/\D/g, "").slice(0, 9) }
+export function cleanPhone(v) {
+  let digits = String(v || "").replace(/\D/g, "")
+  if (digits.length > 9 && digits.startsWith("56")) digits = digits.slice(2)
+  return digits.slice(0, 9)
+}
 export function isAdminUser(user) {
   const haystack = `${user?.name || ""} ${user?.code || ""} ${user?.role || ""}`.toLowerCase()
   return haystack.includes("brunetti") || haystack.includes("bruno") || haystack.includes("admin")

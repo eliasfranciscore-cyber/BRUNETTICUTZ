@@ -507,11 +507,38 @@ function Pricing({ onReserve }) {
 }
 
 /* ============================================================ REGISTER */
+const WAITLIST_OPTION = "Próxima edición · lista de espera";
+
 function Register({ formRef }) {
   const [form, setForm] = useState({ name: "", phone: "", email: "", edition: WK.meta.dateLabel });
   const [errors, setErrors] = useState({});
   const [sent, setSent] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
+  const [payError, setPayError] = useState("");
+  const [returnStatus, setReturnStatus] = useState(null); // null | 'checking' | 'paid' | 'pending' | 'failed'
   const m = WK.meta;
+
+  // Si volvemos desde Mercado Pago, lee status/payment_id de la URL de retorno.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get("status") || params.get("collection_status");
+    const paymentId = params.get("payment_id") || params.get("collection_id");
+    if (!status) return;
+
+    if (status === "approved" && paymentId) {
+      setReturnStatus("checking");
+      fetch(`/api/mp-payments?status=1&payment_id=${encodeURIComponent(paymentId)}`)
+        .then((r) => r.json())
+        .then((data) => setReturnStatus(data.paid ? "paid" : data.status === "pending" ? "pending" : "failed"))
+        .catch(() => setReturnStatus("failed"));
+    } else {
+      setReturnStatus(status === "pending" || status === "in_process" ? "pending" : "failed");
+    }
+
+    ["status", "collection_status", "payment_id", "collection_id", "preference_id", "merchant_order_id", "external_reference", "payment_type"].forEach((k) => params.delete(k));
+    const clean = window.location.pathname + (params.toString() ? `?${params}` : "");
+    window.history.replaceState({}, "", clean);
+  }, []);
 
   const set = (k) => (e) => {
     setForm((f) => ({ ...f, [k]: e.target.value }));
@@ -530,18 +557,41 @@ function Register({ formRef }) {
   const submit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
-    /* Respaldo local: aparece de inmediato en el panel interno (Inscripciones),
-       aunque el backend no esté disponible (p. ej. en desarrollo). */
-    addLocalEnrollment({ ...form, source: 'workshop' });
-    /* Enviar a API (enrollments + users) — no bloquea si falla */
+
+    /* Lista de espera: no hay cupo que cobrar, sigue siendo un lead simple. */
+    if (form.edition === WAITLIST_OPTION) {
+      addLocalEnrollment({ ...form, source: 'workshop' });
+      try {
+        await fetch('/api/enrollments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...form, source: 'workshop' }),
+        });
+      } catch (x) { /* noop */ }
+      setSent(true);
+      return;
+    }
+
+    /* Edición con fecha: el cupo se confirma recién cuando Mercado Pago
+       aprueba el pago (webhook), no acá — evita reservas fantasma sin pagar. */
+    setPayError("");
+    setRedirecting(true);
     try {
-      await fetch('/api/enrollments', {
+      const response = await fetch('/api/mp-payments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, source: 'workshop' }),
+        body: JSON.stringify({ source: 'workshop', ...form }),
       });
-    } catch (x) { /* noop */ }
-    setSent(true);
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Error al crear sesión de pago');
+      }
+      const data = await response.json();
+      window.location.href = data.checkoutUrl;
+    } catch (err) {
+      setPayError(err.message || 'Error al procesar pago');
+      setRedirecting(false);
+    }
   };
 
   return (
@@ -568,16 +618,49 @@ function Register({ formRef }) {
             </div>
           </aside>
 
-          {sent ? (
+          {returnStatus === "checking" ? (
+            <div className="wks-success">
+              <p style={{ margin: 0, color: "var(--wk-ink-soft)" }}>Verificando tu pago...</p>
+            </div>
+          ) : returnStatus === "paid" ? (
             <div className="wks-success">
               <span className="ring"><Icon name="check" size={26} /></span>
-              <h3>¡Cupo reservado, {form.name.split(" ")[0]}!</h3>
+              <h3>¡Cupo reservado!</h3>
               <p style={{ margin: 0, color: "var(--wk-ink-soft)" }}>
-                Te escribiremos a <b className="wks-gold">{form.email}</b> y al {form.phone} con los datos de pago y la ubicación exacta. Nos vemos el {m.dateLabel}.
+                Tu pago fue confirmado. Te escribiremos con la ubicación exacta y los detalles. Nos vemos el {m.dateLabel}.
+              </p>
+            </div>
+          ) : returnStatus === "pending" ? (
+            <div className="wks-success">
+              <h3>Pago en proceso</h3>
+              <p style={{ margin: 0, color: "var(--wk-ink-soft)" }}>
+                Tu pago está siendo confirmado por el medio de pago. Te avisaremos por email apenas se confirme.
+              </p>
+            </div>
+          ) : returnStatus === "failed" ? (
+            <div className="wks-success">
+              <h3>El pago no se completó</h3>
+              <p style={{ margin: 0, color: "var(--wk-ink-soft)" }}>
+                No alcanzamos a confirmar tu pago. Si el cargo se realizó, escríbenos; si no, puedes intentarlo de nuevo.
+              </p>
+              <button className="wks-btn wks-btn-ghost wks-btn-sm" onClick={() => setReturnStatus(null)}>
+                Volver a intentar
+              </button>
+            </div>
+          ) : sent ? (
+            <div className="wks-success">
+              <span className="ring"><Icon name="check" size={26} /></span>
+              <h3>¡Anotado, {form.name.split(" ")[0]}!</h3>
+              <p style={{ margin: 0, color: "var(--wk-ink-soft)" }}>
+                Te escribiremos a <b className="wks-gold">{form.email}</b> y al {form.phone} apenas se abra un cupo en la próxima edición.
               </p>
               <button className="wks-btn wks-btn-ghost wks-btn-sm" onClick={() => { setSent(false); setForm({ name: "", phone: "", email: "", edition: form.edition }); }}>
                 Inscribir a otra persona
               </button>
+            </div>
+          ) : redirecting ? (
+            <div className="wks-success">
+              <p style={{ margin: 0, color: "var(--wk-ink-soft)" }}>Redirigiendo a Mercado Pago para completar tu pago...</p>
             </div>
           ) : (
             <form className="wks-form" onSubmit={submit} noValidate>
@@ -602,11 +685,13 @@ function Register({ formRef }) {
                 <label>Edición</label>
                 <select value={form.edition} onChange={set("edition")}>
                   <option>{m.dateLabel}</option>
-                  <option>Próxima edición · lista de espera</option>
+                  <option>{WAITLIST_OPTION}</option>
                 </select>
               </div>
+              {payError && <p className="err" style={{ textAlign: "center" }}>{payError}</p>}
               <button className="wks-btn wks-btn-gold wks-btn-block" type="submit" style={{ marginTop: "0.4rem" }}>
-                <Icon name="check" size={16} /> Inscríbete ahora · {formatCLP(m.priceNow)}
+                <Icon name="check" size={16} />
+                {form.edition === WAITLIST_OPTION ? " Sumarme a la lista de espera" : ` Pagar con Mercado Pago · ${formatCLP(m.priceNow)}`}
               </button>
               <p style={{ margin: 0, color: "var(--wk-muted-2)", fontSize: "0.76rem", textAlign: "center" }}>
                 <EditableText file="workshop" path="register.formNote" as="span">{WKC.register.formNote}</EditableText>

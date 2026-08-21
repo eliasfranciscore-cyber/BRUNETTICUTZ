@@ -14,7 +14,9 @@ const DEMO_CLIENTS = [
 ]
 
 function cleanPhone(value) {
-  return String(value || "").replace(/\D/g, "").slice(0, 9)
+  let digits = String(value || "").replace(/\D/g, "")
+  if (digits.length > 9 && digits.startsWith("56")) digits = digits.slice(2)
+  return digits.slice(0, 9)
 }
 
 function validateClient(body = {}) {

@@ -9,27 +9,32 @@ const CHECKOUT_ITEMS = [
   'Acceso de por vida al material y actualizaciones',
 ]
 
-export default function FlowCheckout() {
+export default function MercadoPagoCheckout() {
   const [form, setForm] = useState({ name: '', email: '', phone: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [redirecting, setRedirecting] = useState(false)
   const [returnStatus, setReturnStatus] = useState(null) // null | 'checking' | 'paid' | 'pending' | 'failed'
 
-  // Si volvemos desde Flow (urlReturn), el token viene en la query string.
+  // Si volvemos desde Mercado Pago, agrega status/payment_id a la URL de retorno.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const token = params.get('flow_token')
-    if (!token) return
+    const status = params.get('status') || params.get('collection_status')
+    const paymentId = params.get('payment_id') || params.get('collection_id')
+    if (!status) return
 
-    setReturnStatus('checking')
-    fetch(`/api/flow-payments?status=1&token=${encodeURIComponent(token)}`)
-      .then((r) => r.json())
-      .then((data) => setReturnStatus(data.paid ? 'paid' : data.status === 1 ? 'pending' : 'failed'))
-      .catch(() => setReturnStatus('failed'))
+    if (status === 'approved' && paymentId) {
+      setReturnStatus('checking')
+      fetch(`/api/mp-payments?status=1&payment_id=${encodeURIComponent(paymentId)}`)
+        .then((r) => r.json())
+        .then((data) => setReturnStatus(data.paid ? 'paid' : data.status === 'pending' ? 'pending' : 'failed'))
+        .catch(() => setReturnStatus('failed'))
+    } else {
+      setReturnStatus(status === 'pending' || status === 'in_process' ? 'pending' : 'failed')
+    }
 
-    // Limpia el token de la URL sin recargar.
-    params.delete('flow_token')
+    // Limpia los parámetros de Mercado Pago de la URL sin recargar.
+    ;['status', 'collection_status', 'payment_id', 'collection_id', 'preference_id', 'merchant_order_id', 'external_reference', 'payment_type'].forEach((k) => params.delete(k))
     const clean = window.location.pathname + (params.toString() ? `?${params}` : '')
     window.history.replaceState({}, '', clean)
   }, [])
@@ -51,11 +56,11 @@ export default function FlowCheckout() {
     setLoading(true)
 
     try {
-      const response = await fetch('/api/flow-payments', {
+      const response = await fetch('/api/mp-payments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          amount: CURSO_PRICE,
+          source: 'cursos',
           email: form.email.trim(),
           name: form.name.trim(),
           phone: form.phone,
@@ -69,14 +74,14 @@ export default function FlowCheckout() {
 
       const data = await response.json()
       setRedirecting(true)
-      window.location.href = data.sessionUrl
+      window.location.href = data.checkoutUrl
     } catch (err) {
       setError(err.message || 'Error al procesar pago')
       setLoading(false)
     }
   }
 
-  // Volviendo desde Flow: mostramos el resultado de la verificación.
+  // Volviendo desde Mercado Pago: mostramos el resultado de la verificación.
   if (returnStatus) {
     if (returnStatus === 'checking') {
       return (
@@ -134,7 +139,7 @@ export default function FlowCheckout() {
     return (
       <div className="checkout-card checkout-widget-mode" data-reveal>
         <div className="checkout-widget-wrapper checkout-redirecting">
-          <p>Redirigiendo a Flow para completar tu pago...</p>
+          <p>Redirigiendo a Mercado Pago para completar tu pago...</p>
         </div>
       </div>
     )
@@ -169,10 +174,10 @@ export default function FlowCheckout() {
 
         <form onSubmit={onSubmit} className="checkout-form">
           <div className="frow">
-            <label htmlFor="flow-name">Nombre completo</label>
+            <label htmlFor="mp-name">Nombre completo</label>
             <input
               type="text"
-              id="flow-name"
+              id="mp-name"
               name="name"
               placeholder="Tu nombre"
               value={form.name}
@@ -183,10 +188,10 @@ export default function FlowCheckout() {
 
           <div className="frow two">
             <div className="frow">
-              <label htmlFor="flow-email">Email</label>
+              <label htmlFor="mp-email">Email</label>
               <input
                 type="email"
-                id="flow-email"
+                id="mp-email"
                 name="email"
                 placeholder="tu@email.com"
                 value={form.email}
@@ -195,10 +200,10 @@ export default function FlowCheckout() {
               />
             </div>
             <div className="frow">
-              <label htmlFor="flow-phone">Teléfono</label>
+              <label htmlFor="mp-phone">Teléfono</label>
               <input
                 type="tel"
-                id="flow-phone"
+                id="mp-phone"
                 name="phone"
                 placeholder="9 1234 5678"
                 value={form.phone}
@@ -221,13 +226,13 @@ export default function FlowCheckout() {
 
         <div className="checkout-secure">
           <svg viewBox="0 0 24 24" width="14" height="14"><path d="M12 2l7 4v6c0 5-3.5 9-7 10C8.5 21 5 17 5 12V6l7-4z" /></svg>
-          Pago seguro con tarjeta, transferencia o billetera vía Flow
+          Pago seguro con tarjeta, transferencia o billetera vía Mercado Pago
         </div>
 
         <div className="checkout-flow-badge">
           <span>Procesado por</span>
-          <svg viewBox="0 0 80 20" width="56" height="14" aria-label="Flow">
-            <text x="0" y="15" fontFamily="system-ui,sans-serif" fontSize="13" fontWeight="700" fill="currentColor">flow</text>
+          <svg viewBox="0 0 110 20" width="72" height="14" aria-label="Mercado Pago">
+            <text x="0" y="15" fontFamily="system-ui,sans-serif" fontSize="13" fontWeight="700" fill="currentColor">mercado pago</text>
           </svg>
         </div>
 

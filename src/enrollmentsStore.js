@@ -8,6 +8,8 @@
    responde; esto sólo garantiza una experiencia verificable de extremo a
    extremo. */
 
+import { cleanPhone } from "./data.js"
+
 const KEY = "ps_enrollments_local"
 
 export function readLocalEnrollments() {
@@ -24,7 +26,7 @@ export function addLocalEnrollment(data = {}) {
   const entry = {
     id: data.id || `local-${Date.now()}`,
     name: (data.name || "").trim(),
-    phone: String(data.phone || "").replace(/\D/g, "").slice(0, 9),
+    phone: cleanPhone(data.phone),
     email: (data.email || "").trim().toLowerCase(),
     source: data.source === "workshop" ? "workshop" : "cursos",
     level: data.level || null,

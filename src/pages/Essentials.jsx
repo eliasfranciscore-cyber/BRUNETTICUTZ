@@ -6,14 +6,14 @@ import { useBrunettiFx, scrollToId } from '../components/brunetti.jsx'
 import { Sparkles } from '../components/ui/sparkles.jsx'
 import { InteractiveSelector } from '../components/ui/interactive-selector.jsx'
 import { CLP } from '../data.js'
-import { readCart, addToCart, setQty, removeFromCart, cartCount } from '../cartStore.js'
+import { readCart, addToCart, setQty, removeFromCart, clearCart, cartCount } from '../cartStore.js'
 import '../styles/essentials.css'
 
 /* ================================================================
    ESSENTIALS — Tienda de productos para clientes (/essentials)
    Hero + grilla de productos (portada / hover / detalle en modal) +
-   carrito local (localStorage, checkout con Flow queda para una
-   etapa futura). Comparte SiteNav + ModuleFooter con el resto del sitio.
+   carrito local (localStorage) + checkout con Mercado Pago Checkout Pro.
+   Comparte SiteNav + ModuleFooter con el resto del sitio.
    ================================================================ */
 
 export default function Essentials() {
@@ -24,6 +24,10 @@ export default function Essentials() {
   const [cartOpen, setCartOpen] = useState(false)
   const [activeProduct, setActiveProduct] = useState(null)
   const [modalQty, setModalQty] = useState(1)
+  const [contact, setContact] = useState({ name: '', email: '', phone: '' })
+  const [payLoading, setPayLoading] = useState(false)
+  const [payError, setPayError] = useState('')
+  const [returnStatus, setReturnStatus] = useState(null) // null | 'checking' | 'paid' | 'pending' | 'failed'
 
   useBrunettiFx(rootRef, { parallax: false })
 
@@ -33,6 +37,31 @@ export default function Essentials() {
       .then((data) => setProducts(data.products || []))
       .catch(() => setProducts([]))
       .finally(() => setLoading(false))
+  }, [])
+
+  // Si volvemos desde Mercado Pago, lee status/payment_id de la URL de retorno.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const status = params.get('status') || params.get('collection_status')
+    const paymentId = params.get('payment_id') || params.get('collection_id')
+    if (!status) return
+
+    if (status === 'approved' && paymentId) {
+      setReturnStatus('checking')
+      fetch(`/api/mp-payments?status=1&payment_id=${encodeURIComponent(paymentId)}`)
+        .then((r) => r.json())
+        .then((data) => {
+          setReturnStatus(data.paid ? 'paid' : data.status === 'pending' ? 'pending' : 'failed')
+          if (data.paid) { setCart(clearCart()); setCartOpen(false) }
+        })
+        .catch(() => setReturnStatus('failed'))
+    } else {
+      setReturnStatus(status === 'pending' || status === 'in_process' ? 'pending' : 'failed')
+    }
+
+    ;['status', 'collection_status', 'payment_id', 'collection_id', 'preference_id', 'merchant_order_id', 'external_reference', 'payment_type'].forEach((k) => params.delete(k))
+    const clean = window.location.pathname + (params.toString() ? `?${params}` : '')
+    window.history.replaceState({}, '', clean)
   }, [])
 
   const byId = new Map(products.map((p) => [p.id, p]))
@@ -57,6 +86,42 @@ export default function Essentials() {
     setCart(setQty(id, (item?.qty || 0) + delta))
   }
 
+  const setContactField = (k) => (e) => setContact((c) => ({ ...c, [k]: e.target.value }))
+
+  const checkout = async () => {
+    setPayError('')
+    const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email.trim())
+    const validPhone = contact.phone.replace(/\D/g, '').length >= 8
+    if (!contact.name.trim() || !validEmail || !validPhone) {
+      setPayError('Completa nombre, email y teléfono para pagar.')
+      return
+    }
+
+    setPayLoading(true)
+    try {
+      const response = await fetch('/api/mp-payments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          source: 'essentials',
+          name: contact.name.trim(),
+          email: contact.email.trim(),
+          phone: contact.phone,
+          items: cart.map((i) => ({ productId: i.productId, qty: i.qty })),
+        }),
+      })
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Error al crear sesión de pago')
+      }
+      const data = await response.json()
+      window.location.href = data.checkoutUrl
+    } catch (err) {
+      setPayError(err.message || 'Error al procesar pago')
+      setPayLoading(false)
+    }
+  }
+
   return (
     <div className="brunetti-site essentials-page" ref={rootRef}>
       <SiteNav />
@@ -77,6 +142,32 @@ export default function Essentials() {
             </p>
           </div>
         </section>
+
+        {returnStatus && (
+          <section className="bsection" style={{ paddingTop: 0, paddingBottom: 0 }}>
+            <div className="bwrap" style={{ textAlign: 'center', padding: '1.4rem 1.2rem', margin: '0 0 1rem' }}>
+              {returnStatus === 'checking' && <p>Verificando tu pago...</p>}
+              {returnStatus === 'paid' && (
+                <>
+                  <h3 style={{ margin: '0 0 0.4rem' }}>¡Pago completado!</h3>
+                  <p style={{ margin: 0 }}>Tu pedido fue confirmado. Te contactaremos para coordinar el retiro o envío.</p>
+                </>
+              )}
+              {returnStatus === 'pending' && (
+                <>
+                  <h3 style={{ margin: '0 0 0.4rem' }}>Pago en proceso</h3>
+                  <p style={{ margin: 0 }}>Tu pago está siendo confirmado por el medio de pago. Te avisaremos apenas se confirme.</p>
+                </>
+              )}
+              {returnStatus === 'failed' && (
+                <>
+                  <h3 style={{ margin: '0 0 0.4rem' }}>El pago no se completó</h3>
+                  <p style={{ margin: 0 }}>No alcanzamos a confirmar tu pago. Si el cargo se realizó, escríbenos; si no, puedes intentarlo de nuevo.</p>
+                </>
+              )}
+            </div>
+          </section>
+        )}
 
         {/* Fondo de partículas doradas, igual que Home/Cursos (hero fuera). */}
         <div className="bru-sparkles-zone">
@@ -243,10 +334,15 @@ export default function Essentials() {
             {cart.length > 0 && (
               <div className="essentials-drawer-foot">
                 <div className="essentials-drawer-subtotal"><span>Subtotal</span><b>{CLP(subtotal)}</b></div>
-                <button type="button" className="btn btn-gold btn-block essentials-checkout-btn" disabled>
-                  Pagar con Flow · Próximamente
+                <div className="essentials-drawer-contact">
+                  <input type="text" placeholder="Nombre completo" value={contact.name} onChange={setContactField('name')} />
+                  <input type="email" placeholder="tu@email.com" value={contact.email} onChange={setContactField('email')} />
+                  <input type="tel" placeholder="Teléfono (WhatsApp)" value={contact.phone} onChange={setContactField('phone')} />
+                </div>
+                {payError && <p className="essentials-drawer-note" style={{ color: 'var(--wk-error, #d33)' }}>{payError}</p>}
+                <button type="button" className="btn btn-gold btn-block essentials-checkout-btn" onClick={checkout} disabled={payLoading}>
+                  {payLoading ? 'Procesando...' : 'Pagar con Mercado Pago'}
                 </button>
-                <p className="essentials-drawer-note">El pago en línea se habilita pronto. Mientras tanto, escríbenos por WhatsApp para coordinar tu compra.</p>
               </div>
             )}
           </aside>

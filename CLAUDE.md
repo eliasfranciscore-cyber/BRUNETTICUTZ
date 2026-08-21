@@ -59,7 +59,7 @@ Each file in `/api` exports a default handler: `async function handler(req, res)
 - `/api/services.js` — Menu items
 - `/api/clients.js` — Customer registry (barber view)
 - `/api/expenses.js` — Finance tracking
-- `/api/flow-payments.js` — Unified payment checkout + webhook handler
+- `/api/mp-payments.js` — Mercado Pago Checkout Pro: checkout + webhook handler (Cursos, Workshop, Essentials)
 - `/api/push.js` — Web Push notifications
 - `/api/_email.js` — Booking confirmation email to clients (Resend REST API, no SDK)
 - `/api/_notion.js` — Syncs bookings to a Notion database (REST API, no SDK) so they show up in Notion Calendar
@@ -78,6 +78,9 @@ Schema in `db/schema.sql`:
 - `expenses` — Finance tracking
 - `barber_permissions` — Role-based access (finance, team management, etc.)
 - `push_subscriptions` — Web Push endpoints per barber
+- `enrollments` — Cursos/Workshop signups (paid via Mercado Pago webhook, or manual lead capture)
+- `shop_orders` — Essentials paid orders (Mercado Pago webhook), item snapshot in `items` JSONB
+- `products` — Essentials catalog (barber-managed via panel)
 
 Seed data in `db/seed.sql` (optional; most tables auto-create on first use).
 
@@ -85,7 +88,7 @@ Seed data in `db/seed.sql` (optional; most tables auto-create on first use).
 
 **Vite config** (`vite.config.js`):
 - Vendor splitting: React + React Router cached separately (`react-vendor` chunk)
-- Custom Flow mock middleware for local dev (intercepts `/api/flow-payments` POST in dev mode)
+- Custom Mercado Pago mock middleware for local dev (intercepts `/api/mp-payments` POST in dev mode)
 - Chunk size warning raised to 700KB (minified CSS is large)
 
 **Vercel config** (`vercel.json`):
@@ -97,8 +100,7 @@ Seed data in `db/seed.sql` (optional; most tables auto-create on first use).
 **Environment variables** (`.env.local` or Vercel settings):
 - `DATABASE_URL` — Neon connection string (required in prod)
 - `PS_SESSION_SECRET` — ≥16 char key for HMAC signing (required in prod; if missing, system fails closed — no sessions accepted)
-- `FLOW_API_KEY`, `FLOW_SECRET_KEY` — Flow API credentials for payment sessions
-- `FLOW_ENV` — set to `production` to use Flow's live API; defaults to sandbox
+- `MP_ACCESS_TOKEN` — Mercado Pago Checkout Pro access token for payment sessions (Cursos, Workshop, Essentials). Sandbox vs production is decided by Mercado Pago from the token's own prefix (`TEST-...`) — no separate env var needed
 - `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` — Web Push keys
 - `VITE_VAPID_PUBLIC_KEY` — Public VAPID key exposed to frontend
 - `BLOB_READ_WRITE_TOKEN` — Vercel Blob (optional backup storage)
@@ -143,17 +145,22 @@ iOS "Add to Home Screen" often ignores manifest `start_url` and instead launches
 
 This only happens once per app session (sessionStorage flag).
 
-### Flow Integration
+### Mercado Pago Integration
+
+All three paid modules — Cursos, Workshop, Essentials — share one endpoint, `api/mp-payments.js`, distinguished by a `source` field (`'cursos' | 'workshop' | 'essentials'`). Cursos and Workshop charge a fixed server-side price (`FIXED_PRICES` in the handler — never trust a client-sent amount); Essentials re-validates price and stock against the `products` table for every item in the cart, since it's a real multi-item order.
 
 **Checkout flow:**
-1. Frontend posts to `/api/flow-payments` with `{amount, email, name, phone}`
-2. API signs the request (HMAC-SHA256 with `FLOW_SECRET_KEY`) and calls Flow's `/payment/create`, returns `{sessionUrl, token}`
-3. Frontend does a full-page redirect to `sessionUrl` (Flow hosted checkout — supports Webpay, tarjetas, transferencia y billeteras como Mach/Chek según lo habilitado en la cuenta comercial)
-4. Flow sends the user's browser back to `urlReturn` (`/api/flow-payments?return=1`), which 302-redirects to `/cursos?flow_token=...` so the SPA can show a status message
-5. Independently, Flow POSTs server-to-server to `urlConfirmation` (`/api/flow-payments?webhook=1`); the handler calls `/payment/getStatus` to verify the real status before saving the enrollment (never trusts the return redirect alone)
-6. `GET /api/flow-payments?status=1&token=...` is a read-only status check used by the frontend after the return redirect — it does not write to the DB
+1. Frontend posts to `/api/mp-payments` with `{source, name, email, phone, edition?, items?}` (`edition` for workshop only, `items: [{productId, qty}]` for essentials only)
+2. For `essentials`, the API first creates a `shop_orders` row with `status: 'pending'` (snapshotting validated price/name per item) and uses `essentials-<orderId>` as the Mercado Pago `external_reference`; for `cursos`/`workshop` it instead base64url-encodes `{source, name, phone, email, edition?}` directly into `external_reference` (no DB row needed since there's nothing to look up — mirrors how the old Flow integration passed customer data through its `optional` field)
+3. API calls Mercado Pago's `/checkout/preferences` with the item(s), `back_urls` pointing back to the originating page, and `notification_url` for the webhook; returns `{checkoutUrl}` — `sandbox_init_point` if `MP_ACCESS_TOKEN` starts with `TEST-`, otherwise `init_point` (Mercado Pago decides sandbox vs prod purely from the token prefix)
+4. Frontend does a full-page redirect to `checkoutUrl` (Mercado Pago hosted Checkout Pro — cards, transferencia, billeteras)
+5. Mercado Pago redirects the browser back to the module's own page with `status`/`payment_id` (or `collection_status`/`collection_id`) in the query string — the frontend uses these only to display a message, never to write anything
+6. Independently, Mercado Pago POSTs server-to-server to `notification_url` (`/api/mp-payments?webhook=1`); the handler calls `GET /v1/payments/{id}` to verify the real status before saving anything (never trusts the return redirect alone). On `approved`: essentials marks the `shop_orders` row paid and best-effort decrements `products.stock`; cursos/workshop decode `external_reference` and insert into `enrollments` (workshop additionally triggers the confirmation email)
+7. `GET /api/mp-payments?status=1&payment_id=...` is a read-only status check used by the frontend after the return redirect — it does not write to the DB
 
-In dev mode (`npm run dev`), Flow requests are mocked by Vite middleware (see `vite.config.js`).
+Workshop's reservation form used to save a lead immediately on submit, before any payment (`/api/enrollments`, no charge). It now only does that for the free waitlist option (`WAITLIST_OPTION` in `Register`); picking the dated edition instead goes through the Mercado Pago flow above, and the seat is only confirmed once the webhook fires.
+
+In dev mode (`npm run dev`), Mercado Pago requests are mocked by Vite middleware (see `vite.config.js`) — the mock redirects straight back with `status=approved`, but since it doesn't hit the real webhook, nothing is actually written to the DB in dev (use `npx vercel dev` to test the full flow).
 
 ### Notion Calendar Sync & Reminders
 
@@ -217,7 +224,7 @@ No `desarrollo`/staging branch — `main` is the only branch. A manual `npx verc
 | `src/data.js` | Static data (services, constants) |
 | `api/_auth.js` | Session creation/validation |
 | `db/schema.sql` | Database table definitions |
-| `vite.config.js` | Vite build config + Flow mock |
+| `vite.config.js` | Vite build config + Mercado Pago mock |
 | `vercel.json` | Deployment routing, headers, caching |
 | `.env.example` | Required environment variables |
 
@@ -226,7 +233,7 @@ No `desarrollo`/staging branch — `main` is the only branch. A manual `npx verc
 Before pushing to `main`:
 1. Verify `PS_SESSION_SECRET` is set in Vercel (≥16 chars)
 2. Verify `DATABASE_URL` is accessible and schema is initialized
-3. If using Flow, verify `FLOW_API_KEY` and `FLOW_SECRET_KEY` are set
+3. Verify `MP_ACCESS_TOKEN` is set (test token for sandbox, production token to charge for real)
 4. Run `npm run build` locally and test with `npm run preview`
 5. `git push origin main` — Vercel auto-deploys straight to production (`brunetticutz.cl`). There is no staging branch, so anything pushed to `main` goes live immediately.
 

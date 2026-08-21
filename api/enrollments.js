@@ -22,7 +22,11 @@ const DEMO = [
   { id: 2, name: "Demo Workshop", phone: "987654321", email: "demo2@mail.com", source: "workshop", level: null, message: null, edition: "23 de agosto", created_at: "2026-06-21T11:00:00Z" },
 ]
 
-function cleanPhone(v) { return String(v || "").replace(/\D/g, "").slice(0, 9) }
+function cleanPhone(v) {
+  let digits = String(v || "").replace(/\D/g, "")
+  if (digits.length > 9 && digits.startsWith("56")) digits = digits.slice(2)
+  return digits.slice(0, 9)
+}
 function sendJson(res, status, body) { return res.status(status).json(body) }
 
 export default async function handler(req, res) {
@@ -132,6 +136,74 @@ export default async function handler(req, res) {
          localStorage 'curso_waitlist'). */
       console.error("enrollments POST error:", err?.message)
       return sendJson(res, 500, { ok: false, error: "No se pudo guardar la inscripción" })
+    }
+  }
+
+  /* PATCH — editar una inscripción desde el panel interno */
+  if (req.method === "PATCH") {
+    const session = requireInternal(req, res)
+    if (!session) return
+    const id = Number(req.query.id || req.body?.id)
+    if (!id) return sendJson(res, 400, { ok: false, error: "Falta el id" })
+
+    const body = req.body || {}
+    const name  = String(body.name  || "").trim()
+    const phone = cleanPhone(body.phone)
+    const email = String(body.email || "").trim().toLowerCase()
+    const level   = String(body.level   || "").trim() || null
+    const message = String(body.message || "").trim() || null
+    const edition = String(body.edition || "").trim() || null
+
+    if (!name || phone.length < 8 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return sendJson(res, 400, { ok: false, error: "Datos incompletos" })
+    }
+
+    try {
+      const sql = neon(process.env.DATABASE_URL)
+      const [row] = await sql`
+        UPDATE enrollments
+        SET name = ${name}, phone = ${phone}, email = ${email}, level = ${level}, message = ${message}, edition = ${edition}
+        WHERE id = ${id}
+        RETURNING id, name, phone, email, source, level, message, edition, created_at
+      `
+      if (!row) return sendJson(res, 404, { ok: false, error: "Inscripción no encontrada" })
+
+      /* Mismo criterio que el POST público: la persona editada sigue siendo
+         cliente igual, best-effort para no tumbar el guardado ya hecho. */
+      try {
+        await sql`
+          INSERT INTO users (name, phone, email, updated_at)
+          VALUES (${name}, ${phone}, ${email}, NOW())
+          ON CONFLICT (phone) DO UPDATE SET
+            name  = EXCLUDED.name,
+            email = COALESCE(NULLIF(EXCLUDED.email,''), users.email),
+            updated_at = NOW()
+        `
+      } catch (uerr) {
+        console.error("enrollments PATCH users upsert (no bloquea):", uerr?.message)
+      }
+
+      return sendJson(res, 200, { ok: true, enrollment: row })
+    } catch (err) {
+      console.error("enrollments PATCH error:", err?.message)
+      return sendJson(res, 500, { ok: false, error: "No se pudo actualizar la inscripción" })
+    }
+  }
+
+  /* DELETE — quitar una inscripción del panel interno (no borra al cliente,
+     solo el registro de inscripción). */
+  if (req.method === "DELETE") {
+    const session = requireInternal(req, res)
+    if (!session) return
+    const id = Number(req.query.id)
+    if (!id) return sendJson(res, 400, { ok: false, error: "Falta el id" })
+    try {
+      const sql = neon(process.env.DATABASE_URL)
+      await sql`DELETE FROM enrollments WHERE id = ${id}`
+      return sendJson(res, 200, { ok: true })
+    } catch (err) {
+      console.error("enrollments DELETE error:", err?.message)
+      return sendJson(res, 500, { ok: false, error: "No se pudo eliminar la inscripción" })
     }
   }
 
