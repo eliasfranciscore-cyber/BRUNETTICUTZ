@@ -615,7 +615,10 @@ a.home-footer-access { display: inline-flex; align-items: center; gap: .4rem; te
 [data-theme="light"] .psn-modal-card.psn-confirm,
 [data-theme="light"] .psn-modal-card.psn-res-modal,
 [data-theme="light"] .psn-modal-card.psn-client-modal,
-[data-theme="light"] .psn-modal-card.psn-barber-modal { background: #fff; }
+[data-theme="light"] .psn-modal-card.psn-barber-modal,
+[data-theme="light"] .psn-modal-card.psn-newbk,
+[data-theme="light"] .psn-modal-card.psn-cal,
+[data-theme="light"] .psn-modal-card.agenda-detail { background: #fff; }
 
 /* === Filtros de clientes (chips horizontales compactos, clicables) ===
    Antes eran cuadrados aspect-ratio:1 (~280px de lado en desktop) con el
