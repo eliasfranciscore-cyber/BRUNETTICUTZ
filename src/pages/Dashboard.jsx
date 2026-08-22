@@ -678,6 +678,7 @@ export default function Dashboard() {
     ...(canViewFinance ? [["finanzas", "wallet", "Finanzas"]] : []),
     ["clientes",       "user",     "Clientes"],
     ["inscripciones",  "spark",    "Inscripciones"],
+    ...(admin ? [["pedidos", "wallet", "Pedidos"]] : []),
     ...(canEditServices ? [["servicios", "cut", "Servicios"]] : []),
     ...(admin ? [["essentials", "gift", "Essentials"]] : []),
     ...(admin ? [["gastos", "wallet", "Gastos"]] : []),
@@ -1809,6 +1810,11 @@ export default function Dashboard() {
           <EnrollmentsPanel clients={clients} authHeaders={authHeaders} onCreateClient={createClient} />
         )}
 
+        {/* PEDIDOS */}
+        {tab === "pedidos" && (
+          <PedidosPanel authHeaders={authHeaders} />
+        )}
+
         {/* SERVICIOS */}
         {tab === "servicios" && (
           <div className="animate-in" style={{ display: "grid", gap: "1.1rem" }}>
@@ -2377,6 +2383,7 @@ const CFG_SECTIONS = [
   { id: "notificaciones",icon: "bell",     label: "Notificaciones", kw: "push alertas avisos" },
   { id: "whatsapp",      icon: "whatsapp", label: "WhatsApp", kw: "recordatorio plantillas mensajes" },
   { id: "negocio",       icon: "scissors", label: "Negocio", kw: "horario direccion telefono nombre local" },
+  { id: "precios",       icon: "wallet",   label: "Precios y fechas", kw: "cursos workshop precio fecha mercado pago" },
   { id: "presupuestos",  icon: "wallet",   label: "Presupuestos", kw: "gastos categoria limite" },
   { id: "equipo",        icon: "key",      label: "Equipo y permisos", kw: "barberos permisos roles" },
   { id: "datos",         icon: "wallet",   label: "Datos y respaldos", kw: "exportar csv respaldo backup" },
@@ -2524,6 +2531,102 @@ function EnrollmentsPanel({ clients = [], authHeaders = () => ({}), onCreateClie
         onClose={() => setCreating(false)}
         onCreate={createEnrollment}
       />
+    </div>
+  )
+}
+
+/* ============================================================
+   PEDIDOS — lista unificada de pagos reales (Cursos + Workshop +
+   Essentials). Carga desde /api/mp-payments?panel=1 (requiere sesión).
+   A diferencia de "Inscripciones" (que también incluye leads de lista de
+   espera sin pagar), acá solo aparecen pedidos con pago confirmado.
+   ============================================================ */
+const PEDIDOS_BADGE = {
+  cursos:     { background: "rgba(11,18,158,0.18)",  color: "#6b74f0", border: "1px solid rgba(107,116,240,0.35)" },
+  workshop:   { background: "rgba(136,56,216,0.18)", color: "#b483f3", border: "1px solid rgba(136,56,216,0.35)" },
+  essentials: { background: "rgba(111,191,134,0.18)", color: "#9fd7af", border: "1px solid rgba(111,191,134,0.35)" },
+}
+const PEDIDOS_LABEL = { cursos: "Cursos", workshop: "Workshop", essentials: "Essentials" }
+
+function PedidosPanel({ authHeaders = () => ({}) }) {
+  const [rows, setRows] = React.useState([])
+  const [loading, setLoading] = React.useState(true)
+  const [error, setError] = React.useState("")
+  const [filter, setFilter] = React.useState("todos") // todos | cursos | workshop | essentials
+  const [query, setQuery] = React.useState("")
+
+  React.useEffect(() => {
+    fetch("/api/mp-payments?panel=1", { headers: authHeaders() })
+      .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
+      .then(({ ok, d }) => {
+        if (!ok || d?.ok === false) throw new Error(d?.error || "No se pudieron cargar los pedidos")
+        setRows(d.orders || [])
+        setLoading(false)
+      })
+      .catch((err) => { setError(err.message || "No se pudieron cargar los pedidos"); setLoading(false) })
+  }, [])
+
+  const filtered = rows.filter((r) => {
+    if (filter !== "todos" && r.type !== filter) return false
+    if (query) {
+      const q = query.toLowerCase()
+      return r.name?.toLowerCase().includes(q) || r.phone?.includes(q) || r.email?.toLowerCase().includes(q)
+    }
+    return true
+  })
+
+  const total = rows.reduce((n, r) => n + (r.amount || 0), 0)
+  const fmtDate = (iso) => {
+    if (!iso) return "—"
+    return new Date(iso).toLocaleDateString("es-CL", { day: "2-digit", month: "short", year: "numeric" })
+  }
+
+  return (
+    <div className="animate-in" style={{ display: "grid", gap: "1.1rem" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: "1rem" }}>
+        <Stat icon="wallet" label="Total recaudado" value={CLP(total)} accent />
+        <Stat icon="spark" label="Cursos" value={rows.filter((r) => r.type === "cursos").length} />
+        <Stat icon="scissors" label="Workshop" value={rows.filter((r) => r.type === "workshop").length} />
+        <Stat icon="gift" label="Essentials" value={rows.filter((r) => r.type === "essentials").length} />
+      </div>
+      <Panel title="Pedidos" action={
+        <div className="psn-seg" role="group" aria-label="Filtrar por origen">
+          {["todos", "cursos", "workshop", "essentials"].map((f) => (
+            <button key={f} type="button" className={filter === f ? "is-on" : ""} style={{ textTransform: "capitalize" }} onClick={() => setFilter(f)}>{f}</button>
+          ))}
+        </div>
+      }>
+        <div className="client-search">
+          <Icon name="user" size={15} />
+          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar por nombre, teléfono o email" />
+        </div>
+        <div className="client-table-head" style={{ gridTemplateColumns: "1.4fr 1.4fr auto auto auto" }}>
+          <span>Cliente</span>
+          <span>Detalle</span>
+          <span>Origen</span>
+          <span>Monto</span>
+          <span>Fecha</span>
+        </div>
+        <div className="client-list">
+          {loading && <div className="empty-state">Cargando pedidos…</div>}
+          {!loading && error && <div className="empty-state">{error}</div>}
+          {!loading && !error && !filtered.length && <div className="empty-state">No hay pedidos que coincidan.</div>}
+          {!loading && !error && filtered.map((r) => (
+            <div key={`${r.type}-${r.id}`} className="client-row" style={{ gridTemplateColumns: "1.4fr 1.4fr auto auto auto" }}>
+              <div style={{ minWidth: 0 }}>
+                <strong>{r.name}</strong>
+                <span>{r.phone} · {r.email}</span>
+              </div>
+              <span style={{ minWidth: 0 }}>{r.detail || "—"}</span>
+              <span style={{ fontSize: "0.7rem", padding: "2px 8px", borderRadius: 999, justifySelf: "start", ...PEDIDOS_BADGE[r.type] }}>
+                {PEDIDOS_LABEL[r.type]}
+              </span>
+              <span style={{ fontSize: "0.85rem", color: "var(--ink)", fontWeight: 600 }}>{CLP(r.amount || 0)}</span>
+              <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>{fmtDate(r.created_at)}</span>
+            </div>
+          ))}
+        </div>
+      </Panel>
     </div>
   )
 }
@@ -2718,6 +2821,48 @@ function ConfigPanel({ brunettiOnly, barber, barbers, admin, canManageTeam, barb
     setTimeout(() => setAcctSaved(false), 2500)
   }
   const { theme, toggle } = useTheme()
+
+  // PRECIOS Y FECHAS — a diferencia del resto de Config (que vive en
+  // localStorage), esto se guarda en la DB porque también lo lee el
+  // cobro real de Mercado Pago (api/mp-payments.js) y las páginas
+  // públicas de Cursos/Workshop.
+  const [precios, setPrecios] = useState({ cursosPrice: "", workshopPrice: "", workshopDate: "" })
+  const [preciosLoading, setPreciosLoading] = useState(true)
+  const [preciosStatus, setPreciosStatus] = useState("") // "", "saving", "done"
+  const [preciosError, setPreciosError] = useState("")
+  useEffect(() => {
+    fetch("/api/mp-payments?settings=1")
+      .then((r) => r.json())
+      .then((s) => setPrecios({
+        cursosPrice: s.cursosPrice ?? "",
+        workshopPrice: s.workshopPrice ?? "",
+        workshopDate: s.workshopDate ? new Date(s.workshopDate).toISOString().slice(0, 16) : "",
+      }))
+      .catch(() => {})
+      .finally(() => setPreciosLoading(false))
+  }, [])
+  const savePrecios = async () => {
+    setPreciosStatus("saving"); setPreciosError("")
+    try {
+      const token = localStorage.getItem("ps_barber_token") || ""
+      const res = await fetch("/api/mp-payments?settings=1", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({
+          cursosPrice: Number(precios.cursosPrice) || 0,
+          workshopPrice: Number(precios.workshopPrice) || 0,
+          workshopDate: precios.workshopDate ? new Date(precios.workshopDate).toISOString() : "",
+        }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || "No se pudo guardar")
+      setPreciosStatus("done")
+      setTimeout(() => setPreciosStatus(""), 2000)
+    } catch (err) {
+      setPreciosStatus("")
+      setPreciosError(err.message || "No se pudo conectar con el servidor.")
+    }
+  }
 
   const current = sections.find((s) => s.id === section)
   const [sectionQuery, setSectionQuery] = useState("")
@@ -2990,6 +3135,64 @@ function ConfigPanel({ brunettiOnly, barber, barbers, admin, canManageTeam, barb
                 <label><span>Domingos</span><select className="input" defaultValue="closed"><option value="closed">Cerrado</option><option value="open">Abierto</option></select></label>
                 <label><span>Cancelacion cliente</span><select className="input" defaultValue="24h"><option value="manual">Solo manual</option><option value="24h">Hasta 24h</option><option value="12h">Hasta 12h</option></select></label>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* PRECIOS Y FECHAS — precio de Cursos, precio de Workshop y fecha
+            del Workshop. Se guarda en la DB: lo lee el cobro real y las
+            páginas públicas de Cursos/Workshop. */}
+        {section === "precios" && (
+          <div style={{ display: "grid", gap: "1.4rem" }}>
+            <div className="cfg-card">
+              <p className="cfg-card-head">Cursos y Workshop</p>
+              <p style={{ fontSize: ".78rem", color: "var(--muted)", margin: "0 0 .8rem" }}>
+                Define el precio real que se cobra por Mercado Pago y la fecha de la próxima edición del Workshop.
+              </p>
+              {preciosLoading ? (
+                <p className="empty-state">Cargando…</p>
+              ) : (
+                <>
+                  <div className="cfg-form-grid">
+                    <div className="cfg-field">
+                      <label>Precio Cursos (CLP)</label>
+                      <input
+                        className="input"
+                        inputMode="numeric"
+                        value={precios.cursosPrice}
+                        onChange={(e) => setPrecios((p) => ({ ...p, cursosPrice: e.target.value.replace(/\D/g, "") }))}
+                        placeholder="9990"
+                      />
+                    </div>
+                    <div className="cfg-field">
+                      <label>Precio Workshop (CLP)</label>
+                      <input
+                        className="input"
+                        inputMode="numeric"
+                        value={precios.workshopPrice}
+                        onChange={(e) => setPrecios((p) => ({ ...p, workshopPrice: e.target.value.replace(/\D/g, "") }))}
+                        placeholder="49990"
+                      />
+                    </div>
+                    <div className="cfg-field">
+                      <label>Fecha del Workshop</label>
+                      <input
+                        className="input"
+                        type="datetime-local"
+                        value={precios.workshopDate}
+                        onChange={(e) => setPrecios((p) => ({ ...p, workshopDate: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+                  {preciosError && <p style={{ fontSize: ".8rem", color: "#d99a8f", margin: ".5rem 0 0" }}>{preciosError}</p>}
+                  <div style={{ display: "flex", alignItems: "center", gap: ".8rem", marginTop: ".8rem" }}>
+                    <button className="btn btn-gold" disabled={preciosStatus === "saving"} onClick={savePrecios}>
+                      <Icon name="check" size={14} /> {preciosStatus === "saving" ? "Guardando…" : "Guardar"}
+                    </button>
+                    {preciosStatus === "done" && <span className="chip chip-gold" style={{ fontSize: ".72rem" }}><Icon name="check" size={12} /> Guardado</span>}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}

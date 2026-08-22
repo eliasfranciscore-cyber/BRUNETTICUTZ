@@ -3,7 +3,7 @@
    Logo esperado en /public/assets/pimp-studio-logo.jpg (degrada si falta). */
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { WORKSHOP } from '../data/workshop.js'
+import { WORKSHOP, formatWorkshopDate } from '../data/workshop.js'
 import SiteNav from '../components/SiteNav.jsx'
 import { addLocalEnrollment } from '../enrollmentsStore.js'
 import { Lamp } from '../components/ui/lamp.jsx'
@@ -816,6 +816,31 @@ export default function Workshop() {
   const formRef = useRef(null);
   const reserve = () => smoothTo("inscribir");
   void navigate;
+
+  // Precio y fecha reales vienen del panel interno (Config → Precios y
+  // fechas). WK.meta se lee directo (sin props) desde varios componentes de
+  // esta página, así que se sobreescribe in-place acá y se fuerza un
+  // re-render — evita meter Context solo para esto.
+  const [, forceUpdate] = useState(0);
+  useEffect(() => {
+    fetch('/api/mp-payments?settings=1')
+      .then((r) => r.json())
+      .then((s) => {
+        let changed = false;
+        if (s.workshopPrice) { WK.meta.priceNow = s.workshopPrice; changed = true; }
+        if (s.workshopDate) {
+          const d = new Date(s.workshopDate);
+          if (!Number.isNaN(d.getTime())) {
+            const { iso, label, long } = formatWorkshopDate(d);
+            WK.meta.dateISO = iso; WK.meta.dateLabel = label; WK.meta.dateLong = long;
+            changed = true;
+          }
+        }
+        if (changed) forceUpdate((n) => n + 1);
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <div className="wks">
       <div className="wks-shell">

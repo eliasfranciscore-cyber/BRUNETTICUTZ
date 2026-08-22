@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
+import { CLP } from '../data.js'
 
-const CURSO_PRICE = '9990' // CLP
 const CHECKOUT_ITEMS = [
   '6 módulos · 21 lecciones en video',
   'Acceso inmediato a la comunidad Brunetti en Skool',
@@ -15,6 +15,14 @@ export default function MercadoPagoCheckout() {
   const [error, setError] = useState('')
   const [redirecting, setRedirecting] = useState(false)
   const [returnStatus, setReturnStatus] = useState(null) // null | 'checking' | 'paid' | 'pending' | 'failed'
+  const [price, setPrice] = useState(9990) // precio real viene del panel interno (Config → Precios y fechas)
+
+  useEffect(() => {
+    fetch('/api/mp-payments?settings=1')
+      .then((r) => r.json())
+      .then((s) => { if (s.cursosPrice) setPrice(s.cursosPrice) })
+      .catch(() => {})
+  }, [])
 
   // Si volvemos desde Mercado Pago, agrega status/payment_id a la URL de retorno.
   useEffect(() => {
@@ -166,7 +174,7 @@ export default function MercadoPagoCheckout() {
         <div className="checkout-price-block">
           <span className="checkout-price-label">Precio de lanzamiento</span>
           <div className="checkout-price-row">
-            <span className="checkout-amount">${CURSO_PRICE.slice(0, -3)}.{CURSO_PRICE.slice(-3)}</span>
+            <span className="checkout-amount">{CLP(price)}</span>
             <span className="checkout-currency">CLP</span>
           </div>
           <span className="checkout-price-sub">Pago único · sin cuotas · sin renovación</span>

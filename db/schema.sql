@@ -143,6 +143,7 @@ CREATE TABLE IF NOT EXISTS enrollments (
   level      TEXT,
   message    TEXT,
   edition    TEXT,
+  amount     INTEGER,                          -- NULL para leads de lista de espera; monto pagado si vino del webhook
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -162,6 +163,16 @@ CREATE TABLE IF NOT EXISTS shop_orders (
   status        TEXT NOT NULL DEFAULT 'pending', -- 'pending' | 'paid'
   mp_payment_id TEXT,
   created_at    TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- Ajustes clave/valor editables desde el panel interno (Config → Precios y
+-- fechas): precio de Cursos, precio de Workshop, fecha del Workshop. Leído
+-- por api/mp-payments.js (?settings=1) — si la tabla o una fila no existe,
+-- el cobro sigue funcionando con los defaults en FIXED_PRICES.
+CREATE TABLE IF NOT EXISTS settings (
+  key        TEXT PRIMARY KEY,
+  value      TEXT NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 -- Catálogo de productos del módulo "Essentials" (tienda de clientes).

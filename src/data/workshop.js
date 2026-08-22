@@ -140,6 +140,21 @@ export const WORKSHOP_VIDEOS = [
 const WK_BASE = { month: 8, day: 30, hour: 9, minute: 30 };
 const WK_MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 const WK_DIAS = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+
+/* Formatea una fecha de edición del workshop a {iso,label,long}. Se usa
+   tanto para la fecha por defecto (WK_BASE, hardcodeada acá) como para la
+   que llega del panel interno (Config → Precios y fechas, ver Workshop.jsx). */
+export function formatWorkshopDate(d) {
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const hh = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+  return {
+    iso: d.toISOString(),
+    label: `${dd} · ${mm} · ${d.getFullYear()}`,
+    long: `${WK_DIAS[d.getDay()].charAt(0).toUpperCase() + WK_DIAS[d.getDay()].slice(1)} ${d.getDate()} de ${WK_MESES[d.getMonth()]} · ${hh}:${min}`,
+  };
+}
 function wkEditionDate() {
   const now = new Date();
   let year = now.getFullYear();

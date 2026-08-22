@@ -1,8 +1,11 @@
 /* ================================================================
    Mercado Pago Checkout Pro: checkout + webhook + estado
-   POST /api/mp-payments                     (checkout: crea preferencia de pago)
-   POST /api/mp-payments?webhook=1           (Mercado Pago notifica, server-to-server)
-   GET  /api/mp-payments?status=1&payment_id= (frontend consulta estado, solo lectura)
+   POST  /api/mp-payments                     (checkout: crea preferencia de pago)
+   POST  /api/mp-payments?webhook=1           (Mercado Pago notifica, server-to-server)
+   GET   /api/mp-payments?status=1&payment_id= (frontend consulta estado, solo lectura)
+   GET   /api/mp-payments?settings=1          (público: precio Cursos/Workshop + fecha Workshop)
+   PATCH /api/mp-payments?settings=1          (panel interno: edita esos ajustes)
+   GET   /api/mp-payments?panel=1             (panel interno: lista unificada de pedidos pagados)
 
    Fuentes soportadas: 'cursos', 'workshop' (precio fijo, sin carrito) y
    'essentials' (carrito de productos, valida precio/stock contra la DB).
@@ -12,6 +15,7 @@
    ================================================================ */
 
 import { neon } from '@neondatabase/serverless'
+import { requireInternal } from './_auth.js'
 import { notifyAll } from './push.js'
 import { sendWorkshopConfirmationEmail } from './_email.js'
 
@@ -62,12 +66,179 @@ async function mpRequest(path, method, body) {
 export default async function handler(req, res) {
   if (req.query.status === '1') return handleStatus(req, res)
 
+  if (req.query.settings === '1') {
+    if (req.method === 'GET') return handleGetSettings(req, res)
+    if (req.method === 'PATCH') return handlePatchSettings(req, res)
+    return res.status(405).json({ error: 'Method not allowed' })
+  }
+
+  if (req.query.panel === '1') {
+    if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
+    return handlePanelOrders(req, res)
+  }
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
   if (req.query.webhook === '1') return handleWebhook(req, res)
   return handleCheckout(req, res)
+}
+
+/* ============================================================
+   SETTINGS: precio de Cursos/Workshop y fecha del Workshop,
+   editables desde el panel interno (Config → Precios y fechas).
+   GET es público (lo consumen Cursos.jsx/Workshop.jsx para mostrar
+   el precio real); PATCH requiere sesión interna. Guardado en una
+   tabla clave/valor simple — nunca bloquea el cobro: si la lectura
+   falla, se usan los defaults de FIXED_PRICES.
+   ============================================================ */
+const SETTINGS_KEYS = ['cursos_price', 'workshop_price', 'workshop_date']
+
+async function ensureSettingsTable(sql) {
+  await sql`
+    CREATE TABLE IF NOT EXISTS settings (
+      key        TEXT PRIMARY KEY,
+      value      TEXT NOT NULL,
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `
+}
+
+async function readSettings(sql) {
+  const defaults = { cursosPrice: FIXED_PRICES.cursos, workshopPrice: FIXED_PRICES.workshop, workshopDate: null }
+  try {
+    await ensureSettingsTable(sql)
+    const rows = await sql`SELECT key, value FROM settings WHERE key = ANY(${SETTINGS_KEYS})`
+    const byKey = Object.fromEntries(rows.map((r) => [r.key, r.value]))
+    return {
+      cursosPrice: byKey.cursos_price ? Number(byKey.cursos_price) : defaults.cursosPrice,
+      workshopPrice: byKey.workshop_price ? Number(byKey.workshop_price) : defaults.workshopPrice,
+      workshopDate: byKey.workshop_date || defaults.workshopDate,
+    }
+  } catch (err) {
+    console.error('readSettings error (usando defaults):', err?.message)
+    return defaults
+  }
+}
+
+async function handleGetSettings(req, res) {
+  const sql = neon(process.env.DATABASE_URL)
+  const settings = await readSettings(sql)
+  return res.status(200).json(settings)
+}
+
+async function handlePatchSettings(req, res) {
+  const session = requireInternal(req, res)
+  if (!session) return
+
+  const { cursosPrice, workshopPrice, workshopDate } = req.body || {}
+  const updates = []
+  if (cursosPrice !== undefined) {
+    const n = Number(cursosPrice)
+    if (!Number.isFinite(n) || n < 0) return res.status(400).json({ error: 'cursosPrice inválido' })
+    updates.push(['cursos_price', String(Math.round(n))])
+  }
+  if (workshopPrice !== undefined) {
+    const n = Number(workshopPrice)
+    if (!Number.isFinite(n) || n < 0) return res.status(400).json({ error: 'workshopPrice inválido' })
+    updates.push(['workshop_price', String(Math.round(n))])
+  }
+  if (workshopDate !== undefined) {
+    if (workshopDate && Number.isNaN(new Date(workshopDate).getTime())) {
+      return res.status(400).json({ error: 'workshopDate inválida' })
+    }
+    updates.push(['workshop_date', String(workshopDate || '')])
+  }
+  if (!updates.length) return res.status(400).json({ error: 'Nada que guardar' })
+
+  try {
+    const sql = neon(process.env.DATABASE_URL)
+    await ensureSettingsTable(sql)
+    for (const [key, value] of updates) {
+      await sql`
+        INSERT INTO settings (key, value, updated_at) VALUES (${key}, ${value}, NOW())
+        ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()
+      `
+    }
+    return res.status(200).json(await readSettings(sql))
+  } catch (err) {
+    console.error('handlePatchSettings error:', err?.message)
+    return res.status(500).json({ error: 'No se pudo guardar la configuración' })
+  }
+}
+
+/* ============================================================
+   PANEL: lista unificada de pedidos pagados (Cursos, Workshop,
+   Essentials) para el panel interno. Requiere sesión.
+   ============================================================ */
+async function handlePanelOrders(req, res) {
+  const session = requireInternal(req, res)
+  if (!session) return
+
+  try {
+    const sql = neon(process.env.DATABASE_URL)
+    await ensureEnrollmentsTable(sql)
+    await ensureShopOrdersTable(sql)
+
+    const [enrollmentRows, orderRows] = await Promise.all([
+      sql`
+        SELECT id, name, phone, email, source, edition, message, amount, created_at
+        FROM enrollments
+        WHERE message LIKE 'Pago MercadoPago%'
+        ORDER BY created_at DESC LIMIT 300
+      `,
+      sql`
+        SELECT id, name, phone, email, items, amount, created_at
+        FROM shop_orders
+        WHERE status = 'paid'
+        ORDER BY created_at DESC LIMIT 300
+      `,
+    ])
+
+    const enrollmentOrders = enrollmentRows.map((r) => ({
+      id: r.id,
+      type: r.source, // 'cursos' | 'workshop'
+      name: r.name,
+      phone: r.phone,
+      email: r.email,
+      amount: r.amount ?? parseAmountFromMessage(r.message),
+      detail: r.edition || null,
+      created_at: r.created_at,
+    }))
+
+    const essentialsOrders = orderRows.map((r) => {
+      const items = Array.isArray(r.items) ? r.items : JSON.parse(r.items || '[]')
+      return {
+        id: r.id,
+        type: 'essentials',
+        name: r.name,
+        phone: r.phone,
+        email: r.email,
+        amount: r.amount,
+        detail: items.map((it) => `${it.qty}× ${it.name}`).join(', ') || null,
+        created_at: r.created_at,
+      }
+    })
+
+    const orders = [...enrollmentOrders, ...essentialsOrders]
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+
+    return res.status(200).json({ ok: true, orders })
+  } catch (err) {
+    console.error('handlePanelOrders error:', err?.message)
+    return res.status(500).json({ ok: false, error: 'No se pudieron cargar los pedidos' })
+  }
+}
+
+/* Respaldo para filas antiguas de enrollments sin columna `amount`
+   (previas a esta migración): el monto quedó solo en el texto del
+   marcador de idempotencia, ej. "Pago MercadoPago 123 · $9990". */
+function parseAmountFromMessage(message) {
+  const m = String(message || '').match(/\$([\d.]+)\s*$/)
+  if (!m) return null
+  const n = Number(m[1].replace(/\./g, ''))
+  return Number.isFinite(n) ? n : null
 }
 
 /* ============================================================
@@ -102,7 +273,8 @@ async function handleCheckout(req, res) {
       mpItems = built.mpItems
       externalReference = `essentials-${built.orderId}`
     } else {
-      const amount = FIXED_PRICES[source]
+      const settings = await readSettings(neon(process.env.DATABASE_URL))
+      const amount = source === 'cursos' ? settings.cursosPrice : settings.workshopPrice
       const payload = { source, name: cleanedName, phone: cleanedPhone, email: cleanedEmail }
       if (source === 'workshop') payload.edition = String(edition || '').trim()
       externalReference = encodeRef(payload)
@@ -264,8 +436,8 @@ async function handleEnrollmentPaid(sql, ref, payment, res) {
     }
 
     const [row] = await sql`
-      INSERT INTO enrollments (name, phone, email, source, edition, message)
-      VALUES (${name}, ${cleanedPhone}, ${email.toLowerCase()}, ${source}, ${edition || null}, ${`${marker} · $${payment.transaction_amount}`})
+      INSERT INTO enrollments (name, phone, email, source, edition, message, amount)
+      VALUES (${name}, ${cleanedPhone}, ${email.toLowerCase()}, ${source}, ${edition || null}, ${`${marker} · $${payment.transaction_amount}`}, ${payment.transaction_amount})
       RETURNING id
     `
 
@@ -417,6 +589,9 @@ async function ensureEnrollmentsTable(sql) {
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `
+  /* Monto pagado (NULL para leads de lista de espera, que no pasan por acá).
+     Se agrega con IF NOT EXISTS porque la tabla ya existía sin esta columna. */
+  await sql`ALTER TABLE enrollments ADD COLUMN IF NOT EXISTS amount INTEGER`
 }
 
 async function ensureShopOrdersTable(sql) {
