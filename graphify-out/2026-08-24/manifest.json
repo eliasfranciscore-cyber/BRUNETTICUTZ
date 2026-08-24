@@ -10,8 +10,8 @@
     "semantic_hash": ""
   },
   ".claude/settings.local.json": {
-    "mtime": 1787200136.8412464,
-    "ast_hash": "a46ad86ffc23b21b70686609790136aa",
+    "mtime": 1784234553.8029354,
+    "ast_hash": "9214538d8a81602b9997b82b304e59e2",
     "semantic_hash": ""
   },
   "api/_auth.js": {
@@ -45,13 +45,13 @@
     "semantic_hash": ""
   },
   "api/clients.js": {
-    "mtime": 1787277770.6399922,
-    "ast_hash": "4f5debdecde1e7ae227301f543501993",
+    "mtime": 1786757569.39333,
+    "ast_hash": "65ed217956d3920e6acc4f60275690b5",
     "semantic_hash": ""
   },
   "api/enrollments.js": {
-    "mtime": 1787277791.117806,
-    "ast_hash": "98913238635d7157263ced713774e17f",
+    "mtime": 1783892044.4723868,
+    "ast_hash": "bdde5c46a1138288dc757fefa66b9380",
     "semantic_hash": ""
   },
   "api/expenses.js": {
@@ -75,8 +75,8 @@
     "semantic_hash": ""
   },
   "db/schema.sql": {
-    "mtime": 1787372990.5749855,
-    "ast_hash": "0ac28be8e4fdc38f213ec40240d6dd68",
+    "mtime": 1786757453.372163,
+    "ast_hash": "78cc80638c4b045c300a2e52ed292a4c",
     "semantic_hash": ""
   },
   "db/seed.sql": {
@@ -180,8 +180,8 @@
     "semantic_hash": "ef3ba2a81ba19f8ea5ddf625521e96f0"
   },
   "public/sw.js": {
-    "mtime": 1787609675.9611986,
-    "ast_hash": "d3f554d8b4164a8891e7858ff5062802",
+    "mtime": 1784407056.2989676,
+    "ast_hash": "ad2e914f9bdb77ac7bc2d58f8e18084d",
     "semantic_hash": ""
   },
   "src/App.jsx": {
@@ -215,8 +215,8 @@
     "semantic_hash": "29ad3edc81d0444c32187d7bc47a7e08"
   },
   "src/components/DashboardResumen.jsx": {
-    "mtime": 1786759129.7204106,
-    "ast_hash": "c718968a1b7a93d0a2546f96a8cb500d",
+    "mtime": 1786305318.2499168,
+    "ast_hash": "c73a31b2538d0583dd528823fc96884a",
     "semantic_hash": ""
   },
   "src/components/GlareCard.jsx": {
@@ -260,8 +260,8 @@
     "semantic_hash": ""
   },
   "src/components/ui.jsx": {
-    "mtime": 1786758932.9676754,
-    "ast_hash": "9b3c71560e012e3cd144bd960eafb85b",
+    "mtime": 1784242158.432213,
+    "ast_hash": "941b0710e0fad04602269751982fc728",
     "semantic_hash": ""
   },
   "src/components/ui/lamp.jsx": {
@@ -270,8 +270,8 @@
     "semantic_hash": "f89b02ca2d0dcd3d8fb34440ae601ca7"
   },
   "src/data.js": {
-    "mtime": 1787277769.0662794,
-    "ast_hash": "1bf42de2a444ec9d3ae8bdff1ed8f865",
+    "mtime": 1783804119.786959,
+    "ast_hash": "33bb81b6f04125f8f798f15f14ae9cb9",
     "semantic_hash": ""
   },
   "src/data/estilo.js": {
@@ -280,14 +280,14 @@
     "semantic_hash": ""
   },
   "src/data/workshop.js": {
-    "mtime": 1787373035.566278,
-    "ast_hash": "b9085e2e84989e741252d31e86ff18d6",
+    "mtime": 1783904442.066146,
+    "ast_hash": "acefdd84b4411a8881eb739f7fca4f00",
     "semantic_hash": ""
   },
   "src/enrollmentsStore.js": {
-    "mtime": 1787277778.6793387,
-    "ast_hash": "b6e97dfb04812b60cd77699d2689ecc9",
-    "semantic_hash": ""
+    "mtime": 1782686874.1730206,
+    "ast_hash": "e6b502351223d9964ae9bf8e17bc6e92",
+    "semantic_hash": "e6b502351223d9964ae9bf8e17bc6e92"
   },
   "src/main.jsx": {
     "mtime": 1782686874.1733236,
@@ -310,13 +310,13 @@
     "semantic_hash": ""
   },
   "src/pages/Cursos.jsx": {
-    "mtime": 1787200657.6772387,
-    "ast_hash": "93f1885755ee023cbdfa2d882841a761",
+    "mtime": 1784084610.4143813,
+    "ast_hash": "aa4a141bba1d1affd1ce1c05bf5ce12b",
     "semantic_hash": ""
   },
   "src/pages/Dashboard.jsx": {
-    "mtime": 1787373248.3996506,
-    "ast_hash": "866998aae35f459ccea4eb453df117e6",
+    "mtime": 1786757584.9058332,
+    "ast_hash": "346c85c0ae34122167ff7566d215fcb0",
     "semantic_hash": ""
   },
   "src/pages/EncuentraEstilo.jsx": {
@@ -335,13 +335,13 @@
     "semantic_hash": ""
   },
   "src/pages/Workshop.jsx": {
-    "mtime": 1787609106.5983777,
-    "ast_hash": "dd9b2597413d001f10b4d43cba24503d",
+    "mtime": 1783904456.8628037,
+    "ast_hash": "135ab71d55177a9ceabee69d87b6281d",
     "semantic_hash": ""
   },
   "src/push.js": {
-    "mtime": 1787609675.9627805,
-    "ast_hash": "76a78661cbfd6d3084721b9d8798b98f",
+    "mtime": 1784592806.228201,
+    "ast_hash": "a22e83c861b0918308b5fbc630f44655",
     "semantic_hash": ""
   },
   "tailwind.config.js": {
@@ -355,8 +355,8 @@
     "semantic_hash": "53a82c77d35357525e0c37d6b268576f"
   },
   "vite.config.js": {
-    "mtime": 1787370761.840969,
-    "ast_hash": "a6ee31c4cb07e88f2655dc09b8c2987e",
+    "mtime": 1784084621.523947,
+    "ast_hash": "0a6cf5ade211411c79b616fcd58c2b28",
     "semantic_hash": ""
   },
   "CHANGELOG_IMPLEMENTACION.md": {
@@ -365,8 +365,8 @@
     "semantic_hash": "8821dc65ef6d88a32b3d71aa793563c1"
   },
   "CLAUDE.md": {
-    "mtime": 1787370761.837692,
-    "ast_hash": "eccde4888b1917181203913f256a7503",
+    "mtime": 1786756126.996506,
+    "ast_hash": "cce8c3d438500548b42b552ac839789a",
     "semantic_hash": ""
   },
   "IMPLEMENTATION_PLAN.md": {
@@ -385,8 +385,8 @@
     "semantic_hash": "c32fd878366b74df8cd04c2dc7a0b6da"
   },
   "ios/BrunettiCutz/README.md": {
-    "mtime": 1787200925.0380409,
-    "ast_hash": "8b39171fecad58488619a1d44c34ed79",
+    "mtime": 1784245274.838214,
+    "ast_hash": "f0d32c428429f8db900ac2f4b84a6c98",
     "semantic_hash": ""
   },
   "tmp/pdfs/absolute-control-comprimido.pdf": {
@@ -395,69 +395,69 @@
     "semantic_hash": "1806da933814105fae3b6abfbf99b743"
   },
   "ios/BrunettiCutz/BrunettiCutz/Assets.xcassets/AppIcon.appiconset/icon-1024.png": {
-    "mtime": 1787609821.7647798,
-    "ast_hash": "e5cc990aa13177699946c69a3c63d176",
-    "semantic_hash": ""
+    "mtime": 1783042947.2722893,
+    "ast_hash": "e31906c4fb990838d34cd63de4d33793",
+    "semantic_hash": "e31906c4fb990838d34cd63de4d33793"
   },
   "ios/BrunettiCutz/BrunettiCutz/Assets.xcassets/AppIcon.appiconset/icon-120.png": {
-    "mtime": 1787609821.5544806,
-    "ast_hash": "c326728ff4e4c5f6cc3d68cd4d284cab",
-    "semantic_hash": ""
+    "mtime": 1783042947.186475,
+    "ast_hash": "232b44bf006185cf3cd8213be67bf35e",
+    "semantic_hash": "232b44bf006185cf3cd8213be67bf35e"
   },
   "ios/BrunettiCutz/BrunettiCutz/Assets.xcassets/AppIcon.appiconset/icon-152.png": {
-    "mtime": 1787609821.562021,
-    "ast_hash": "8e6bd6191b626f55b1c3f64e94ea9183",
-    "semantic_hash": ""
+    "mtime": 1783042947.2037716,
+    "ast_hash": "3d8ce0cd50e7d14ccf40ef6cd2c60a08",
+    "semantic_hash": "3d8ce0cd50e7d14ccf40ef6cd2c60a08"
   },
   "ios/BrunettiCutz/BrunettiCutz/Assets.xcassets/AppIcon.appiconset/icon-167.png": {
-    "mtime": 1787609821.5709589,
-    "ast_hash": "2afe8c5dc2fd20840e2fb067557da016",
-    "semantic_hash": ""
+    "mtime": 1783042947.2219608,
+    "ast_hash": "d23e38e935153f30d35cf80e799d3b9a",
+    "semantic_hash": "d23e38e935153f30d35cf80e799d3b9a"
   },
   "ios/BrunettiCutz/BrunettiCutz/Assets.xcassets/AppIcon.appiconset/icon-180.png": {
-    "mtime": 1787609821.581076,
-    "ast_hash": "27349351da6740b323603478b5fcf02b",
-    "semantic_hash": ""
+    "mtime": 1783042947.2393992,
+    "ast_hash": "12f86646322efd11cfba91341f6645da",
+    "semantic_hash": "12f86646322efd11cfba91341f6645da"
   },
   "ios/BrunettiCutz/BrunettiCutz/Assets.xcassets/AppIcon.appiconset/icon-192.png": {
-    "mtime": 1787609821.5927458,
-    "ast_hash": "aa04d6b42ae17395d464e1942d5023b2",
-    "semantic_hash": ""
+    "mtime": 1783041374.6786714,
+    "ast_hash": "1b83e9e3d4bf63f1318c3a47ad207932",
+    "semantic_hash": "1b83e9e3d4bf63f1318c3a47ad207932"
   },
   "ios/BrunettiCutz/BrunettiCutz/Assets.xcassets/AppIcon.appiconset/icon-40.png": {
-    "mtime": 1787609821.5371025,
-    "ast_hash": "421c9716ba181e09c67da7282d22ff25",
-    "semantic_hash": ""
+    "mtime": 1783042947.0652177,
+    "ast_hash": "2e38c457251218bdce87f6db54cbaa30",
+    "semantic_hash": "2e38c457251218bdce87f6db54cbaa30"
   },
   "ios/BrunettiCutz/BrunettiCutz/Assets.xcassets/AppIcon.appiconset/icon-512.png": {
-    "mtime": 1787609821.6336732,
-    "ast_hash": "bb8ab219cdf1a560db232c7319e8335e",
-    "semantic_hash": ""
+    "mtime": 1783041374.6804705,
+    "ast_hash": "bf874ecd24b7fa37afe6f813051043f7",
+    "semantic_hash": "bf874ecd24b7fa37afe6f813051043f7"
   },
   "ios/BrunettiCutz/BrunettiCutz/Assets.xcassets/AppIcon.appiconset/icon-58.png": {
-    "mtime": 1787609821.5390604,
-    "ast_hash": "be6a3184d6bf62fd7915daf6a2d8492f",
-    "semantic_hash": ""
+    "mtime": 1783042947.0829856,
+    "ast_hash": "1b60eb8fc51ddf40eb9325a417c5b536",
+    "semantic_hash": "1b60eb8fc51ddf40eb9325a417c5b536"
   },
   "ios/BrunettiCutz/BrunettiCutz/Assets.xcassets/AppIcon.appiconset/icon-60.png": {
-    "mtime": 1787609821.5408185,
-    "ast_hash": "44c939598d4a8fd60de76e9ebb1a0ce8",
-    "semantic_hash": ""
+    "mtime": 1783042947.100683,
+    "ast_hash": "65f43c57e47c7a6af33a2b7629460aa5",
+    "semantic_hash": "65f43c57e47c7a6af33a2b7629460aa5"
   },
   "ios/BrunettiCutz/BrunettiCutz/Assets.xcassets/AppIcon.appiconset/icon-76.png": {
-    "mtime": 1787609821.5435822,
-    "ast_hash": "5fcbef19bfc5d217685424cdf9f800a9",
-    "semantic_hash": ""
+    "mtime": 1783042947.1372983,
+    "ast_hash": "57ada7a2a28d5046f08c3cd7aa16c6c3",
+    "semantic_hash": "57ada7a2a28d5046f08c3cd7aa16c6c3"
   },
   "ios/BrunettiCutz/BrunettiCutz/Assets.xcassets/AppIcon.appiconset/icon-80.png": {
-    "mtime": 1787609821.5464983,
-    "ast_hash": "82c69c8f25ddc82ea330867759646ed7",
-    "semantic_hash": ""
+    "mtime": 1783042947.154007,
+    "ast_hash": "3d289fa6c5de2f29960483996538bb41",
+    "semantic_hash": "3d289fa6c5de2f29960483996538bb41"
   },
   "ios/BrunettiCutz/BrunettiCutz/Assets.xcassets/AppIcon.appiconset/icon-87.png": {
-    "mtime": 1787609821.5493054,
-    "ast_hash": "509f79d55710660d6c21504a15de81eb",
-    "semantic_hash": ""
+    "mtime": 1783042947.170293,
+    "ast_hash": "3896a31aa84450b874db22497ec1ef8a",
+    "semantic_hash": "3896a31aa84450b874db22497ec1ef8a"
   },
   "ios/BrunettiCutz/BrunettiCutz/Assets.xcassets/BrandHero.imageset/bruno-hero.jpg": {
     "mtime": 1783287977.2646427,
@@ -470,8 +470,8 @@
     "semantic_hash": "6d83488c80e01cabf4ddd734e469148c"
   },
   "ios/BrunettiCutz/BrunettiCutz/Assets.xcassets/LogoIcon.imageset/brunetti-logo-icon-512.png": {
-    "mtime": 1787609821.8096614,
-    "ast_hash": "292a6df0258a7f0872db205f3078b506",
+    "mtime": 1783287134.5514324,
+    "ast_hash": "47fea1fe71c55f3e7525b7e0c3142ad5",
     "semantic_hash": ""
   },
   "public/assets/ascension-logo.webp": {
@@ -480,24 +480,24 @@
     "semantic_hash": "d92f129e84b5e9e80434860b71f1df2d"
   },
   "public/assets/brunetti-logo-icon-180.png": {
-    "mtime": 1787609821.458226,
-    "ast_hash": "538364e489a9ecffadbd3932e9b016ad",
-    "semantic_hash": ""
+    "mtime": 1782685632.923349,
+    "ast_hash": "2ee3eecc6812f1189ad39c7f745dfe32",
+    "semantic_hash": "2ee3eecc6812f1189ad39c7f745dfe32"
   },
   "public/assets/brunetti-logo-icon-192.png": {
-    "mtime": 1787609821.4710515,
-    "ast_hash": "b91a91fb5b6d23cd7354ddd71c1f1bcb",
-    "semantic_hash": ""
+    "mtime": 1782685632.9276538,
+    "ast_hash": "1b83e9e3d4bf63f1318c3a47ad207932",
+    "semantic_hash": "1b83e9e3d4bf63f1318c3a47ad207932"
   },
   "public/assets/brunetti-logo-icon-512.png": {
-    "mtime": 1787609821.5158136,
-    "ast_hash": "e474d6056ec74628e7fee64bd5e17c40",
-    "semantic_hash": ""
+    "mtime": 1782685632.9165955,
+    "ast_hash": "bf874ecd24b7fa37afe6f813051043f7",
+    "semantic_hash": "bf874ecd24b7fa37afe6f813051043f7"
   },
   "public/assets/brunetti-logo-icon.svg": {
-    "mtime": 1787609821.5282671,
-    "ast_hash": "064ce1d4b8a5cf3110fe9edc92c21dee",
-    "semantic_hash": ""
+    "mtime": 1782685632.9312866,
+    "ast_hash": "5039c4819202c8571b8205b29a13d04d",
+    "semantic_hash": "5039c4819202c8571b8205b29a13d04d"
   },
   "public/assets/brunetti-wordmark.svg": {
     "mtime": 1782685632.9210875,
@@ -975,8 +975,8 @@
     "semantic_hash": ""
   },
   "src/data/content/workshop.json": {
-    "mtime": 1787609106.5989795,
-    "ast_hash": "80aaf78f5dd712e7270ac2a9c6367c00",
+    "mtime": 1783904653.5684414,
+    "ast_hash": "83c31075bd5ecf56fc245bc2942b0a75",
     "semantic_hash": ""
   },
   "public/assets/bruno-hero-bg.webp": {
@@ -1249,6 +1249,16 @@
     "ast_hash": "c053b56ee813996284304826ade73f38",
     "semantic_hash": ""
   },
+  "api/flow-payments.js": {
+    "mtime": 1784592702.9726007,
+    "ast_hash": "0fcb552682dccc5a5749735be8e43fcd",
+    "semantic_hash": ""
+  },
+  "src/components/FlowCheckout.jsx": {
+    "mtime": 1784084597.3765712,
+    "ast_hash": "df1392cb130c2f16b715a539dbfc5aeb",
+    "semantic_hash": ""
+  },
   "api/_products.js": {
     "mtime": 1784244051.8344996,
     "ast_hash": "1f6e83d7e1c6732866dabda67c654597",
@@ -1260,8 +1270,8 @@
     "semantic_hash": ""
   },
   "src/pages/Essentials.jsx": {
-    "mtime": 1787370761.8396897,
-    "ast_hash": "fc826434a1a520ffd4d24b9e66f0c5e0",
+    "mtime": 1784247589.0997415,
+    "ast_hash": "7b8766c72d95159da147dd339ac1d7f5",
     "semantic_hash": ""
   },
   "public/assets/products/polera-barber-club-1.png": {
@@ -1327,41 +1337,6 @@
   "docs/wallet-lealtad-plan.md": {
     "mtime": 1786756195.0101793,
     "ast_hash": "dfa386ac531474ff20e3961e3d6d97b3",
-    "semantic_hash": ""
-  },
-  "api/mp-payments.js": {
-    "mtime": 1787373000.2770846,
-    "ast_hash": "d6def86e4db3fee365d8689de8026e4a",
-    "semantic_hash": ""
-  },
-  "scripts/brand/build-icons.py": {
-    "mtime": 1787609821.208509,
-    "ast_hash": "8493d1839e6ff40d7ba9681e85ce009c",
-    "semantic_hash": ""
-  },
-  "src/components/EnrollmentModal.jsx": {
-    "mtime": 1787277819.3347323,
-    "ast_hash": "5652756e3935ebb6e219da065c74b250",
-    "semantic_hash": ""
-  },
-  "src/components/MercadoPagoCheckout.jsx": {
-    "mtime": 1787373127.807961,
-    "ast_hash": "fc990a1612d8940f79bcd732cc77ae62",
-    "semantic_hash": ""
-  },
-  "src/components/NewEnrollmentModal.jsx": {
-    "mtime": 1787277833.114552,
-    "ast_hash": "4d2e756c2cda6ae550be7c0b076df06d",
-    "semantic_hash": ""
-  },
-  "public/assets/brunetti-badge.png": {
-    "mtime": 1787609821.534673,
-    "ast_hash": "ecb5fcc98e49d9065e90d14f6625f893",
-    "semantic_hash": ""
-  },
-  "scripts/brand/monogram-source.webp": {
-    "mtime": 1787609780.3484044,
-    "ast_hash": "404bae8603aec89e8cc6b49dad0b49bd",
     "semantic_hash": ""
   }
 }

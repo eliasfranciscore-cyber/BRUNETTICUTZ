@@ -165,8 +165,8 @@ export async function notifyLocal({ title, body, url = "/panel", tag = "ps-reser
     try {
       await reg.showNotification(title, {
         body,
-        icon: "/assets/pimp-studio-logo.jpg",
-        badge: "/assets/pimp-studio-mark.svg",
+        icon: "/assets/brunetti-logo-icon-192.png",
+        badge: "/assets/brunetti-badge.png",
         tag,
         data: { url },
         vibrate: [60, 40, 60],
@@ -174,7 +174,7 @@ export async function notifyLocal({ title, body, url = "/panel", tag = "ps-reser
       return true
     } catch {/* fallback abajo */}
   }
-  try { new Notification(title, { body, icon: "/assets/pimp-studio-logo.jpg" }); return true } catch { return false }
+  try { new Notification(title, { body, icon: "/assets/brunetti-logo-icon-192.png" }); return true } catch { return false }
 }
 
 /* Aviso de nueva reserva al barbero — SOLO si el barbero autenticado en este

@@ -25,8 +25,8 @@ self.addEventListener("push", (event) => {
   const title = data.title || "Brunetti";
   const options = {
     body: data.body || "Tienes una nueva reserva.",
-    icon: "/assets/pimp-studio-logo.jpg",
-    badge: "/assets/pimp-studio-mark.svg",
+    icon: "/assets/brunetti-logo-icon-192.png",
+    badge: "/assets/brunetti-badge.png",
     tag: data.tag || "ps-reserva",
     data: { url: data.url || "/panel" },
     vibrate: [60, 40, 60],
@@ -42,8 +42,8 @@ self.addEventListener("message", (event) => {
     const title = msg.title || "Brunetti";
     self.registration.showNotification(title, {
       body: msg.body || "",
-      icon: "/assets/pimp-studio-logo.jpg",
-      badge: "/assets/pimp-studio-mark.svg",
+      icon: "/assets/brunetti-logo-icon-192.png",
+      badge: "/assets/brunetti-badge.png",
       tag: msg.tag || "ps-reserva",
       data: { url: msg.url || "/panel" },
       vibrate: [60, 40, 60],
