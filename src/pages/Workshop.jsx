@@ -693,9 +693,6 @@ function Register({ formRef }) {
                 <Icon name="check" size={16} />
                 {form.edition === WAITLIST_OPTION ? " Sumarme a la lista de espera" : ` Pagar con Mercado Pago · ${formatCLP(m.priceNow)}`}
               </button>
-              <p style={{ margin: 0, color: "var(--wk-muted-2)", fontSize: "0.76rem", textAlign: "center" }}>
-                <EditableText file="workshop" path="register.formNote" as="span">{WKC.register.formNote}</EditableText>
-              </p>
             </form>
           )}
         </div>
