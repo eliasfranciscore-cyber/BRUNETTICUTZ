@@ -51,7 +51,7 @@ export default async function handler(req, res) {
     const sql = neon(process.env.DATABASE_URL)
 
     if (req.method === "GET") {
-      const { phone, barberId, date, issues } = req.query
+      const { phone, barberId, date, issues, from, to } = req.query
       if (issues) {
         const session = requireInternal(req, res)
         if (!session) return
@@ -84,6 +84,13 @@ export default async function handler(req, res) {
         // El puente solo puede ver la agenda de Bruno, sin importar qué
         // barberId le pasen: nunca datos de otros barberos de PimpStudio.
         const scopeBarberId = bridge ? BRIDGE_BARBER_ID : barberId || null
+        // Rango opcional (?from=YYYY-MM-DD&to=YYYY-MM-DD): el panel lo usa
+        // para traer semanas pasadas que quedan fuera de las últimas 160.
+        // Con rango el tope sube (una semana jamás se acerca a 1000 filas,
+        // es solo un cinturón de seguridad contra rangos gigantes).
+        const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+        const fromDate = DATE_RE.test(String(from || "")) ? from : null
+        const toDate = DATE_RE.test(String(to || "")) ? to : null
         const bookings = await sql`
           SELECT b.id, b.booking_date::text as date, b.booking_time::text as time,
                  b.barber_id as "barberId", br.name as barber, u.name as client, u.phone,
@@ -95,8 +102,10 @@ export default async function handler(req, res) {
           JOIN barbers br ON b.barber_id = br.id
           WHERE (${scopeBarberId}::int IS NULL OR b.barber_id = ${scopeBarberId}::int)
             AND (${date || null}::date IS NULL OR b.booking_date = ${date || null}::date)
+            AND (${fromDate}::date IS NULL OR b.booking_date >= ${fromDate}::date)
+            AND (${toDate}::date IS NULL OR b.booking_date <= ${toDate}::date)
           ORDER BY b.booking_date DESC, b.booking_time DESC
-          LIMIT 160
+          LIMIT ${fromDate || toDate ? 1000 : 160}
         `
         return res.json({ ok: true, bookings: bookings.map((item) => ({ ...item, time: item.time?.slice(0, 5) })) })
       }

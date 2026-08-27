@@ -548,6 +548,29 @@ export default function Dashboard() {
     return token ? { ...extra, Authorization: `Bearer ${token}` } : extra
   }
 
+  // Carga bajo demanda las reservas de una semana PASADA (fuera de las últimas
+  // 160 que trae el fetch inicial) vía ?from&to, y las mezcla por id al estado.
+  // Cachea los rangos ya pedidos para no repetir el viaje al navegar.
+  const loadedRangesRef = useRef(new Set())
+  const ensurePastBookings = (fromKey, toKey) => {
+    if (!fromKey || !toKey) return
+    if (toKey >= isoDate(new Date())) return // presente/futuro: ya viene en el fetch inicial
+    const rangeKey = `${fromKey}|${toKey}`
+    if (loadedRangesRef.current.has(rangeKey)) return
+    loadedRangesRef.current.add(rangeKey)
+    fetch(`/api/bookings?from=${fromKey}&to=${toKey}`, { headers: authHeaders() })
+      .then((r) => r.headers.get("content-type")?.includes("application/json") ? r.json() : Promise.reject(new Error("api unavailable")))
+      .then((data) => {
+        if (!data.bookings?.length) return
+        setBookings((current) => {
+          const byId = new Map(current.map((b) => [String(b.id), b]))
+          data.bookings.forEach((b) => byId.set(String(b.id), b))
+          return [...byId.values()]
+        })
+      })
+      .catch(() => { loadedRangesRef.current.delete(rangeKey) }) // reintentable
+  }
+
   const loadAgenda = async () => {
     const entries = await Promise.all(weekDays.map(async (day) => {
       const data = await fetch(`/api/availability?barberId=${agendaBarber}&date=${day.key}&detail=true`)
@@ -568,6 +591,9 @@ export default function Dashboard() {
   useEffect(() => {
     if (!barber) return
     loadAgenda()
+    // Semanas pasadas: sus reservas pueden quedar fuera de las últimas 160
+    // del fetch inicial; se piden por rango bajo demanda.
+    ensurePastBookings(weekDays[0]?.key, weekDays[6]?.key)
   }, [barber, agendaBarber, weekOffset])
 
   // Comparativo liviano vs. la semana anterior (solo para los deltas de KPI
@@ -1608,6 +1634,7 @@ export default function Dashboard() {
         {tab === "reservas" && (
           <BookingsInbox
             bookings={visibleBookings}
+            onEnsureRange={ensurePastBookings}
             barbers={barbers}
             barber={barber}
             admin={admin}

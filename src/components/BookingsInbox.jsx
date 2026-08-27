@@ -271,7 +271,7 @@ function CalendarModal({ onClose, countsByDay, selectedDay, todayKey, onPick }) 
   ), document.body)
 }
 
-export default function BookingsInbox({ bookings = [], barbers = [], barber, admin = false, slotsPerDay = 14, onStatus = () => {}, onDelete = () => {}, onReschedule, onNewBooking, focus }) {
+export default function BookingsInbox({ bookings = [], barbers = [], barber, admin = false, slotsPerDay = 14, onStatus = () => {}, onDelete = () => {}, onReschedule, onNewBooking, onEnsureRange, focus }) {
   const [filter, setFilter] = useState('Todas')
   const [dateScope, setDateScope] = useState('dia')
   const [viewMode, setViewMode] = useState(() => {
@@ -317,6 +317,10 @@ export default function BookingsInbox({ bookings = [], barbers = [], barber, adm
 
   const weekDays = useMemo(() => buildWeek(weekOffset), [weekOffset])
   const weekKeys = useMemo(() => weekDays.map((d) => d.key), [weekDays])
+
+  // Al navegar a una semana pasada, pide sus reservas por rango: pueden no
+  // estar entre las últimas 160 que carga el Dashboard al abrir.
+  useEffect(() => { onEnsureRange?.(weekKeys[0], weekKeys[6]) }, [weekKeys])
 
   // Reservas del día seleccionado (con filtro de barbero en multi-barbero). Es
   // la base de los KPIs del hero, que siempre hablan del día, sin importar el
