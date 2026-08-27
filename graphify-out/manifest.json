@@ -205,8 +205,8 @@
     "semantic_hash": "b8baf870791352a85cf36d45660fcde1"
   },
   "src/components/BookingsInbox.jsx": {
-    "mtime": 1786307578.8977728,
-    "ast_hash": "ca54e1d73729502881209ab9f80cd72c",
+    "mtime": 1787805157.3481221,
+    "ast_hash": "4365223af602de343c63591e423c318e",
     "semantic_hash": ""
   },
   "src/components/ClientModal.jsx": {
@@ -315,8 +315,8 @@
     "semantic_hash": ""
   },
   "src/pages/Dashboard.jsx": {
-    "mtime": 1787801518.6370554,
-    "ast_hash": "866998aae35f459ccea4eb453df117e6",
+    "mtime": 1787805207.7682135,
+    "ast_hash": "3828e594f7f88fd6c322dc0587c340a8",
     "semantic_hash": ""
   },
   "src/pages/EncuentraEstilo.jsx": {

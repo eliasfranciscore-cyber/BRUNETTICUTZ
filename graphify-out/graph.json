@@ -3360,7 +3360,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_apptab",
-      "community": 92,
+      "community": 143,
       "norm_label": "apptab"
     },
     {
@@ -3370,7 +3370,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "string",
-      "community": 12,
+      "community": 1,
       "norm_label": "string"
     },
     {
@@ -3380,7 +3380,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "sendable",
-      "community": 92,
+      "community": 143,
       "norm_label": "sendable"
     },
     {
@@ -3390,7 +3390,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_apptab_hoy",
-      "community": 92,
+      "community": 143,
       "norm_label": "hoy"
     },
     {
@@ -3400,7 +3400,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_apptab_reservas",
-      "community": 92,
+      "community": 143,
       "norm_label": "reservas"
     },
     {
@@ -3410,7 +3410,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_apptab_clientes",
-      "community": 92,
+      "community": 143,
       "norm_label": "clientes"
     },
     {
@@ -3420,7 +3420,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_apptab_finanzas",
-      "community": 92,
+      "community": 143,
       "norm_label": "finanzas"
     },
     {
@@ -3430,7 +3430,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_apptab_mas",
-      "community": 92,
+      "community": 143,
       "norm_label": "mas"
     },
     {
@@ -3440,7 +3440,7 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_thememode",
-      "community": 15,
+      "community": 92,
       "norm_label": "thememode"
     },
     {
@@ -3460,7 +3460,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_thememode_system",
-      "community": 15,
+      "community": 92,
       "norm_label": "system"
     },
     {
@@ -3470,7 +3470,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_thememode_light",
-      "community": 15,
+      "community": 92,
       "norm_label": "light"
     },
     {
@@ -3480,7 +3480,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_thememode_dark",
-      "community": 15,
+      "community": 92,
       "norm_label": "dark"
     },
     {
@@ -3890,7 +3890,7 @@
       "source_location": "L252",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_paymentsessionresponse",
-      "community": 12,
+      "community": 1,
       "norm_label": "paymentsessionresponse"
     },
     {
@@ -3910,7 +3910,7 @@
       "source_location": "L265",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_clp",
-      "community": 12,
+      "community": 1,
       "norm_label": "clp()"
     },
     {
@@ -3920,7 +3920,7 @@
       "source_location": "L275",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_isodate",
-      "community": 12,
+      "community": 1,
       "norm_label": "isodate()"
     },
     {
@@ -4321,7 +4321,7 @@
       "source_location": "L1607",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_moduleviews_serviceicon",
-      "community": 12,
+      "community": 1,
       "norm_label": "serviceicon()"
     },
     {
@@ -4371,7 +4371,7 @@
       "source_location": "L1660",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_moduleviews_servicesymbol",
-      "community": 12,
+      "community": 1,
       "norm_label": "servicesymbol()"
     },
     {
@@ -4381,7 +4381,7 @@
       "source_location": "L1668",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_moduleviews_exportsummary",
-      "community": 12,
+      "community": 1,
       "norm_label": "exportsummary()"
     },
     {
@@ -4391,7 +4391,7 @@
       "source_location": "L1677",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_moduleviews_exportbookingscsv",
-      "community": 12,
+      "community": 1,
       "norm_label": "exportbookingscsv()"
     },
     {
@@ -5702,7 +5702,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_barbershowcase",
-      "community": 5,
+      "community": 24,
       "norm_label": "barbershowcase.jsx"
     },
     {
@@ -5712,7 +5712,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "src_components_barbershowcase_barbercard",
-      "community": 5,
+      "community": 24,
       "norm_label": "barbercard()"
     },
     {
@@ -5722,7 +5722,7 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "src_components_barbershowcase_barbermodal",
-      "community": 5,
+      "community": 24,
       "norm_label": "barbermodal()"
     },
     {
@@ -5732,7 +5732,7 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "src_components_barbershowcase_barbershowcase",
-      "community": 5,
+      "community": 24,
       "norm_label": "barbershowcase()"
     },
     {
@@ -5919,7 +5919,7 @@
       "label": "CalendarModal()",
       "file_type": "code",
       "source_file": "src/components/BookingsInbox.jsx",
-      "source_location": "L232",
+      "source_location": "L234",
       "_origin": "ast",
       "id": "src_components_bookingsinbox_calendarmodal",
       "community": 42,
@@ -5929,7 +5929,7 @@
       "label": "BookingsInbox()",
       "file_type": "code",
       "source_file": "src/components/BookingsInbox.jsx",
-      "source_location": "L265",
+      "source_location": "L274",
       "_origin": "ast",
       "id": "src_components_bookingsinbox_bookingsinbox",
       "community": 42,
@@ -5942,7 +5942,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_clientmodal",
-      "community": 20,
+      "community": 42,
       "norm_label": "clientmodal.jsx"
     },
     {
@@ -5952,7 +5952,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "src_components_clientmodal_clientmodal",
-      "community": 20,
+      "community": 42,
       "norm_label": "clientmodal()"
     },
     {
@@ -6332,7 +6332,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_globalsearch",
-      "community": 24,
+      "community": 17,
       "norm_label": "globalsearch.jsx"
     },
     {
@@ -6342,7 +6342,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "src_components_globalsearch_badgeclass",
-      "community": 24,
+      "community": 17,
       "norm_label": "badgeclass()"
     },
     {
@@ -6352,7 +6352,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "src_components_globalsearch_globalsearch",
-      "community": 24,
+      "community": 17,
       "norm_label": "globalsearch()"
     },
     {
@@ -6362,7 +6362,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_iconsextra",
-      "community": 5,
+      "community": 24,
       "norm_label": "iconsextra.jsx"
     },
     {
@@ -6372,7 +6372,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "src_components_iconsextra_paths",
-      "community": 5,
+      "community": 24,
       "norm_label": "paths"
     },
     {
@@ -6382,7 +6382,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "src_components_iconsextra_icon",
-      "community": 5,
+      "community": 24,
       "norm_label": "icon()"
     },
     {
@@ -6392,7 +6392,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_mercadopagocheckout",
-      "community": 24,
+      "community": 42,
       "norm_label": "mercadopagocheckout.jsx"
     },
     {
@@ -6402,7 +6402,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "src_components_mercadopagocheckout_checkout_items",
-      "community": 24,
+      "community": 42,
       "norm_label": "checkout_items"
     },
     {
@@ -6412,7 +6412,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "src_components_mercadopagocheckout_mercadopagocheckout",
-      "community": 24,
+      "community": 42,
       "norm_label": "mercadopagocheckout()"
     },
     {
@@ -6422,7 +6422,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_mobiledock",
-      "community": 22,
+      "community": 17,
       "norm_label": "mobiledock.jsx"
     },
     {
@@ -6432,7 +6432,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "src_components_mobiledock_mobiledock",
-      "community": 22,
+      "community": 17,
       "norm_label": "mobiledock()"
     },
     {
@@ -7352,7 +7352,7 @@
       "source_location": "L78",
       "_origin": "ast",
       "id": "src_data_clp",
-      "community": 24,
+      "community": 42,
       "norm_label": "clp()"
     },
     {
@@ -7372,7 +7372,7 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "src_data_barberbyid",
-      "community": 20,
+      "community": 42,
       "norm_label": "barberbyid()"
     },
     {
@@ -8149,7 +8149,7 @@
       "label": "BookingDetailModal()",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L161",
+      "source_location": "L163",
       "_origin": "ast",
       "id": "src_pages_dashboard_bookingdetailmodal",
       "community": 142,
@@ -8159,7 +8159,7 @@
       "label": "AUDIENCES",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L235",
+      "source_location": "L237",
       "_origin": "ast",
       "id": "src_pages_dashboard_audiences",
       "community": 22,
@@ -8169,7 +8169,7 @@
       "label": "AUDIENCE_BY_ID",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L246",
+      "source_location": "L248",
       "_origin": "ast",
       "id": "src_pages_dashboard_audience_by_id",
       "community": 22,
@@ -8179,7 +8179,7 @@
       "label": "AUDIENCE_LABEL",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L247",
+      "source_location": "L249",
       "_origin": "ast",
       "id": "src_pages_dashboard_audience_label",
       "community": 22,
@@ -8189,7 +8189,7 @@
       "label": "CAMPAIGN_TEMPLATES",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L251",
+      "source_location": "L253",
       "_origin": "ast",
       "id": "src_pages_dashboard_campaign_templates",
       "community": 22,
@@ -8199,7 +8199,7 @@
       "label": "Dashboard()",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L258",
+      "source_location": "L260",
       "_origin": "ast",
       "id": "src_pages_dashboard_dashboard",
       "community": 22,
@@ -8209,7 +8209,7 @@
       "label": "CFG_SECTIONS",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2378",
+      "source_location": "L2399",
       "_origin": "ast",
       "id": "src_pages_dashboard_cfg_sections",
       "community": 22,
@@ -8219,7 +8219,7 @@
       "label": "EnrollmentsPanel()",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2398",
+      "source_location": "L2419",
       "_origin": "ast",
       "id": "src_pages_dashboard_enrollmentspanel",
       "community": 85,
@@ -8229,7 +8229,7 @@
       "label": "PEDIDOS_BADGE",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2544",
+      "source_location": "L2565",
       "_origin": "ast",
       "id": "src_pages_dashboard_pedidos_badge",
       "community": 22,
@@ -8239,7 +8239,7 @@
       "label": "PEDIDOS_LABEL",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2549",
+      "source_location": "L2570",
       "_origin": "ast",
       "id": "src_pages_dashboard_pedidos_label",
       "community": 22,
@@ -8249,7 +8249,7 @@
       "label": "PedidosPanel()",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2551",
+      "source_location": "L2572",
       "_origin": "ast",
       "id": "src_pages_dashboard_pedidospanel",
       "community": 85,
@@ -8259,7 +8259,7 @@
       "label": "ConfigSwitch()",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2634",
+      "source_location": "L2655",
       "_origin": "ast",
       "id": "src_pages_dashboard_configswitch",
       "community": 22,
@@ -8269,7 +8269,7 @@
       "label": "CfgRow()",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2658",
+      "source_location": "L2679",
       "_origin": "ast",
       "id": "src_pages_dashboard_cfgrow",
       "community": 22,
@@ -8279,7 +8279,7 @@
       "label": "PushCard()",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2673",
+      "source_location": "L2694",
       "_origin": "ast",
       "id": "src_pages_dashboard_pushcard",
       "community": 22,
@@ -8289,7 +8289,7 @@
       "label": "isStrongPassword()",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2756",
+      "source_location": "L2777",
       "_origin": "ast",
       "id": "src_pages_dashboard_isstrongpassword",
       "community": 22,
@@ -8299,7 +8299,7 @@
       "label": "ConfigPanel()",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2760",
+      "source_location": "L2781",
       "_origin": "ast",
       "id": "src_pages_dashboard_configpanel",
       "community": 22,
@@ -8309,7 +8309,7 @@
       "label": "DashboardShell()",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L3345",
+      "source_location": "L3366",
       "_origin": "ast",
       "id": "src_pages_dashboard_dashboardshell",
       "community": 22,
@@ -8319,7 +8319,7 @@
       "label": "timeAgo()",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L3375",
+      "source_location": "L3396",
       "_origin": "ast",
       "id": "src_pages_dashboard_timeago",
       "community": 22,
@@ -8329,7 +8329,7 @@
       "label": "DashboardTopbar()",
       "file_type": "code",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L3385",
+      "source_location": "L3406",
       "_origin": "ast",
       "id": "src_pages_dashboard_dashboardtopbar",
       "community": 22,
@@ -22746,7 +22746,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2399",
+      "source_location": "L2420",
       "weight": 1.0,
       "source": "src_pages_dashboard_enrollmentspanel",
       "target": "users_elija_documents_github_pimpstudio_desarrollo_package_dependencies_react"
@@ -22757,7 +22757,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2552",
+      "source_location": "L2573",
       "weight": 1.0,
       "source": "src_pages_dashboard_pedidospanel",
       "target": "users_elija_documents_github_pimpstudio_desarrollo_package_dependencies_react"
@@ -23891,7 +23891,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L657",
+      "source_location": "L659",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_bookingsstore_readlocalbookings"
@@ -24067,7 +24067,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L846",
+      "source_location": "L848",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_bookingsstore_addlocalbooking"
@@ -24089,7 +24089,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L283",
+      "source_location": "L285",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_bookingsstore_mergebookings"
@@ -24698,7 +24698,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/BookingsInbox.jsx",
-      "source_location": "L265",
+      "source_location": "L274",
       "weight": 1.0,
       "source": "src_components_bookingsinbox",
       "target": "src_components_bookingsinbox_bookingsinbox",
@@ -24708,7 +24708,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/components/BookingsInbox.jsx",
-      "source_location": "L232",
+      "source_location": "L234",
       "weight": 1.0,
       "source": "src_components_bookingsinbox",
       "target": "src_components_bookingsinbox_calendarmodal",
@@ -25045,7 +25045,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/components/BookingsInbox.jsx",
-      "source_location": "L233",
+      "source_location": "L236",
       "weight": 1.0,
       "source": "src_components_bookingsinbox_calendarmodal",
       "target": "src_data_buildweek",
@@ -25057,7 +25057,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/BookingsInbox.jsx",
-      "source_location": "L309",
+      "source_location": "L318",
       "weight": 1.0,
       "source": "src_components_bookingsinbox_bookingsinbox",
       "target": "src_data_buildweek"
@@ -25068,7 +25068,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/BookingsInbox.jsx",
-      "source_location": "L518",
+      "source_location": "L539",
       "weight": 1.0,
       "source": "src_components_bookingsinbox_bookingsinbox",
       "target": "src_data_clp"
@@ -25079,7 +25079,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/components/BookingsInbox.jsx",
-      "source_location": "L280",
+      "source_location": "L289",
       "weight": 1.0,
       "source": "src_components_bookingsinbox_bookingsinbox",
       "target": "src_data_isodate"
@@ -25841,6 +25841,17 @@
       "source": "src_components_dashboardresumen_dashboardresumen",
       "target": "src_components_dashboardresumen_mondayof",
       "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "src/pages/Dashboard.jsx",
+      "source_location": "L1242",
+      "weight": 1.0,
+      "source": "src_pages_dashboard_dashboard",
+      "target": "src_components_dashboardresumen_mondayof"
     },
     {
       "relation": "calls",
@@ -28361,7 +28372,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2823",
+      "source_location": "L2844",
       "weight": 1.0,
       "source": "src_pages_dashboard_configpanel",
       "target": "src_components_theme_usetheme",
@@ -29602,7 +29613,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L191",
+      "source_location": "L193",
       "weight": 1.0,
       "source": "src_pages_dashboard_bookingdetailmodal",
       "target": "src_data_clp",
@@ -29614,7 +29625,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L1617",
+      "source_location": "L1638",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_data_clp"
@@ -29624,7 +29635,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2587",
+      "source_location": "L2608",
       "weight": 1.0,
       "source": "src_pages_dashboard_pedidospanel",
       "target": "src_data_clp",
@@ -29757,7 +29768,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L432",
+      "source_location": "L434",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_data_barberbyid"
@@ -29811,7 +29822,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L170",
+      "source_location": "L172",
       "weight": 1.0,
       "source": "src_pages_dashboard_bookingdetailmodal",
       "target": "src_data_cleanphone",
@@ -29823,7 +29834,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L883",
+      "source_location": "L885",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_data_cleanphone"
@@ -29845,7 +29856,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L334",
+      "source_location": "L336",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_data_isadminuser"
@@ -30369,7 +30380,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2412",
+      "source_location": "L2433",
       "weight": 1.0,
       "source": "src_pages_dashboard_enrollmentspanel",
       "target": "src_enrollmentsstore_mergeenrollments",
@@ -30938,7 +30949,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L246",
+      "source_location": "L248",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_audience_by_id",
@@ -30948,7 +30959,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L247",
+      "source_location": "L249",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_audience_label",
@@ -30958,7 +30969,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L235",
+      "source_location": "L237",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_audiences",
@@ -30988,7 +30999,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L161",
+      "source_location": "L163",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_bookingdetailmodal",
@@ -31008,7 +31019,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L251",
+      "source_location": "L253",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_campaign_templates",
@@ -31018,7 +31029,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2378",
+      "source_location": "L2399",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_cfg_sections",
@@ -31028,7 +31039,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2658",
+      "source_location": "L2679",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_cfgrow",
@@ -31038,7 +31049,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2760",
+      "source_location": "L2781",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_configpanel",
@@ -31048,7 +31059,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2634",
+      "source_location": "L2655",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_configswitch",
@@ -31058,7 +31069,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L258",
+      "source_location": "L260",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_dashboard",
@@ -31068,7 +31079,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L3345",
+      "source_location": "L3366",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_dashboardshell",
@@ -31078,7 +31089,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L3385",
+      "source_location": "L3406",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_dashboardtopbar",
@@ -31108,7 +31119,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2398",
+      "source_location": "L2419",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_enrollmentspanel",
@@ -31138,7 +31149,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2756",
+      "source_location": "L2777",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_isstrongpassword",
@@ -31188,7 +31199,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2544",
+      "source_location": "L2565",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_pedidos_badge",
@@ -31198,7 +31209,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2549",
+      "source_location": "L2570",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_pedidos_label",
@@ -31208,7 +31219,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2551",
+      "source_location": "L2572",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_pedidospanel",
@@ -31218,7 +31229,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2673",
+      "source_location": "L2694",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_pushcard",
@@ -31238,7 +31249,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L3375",
+      "source_location": "L3396",
       "weight": 1.0,
       "source": "src_pages_dashboard",
       "target": "src_pages_dashboard_timeago",
@@ -31392,7 +31403,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L362",
+      "source_location": "L364",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_pages_dashboard_agenda_slots"
@@ -31402,7 +31413,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L368",
+      "source_location": "L370",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_pages_dashboard_mintoblocks",
@@ -31413,7 +31424,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L1860",
+      "source_location": "L1881",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_pages_dashboard_blockstomin",
@@ -31424,7 +31435,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L1828",
+      "source_location": "L1849",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_pages_dashboard_getsvcicon",
@@ -31457,7 +31468,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L283",
+      "source_location": "L285",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_pages_dashboard_isodate",
@@ -31468,7 +31479,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L542",
+      "source_location": "L544",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_pages_dashboard_buildweek",
@@ -31479,7 +31490,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L557",
+      "source_location": "L559",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_pages_dashboard_localblockkey",
@@ -31490,7 +31501,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L555",
+      "source_location": "L557",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_pages_dashboard_readlocalblocks",
@@ -31501,7 +31512,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L1100",
+      "source_location": "L1102",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_pages_dashboard_writelocalblocks",
@@ -31513,7 +31524,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L504",
+      "source_location": "L506",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_push_authheaders"
@@ -31524,7 +31535,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L666",
+      "source_location": "L668",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_push_notifybarberofbooking"
@@ -31535,7 +31546,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L666",
+      "source_location": "L668",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_push_pushenabledfor"
@@ -31546,7 +31557,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L655",
+      "source_location": "L657",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboard",
       "target": "src_push_registerserviceworker"
@@ -31557,7 +31568,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2422",
+      "source_location": "L2443",
       "weight": 1.0,
       "source": "src_pages_dashboard_enrollmentspanel",
       "target": "src_push_authheaders"
@@ -31568,7 +31579,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2559",
+      "source_location": "L2580",
       "weight": 1.0,
       "source": "src_pages_dashboard_pedidospanel",
       "target": "src_push_authheaders"
@@ -31578,7 +31589,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2684",
+      "source_location": "L2705",
       "weight": 1.0,
       "source": "src_pages_dashboard_pushcard",
       "target": "src_push_disablepush",
@@ -31589,7 +31600,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2688",
+      "source_location": "L2709",
       "weight": 1.0,
       "source": "src_pages_dashboard_pushcard",
       "target": "src_push_enablepush",
@@ -31600,7 +31611,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2679",
+      "source_location": "L2700",
       "weight": 1.0,
       "source": "src_pages_dashboard_pushcard",
       "target": "src_push_isios",
@@ -31611,7 +31622,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2679",
+      "source_location": "L2700",
       "weight": 1.0,
       "source": "src_pages_dashboard_pushcard",
       "target": "src_push_isstandalone",
@@ -31622,7 +31633,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2707",
+      "source_location": "L2728",
       "weight": 1.0,
       "source": "src_pages_dashboard_pushcard",
       "target": "src_push_notifylocal",
@@ -31633,7 +31644,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2674",
+      "source_location": "L2695",
       "weight": 1.0,
       "source": "src_pages_dashboard_pushcard",
       "target": "src_push_permissionstate",
@@ -31644,7 +31655,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2675",
+      "source_location": "L2696",
       "weight": 1.0,
       "source": "src_pages_dashboard_pushcard",
       "target": "src_push_pushenabledfor",
@@ -31655,7 +31666,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2678",
+      "source_location": "L2699",
       "weight": 1.0,
       "source": "src_pages_dashboard_pushcard",
       "target": "src_push_pushsupported",
@@ -31666,7 +31677,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L2783",
+      "source_location": "L2804",
       "weight": 1.0,
       "source": "src_pages_dashboard_configpanel",
       "target": "src_pages_dashboard_isstrongpassword",
@@ -31677,7 +31688,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Dashboard.jsx",
-      "source_location": "L3501",
+      "source_location": "L3522",
       "weight": 1.0,
       "source": "src_pages_dashboard_dashboardtopbar",
       "target": "src_pages_dashboard_timeago",
@@ -36570,5 +36581,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "109f7a404a90b4c6318d158a537723d7ef3639c8"
+  "built_at_commit": "2993975d442e8c85e895b5eecccafc8d634a793a"
 }

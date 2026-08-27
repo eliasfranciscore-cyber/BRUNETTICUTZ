@@ -1,16 +1,16 @@
 # Graph Report - BRUNETTICUTZ  (2026-08-27)
 
 ## Corpus Check
-- 144 files · ~1,980,135 words
+- 144 files · ~1,980,440 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1298 nodes · 2226 edges · 143 communities (67 shown, 76 thin omitted)
+- 1298 nodes · 2227 edges · 144 communities (68 shown, 76 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 37 edges (avg confidence: 0.82)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `109f7a40`
+- Built from commit: `2993975d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -155,13 +155,14 @@
 - auth-barber.js
 - APIError
 - cleanPhone
+- AppTab
 
 ## God Nodes (most connected - your core abstractions)
 1. `CLP()` - 30 edges
 2. `requireInternal()` - 25 edges
 3. `APIClient` - 25 edges
-4. `handler()` - 21 edges
-5. `Dashboard()` - 21 edges
+4. `Dashboard()` - 22 edges
+5. `handler()` - 21 edges
 6. `Icon()` - 20 edges
 7. `Apple Design` - 20 edges
 8. `handler()` - 18 edges
@@ -183,15 +184,15 @@
 ## Import Cycles
 - None detected.
 
-## Communities (143 total, 76 thin omitted)
+## Communities (144 total, 76 thin omitted)
 
 ### Community 0 - "iOS Data Models"
 Cohesion: 0.39
 Nodes (8): CATEGORY_META, daysInMonth(), EXPENSE_CATEGORIES, ExpenseModal(), ExpensesModule(), exportExpensesCSV(), metaOf(), monthKey()
 
 ### Community 1 - "iOS API Client"
-Cohesion: 0.23
-Nodes (22): Codable, Hashable, Identifiable, APIEndpointStatus, APIHealth, AvailabilitySlot, Barber, Booking (+14 more)
+Cohesion: 0.18
+Nodes (30): Codable, Hashable, Identifiable, String, APIEndpointStatus, APIHealth, AvailabilitySlot, Barber (+22 more)
 
 ### Community 2 - "Backend Auth & Project Docs"
 Cohesion: 0.12
@@ -206,8 +207,8 @@ Cohesion: 0.05
 Nodes (87): b64url(), BARBER_PROFILES, fallbackLogin(), fallbackPasswords(), handleChangePassword(), handleLogin(), handler(), isAdmin() (+79 more)
 
 ### Community 5 - "Cursos.jsx"
-Cohesion: 0.11
-Nodes (24): addDays(), Bars(), BUSINESS_HOURS, CAT_COLORS, DashboardResumen(), DOW_ORDER, DOW_SHORT, getSvcIconByName() (+16 more)
+Cohesion: 0.14
+Nodes (22): addDays(), Bars(), BUSINESS_HOURS, CAT_COLORS, DashboardResumen(), DOW_ORDER, DOW_SHORT, getSvcIconByName() (+14 more)
 
 ### Community 6 - "Legacy Static Site (web/app.js)"
 Cohesion: 0.07
@@ -234,8 +235,8 @@ Cohesion: 0.08
 Nodes (25): 2026-06-12 - Base operativa clientes, agenda y panel interno, 2026-06-13 - Rediseño UI para web y componentes responsivos, 2026-06-22 - Marca personal Brunetti (un solo barbero) + módulo Cursos + panel interno solo-Brunetti, 2026-06-24 - Hero Brunetti sin efecto gooey + modo claro pulido en todos los módulos, Archivos modificados, Archivos modificados, Archivos modificados, Archivos principales tocados (+17 more)
 
 ### Community 12 - "iOS Agenda & Reservations Views"
-Cohesion: 0.09
-Nodes (38): Charts, ServiceRevenue, String, UNAuthorizationStatus, clp(), isoDate(), PaymentSessionResponse, BarberChartMode (+30 more)
+Cohesion: 0.10
+Nodes (30): Charts, ServiceRevenue, UNAuthorizationStatus, BarberChartMode, ingresos, servicios, BarberDashboardCharts, BookingRow (+22 more)
 
 ### Community 13 - "ExpensesModule.jsx"
 Cohesion: 0.07
@@ -246,16 +247,16 @@ Cohesion: 0.09
 Nodes (21): 1. Purpose & frequency, 2. Easing & duration, 3. Physicality & origin, 4. Interruptibility, 5. Performance, 6. Accessibility, 7. Cohesion & tokens, 8. Missed opportunities (+13 more)
 
 ### Community 15 - "EncuentraEstilo (Style Finder) Page"
-Cohesion: 0.15
-Nodes (7): Data, KeychainStore, ThemeMode, dark, light, system, SessionStore
+Cohesion: 0.19
+Nodes (3): Data, KeychainStore, SessionStore
 
 ### Community 16 - "Auth & Booking Concepts"
 Cohesion: 0.24
 Nodes (16): Admin Key Authentication (shared internal password pattern), Barber Availability Management (barber sets available slots per day), Barber Authentication Flow (username/password, sets active barber session), Dual Authentication System (client auth via phone vs barber/admin auth via username+password), Phone Number as Client Identity (celular = ID de cliente), Manual Slot Blocking (admin blocks time slots per barber per day), TNE Discount (20% for Tarjeta Nacional Estudiantil, non-Bruno services), PIMP STUDIO Logo (JPG, used as brand header/footer image) (+8 more)
 
 ### Community 17 - "ui.jsx"
-Cohesion: 0.10
-Nodes (16): ALL_MODULE_IDS, BarberModal(), emptyBarber, MODULES, PERMS, BookingSyncIssues(), Emblem(), Icon() (+8 more)
+Cohesion: 0.09
+Nodes (19): ALL_MODULE_IDS, BarberModal(), emptyBarber, MODULES, PERMS, BookingSyncIssues(), badgeClass(), GlobalSearch() (+11 more)
 
 ### Community 18 - "iOS App Intents & Shortcuts"
 Cohesion: 0.15
@@ -266,8 +267,8 @@ Cohesion: 0.11
 Nodes (21): Axis, ButtonRole, CGFloat, LinearGradient, TextInputAutocapitalization, UIColor, UIImpactFeedbackGenerator, UIKeyboardType (+13 more)
 
 ### Community 20 - "data.js"
-Cohesion: 0.12
-Nodes (25): ClientModal(), GlareCard(), ALL_SLOTS, barberById(), CAT_LABEL, CLIENT_APPTS, CLIENTS, DAYS_ES (+17 more)
+Cohesion: 0.13
+Nodes (23): GlareCard(), ALL_SLOTS, CAT_LABEL, CLIENT_APPTS, CLIENTS, DAYS_ES, EXPENSES, MONTHS_ES (+15 more)
 
 ### Community 21 - "iOS Booking Sheet & Reminders"
 Cohesion: 0.17
@@ -275,15 +276,15 @@ Nodes (19): ASSETS_DIR, CONTENT_DIR, CORS, fileFromEditId(), fileQueues, handleL
 
 ### Community 22 - "BookingsInbox.jsx"
 Cohesion: 0.09
-Nodes (41): MobileDock(), isAdminUser(), AGENDA_SLOTS, AgendaDatePicker(), AUDIENCE_BY_ID, AUDIENCE_LABEL, AUDIENCES, blocksToMin() (+33 more)
+Nodes (40): isAdminUser(), AGENDA_SLOTS, AgendaDatePicker(), AUDIENCE_BY_ID, AUDIENCE_LABEL, AUDIENCES, blocksToMin(), buildWeek() (+32 more)
 
 ### Community 23 - "index.html PWA Setup"
 Cohesion: 0.22
 Nodes (9): apple-touch-icon PNG 180 rationale, Blackletter fonts (Pirata One, Manufacturing Consent), format-detection=telephone=no meta rationale, ps_theme_manual / ps_theme localStorage keys, theme-color meta dynamic sync rationale, index.html (entry, meta/PWA/no-flash theme), Hero image LCP preload (bruno-hero.jpg), No-flash theme init script (Santiago timezone based) (+1 more)
 
 ### Community 24 - "ModuleFooter.jsx"
-Cohesion: 0.21
-Nodes (11): badgeClass(), GlobalSearch(), CHECKOUT_ITEMS, MercadoPagoCheckout(), DEFAULT_SLOTS, NewBookingModal(), STATUS_OPTIONS, STEP_LABELS (+3 more)
+Cohesion: 0.19
+Nodes (8): Icon(), PATHS, DEFAULT_SLOTS, NewBookingModal(), STATUS_OPTIONS, STEP_LABELS, svcIcon(), todayKey()
 
 ### Community 25 - "iOS Codable Keys"
 Cohesion: 0.18
@@ -338,8 +339,8 @@ Cohesion: 0.47
 Nodes (4): Context, SFSafariViewController, UIViewControllerRepresentable, SafariView
 
 ### Community 42 - "Auth Login API"
-Cohesion: 0.15
-Nodes (16): BookingsInbox(), CalendarModal(), FILTER_MAP, FILTERS, initialsOf(), NEXT_STATUS, ResCard(), ResModal() (+8 more)
+Cohesion: 0.12
+Nodes (21): BookingsInbox(), CalendarModal(), FILTER_MAP, FILTERS, initialsOf(), NEXT_STATUS, ResCard(), ResModal() (+13 more)
 
 ### Community 43 - "Implementation Plan & CSS Scope"
 Cohesion: 0.22
@@ -426,8 +427,8 @@ Cohesion: 0.12
 Nodes (11): App, ColorScheme, SafariServices, Scene, SwiftUI, BrunettiCutzApp, RootView, DashboardView (+3 more)
 
 ### Community 92 - "bookings.js"
-Cohesion: 0.11
-Nodes (18): CaseIterable, Sendable, DashboardFocus, dia, semana, workshop, AppTab, clientes (+10 more)
+Cohesion: 0.13
+Nodes (15): CaseIterable, DashboardFocus, dia, semana, workshop, BookingStatus, cancelada, completada (+7 more)
 
 ### Community 139 - "walletPrompt.js"
 Cohesion: 0.16
@@ -441,6 +442,10 @@ Nodes (26): buildEssentialsOrder(), cleanPhone(), decodeRef(), encodeRef(), ensu
 Cohesion: 0.24
 Nodes (9): EnrollmentModal(), NewClientModal(), NewEnrollmentModal(), cleanPhone(), addLocalEnrollment(), mergeEnrollments(), readLocalEnrollments(), writeLocalEnrollments() (+1 more)
 
+### Community 143 - "AppTab"
+Cohesion: 0.29
+Nodes (7): Sendable, AppTab, clientes, finanzas, hoy, mas, reservas
+
 ## Knowledge Gaps
 - **437 isolated node(s):** `dev-wrapper.sh script`, `NVM_DIR`, `BASE`, `DEMO_PRODUCTS`, `STATIC_BARBERS` (+432 more)
   These have ≤1 connection - possible missing edges or undocumented components.
@@ -453,7 +458,7 @@ _Questions this graph is uniquely positioned to answer:_
   _High betweenness centrality (0.019) - this node is a cross-community bridge._
 - **Why does `react` connect `BarberLogin.jsx` to `package.json Config`, `Cursos.jsx`?**
   _High betweenness centrality (0.019) - this node is a cross-community bridge._
-- **Why does `CLP()` connect `ModuleFooter.jsx` to `iOS Data Models`, `Cursos.jsx`, `Proposal Generator Script`, `Auth Login API`, `walletPrompt.js`, `cleanPhone`, `data.js`, `BarberLogin.jsx`, `BookingsInbox.jsx`, `ADMIN_API_TOKEN env var`?**
+- **Why does `CLP()` connect `Auth Login API` to `iOS Data Models`, `Cursos.jsx`, `Proposal Generator Script`, `walletPrompt.js`, `cleanPhone`, `ui.jsx`, `data.js`, `BarberLogin.jsx`, `BookingsInbox.jsx`, `ADMIN_API_TOKEN env var`, `ModuleFooter.jsx`?**
   _High betweenness centrality (0.012) - this node is a cross-community bridge._
 - **What connects `dev-wrapper.sh script`, `NVM_DIR`, `BASE` to the rest of the system?**
   _446 weakly-connected nodes found - possible documentation gaps or missing edges._
