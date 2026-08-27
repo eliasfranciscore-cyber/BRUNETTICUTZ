@@ -118,7 +118,7 @@ function Panel({ title, action, children, style }) {
 // administrable (semana actual + siguiente) los días son elegibles; el resto
 // se muestran deshabilitados para no sugerir una selección que igual va a
 // rebotar con el toast de "fuera de rango".
-function AgendaDatePicker({ month, year, selectedKey, onPrevMonth, onNextMonth, onPick, reservableKeys }) {
+function AgendaDatePicker({ month, year, selectedKey, onPrevMonth, onNextMonth, onPick, maxKey }) {
   const todayKey = isoDate(new Date())
   const first = new Date(year, month, 1)
   const startOffset = (first.getDay() + 6) % 7 // semana empieza lunes
@@ -138,13 +138,15 @@ function AgendaDatePicker({ month, year, selectedKey, onPrevMonth, onNextMonth, 
           const key = isoDate(new Date(year, month, d))
           const isSel = key === selectedKey
           const isToday = key === todayKey
-          const isReservable = reservableKeys.has(key)
+          // El pasado siempre se puede revisar; solo se bloquea el futuro más
+          // allá de la semana siguiente (fuera del rango reservable).
+          const selectable = !maxKey || key <= maxKey
           return (
             <button
               key={key}
               type="button"
               className={`agenda-cal-day ${isSel ? "is-sel" : ""} ${isToday && !isSel ? "is-today" : ""}`}
-              disabled={!isReservable}
+              disabled={!selectable}
               onClick={() => onPick(key)}
             >
               {d}
@@ -1220,15 +1222,25 @@ export default function Dashboard() {
     if (!wd.some((d) => d.key === agendaDayKey)) setAgendaDayKey(wd[0].key)
   }
 
-  // Date-picker propio de Agenda: solo las 2 semanas administrables (offset 0
-  // y 1) son elegibles — el cliente no puede reservar más allá de 7 días.
+  // Date-picker propio de Agenda: cualquier fecha pasada es elegible (para
+  // revisar semanas ya transcurridas); hacia adelante sigue topado en la
+  // semana siguiente — el cliente no puede reservar más allá de 7 días, así
+  // que después de eso no hay nada que administrar.
   const calPrevMonth = () => setCalMonth((m) => { if (m === 0) { setCalYear((y) => y - 1); return 11 } return m - 1 })
   const calNextMonth = () => setCalMonth((m) => { if (m === 11) { setCalYear((y) => y + 1); return 0 } return m + 1 })
   const pickCalendarDay = (key) => {
     setCalOpen(false)
-    if (buildWeek(0).some((d) => d.key === key)) { setWeekOffset(0); setAgendaDayKey(key); return }
-    if (buildWeek(1).some((d) => d.key === key)) { setWeekOffset(1); setAgendaDayKey(key); return }
-    pushToast("📅", "Fecha fuera del rango reservable (7 días)")
+    const maxKey = buildWeek(1)[6].key
+    if (key > maxKey) { pushToast("📅", "Fecha fuera del rango reservable (7 días)"); return }
+    const mondayOf = (iso) => {
+      const d = new Date(`${iso}T00:00:00`)
+      const dow = d.getDay() || 7
+      d.setDate(d.getDate() - dow + 1)
+      d.setHours(0, 0, 0, 0)
+      return d
+    }
+    setWeekOffset(Math.round((mondayOf(key) - mondayOf(isoDate(new Date()))) / (7 * 86400000)))
+    setAgendaDayKey(key)
   }
 
   if (!barber) return null
@@ -1315,7 +1327,11 @@ export default function Dashboard() {
               const [dy, dm, dd] = agendaDayKey.split("-").map(Number)
               const dateObj = new Date(dy, dm - 1, dd)
               const longDate = `${DOW_LONG[dateObj.getDay()]} ${dd} de ${MONTH_LONG[dm - 1]}`
-              const weekSuffix = weekOffset === 0 ? "esta semana" : "próx. semana"
+              const weekSuffix = weekOffset === 0 ? "esta semana"
+                : weekOffset === 1 ? "próx. semana"
+                : weekOffset === -1 ? "sem. pasada"
+                : weekOffset < 0 ? `hace ${-weekOffset} sem.`
+                : `en ${weekOffset} sem.`
               const dayBookingsToday = visibleBookings
                 .filter((b) => b.date === agendaDayKey && b.status !== "cancelada")
                 .sort((a, b) => (a.time || "").localeCompare(b.time || ""))
@@ -1367,11 +1383,16 @@ export default function Dashboard() {
                   reservar dentro de los próximos 7 días, así que no tiene sentido
                   exponer más de "esta semana" y la "semana siguiente". */}
               <div className="agenda-bulk-actions">
+                {/* Flechas sin tope hacia atrás: las semanas pasadas se pueden
+                    revisar (reservas no atendidas, cancelaciones tardías). */}
+                <button type="button" className="btn btn-dark btn-sm" onClick={() => goToWeek(weekOffset - 1)} aria-label="Semana anterior">
+                  <Icon name="arrowLeft" size={14} />
+                </button>
                 <button type="button" className={`btn btn-sm ${weekOffset === 0 ? "btn-gold" : "btn-dark"}`} onClick={() => goToWeek(0)}>
                   Esta semana
                 </button>
-                <button type="button" className={`btn btn-sm ${weekOffset === 1 ? "btn-gold" : "btn-dark"}`} onClick={() => goToWeek(1)}>
-                  Semana siguiente
+                <button type="button" className="btn btn-dark btn-sm" onClick={() => goToWeek(weekOffset + 1)} aria-label="Semana siguiente">
+                  <Icon name="arrowRight" size={14} />
                 </button>
                 {/* El botón de calendario vive acá (no en la franja de días): a 320px
                     de ancho, sacarlo de esa fila es lo que hace viable mostrar los
@@ -1388,7 +1409,7 @@ export default function Dashboard() {
                       onPrevMonth={calPrevMonth}
                       onNextMonth={calNextMonth}
                       onPick={pickCalendarDay}
-                      reservableKeys={new Set([...buildWeek(0), ...buildWeek(1)].map((d) => d.key))}
+                      maxKey={buildWeek(1)[6].key}
                     />
                   )}
                 </div>

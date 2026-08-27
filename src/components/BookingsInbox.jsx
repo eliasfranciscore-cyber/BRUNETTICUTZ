@@ -228,10 +228,14 @@ function OccRing({ pct }) {
   )
 }
 
-/* Modal calendario: 4 semanas con conteo de reservas por día. */
+/* Modal calendario: ventana de 4 semanas con conteo de reservas por día.
+   Las flechas corren la ventana hacia atrás/adelante, para poder llegar a
+   reservas de semanas ya pasadas. */
 function CalendarModal({ onClose, countsByDay, selectedDay, todayKey, onPick }) {
-  const weeks = [0, 1, 2, 3].map((o) => buildWeek(o))
+  const [base, setBase] = useState(0)
+  const weeks = [0, 1, 2, 3].map((o) => buildWeek(base + o))
   const dows = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
+  const rangeLabel = `${weeks[0][0].label} — ${weeks[3][6].label}`
   return createPortal((
     <div className="psn-modal" role="dialog" aria-modal="true">
       <button className="psn-scrim" aria-label="Cerrar" onClick={onClose} />
@@ -239,6 +243,11 @@ function CalendarModal({ onClose, countsByDay, selectedDay, todayKey, onPick }) 
         <button className="psn-close" onClick={onClose} aria-label="Cerrar"><Icon name="close" size={17} /></button>
         <h3 className="font-display">Calendario de reservas</h3>
         <p className="psn-role">Toca un día para ver su agenda</p>
+        <div className="psn-cal-nav">
+          <button type="button" className="btn btn-dark btn-sm" onClick={() => setBase((b) => b - 4)} aria-label="Semanas anteriores"><Icon name="arrowLeft" size={13} /></button>
+          <span>{rangeLabel}</span>
+          <button type="button" className="btn btn-dark btn-sm" onClick={() => setBase((b) => b + 4)} aria-label="Semanas siguientes"><Icon name="arrowRight" size={13} /></button>
+        </div>
         <div className="psn-cal-head">{dows.map((d) => <span key={d}>{d}</span>)}</div>
         <div className="psn-cal-grid">
           {weeks.flat().map((d) => {
@@ -374,6 +383,11 @@ export default function BookingsInbox({ bookings = [], barbers = [], barber, adm
 
   // KPIs de la semana visible.
   const weekCount = weekKeys.reduce((s, k) => s + (countsByDay[k] || 0), 0)
+  const weekLabel = weekOffset === 0 ? 'esta semana'
+    : weekOffset === 1 ? 'la próx. semana'
+    : weekOffset === -1 ? 'la semana pasada'
+    : weekOffset < 0 ? `hace ${-weekOffset} semanas`
+    : `en ${weekOffset} semanas`
   const weekRevenue = mine
     .filter((b) => b.status !== 'cancelada' && weekKeys.includes(b.date))
     .reduce((s, b) => s + Number(b.price || 0), 0)
@@ -398,9 +412,16 @@ export default function BookingsInbox({ bookings = [], barbers = [], barber, adm
   const pickFromCalendar = (key) => {
     selectDay(key)
     setCalOpen(false)
-    for (const o of [-1, 0, 1, 2, 3, 4]) {
-      if (buildWeek(o).some((d) => d.key === key)) { setWeekOffset(o); break }
+    // Offset real por diferencia de lunes (mismo cálculo que el foco externo):
+    // el calendario ahora navega a cualquier fecha, también semanas pasadas.
+    const mondayOf = (iso) => {
+      const d = new Date(`${iso}T00:00:00`)
+      const dow = d.getDay() || 7
+      d.setDate(d.getDate() - dow + 1)
+      d.setHours(0, 0, 0, 0)
+      return d
     }
+    setWeekOffset(Math.round((mondayOf(key) - mondayOf(isoDate())) / (7 * 86400000)))
   }
 
   // Foco externo (desde la búsqueda global): salta a una fecha ARBITRARIA.
@@ -529,12 +550,15 @@ export default function BookingsInbox({ bookings = [], barbers = [], barber, adm
           </div>
           {dateScope !== 'todas' && (
             <div className="psn-week-toggle">
+              {/* Flechas sin tope hacia atrás: también hay que poder revisar
+                  (y cancelar) reservas de semanas ya pasadas. */}
+              <button type="button" className="btn btn-dark btn-sm" onClick={() => goToWeek(weekOffset - 1)} aria-label="Semana anterior"><Icon name="arrowLeft" size={13} /></button>
               <button type="button" className={`btn btn-sm ${weekOffset === 0 ? 'btn-gold' : 'btn-dark'}`} onClick={() => goToWeek(0)}>Esta semana</button>
-              <button type="button" className={`btn btn-sm ${weekOffset === 1 ? 'btn-gold' : 'btn-dark'}`} onClick={() => goToWeek(1)}>Siguiente</button>
+              <button type="button" className="btn btn-dark btn-sm" onClick={() => goToWeek(weekOffset + 1)} aria-label="Semana siguiente"><Icon name="arrowRight" size={13} /></button>
               <button type="button" className="btn btn-dark btn-sm psn-cal-btn" onClick={() => setCalOpen(true)}><Icon name="calendar" size={13} /> <span className="btn-label">Calendario</span></button>
             </div>
           )}
-          <span className="psn-week-sum">{weekCount} reservas esta semana · <b className="gold-text">{CLP(weekRevenue)}</b></span>
+          <span className="psn-week-sum">{weekCount} reservas {weekLabel} · <b className="gold-text">{CLP(weekRevenue)}</b></span>
         </div>
         {dateScope !== 'todas' && <div className="daypick" role="group" aria-label="Día de la semana">
           {weekDays.map((d) => {

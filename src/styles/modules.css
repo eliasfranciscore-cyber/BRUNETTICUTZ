@@ -301,6 +301,9 @@
 
 /* ---------- Reservas: modal calendario ---------- */
 .psn-cal { max-width: 420px; width: 92vw; }
+/* Paginador de semanas del calendario de reservas (flechas + rango). */
+.psn-cal-nav { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin-top: .9rem; }
+.psn-cal-nav span { font-size: .78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .psn-cal-head { display: grid; grid-template-columns: repeat(7,1fr); gap: .3rem; margin: .9rem 0 .35rem; }
 .psn-cal-head span { font-size: .6rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); text-align: center; }
 .psn-cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: .3rem; }
