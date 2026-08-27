@@ -137,7 +137,15 @@ export const WORKSHOP_VIDEOS = [
 /* Fecha del workshop: 30 de agosto. Si ya pasó respecto al reloj actual,
    avanza al próximo año para que el countdown nunca quede en 00.
    Para fijar una fecha exacta, edita BASE_MONTH/BASE_DAY/BASE_HOUR. */
-const WK_BASE = { month: 8, day: 30, hour: 9, minute: 30 };
+const WK_BASE = { month: 8, day: 30, hour: 10, minute: 0 };
+/* Duración de la jornada en horas: 10:00 a 16:00. Se usa para armar el
+   rango horario tanto de la fecha por defecto como de la que llega del
+   panel (que solo guarda la hora de inicio). */
+const WK_DURACION_H = 6;
+function wkRango(hour, minute) {
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${pad(hour)}:${pad(minute)} a ${pad((hour + WK_DURACION_H) % 24)}:${pad(minute)}`;
+}
 const WK_MESES = ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"];
 const WK_DIAS = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
 
@@ -152,7 +160,7 @@ export function formatWorkshopDate(d) {
   return {
     iso: d.toISOString(),
     label: `${dd} · ${mm} · ${d.getFullYear()}`,
-    long: `${WK_DIAS[d.getDay()].charAt(0).toUpperCase() + WK_DIAS[d.getDay()].slice(1)} ${d.getDate()} de ${WK_MESES[d.getMonth()]} · ${hh}:${min}`,
+    long: `${WK_DIAS[d.getDay()].charAt(0).toUpperCase() + WK_DIAS[d.getDay()].slice(1)} ${d.getDate()} de ${WK_MESES[d.getMonth()]} · ${wkRango(d.getHours(), d.getMinutes())}`,
   };
 }
 function wkEditionDate() {
@@ -165,7 +173,7 @@ function wkEditionDate() {
   return {
     iso: d.toISOString(),
     label: `${dd} · ${mm} · ${year}`,
-    long: `${WK_DIAS[d.getDay()].charAt(0).toUpperCase() + WK_DIAS[d.getDay()].slice(1)} ${WK_BASE.day} de ${WK_MESES[WK_BASE.month - 1]} · 09:30 a 13:00`,
+    long: `${WK_DIAS[d.getDay()].charAt(0).toUpperCase() + WK_DIAS[d.getDay()].slice(1)} ${WK_BASE.day} de ${WK_MESES[WK_BASE.month - 1]} · ${wkRango(WK_BASE.hour, WK_BASE.minute)}`,
   };
 }
 const WK_ED = wkEditionDate();
@@ -209,6 +217,7 @@ export const WORKSHOP = {
     bloque2: "https://images.unsplash.com/photo-1517832606299-7ae9b720a186?auto=format&fit=crop&w=1100&q=80",
     bloque3: "https://images.unsplash.com/photo-1634481949659-7c9c0a5c2c08?auto=format&fit=crop&w=1100&q=80",
     pricing: "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&w=1600&q=80",
+    concurso: "/assets/workshop-2026.jpg",
   },
 
   transform: [
@@ -297,11 +306,11 @@ export const WORKSHOP = {
   ],
 
   timeline: [
-    { time: "09:30", b: "Café & Alianzas", s: "Bienvenida, diagnóstico y networking entre barberos." },
-    { time: "10:00", b: "Psicología de Contenido", s: "Por qué la gente agenda: estrategia antes que cámara." },
-    { time: "11:00", b: "Hands-on Grabación", s: "Grabación guiada con casos reales en el salón." },
-    { time: "12:00", b: "Sprint de Edición", s: "Edición en vivo en CapCut, de bruto a publicable." },
-    { time: "13:00", b: "Plan de Acción", s: "Calendario de publicación y cierre con compromisos." },
+    { time: "10:00", b: "Café & Alianzas", s: "Bienvenida, diagnóstico y networking entre barberos." },
+    { time: "10:30", b: "Psicología de Contenido", s: "Por qué la gente agenda: estrategia antes que cámara." },
+    { time: "12:00", b: "Hands-on Grabación", s: "Grabación guiada con casos reales en el salón." },
+    { time: "13:30", b: "Sprint de Edición", s: "Edición en vivo en CapCut, de bruto a publicable." },
+    { time: "15:00", b: "Plan de Acción", s: "Calendario de publicación y cierre con compromisos." },
   ],
 
   give: [
@@ -315,6 +324,28 @@ export const WORKSHOP = {
     { b: "Software", s: "CapCut instalado (la versión gratuita es suficiente)." },
     { b: "Mente", s: "Cero excusas y hambre real de crecimiento." },
   ],
+
+  /* Concurso post-workshop: el reel grabado durante la jornada que junte más
+     likes se lleva el premio. La fecha de cierre no se publica en la página —
+     se avisa por privado a los asistentes. */
+  concurso: {
+    photo: "concurso",
+    prize: {
+      b: "Capa Tadeus personalizada + gorro",
+      s: "Una capa Tadeus bordada con tu nombre y el gorro Brunetti. Una sola, para un solo ganador.",
+    },
+    steps: [
+      { n: "01", b: "Graba en el workshop", s: "El reel tiene que estar grabado durante la jornada, con lo que aprendiste ahí mismo." },
+      { n: "02", b: "Publícalo y etiquétanos", s: "Súbelo a tu Instagram, etiqueta a @brunetticutz y déjalo público hasta el cierre." },
+      { n: "03", b: "Suma likes", s: "Gana el reel con más likes al momento del cierre. Simple y a la vista de todos." },
+    ],
+    rules: [
+      "Solo participan asistentes a la edición del workshop.",
+      "Un reel por participante: si subes varios, cuenta el que tenga más likes.",
+      "El reel debe seguir público y etiquetado al cierre para contar los likes.",
+      "El ganador se anuncia en @brunetticutz y lo contactamos por WhatsApp.",
+    ],
+  },
 
   faq: [
     {

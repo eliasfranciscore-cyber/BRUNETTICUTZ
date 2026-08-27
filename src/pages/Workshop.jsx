@@ -33,6 +33,7 @@ const WK_ICONS = {
   camera: "M4 7h3l1.5-2h7L17 7h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1zM12 16.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z",
   film: "M4 4h16v16H4zM4 9h16M4 15h16M9 4v16M15 4v16",
   award: "M12 14a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM9 13l-1.5 7L12 18l4.5 2L15 13",
+  heart: "M12 20s-7-4.6-7-9.5A4 4 0 0 1 12 7a4 4 0 0 1 7 3.5C19 15.4 12 20 12 20z",
 };
 
 function Icon({ name, size = 20, stroke = 1.6, color = "currentColor", style }) {
@@ -461,6 +462,73 @@ function GiveKit() {
   );
 }
 
+/* ============================================================ CONCURSO
+   Concurso post-workshop: el reel grabado durante la jornada con más likes
+   gana el premio. Es una sección puramente informativa — las participaciones
+   se revisan directamente en Instagram y la fecha de cierre se avisa por
+   privado, así que no se publica acá ni se captan datos. */
+function Concurso() {
+  const C = WK.concurso;
+  if (!C) return null;
+
+  return (
+    <section className="wks-section wks-concurso" id="concurso">
+      <div className="wks-container">
+        <Reveal className="wks-head is-center">
+          <span className="wks-eyebrow"><EditableText file="workshop" path="concurso.eyebrow">{WKC.concurso.eyebrow}</EditableText></span>
+          <h2 className="wks-h2"><EditableText file="workshop" path="concurso.h2" as="span">{WKC.concurso.h2}</EditableText></h2>
+          <hr className="wks-rule" />
+          <p className="wks-lead" style={{ maxWidth: "58ch" }}>
+            <EditableText file="workshop" path="concurso.lead" as="span">{WKC.concurso.lead}</EditableText>
+          </p>
+        </Reveal>
+
+        <div className="wks-concurso-grid">
+          <Reveal className="wks-prize">
+            <Bw className="wks-prize-media" src={WK.photos[C.photo]} alt="Premio del concurso" label="Premio" editId="workshop:concursoPremio" />
+            <div className="wks-prize-body">
+              <span className="wks-chip"><Icon name="award" size={13} /> <EditableText file="workshop" path="concurso.prizeTag">{WKC.concurso.prizeTag}</EditableText></span>
+              <h3><EditableText file="workshop" path="concurso.prize.b" as="span">{WKC.concurso.prize.b}</EditableText></h3>
+              <p><EditableText file="workshop" path="concurso.prize.s" as="span">{WKC.concurso.prize.s}</EditableText></p>
+            </div>
+          </Reveal>
+
+          <Reveal className="wks-concurso-body" style={{ transitionDelay: "0.08s" }}>
+            <div className="wks-panel-head">
+              <span className="ic"><Icon name="heart" size={20} /></span>
+              <h3><EditableText file="workshop" path="concurso.stepsTitle" as="span">{WKC.concurso.stepsTitle}</EditableText></h3>
+            </div>
+
+            <ol className="wks-cc-steps">
+              {C.steps.map((st, i) => (
+                <li key={st.b}>
+                  <span className="n">{st.n}</span>
+                  <div>
+                    <b><EditableText file="workshop" path={`concurso.steps.${i}.b`}>{WKC.concurso.steps[i].b}</EditableText></b>
+                    <span><EditableText file="workshop" path={`concurso.steps.${i}.s`}>{WKC.concurso.steps[i].s}</EditableText></span>
+                  </div>
+                </li>
+              ))}
+            </ol>
+
+            <div className="wks-cc-rules">
+              <span className="wks-eyebrow"><EditableText file="workshop" path="concurso.rulesTitle">{WKC.concurso.rulesTitle}</EditableText></span>
+              <ul>
+                {WKC.concurso.rules.map((r, i) => (
+                  <li key={i}>
+                    <span className="ck"><Icon name="check" size={14} /></span>
+                    <EditableText file="workshop" path={`concurso.rules.${i}`} as="span">{r}</EditableText>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </Reveal>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* ============================================================ PRICING */
 function Pricing({ onReserve }) {
   const [ref, seen] = useInView({ threshold: 0.3 });
@@ -707,9 +775,20 @@ function Register({ formRef }) {
 function FaqItem({ i, f, isOpen, onToggle }) {
   const pRef = useRef(null);
   const [h, setH] = useState(0);
+  const navigate = useNavigate();
+  /* El alto se sigue con un ResizeObserver en vez de medirse una sola vez: al
+     cambiar el ancho (rotar el móvil, redimensionar) la respuesta reflowea a
+     más líneas y, con un max-height viejo, el panel quedaba recortado por
+     abajo — se notaba sobre todo con el enlace pegado al borde de la tarjeta. */
   useEffect(() => {
-    if (pRef.current) setH(pRef.current.scrollHeight);
-  }, [isOpen, f.a]);
+    const el = pRef.current;
+    if (!el) return;
+    const sync = () => setH(el.scrollHeight);
+    sync();
+    const ro = new ResizeObserver(sync);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [f.a, f.linkLabel]);
   return (
     <div className={`wks-faq-item ${isOpen ? "is-open" : ""}`}>
       <button className="wks-faq-q" onClick={onToggle}>
@@ -717,7 +796,21 @@ function FaqItem({ i, f, isOpen, onToggle }) {
         <span className="pm"><Icon name="plus" size={14} /></span>
       </button>
       <div className="wks-faq-a" style={{ maxHeight: isOpen ? `${h}px` : 0 }}>
-        <p ref={pRef}><EditableText file="workshop" path={`faq.items.${i}.a`} as="span">{f.a}</EditableText></p>
+        {/* El ref mide el envoltorio, no el <p>: así el alto del acordeón
+            incluye el enlace opcional (`linkTo` en el JSON de contenido). */}
+        <div className="wks-faq-a-inner" ref={pRef}>
+          <p><EditableText file="workshop" path={`faq.items.${i}.a`} as="span">{f.a}</EditableText></p>
+          {f.linkTo && (
+            <button
+              type="button"
+              className="wks-faq-link"
+              onClick={() => { navigate(f.linkTo); window.scrollTo({ top: 0 }); }}
+            >
+              <EditableText file="workshop" path={`faq.items.${i}.linkLabel`} as="span">{f.linkLabel}</EditableText>
+              <Icon name="arrowRight" size={14} />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -750,6 +843,7 @@ function Footer({ onReserve }) {
     ["transformar", "Transformación"],
     ["programa", "Programa"],
     ["cronograma", "Cronograma"],
+    ["concurso", "Concurso"],
     ["precio", "Inversión"],
     ["inscribir", "Inscripción"],
   ];
@@ -855,6 +949,7 @@ export default function Workshop() {
           <Programa />
           <Cronograma />
           <GiveKit />
+          <Concurso />
           <Pricing onReserve={reserve} />
           <Register formRef={formRef} />
           <Faq />

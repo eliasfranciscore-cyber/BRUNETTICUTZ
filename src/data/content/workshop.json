@@ -126,7 +126,7 @@
   ],
   "cronograma": {
     "eyebrow": "Cronograma del guerrero",
-    "h2": "Cuatro horas que cambian cómo te ven en redes.",
+    "h2": "Seis horas que cambian cómo te ven en redes.",
     "timeline": [
       {
         "b": "Café & Alianzas",
@@ -184,6 +184,38 @@
       }
     ]
   },
+  "concurso": {
+    "eyebrow": "Concurso · después del workshop",
+    "h2": "El Mejor Reel del Workshop se Lleva un Kit Tadeus Personalizado.",
+    "lead": "Todo lo que grabes ese día compite. El reel con más visitas gana el premio; el resto igual se queda con el contenido que hizo.",
+    "prizeTag": "Premio único",
+    "prize": {
+      "b": "Kit Completo de Tadeus con Capa Personalizada",
+      "s": "Una capa Tadeus bordada con tu nombre y el gorro Brunetti. Un Kit, para un solo ganador."
+    },
+    "stepsTitle": "Cómo se participa",
+    "steps": [
+      {
+        "b": "Graba en el Workshop",
+        "s": "El reel tiene que estar grabado durante la jornada, con lo que aprendiste ahí mismo."
+      },
+      {
+        "b": "Publícalo y Etiquétanos",
+        "s": "Súbelo a tu Instagram, etiqueta a @brunetticutz y déjalo público hasta el cierre."
+      },
+      {
+        "b": "Suma Visitas",
+        "s": "Gana el reel con más visitas al momento del cierre. Simple y a la vista de todos."
+      }
+    ],
+    "rulesTitle": "Bases del concurso",
+    "rules": [
+      "Solo participan asistentes a la edición del workshop.",
+      "Un reel por participante: si subes varios, cuenta el que obtenga más vistas.",
+      "El reel debe seguir público y etiquetado al cierre para contar las vistas.",
+      "El ganador se anuncia en @brunetticutz y lo contactamos por WhatsApp."
+    ]
+  },
   "register": {
     "eyebrow": "Únete al cambio",
     "h2": "Escribe tu propia historia. Reserva tu cupo."
@@ -198,7 +230,9 @@
       },
       {
         "q": "¿Sirve si recién estoy empezando?",
-        "a": "El workshop está pensado para barberos que ya cortan bien y quieren mostrarlo mejor. Si dominas la técnica, este es tu siguiente paso."
+        "a": "El workshop está pensado para barberos que ya cortan bien y quieren mostrarlo mejor. Si dominas la técnica, este es tu siguiente paso.",
+        "linkTo": "/cursos",
+        "linkLabel": "Ver los cursos para empezar"
       },
       {
         "q": "¿Cuántos cupos hay por fecha?",

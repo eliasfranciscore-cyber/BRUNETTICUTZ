@@ -632,16 +632,74 @@
 .wks-success h3 { font-family: var(--wk-font-display); margin: 0; font-size: 1.5rem; font-weight: 600; }
 
 /* ============================================================
+   CONCURSO — mejor reel del workshop (premio + bases + registro)
+   ============================================================ */
+.wks-concurso-grid { display: grid; gap: clamp(1.4rem, 3.5vw, 2.6rem); }
+@media (min-width: 900px) {
+  .wks-concurso-grid { grid-template-columns: 0.85fr 1.15fr; }
+  /* En dos columnas las dos tarjetas igualan altura (align-items: stretch por
+     defecto). El sobrante se lo lleva la foto: la fila del texto queda `auto`
+     y la de la imagen `1fr`, así que el bloque del premio nunca queda con un
+     hueco vacío abajo. La proporción 4/3 solo aplica apilado, en móvil. */
+  .wks-prize { align-content: stretch; grid-template-rows: minmax(200px, 1fr) auto; }
+  .wks-prize-media { aspect-ratio: auto; }
+}
+
+.wks-prize {
+  border: 1px solid var(--wk-gold-line); border-radius: 18px; overflow: hidden;
+  background: linear-gradient(170deg, rgba(136,56,216,0.08), rgba(11,11,10,0.9));
+  display: grid; align-content: start;
+}
+.wks-prize-media { aspect-ratio: 4 / 3; }
+.wks-prize-media img { filter: grayscale(100%) contrast(1.08) brightness(0.9); }
+.wks-prize-body { padding: clamp(1.2rem, 3vw, 1.8rem); display: grid; gap: 0.7rem; justify-items: start; }
+.wks-prize-body h3 { font-family: var(--wk-font-display); margin: 0; font-size: clamp(1.3rem, 2.4vw, 1.7rem); font-weight: 600; line-height: 1.15; }
+.wks-prize-body p { margin: 0; color: var(--wk-muted); font-size: 0.92rem; line-height: 1.55; }
+
+.wks-concurso-body {
+  border: 1px solid var(--wk-hair); border-radius: 18px; padding: clamp(1.4rem, 3vw, 2rem);
+  background: linear-gradient(170deg, rgba(22,22,20,0.7), rgba(11,11,10,0.85)); display: grid; gap: 1.3rem;
+}
+.wks-cc-steps { display: grid; gap: 0.9rem; margin: 0; padding: 0; list-style: none; counter-reset: none; }
+.wks-cc-steps li { display: grid; grid-template-columns: auto 1fr; gap: 0.85rem; align-items: start; }
+.wks-cc-steps .n {
+  font-family: var(--wk-font-display); font-size: 0.7rem; letter-spacing: 0.14em; color: var(--wk-gold-lt);
+  border: 1px solid var(--wk-gold-line); border-radius: 999px; padding: 0.3rem 0.55rem; line-height: 1; margin-top: 2px;
+}
+.wks-cc-steps b { font-family: var(--wk-font-display); display: block; font-weight: 600; }
+.wks-cc-steps span { color: var(--wk-muted); font-size: 0.9rem; line-height: 1.5; }
+
+.wks-cc-rules { display: grid; gap: 0.7rem; border-top: 1px solid var(--wk-hair); padding-top: 1.2rem; }
+.wks-cc-rules ul { display: grid; gap: 0.5rem; margin: 0; padding: 0; list-style: none; }
+.wks-cc-rules li { display: grid; grid-template-columns: auto 1fr; gap: 0.6rem; align-items: start; color: var(--wk-muted); font-size: 0.88rem; line-height: 1.5; }
+.wks-cc-rules .ck { color: var(--wk-gold-lt); margin-top: 2px; }
+
+/* ============================================================
    FAQ
    ============================================================ */
-.wks-faq { display: grid; gap: 0.6rem; max-width: 820px; }
+/* El título de la sección va centrado; el acordeón se centra con él en vez
+   de quedar pegado al borde izquierdo del contenedor. */
+.wks-faq { display: grid; gap: 0.6rem; max-width: 820px; margin-inline: auto; }
 .wks-faq-item { border: 1px solid var(--wk-hair); border-radius: 14px; overflow: hidden; background: rgba(255,255,255,0.015); transition: border-color .3s; }
 .wks-faq-item.is-open { border-color: var(--wk-gold-line); }
 .wks-faq-q { width: 100%; text-align: left; background: none; border: 0; color: var(--wk-ink); padding: 1.1rem 1.3rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; font-family: var(--wk-font-display); font-size: 1.02rem; font-weight: 500; cursor: pointer; }
 .wks-faq-q .pm { width: 26px; height: 26px; border-radius: 999px; border: 1px solid var(--wk-gold-line); display: grid; place-items: center; color: var(--wk-gold-lt); flex-shrink: 0; transition: transform .3s; }
 .wks-faq-item.is-open .pm { transform: rotate(45deg); }
 .wks-faq-a { max-height: 0; overflow: hidden; transition: max-height .35s cubic-bezier(.2,.7,.3,1); }
-.wks-faq-a p { margin: 0; padding: 0 1.3rem 1.2rem; color: var(--wk-muted); line-height: 1.6; }
+/* El padding vive en el envoltorio (no en el <p>) para que el enlace
+   opcional de la respuesta quede alineado con el texto. */
+.wks-faq-a-inner { padding: 0 1.3rem 1.2rem; display: grid; gap: 0.9rem; justify-items: start; }
+.wks-faq-a p { margin: 0; color: var(--wk-muted); line-height: 1.6; }
+.wks-faq-link {
+  display: inline-flex; align-items: center; gap: 0.5rem; background: none; cursor: pointer;
+  border: 1px solid var(--wk-gold-line); border-radius: 999px; padding: 0.5rem 1rem;
+  color: var(--wk-gold-lt); font-family: var(--wk-font-display); font-size: 0.7rem;
+  letter-spacing: 0.14em; text-transform: uppercase; transition: background .25s, border-color .25s, color .25s;
+}
+@media (hover: hover) and (pointer: fine) {
+  .wks-faq-link:hover { background: rgba(136,56,216,0.1); color: #fff; }
+}
+@media (max-width: 860px) { .wks-faq-a-inner { justify-items: center; } }
 
 /* ============================================================
    FOOTER / contact

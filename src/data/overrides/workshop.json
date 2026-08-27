@@ -31,5 +31,35 @@
   },
   "workshop:card:redes": {
     "src": "/assets/uploads/5-jpg-mriinh5h.jpg"
+  },
+  "workshop:concurso.steps.0.b": {
+    "color": "#ffffff"
+  },
+  "workshop:concurso.steps.1.b": {
+    "color": "#ffffff"
+  },
+  "workshop:concurso.steps.2.b": {
+    "color": "#ffffff"
+  },
+  "workshop:concurso.rules.3": {
+    "color": "#ffffff"
+  },
+  "workshop:cronograma.timeline.0.b": {
+    "color": "#ffffff"
+  },
+  "workshop:cronograma.timeline.1.b": {
+    "color": "#ffffff"
+  },
+  "workshop:cronograma.timeline.2.b": {
+    "color": "#ffffff"
+  },
+  "workshop:cronograma.timeline.3.b": {
+    "color": "#ffffff"
+  },
+  "workshop:cronograma.timeline.4.b": {
+    "color": "#ffffff"
+  },
+  "workshop:concursoPremio": {
+    "width": 478
   }
 }
