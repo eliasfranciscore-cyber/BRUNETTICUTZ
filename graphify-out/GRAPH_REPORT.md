@@ -1,16 +1,16 @@
-# Graph Report - BRUNETTICUTZ  (2026-08-24)
+# Graph Report - BRUNETTICUTZ  (2026-08-27)
 
 ## Corpus Check
-- 144 files · ~1,979,260 words
+- 144 files · ~1,980,135 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1296 nodes · 2222 edges · 142 communities (66 shown, 76 thin omitted)
+- 1298 nodes · 2226 edges · 143 communities (67 shown, 76 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 37 edges (avg confidence: 0.82)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `df14fce8`
+- Built from commit: `109f7a40`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -154,6 +154,7 @@
 - walletPrompt.js
 - auth-barber.js
 - APIError
+- cleanPhone
 
 ## God Nodes (most connected - your core abstractions)
 1. `CLP()` - 30 edges
@@ -182,11 +183,11 @@
 ## Import Cycles
 - None detected.
 
-## Communities (142 total, 76 thin omitted)
+## Communities (143 total, 76 thin omitted)
 
 ### Community 0 - "iOS Data Models"
-Cohesion: 0.22
-Nodes (16): AnimatedRing(), CountUp(), Donut(), KpiTile(), prefersReduced(), ProgressBar(), Sparkline(), useCountUp() (+8 more)
+Cohesion: 0.39
+Nodes (8): CATEGORY_META, daysInMonth(), EXPENSE_CATEGORIES, ExpenseModal(), ExpensesModule(), exportExpensesCSV(), metaOf(), monthKey()
 
 ### Community 1 - "iOS API Client"
 Cohesion: 0.23
@@ -198,15 +199,15 @@ Nodes (16): Account, App(), BarberLogin, Booking, CardShare, Cursos, Dashboard, 
 
 ### Community 3 - "Workshop Page & Content"
 Cohesion: 0.06
-Nodes (36): FEATURE_CARDS, formatWorkshopDate(), TESTIMONIALS, WK_BASE, WK_DIAS, WK_ED, WK_MESES, WORKSHOP (+28 more)
+Nodes (34): FEATURE_CARDS, formatWorkshopDate(), TESTIMONIALS, WK_BASE, WK_DIAS, WK_ED, WK_MESES, wkEditionDate() (+26 more)
 
 ### Community 4 - "Vercel API Handlers"
-Cohesion: 0.09
-Nodes (50): handler(), businessDateKey(), businessNowMinutes(), handler(), isBridgeRequest(), slotMinutes(), logBookingAttempt(), businessDateKey() (+42 more)
+Cohesion: 0.05
+Nodes (87): b64url(), BARBER_PROFILES, fallbackLogin(), fallbackPasswords(), handleChangePassword(), handleLogin(), handler(), isAdmin() (+79 more)
 
 ### Community 5 - "Cursos.jsx"
-Cohesion: 0.14
-Nodes (18): addDays(), Bars(), BUSINESS_HOURS, CAT_COLORS, DashboardResumen(), DOW_ORDER, DOW_SHORT, getSvcIconByName() (+10 more)
+Cohesion: 0.11
+Nodes (24): addDays(), Bars(), BUSINESS_HOURS, CAT_COLORS, DashboardResumen(), DOW_ORDER, DOW_SHORT, getSvcIconByName() (+16 more)
 
 ### Community 6 - "Legacy Static Site (web/app.js)"
 Cohesion: 0.07
@@ -253,8 +254,8 @@ Cohesion: 0.24
 Nodes (16): Admin Key Authentication (shared internal password pattern), Barber Availability Management (barber sets available slots per day), Barber Authentication Flow (username/password, sets active barber session), Dual Authentication System (client auth via phone vs barber/admin auth via username+password), Phone Number as Client Identity (celular = ID de cliente), Manual Slot Blocking (admin blocks time slots per barber per day), TNE Discount (20% for Tarjeta Nacional Estudiantil, non-Bruno services), PIMP STUDIO Logo (JPG, used as brand header/footer image) (+8 more)
 
 ### Community 17 - "ui.jsx"
-Cohesion: 0.07
-Nodes (25): ALL_MODULE_IDS, BarberModal(), emptyBarber, MODULES, PERMS, BookingSyncIssues(), EnrollmentModal(), badgeClass() (+17 more)
+Cohesion: 0.10
+Nodes (16): ALL_MODULE_IDS, BarberModal(), emptyBarber, MODULES, PERMS, BookingSyncIssues(), Emblem(), Icon() (+8 more)
 
 ### Community 18 - "iOS App Intents & Shortcuts"
 Cohesion: 0.15
@@ -265,8 +266,8 @@ Cohesion: 0.11
 Nodes (21): Axis, ButtonRole, CGFloat, LinearGradient, TextInputAutocapitalization, UIColor, UIImpactFeedbackGenerator, UIKeyboardType (+13 more)
 
 ### Community 20 - "data.js"
-Cohesion: 0.14
-Nodes (22): GlareCard(), ALL_SLOTS, CAT_LABEL, CLIENTS, DAYS_ES, EXPENSES, MONTHS_ES, SERVICE_BARBERS (+14 more)
+Cohesion: 0.12
+Nodes (25): ClientModal(), GlareCard(), ALL_SLOTS, barberById(), CAT_LABEL, CLIENT_APPTS, CLIENTS, DAYS_ES (+17 more)
 
 ### Community 21 - "iOS Booking Sheet & Reminders"
 Cohesion: 0.17
@@ -274,15 +275,15 @@ Nodes (19): ASSETS_DIR, CONTENT_DIR, CORS, fileFromEditId(), fileQueues, handleL
 
 ### Community 22 - "BookingsInbox.jsx"
 Cohesion: 0.09
-Nodes (40): isAdminUser(), AGENDA_SLOTS, AgendaDatePicker(), AUDIENCE_BY_ID, AUDIENCE_LABEL, AUDIENCES, blocksToMin(), buildWeek() (+32 more)
+Nodes (41): MobileDock(), isAdminUser(), AGENDA_SLOTS, AgendaDatePicker(), AUDIENCE_BY_ID, AUDIENCE_LABEL, AUDIENCES, blocksToMin() (+33 more)
 
 ### Community 23 - "index.html PWA Setup"
 Cohesion: 0.22
 Nodes (9): apple-touch-icon PNG 180 rationale, Blackletter fonts (Pirata One, Manufacturing Consent), format-detection=telephone=no meta rationale, ps_theme_manual / ps_theme localStorage keys, theme-color meta dynamic sync rationale, index.html (entry, meta/PWA/no-flash theme), Hero image LCP preload (bruno-hero.jpg), No-flash theme init script (Santiago timezone based) (+1 more)
 
 ### Community 24 - "ModuleFooter.jsx"
-Cohesion: 0.19
-Nodes (8): Icon(), PATHS, DEFAULT_SLOTS, NewBookingModal(), STATUS_OPTIONS, STEP_LABELS, svcIcon(), todayKey()
+Cohesion: 0.21
+Nodes (11): badgeClass(), GlobalSearch(), CHECKOUT_ITEMS, MercadoPagoCheckout(), DEFAULT_SLOTS, NewBookingModal(), STATUS_OPTIONS, STEP_LABELS (+3 more)
 
 ### Community 25 - "iOS Codable Keys"
 Cohesion: 0.18
@@ -337,8 +338,8 @@ Cohesion: 0.47
 Nodes (4): Context, SFSafariViewController, UIViewControllerRepresentable, SafariView
 
 ### Community 42 - "Auth Login API"
-Cohesion: 0.12
-Nodes (21): BookingsInbox(), CalendarModal(), FILTER_MAP, FILTERS, initialsOf(), NEXT_STATUS, ResCard(), ResModal() (+13 more)
+Cohesion: 0.15
+Nodes (16): BookingsInbox(), CalendarModal(), FILTER_MAP, FILTERS, initialsOf(), NEXT_STATUS, ResCard(), ResModal() (+8 more)
 
 ### Community 43 - "Implementation Plan & CSS Scope"
 Cohesion: 0.22
@@ -413,8 +414,8 @@ Cohesion: 0.50
 Nodes (4): Debugging Animations, Frame-by-frame inspection, Slow motion testing, Test on real devices
 
 ### Community 85 - "BarberLogin.jsx"
-Cohesion: 0.60
-Nodes (5): BARBERS, BarberLogin(), clearLockout(), getLockout(), setLockout()
+Cohesion: 0.29
+Nodes (9): PeakHours(), BARBERS, BarberLogin(), clearLockout(), getLockout(), setLockout(), EnrollmentsPanel(), PedidosPanel() (+1 more)
 
 ### Community 86 - "ADMIN_API_TOKEN env var"
 Cohesion: 0.62
@@ -433,8 +434,12 @@ Cohesion: 0.16
 Nodes (30): addLocalBooking(), cancelKeyOf(), cancelLocalBooking(), isCancelled(), isOrphanLocalBooking(), markLocalBookingSynced(), matchKeyOf(), mergeBookings() (+22 more)
 
 ### Community 140 - "auth-barber.js"
-Cohesion: 0.06
-Nodes (63): b64url(), BARBER_PROFILES, fallbackLogin(), fallbackPasswords(), handleChangePassword(), handleLogin(), handler(), isAdmin() (+55 more)
+Cohesion: 0.16
+Nodes (26): buildEssentialsOrder(), cleanPhone(), decodeRef(), encodeRef(), ensureEnrollmentsTable(), ensureSettingsTable(), ensureShopOrdersTable(), FIXED_PRICES (+18 more)
+
+### Community 142 - "cleanPhone"
+Cohesion: 0.24
+Nodes (9): EnrollmentModal(), NewClientModal(), NewEnrollmentModal(), cleanPhone(), addLocalEnrollment(), mergeEnrollments(), readLocalEnrollments(), writeLocalEnrollments() (+1 more)
 
 ## Knowledge Gaps
 - **437 isolated node(s):** `dev-wrapper.sh script`, `NVM_DIR`, `BASE`, `DEMO_PRODUCTS`, `STATIC_BARBERS` (+432 more)
@@ -444,17 +449,17 @@ Nodes (63): b64url(), BARBER_PROFILES, fallbackLogin(), fallbackPasswords(), han
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `dependencies` connect `package.json Config` to `Cursos.jsx`?**
+- **Why does `dependencies` connect `package.json Config` to `BarberLogin.jsx`?**
   _High betweenness centrality (0.019) - this node is a cross-community bridge._
-- **Why does `react` connect `Cursos.jsx` to `package.json Config`, `BarberLogin.jsx`?**
+- **Why does `react` connect `BarberLogin.jsx` to `package.json Config`, `Cursos.jsx`?**
   _High betweenness centrality (0.019) - this node is a cross-community bridge._
-- **Why does `CLP()` connect `Auth Login API` to `iOS Data Models`, `Cursos.jsx`, `Proposal Generator Script`, `walletPrompt.js`, `ui.jsx`, `data.js`, `BookingsInbox.jsx`, `ADMIN_API_TOKEN env var`, `ModuleFooter.jsx`?**
+- **Why does `CLP()` connect `ModuleFooter.jsx` to `iOS Data Models`, `Cursos.jsx`, `Proposal Generator Script`, `Auth Login API`, `walletPrompt.js`, `cleanPhone`, `data.js`, `BarberLogin.jsx`, `BookingsInbox.jsx`, `ADMIN_API_TOKEN env var`?**
   _High betweenness centrality (0.012) - this node is a cross-community bridge._
 - **What connects `dev-wrapper.sh script`, `NVM_DIR`, `BASE` to the rest of the system?**
   _446 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Backend Auth & Project Docs` be split into smaller, more focused modules?**
   _Cohesion score 0.12105263157894737 - nodes in this community are weakly interconnected._
 - **Should `Workshop Page & Content` be split into smaller, more focused modules?**
-  _Cohesion score 0.05959183673469388 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.061979648473635525 - nodes in this community are weakly interconnected._
 - **Should `Vercel API Handlers` be split into smaller, more focused modules?**
-  _Cohesion score 0.09152542372881356 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.05054945054945055 - nodes in this community are weakly interconnected._

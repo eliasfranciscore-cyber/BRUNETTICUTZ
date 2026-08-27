@@ -50,7 +50,7 @@
     "semantic_hash": ""
   },
   "api/enrollments.js": {
-    "mtime": 1787277791.117806,
+    "mtime": 1787801518.6329842,
     "ast_hash": "98913238635d7157263ced713774e17f",
     "semantic_hash": ""
   },
@@ -75,7 +75,7 @@
     "semantic_hash": ""
   },
   "db/schema.sql": {
-    "mtime": 1787372990.5749855,
+    "mtime": 1787801518.6337817,
     "ast_hash": "0ac28be8e4fdc38f213ec40240d6dd68",
     "semantic_hash": ""
   },
@@ -280,12 +280,12 @@
     "semantic_hash": ""
   },
   "src/data/workshop.js": {
-    "mtime": 1787373035.566278,
-    "ast_hash": "b9085e2e84989e741252d31e86ff18d6",
+    "mtime": 1787802301.416964,
+    "ast_hash": "83ca9b3e37b9f74fc2b7899add533622",
     "semantic_hash": ""
   },
   "src/enrollmentsStore.js": {
-    "mtime": 1787277778.6793387,
+    "mtime": 1787801518.6355133,
     "ast_hash": "b6e97dfb04812b60cd77699d2689ecc9",
     "semantic_hash": ""
   },
@@ -315,7 +315,7 @@
     "semantic_hash": ""
   },
   "src/pages/Dashboard.jsx": {
-    "mtime": 1787373248.3996506,
+    "mtime": 1787801518.6370554,
     "ast_hash": "866998aae35f459ccea4eb453df117e6",
     "semantic_hash": ""
   },
@@ -335,8 +335,8 @@
     "semantic_hash": ""
   },
   "src/pages/Workshop.jsx": {
-    "mtime": 1787609106.5983777,
-    "ast_hash": "dd9b2597413d001f10b4d43cba24503d",
+    "mtime": 1787803175.7919683,
+    "ast_hash": "676f1b9c801818fcd3c0549acb9a02d8",
     "semantic_hash": ""
   },
   "src/push.js": {
@@ -365,7 +365,7 @@
     "semantic_hash": "8821dc65ef6d88a32b3d71aa793563c1"
   },
   "CLAUDE.md": {
-    "mtime": 1787370761.837692,
+    "mtime": 1787801518.631678,
     "ast_hash": "eccde4888b1917181203913f256a7503",
     "semantic_hash": ""
   },
@@ -975,8 +975,8 @@
     "semantic_hash": ""
   },
   "src/data/content/workshop.json": {
-    "mtime": 1787609106.5989795,
-    "ast_hash": "80aaf78f5dd712e7270ac2a9c6367c00",
+    "mtime": 1787802829.310297,
+    "ast_hash": "0308aa2da17d16323e004f2a808d7755",
     "semantic_hash": ""
   },
   "public/assets/bruno-hero-bg.webp": {
@@ -1035,8 +1035,8 @@
     "semantic_hash": ""
   },
   "src/data/overrides/workshop.json": {
-    "mtime": 1783904452.7632916,
-    "ast_hash": "0d1f951b625794a95c29535480d59156",
+    "mtime": 1787803305.6871583,
+    "ast_hash": "811451aa00abe5f11ad899276280efdc",
     "semantic_hash": ""
   },
   "src/components/DashKit.jsx": {
@@ -1340,7 +1340,7 @@
     "semantic_hash": ""
   },
   "src/components/EnrollmentModal.jsx": {
-    "mtime": 1787277819.3347323,
+    "mtime": 1787801518.6344402,
     "ast_hash": "5652756e3935ebb6e219da065c74b250",
     "semantic_hash": ""
   },
@@ -1350,7 +1350,7 @@
     "semantic_hash": ""
   },
   "src/components/NewEnrollmentModal.jsx": {
-    "mtime": 1787277833.114552,
+    "mtime": 1787801518.6349263,
     "ast_hash": "4d2e756c2cda6ae550be7c0b076df06d",
     "semantic_hash": ""
   },

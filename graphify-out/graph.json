@@ -52,7 +52,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_auth",
-      "community": 140,
+      "community": 4,
       "norm_label": "_auth.js"
     },
     {
@@ -62,7 +62,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "api_auth_b64url",
-      "community": 140,
+      "community": 4,
       "norm_label": "b64url()"
     },
     {
@@ -72,7 +72,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "api_auth_sign",
-      "community": 140,
+      "community": 4,
       "norm_label": "sign()"
     },
     {
@@ -82,7 +82,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "api_auth_createsession",
-      "community": 140,
+      "community": 4,
       "norm_label": "createsession()"
     },
     {
@@ -92,7 +92,7 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "api_auth_readsession",
-      "community": 140,
+      "community": 4,
       "norm_label": "readsession()"
     },
     {
@@ -102,7 +102,7 @@
       "source_location": "L65",
       "_origin": "ast",
       "id": "api_auth_requireinternal",
-      "community": 140,
+      "community": 4,
       "norm_label": "requireinternal()"
     },
     {
@@ -192,7 +192,7 @@
       "source_location": "L128",
       "_origin": "ast",
       "id": "api_email_sendworkshopconfirmationemail",
-      "community": 140,
+      "community": 4,
       "norm_label": "sendworkshopconfirmationemail()"
     },
     {
@@ -452,7 +452,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_products",
-      "community": 140,
+      "community": 4,
       "norm_label": "_products.js"
     },
     {
@@ -462,7 +462,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "api_products_demo_products",
-      "community": 140,
+      "community": 4,
       "norm_label": "demo_products"
     },
     {
@@ -472,7 +472,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "api_products_ensuretable",
-      "community": 140,
+      "community": 4,
       "norm_label": "ensuretable()"
     },
     {
@@ -482,7 +482,7 @@
       "source_location": "L50",
       "_origin": "ast",
       "id": "api_products_toclient",
-      "community": 140,
+      "community": 4,
       "norm_label": "toclient()"
     },
     {
@@ -492,7 +492,7 @@
       "source_location": "L67",
       "_origin": "ast",
       "id": "api_products_handleproducts",
-      "community": 140,
+      "community": 4,
       "norm_label": "handleproducts()"
     },
     {
@@ -502,7 +502,7 @@
       "source_location": "L159",
       "_origin": "ast",
       "id": "api_products_uploadimage",
-      "community": 140,
+      "community": 4,
       "norm_label": "uploadimage()"
     },
     {
@@ -592,7 +592,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_auth_barber",
-      "community": 140,
+      "community": 4,
       "norm_label": "auth-barber.js"
     },
     {
@@ -602,7 +602,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "api_auth_barber_sha256",
-      "community": 140,
+      "community": 4,
       "norm_label": "sha256()"
     },
     {
@@ -612,7 +612,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "api_auth_barber_isadmin",
-      "community": 140,
+      "community": 4,
       "norm_label": "isadmin()"
     },
     {
@@ -622,7 +622,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "api_auth_barber_isvalidpassword",
-      "community": 140,
+      "community": 4,
       "norm_label": "isvalidpassword()"
     },
     {
@@ -632,7 +632,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "api_auth_barber_barber_profiles",
-      "community": 140,
+      "community": 4,
       "norm_label": "barber_profiles"
     },
     {
@@ -642,7 +642,7 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "api_auth_barber_fallbackpasswords",
-      "community": 140,
+      "community": 4,
       "norm_label": "fallbackpasswords()"
     },
     {
@@ -652,7 +652,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "api_auth_barber_fallbacklogin",
-      "community": 140,
+      "community": 4,
       "norm_label": "fallbacklogin()"
     },
     {
@@ -662,7 +662,7 @@
       "source_location": "L53",
       "_origin": "ast",
       "id": "api_auth_barber_handlelogin",
-      "community": 140,
+      "community": 4,
       "norm_label": "handlelogin()"
     },
     {
@@ -672,7 +672,7 @@
       "source_location": "L87",
       "_origin": "ast",
       "id": "api_auth_barber_handlechangepassword",
-      "community": 140,
+      "community": 4,
       "norm_label": "handlechangepassword()"
     },
     {
@@ -682,7 +682,7 @@
       "source_location": "L110",
       "_origin": "ast",
       "id": "api_auth_barber_handler",
-      "community": 140,
+      "community": 4,
       "norm_label": "handler()"
     },
     {
@@ -772,7 +772,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_barbers",
-      "community": 140,
+      "community": 4,
       "norm_label": "barbers.js"
     },
     {
@@ -782,7 +782,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "api_barbers_static_barbers",
-      "community": 140,
+      "community": 4,
       "norm_label": "static_barbers"
     },
     {
@@ -792,7 +792,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "api_barbers_handler",
-      "community": 140,
+      "community": 4,
       "norm_label": "handler()"
     },
     {
@@ -912,7 +912,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_enrollments",
-      "community": 140,
+      "community": 4,
       "norm_label": "enrollments.js"
     },
     {
@@ -922,7 +922,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "api_enrollments_demo",
-      "community": 140,
+      "community": 4,
       "norm_label": "demo"
     },
     {
@@ -932,7 +932,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "api_enrollments_cleanphone",
-      "community": 140,
+      "community": 4,
       "norm_label": "cleanphone()"
     },
     {
@@ -942,7 +942,7 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "api_enrollments_sendjson",
-      "community": 140,
+      "community": 4,
       "norm_label": "sendjson()"
     },
     {
@@ -952,7 +952,7 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "api_enrollments_handler",
-      "community": 140,
+      "community": 4,
       "norm_label": "handler()"
     },
     {
@@ -962,7 +962,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_expenses",
-      "community": 140,
+      "community": 4,
       "norm_label": "expenses.js"
     },
     {
@@ -972,7 +972,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "api_expenses_demo_expenses",
-      "community": 140,
+      "community": 4,
       "norm_label": "demo_expenses"
     },
     {
@@ -982,7 +982,7 @@
       "source_location": "L10",
       "_origin": "ast",
       "id": "api_expenses_validateexpense",
-      "community": 140,
+      "community": 4,
       "norm_label": "validateexpense()"
     },
     {
@@ -992,7 +992,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "api_expenses_handler",
-      "community": 140,
+      "community": 4,
       "norm_label": "handler()"
     },
     {
@@ -1272,7 +1272,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_push",
-      "community": 140,
+      "community": 4,
       "norm_label": "push.js"
     },
     {
@@ -1282,7 +1282,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "api_push_sendduereminders",
-      "community": 140,
+      "community": 4,
       "norm_label": "sendduereminders()"
     },
     {
@@ -1292,7 +1292,7 @@
       "source_location": "L68",
       "_origin": "ast",
       "id": "api_push_getwebpush",
-      "community": 140,
+      "community": 4,
       "norm_label": "getwebpush()"
     },
     {
@@ -1302,7 +1302,7 @@
       "source_location": "L90",
       "_origin": "ast",
       "id": "api_push_lognotification",
-      "community": 140,
+      "community": 4,
       "norm_label": "lognotification()"
     },
     {
@@ -1312,7 +1312,7 @@
       "source_location": "L113",
       "_origin": "ast",
       "id": "api_push_notifybarber",
-      "community": 140,
+      "community": 4,
       "norm_label": "notifybarber()"
     },
     {
@@ -1322,7 +1322,7 @@
       "source_location": "L149",
       "_origin": "ast",
       "id": "api_push_notifyall",
-      "community": 140,
+      "community": 4,
       "norm_label": "notifyall()"
     },
     {
@@ -1332,7 +1332,7 @@
       "source_location": "L178",
       "_origin": "ast",
       "id": "api_push_handler",
-      "community": 140,
+      "community": 4,
       "norm_label": "handler()"
     },
     {
@@ -1392,7 +1392,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "api_services",
-      "community": 140,
+      "community": 4,
       "norm_label": "services.js"
     },
     {
@@ -1402,7 +1402,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "api_services_static_services",
-      "community": 140,
+      "community": 4,
       "norm_label": "static_services"
     },
     {
@@ -1412,7 +1412,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "api_services_handler",
-      "community": 140,
+      "community": 4,
       "norm_label": "handler()"
     },
     {
@@ -4762,7 +4762,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_package_dependencies_react",
-      "community": 5,
+      "community": 85,
       "norm_label": "react"
     },
     {
@@ -5702,7 +5702,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_barbershowcase",
-      "community": 24,
+      "community": 5,
       "norm_label": "barbershowcase.jsx"
     },
     {
@@ -5712,7 +5712,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "src_components_barbershowcase_barbercard",
-      "community": 24,
+      "community": 5,
       "norm_label": "barbercard()"
     },
     {
@@ -5722,7 +5722,7 @@
       "source_location": "L44",
       "_origin": "ast",
       "id": "src_components_barbershowcase_barbermodal",
-      "community": 24,
+      "community": 5,
       "norm_label": "barbermodal()"
     },
     {
@@ -5732,7 +5732,7 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "src_components_barbershowcase_barbershowcase",
-      "community": 24,
+      "community": 5,
       "norm_label": "barbershowcase()"
     },
     {
@@ -5942,7 +5942,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_clientmodal",
-      "community": 42,
+      "community": 20,
       "norm_label": "clientmodal.jsx"
     },
     {
@@ -5952,7 +5952,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "src_components_clientmodal_clientmodal",
-      "community": 42,
+      "community": 20,
       "norm_label": "clientmodal()"
     },
     {
@@ -5962,7 +5962,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_dashkit",
-      "community": 0,
+      "community": 5,
       "norm_label": "dashkit.jsx"
     },
     {
@@ -5972,7 +5972,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "src_components_dashkit_prefersreduced",
-      "community": 0,
+      "community": 5,
       "norm_label": "prefersreduced()"
     },
     {
@@ -5982,7 +5982,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "src_components_dashkit_usecountup",
-      "community": 0,
+      "community": 5,
       "norm_label": "usecountup()"
     },
     {
@@ -5992,7 +5992,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "src_components_dashkit_countup",
-      "community": 0,
+      "community": 5,
       "norm_label": "countup()"
     },
     {
@@ -6002,7 +6002,7 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "src_components_dashkit_kpitile",
-      "community": 0,
+      "community": 5,
       "norm_label": "kpitile()"
     },
     {
@@ -6012,7 +6012,7 @@
       "source_location": "L70",
       "_origin": "ast",
       "id": "src_components_dashkit_sparkline",
-      "community": 0,
+      "community": 5,
       "norm_label": "sparkline()"
     },
     {
@@ -6022,7 +6022,7 @@
       "source_location": "L108",
       "_origin": "ast",
       "id": "src_components_dashkit_donut",
-      "community": 0,
+      "community": 5,
       "norm_label": "donut()"
     },
     {
@@ -6032,7 +6032,7 @@
       "source_location": "L144",
       "_origin": "ast",
       "id": "src_components_dashkit_progressbar",
-      "community": 0,
+      "community": 5,
       "norm_label": "progressbar()"
     },
     {
@@ -6042,7 +6042,7 @@
       "source_location": "L160",
       "_origin": "ast",
       "id": "src_components_dashkit_animatedring",
-      "community": 0,
+      "community": 5,
       "norm_label": "animatedring()"
     },
     {
@@ -6142,7 +6142,7 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "src_components_dashboardresumen_peakhours",
-      "community": 5,
+      "community": 85,
       "norm_label": "peakhours()"
     },
     {
@@ -6202,7 +6202,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_enrollmentmodal",
-      "community": 17,
+      "community": 142,
       "norm_label": "enrollmentmodal.jsx"
     },
     {
@@ -6212,7 +6212,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "src_components_enrollmentmodal_enrollmentmodal",
-      "community": 17,
+      "community": 142,
       "norm_label": "enrollmentmodal()"
     },
     {
@@ -6332,7 +6332,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_globalsearch",
-      "community": 17,
+      "community": 24,
       "norm_label": "globalsearch.jsx"
     },
     {
@@ -6342,7 +6342,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "src_components_globalsearch_badgeclass",
-      "community": 17,
+      "community": 24,
       "norm_label": "badgeclass()"
     },
     {
@@ -6352,7 +6352,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "src_components_globalsearch_globalsearch",
-      "community": 17,
+      "community": 24,
       "norm_label": "globalsearch()"
     },
     {
@@ -6362,7 +6362,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_iconsextra",
-      "community": 24,
+      "community": 5,
       "norm_label": "iconsextra.jsx"
     },
     {
@@ -6372,7 +6372,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "src_components_iconsextra_paths",
-      "community": 24,
+      "community": 5,
       "norm_label": "paths"
     },
     {
@@ -6382,7 +6382,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "src_components_iconsextra_icon",
-      "community": 24,
+      "community": 5,
       "norm_label": "icon()"
     },
     {
@@ -6392,7 +6392,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_mercadopagocheckout",
-      "community": 42,
+      "community": 24,
       "norm_label": "mercadopagocheckout.jsx"
     },
     {
@@ -6402,7 +6402,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "src_components_mercadopagocheckout_checkout_items",
-      "community": 42,
+      "community": 24,
       "norm_label": "checkout_items"
     },
     {
@@ -6412,7 +6412,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "src_components_mercadopagocheckout_mercadopagocheckout",
-      "community": 42,
+      "community": 24,
       "norm_label": "mercadopagocheckout()"
     },
     {
@@ -6422,7 +6422,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_mobiledock",
-      "community": 17,
+      "community": 22,
       "norm_label": "mobiledock.jsx"
     },
     {
@@ -6432,7 +6432,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "src_components_mobiledock_mobiledock",
-      "community": 17,
+      "community": 22,
       "norm_label": "mobiledock()"
     },
     {
@@ -6552,7 +6552,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_newclientmodal",
-      "community": 17,
+      "community": 142,
       "norm_label": "newclientmodal.jsx"
     },
     {
@@ -6562,7 +6562,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "src_components_newclientmodal_newclientmodal",
-      "community": 17,
+      "community": 142,
       "norm_label": "newclientmodal()"
     },
     {
@@ -6572,7 +6572,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_newenrollmentmodal",
-      "community": 17,
+      "community": 142,
       "norm_label": "newenrollmentmodal.jsx"
     },
     {
@@ -6582,7 +6582,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "src_components_newenrollmentmodal_newenrollmentmodal",
-      "community": 17,
+      "community": 142,
       "norm_label": "newenrollmentmodal()"
     },
     {
@@ -7042,7 +7042,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "src_components_ui_brandmark",
-      "community": 17,
+      "community": 139,
       "norm_label": "brandmark()"
     },
     {
@@ -7342,7 +7342,7 @@
       "source_location": "L71",
       "_origin": "ast",
       "id": "src_data_client_appts",
-      "community": 139,
+      "community": 20,
       "norm_label": "client_appts"
     },
     {
@@ -7352,7 +7352,7 @@
       "source_location": "L78",
       "_origin": "ast",
       "id": "src_data_clp",
-      "community": 42,
+      "community": 24,
       "norm_label": "clp()"
     },
     {
@@ -7372,7 +7372,7 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "src_data_barberbyid",
-      "community": 42,
+      "community": 20,
       "norm_label": "barberbyid()"
     },
     {
@@ -7392,7 +7392,7 @@
       "source_location": "L82",
       "_origin": "ast",
       "id": "src_data_cleanphone",
-      "community": 17,
+      "community": 142,
       "norm_label": "cleanphone()"
     },
     {
@@ -7586,10 +7586,20 @@
       "norm_label": "wk_base"
     },
     {
+      "label": "wkRango()",
+      "file_type": "code",
+      "source_file": "src/data/workshop.js",
+      "source_location": "L145",
+      "_origin": "ast",
+      "id": "src_data_workshop_wkrango",
+      "community": 3,
+      "norm_label": "wkrango()"
+    },
+    {
       "label": "WK_MESES",
       "file_type": "code",
       "source_file": "src/data/workshop.js",
-      "source_location": "L141",
+      "source_location": "L149",
       "_origin": "ast",
       "id": "src_data_workshop_wk_meses",
       "community": 3,
@@ -7599,7 +7609,7 @@
       "label": "WK_DIAS",
       "file_type": "code",
       "source_file": "src/data/workshop.js",
-      "source_location": "L142",
+      "source_location": "L150",
       "_origin": "ast",
       "id": "src_data_workshop_wk_dias",
       "community": 3,
@@ -7609,7 +7619,7 @@
       "label": "formatWorkshopDate()",
       "file_type": "code",
       "source_file": "src/data/workshop.js",
-      "source_location": "L147",
+      "source_location": "L155",
       "_origin": "ast",
       "id": "src_data_workshop_formatworkshopdate",
       "community": 3,
@@ -7619,7 +7629,7 @@
       "label": "wkEditionDate()",
       "file_type": "code",
       "source_file": "src/data/workshop.js",
-      "source_location": "L158",
+      "source_location": "L166",
       "_origin": "ast",
       "id": "src_data_workshop_wkeditiondate",
       "community": 3,
@@ -7629,7 +7639,7 @@
       "label": "WK_ED",
       "file_type": "code",
       "source_file": "src/data/workshop.js",
-      "source_location": "L171",
+      "source_location": "L179",
       "_origin": "ast",
       "id": "src_data_workshop_wk_ed",
       "community": 3,
@@ -7639,7 +7649,7 @@
       "label": "WORKSHOP",
       "file_type": "code",
       "source_file": "src/data/workshop.js",
-      "source_location": "L173",
+      "source_location": "L181",
       "_origin": "ast",
       "id": "src_data_workshop_workshop",
       "community": 3,
@@ -7652,7 +7662,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_enrollmentsstore",
-      "community": 3,
+      "community": 142,
       "norm_label": "enrollmentsstore.js"
     },
     {
@@ -7662,7 +7672,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "src_enrollmentsstore_readlocalenrollments",
-      "community": 3,
+      "community": 142,
       "norm_label": "readlocalenrollments()"
     },
     {
@@ -7672,7 +7682,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "src_enrollmentsstore_writelocalenrollments",
-      "community": 3,
+      "community": 142,
       "norm_label": "writelocalenrollments()"
     },
     {
@@ -7682,7 +7692,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "src_enrollmentsstore_addlocalenrollment",
-      "community": 3,
+      "community": 142,
       "norm_label": "addlocalenrollment()"
     },
     {
@@ -7692,7 +7702,7 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "src_enrollmentsstore_mergeenrollments",
-      "community": 3,
+      "community": 142,
       "norm_label": "mergeenrollments()"
     },
     {
@@ -8142,7 +8152,7 @@
       "source_location": "L161",
       "_origin": "ast",
       "id": "src_pages_dashboard_bookingdetailmodal",
-      "community": 17,
+      "community": 142,
       "norm_label": "bookingdetailmodal()"
     },
     {
@@ -8212,7 +8222,7 @@
       "source_location": "L2398",
       "_origin": "ast",
       "id": "src_pages_dashboard_enrollmentspanel",
-      "community": 5,
+      "community": 85,
       "norm_label": "enrollmentspanel()"
     },
     {
@@ -8242,7 +8252,7 @@
       "source_location": "L2551",
       "_origin": "ast",
       "id": "src_pages_dashboard_pedidospanel",
-      "community": 5,
+      "community": 85,
       "norm_label": "pedidospanel()"
     },
     {
@@ -8669,7 +8679,7 @@
       "label": "Icon()",
       "file_type": "code",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L38",
+      "source_location": "L39",
       "_origin": "ast",
       "id": "src_pages_workshop_icon",
       "community": 3,
@@ -8679,7 +8689,7 @@
       "label": "useInView()",
       "file_type": "code",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L47",
+      "source_location": "L48",
       "_origin": "ast",
       "id": "src_pages_workshop_useinview",
       "community": 3,
@@ -8689,7 +8699,7 @@
       "label": "Reveal()",
       "file_type": "code",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L63",
+      "source_location": "L64",
       "_origin": "ast",
       "id": "src_pages_workshop_reveal",
       "community": 3,
@@ -8699,7 +8709,7 @@
       "label": "Bw()",
       "file_type": "code",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L76",
+      "source_location": "L77",
       "_origin": "ast",
       "id": "src_pages_workshop_bw",
       "community": 3,
@@ -8709,7 +8719,7 @@
       "label": "ytId()",
       "file_type": "code",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L89",
+      "source_location": "L90",
       "_origin": "ast",
       "id": "src_pages_workshop_ytid",
       "community": 3,
@@ -8719,7 +8729,7 @@
       "label": "toEmbedUrl()",
       "file_type": "code",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L96",
+      "source_location": "L97",
       "_origin": "ast",
       "id": "src_pages_workshop_toembedurl",
       "community": 3,
@@ -8729,7 +8739,7 @@
       "label": "VideoEmbed()",
       "file_type": "code",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L109",
+      "source_location": "L110",
       "_origin": "ast",
       "id": "src_pages_workshop_videoembed",
       "community": 3,
@@ -8739,7 +8749,7 @@
       "label": "VideoShowcase()",
       "file_type": "code",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L138",
+      "source_location": "L139",
       "_origin": "ast",
       "id": "src_pages_workshop_videoshowcase",
       "community": 3,
@@ -8749,7 +8759,7 @@
       "label": "formatCLP()",
       "file_type": "code",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L157",
+      "source_location": "L158",
       "_origin": "ast",
       "id": "src_pages_workshop_formatclp",
       "community": 3,
@@ -8759,7 +8769,7 @@
       "label": "useScrolled()",
       "file_type": "code",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L164",
+      "source_location": "L165",
       "_origin": "ast",
       "id": "src_pages_workshop_usescrolled",
       "community": 3,
@@ -8769,7 +8779,7 @@
       "label": "useCountdown()",
       "file_type": "code",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L175",
+      "source_location": "L176",
       "_origin": "ast",
       "id": "src_pages_workshop_usecountdown",
       "community": 3,
@@ -8779,7 +8789,7 @@
       "label": "calc()",
       "file_type": "code",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L183",
+      "source_location": "L184",
       "_origin": "ast",
       "id": "src_pages_workshop_calc",
       "community": 3,
@@ -8789,7 +8799,7 @@
       "label": "smoothTo()",
       "file_type": "code",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L193",
+      "source_location": "L194",
       "_origin": "ast",
       "id": "src_pages_workshop_smoothto",
       "community": 3,
@@ -8799,7 +8809,7 @@
       "label": "Hero()",
       "file_type": "code",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L199",
+      "source_location": "L200",
       "_origin": "ast",
       "id": "src_pages_workshop_hero",
       "community": 3,
@@ -8809,7 +8819,7 @@
       "label": "Transform()",
       "file_type": "code",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L261",
+      "source_location": "L262",
       "_origin": "ast",
       "id": "src_pages_workshop_transform",
       "community": 3,
@@ -8819,7 +8829,7 @@
       "label": "QuoteBlock()",
       "file_type": "code",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L288",
+      "source_location": "L289",
       "_origin": "ast",
       "id": "src_pages_workshop_quoteblock",
       "community": 3,
@@ -8829,7 +8839,7 @@
       "label": "FeatureRow()",
       "file_type": "code",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L317",
+      "source_location": "L318",
       "_origin": "ast",
       "id": "src_pages_workshop_featurerow",
       "community": 3,
@@ -8839,7 +8849,7 @@
       "label": "Programa()",
       "file_type": "code",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L350",
+      "source_location": "L351",
       "_origin": "ast",
       "id": "src_pages_workshop_programa",
       "community": 3,
@@ -8849,7 +8859,7 @@
       "label": "Cronograma()",
       "file_type": "code",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L400",
+      "source_location": "L401",
       "_origin": "ast",
       "id": "src_pages_workshop_cronograma",
       "community": 3,
@@ -8859,17 +8869,27 @@
       "label": "GiveKit()",
       "file_type": "code",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L427",
+      "source_location": "L428",
       "_origin": "ast",
       "id": "src_pages_workshop_givekit",
       "community": 3,
       "norm_label": "givekit()"
     },
     {
+      "label": "Concurso()",
+      "file_type": "code",
+      "source_file": "src/pages/Workshop.jsx",
+      "source_location": "L470",
+      "_origin": "ast",
+      "id": "src_pages_workshop_concurso",
+      "community": 3,
+      "norm_label": "concurso()"
+    },
+    {
       "label": "Pricing()",
       "file_type": "code",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L465",
+      "source_location": "L533",
       "_origin": "ast",
       "id": "src_pages_workshop_pricing",
       "community": 3,
@@ -8879,7 +8899,7 @@
       "label": "Register()",
       "file_type": "code",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L512",
+      "source_location": "L580",
       "_origin": "ast",
       "id": "src_pages_workshop_register",
       "community": 3,
@@ -8889,7 +8909,7 @@
       "label": "FaqItem()",
       "file_type": "code",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L707",
+      "source_location": "L775",
       "_origin": "ast",
       "id": "src_pages_workshop_faqitem",
       "community": 3,
@@ -8899,7 +8919,7 @@
       "label": "Faq()",
       "file_type": "code",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L726",
+      "source_location": "L819",
       "_origin": "ast",
       "id": "src_pages_workshop_faq",
       "community": 3,
@@ -8909,7 +8929,7 @@
       "label": "Footer()",
       "file_type": "code",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L747",
+      "source_location": "L840",
       "_origin": "ast",
       "id": "src_pages_workshop_footer",
       "community": 3,
@@ -8919,7 +8939,7 @@
       "label": "StickyCta()",
       "file_type": "code",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L800",
+      "source_location": "L894",
       "_origin": "ast",
       "id": "src_pages_workshop_stickycta",
       "community": 3,
@@ -8929,7 +8949,7 @@
       "label": "Workshop()",
       "file_type": "code",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L811",
+      "source_location": "L905",
       "_origin": "ast",
       "id": "src_pages_workshop_workshop",
       "community": 3,
@@ -30004,7 +30024,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/data/workshop.js",
-      "source_location": "L147",
+      "source_location": "L155",
       "weight": 1.0,
       "source": "src_data_workshop",
       "target": "src_data_workshop_formatworkshopdate",
@@ -30034,7 +30054,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/data/workshop.js",
-      "source_location": "L142",
+      "source_location": "L150",
       "weight": 1.0,
       "source": "src_data_workshop",
       "target": "src_data_workshop_wk_dias",
@@ -30044,7 +30064,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/data/workshop.js",
-      "source_location": "L171",
+      "source_location": "L179",
       "weight": 1.0,
       "source": "src_data_workshop",
       "target": "src_data_workshop_wk_ed",
@@ -30054,7 +30074,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/data/workshop.js",
-      "source_location": "L141",
+      "source_location": "L149",
       "weight": 1.0,
       "source": "src_data_workshop",
       "target": "src_data_workshop_wk_meses",
@@ -30064,7 +30084,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/data/workshop.js",
-      "source_location": "L158",
+      "source_location": "L166",
       "weight": 1.0,
       "source": "src_data_workshop",
       "target": "src_data_workshop_wkeditiondate",
@@ -30074,7 +30094,17 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/data/workshop.js",
-      "source_location": "L173",
+      "source_location": "L145",
+      "weight": 1.0,
+      "source": "src_data_workshop",
+      "target": "src_data_workshop_wkrango",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/data/workshop.js",
+      "source_location": "L181",
       "weight": 1.0,
       "source": "src_data_workshop",
       "target": "src_data_workshop_workshop",
@@ -30152,6 +30182,28 @@
       "confidence_score": 1.0
     },
     {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/data/workshop.js",
+      "source_location": "L163",
+      "weight": 1.0,
+      "source": "src_data_workshop_formatworkshopdate",
+      "target": "src_data_workshop_wkrango",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/data/workshop.js",
+      "source_location": "L176",
+      "weight": 1.0,
+      "source": "src_data_workshop_wkeditiondate",
+      "target": "src_data_workshop_wkrango",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "imports",
       "context": "import",
       "confidence": "EXTRACTED",
@@ -30168,7 +30220,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L831",
+      "source_location": "L925",
       "weight": 1.0,
       "source": "src_pages_workshop_workshop",
       "target": "src_data_workshop_formatworkshopdate"
@@ -30295,7 +30347,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L563",
+      "source_location": "L631",
       "weight": 1.0,
       "source": "src_pages_workshop_register",
       "target": "src_enrollmentsstore_addlocalenrollment",
@@ -32014,7 +32066,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L76",
+      "source_location": "L77",
       "weight": 1.0,
       "source": "src_pages_workshop",
       "target": "src_pages_workshop_bw",
@@ -32024,7 +32076,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L183",
+      "source_location": "L184",
       "weight": 1.0,
       "source": "src_pages_workshop",
       "target": "src_pages_workshop_calc",
@@ -32034,7 +32086,17 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L400",
+      "source_location": "L470",
+      "weight": 1.0,
+      "source": "src_pages_workshop",
+      "target": "src_pages_workshop_concurso",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/Workshop.jsx",
+      "source_location": "L401",
       "weight": 1.0,
       "source": "src_pages_workshop",
       "target": "src_pages_workshop_cronograma",
@@ -32044,7 +32106,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L726",
+      "source_location": "L819",
       "weight": 1.0,
       "source": "src_pages_workshop",
       "target": "src_pages_workshop_faq",
@@ -32054,7 +32116,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L707",
+      "source_location": "L775",
       "weight": 1.0,
       "source": "src_pages_workshop",
       "target": "src_pages_workshop_faqitem",
@@ -32064,7 +32126,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L317",
+      "source_location": "L318",
       "weight": 1.0,
       "source": "src_pages_workshop",
       "target": "src_pages_workshop_featurerow",
@@ -32074,7 +32136,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L747",
+      "source_location": "L840",
       "weight": 1.0,
       "source": "src_pages_workshop",
       "target": "src_pages_workshop_footer",
@@ -32084,7 +32146,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L157",
+      "source_location": "L158",
       "weight": 1.0,
       "source": "src_pages_workshop",
       "target": "src_pages_workshop_formatclp",
@@ -32094,7 +32156,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L427",
+      "source_location": "L428",
       "weight": 1.0,
       "source": "src_pages_workshop",
       "target": "src_pages_workshop_givekit",
@@ -32104,7 +32166,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L199",
+      "source_location": "L200",
       "weight": 1.0,
       "source": "src_pages_workshop",
       "target": "src_pages_workshop_hero",
@@ -32114,7 +32176,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L38",
+      "source_location": "L39",
       "weight": 1.0,
       "source": "src_pages_workshop",
       "target": "src_pages_workshop_icon",
@@ -32124,7 +32186,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L465",
+      "source_location": "L533",
       "weight": 1.0,
       "source": "src_pages_workshop",
       "target": "src_pages_workshop_pricing",
@@ -32134,7 +32196,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L350",
+      "source_location": "L351",
       "weight": 1.0,
       "source": "src_pages_workshop",
       "target": "src_pages_workshop_programa",
@@ -32144,7 +32206,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L288",
+      "source_location": "L289",
       "weight": 1.0,
       "source": "src_pages_workshop",
       "target": "src_pages_workshop_quoteblock",
@@ -32154,7 +32216,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L512",
+      "source_location": "L580",
       "weight": 1.0,
       "source": "src_pages_workshop",
       "target": "src_pages_workshop_register",
@@ -32164,7 +32226,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L63",
+      "source_location": "L64",
       "weight": 1.0,
       "source": "src_pages_workshop",
       "target": "src_pages_workshop_reveal",
@@ -32174,7 +32236,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L193",
+      "source_location": "L194",
       "weight": 1.0,
       "source": "src_pages_workshop",
       "target": "src_pages_workshop_smoothto",
@@ -32184,7 +32246,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L800",
+      "source_location": "L894",
       "weight": 1.0,
       "source": "src_pages_workshop",
       "target": "src_pages_workshop_stickycta",
@@ -32194,7 +32256,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L96",
+      "source_location": "L97",
       "weight": 1.0,
       "source": "src_pages_workshop",
       "target": "src_pages_workshop_toembedurl",
@@ -32204,7 +32266,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L261",
+      "source_location": "L262",
       "weight": 1.0,
       "source": "src_pages_workshop",
       "target": "src_pages_workshop_transform",
@@ -32214,7 +32276,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L175",
+      "source_location": "L176",
       "weight": 1.0,
       "source": "src_pages_workshop",
       "target": "src_pages_workshop_usecountdown",
@@ -32224,7 +32286,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L47",
+      "source_location": "L48",
       "weight": 1.0,
       "source": "src_pages_workshop",
       "target": "src_pages_workshop_useinview",
@@ -32234,7 +32296,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L164",
+      "source_location": "L165",
       "weight": 1.0,
       "source": "src_pages_workshop",
       "target": "src_pages_workshop_usescrolled",
@@ -32244,7 +32306,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L109",
+      "source_location": "L110",
       "weight": 1.0,
       "source": "src_pages_workshop",
       "target": "src_pages_workshop_videoembed",
@@ -32254,7 +32316,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L138",
+      "source_location": "L139",
       "weight": 1.0,
       "source": "src_pages_workshop",
       "target": "src_pages_workshop_videoshowcase",
@@ -32274,7 +32336,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L811",
+      "source_location": "L905",
       "weight": 1.0,
       "source": "src_pages_workshop",
       "target": "src_pages_workshop_workshop",
@@ -32284,7 +32346,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L89",
+      "source_location": "L90",
       "weight": 1.0,
       "source": "src_pages_workshop",
       "target": "src_pages_workshop_ytid",
@@ -32295,7 +32357,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L466",
+      "source_location": "L534",
       "weight": 1.0,
       "source": "src_pages_workshop_pricing",
       "target": "src_pages_workshop_useinview",
@@ -32306,7 +32368,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L289",
+      "source_location": "L290",
       "weight": 1.0,
       "source": "src_pages_workshop_quoteblock",
       "target": "src_pages_workshop_useinview",
@@ -32317,7 +32379,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L64",
+      "source_location": "L65",
       "weight": 1.0,
       "source": "src_pages_workshop_reveal",
       "target": "src_pages_workshop_useinview",
@@ -32328,9 +32390,20 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L98",
+      "source_location": "L99",
       "weight": 1.0,
       "source": "src_pages_workshop_toembedurl",
+      "target": "src_pages_workshop_ytid",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "src/pages/Workshop.jsx",
+      "source_location": "L113",
+      "weight": 1.0,
+      "source": "src_pages_workshop_videoembed",
       "target": "src_pages_workshop_ytid",
       "confidence_score": 1.0
     },
@@ -32342,17 +32415,6 @@
       "source_location": "L112",
       "weight": 1.0,
       "source": "src_pages_workshop_videoembed",
-      "target": "src_pages_workshop_ytid",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L111",
-      "weight": 1.0,
-      "source": "src_pages_workshop_videoembed",
       "target": "src_pages_workshop_toembedurl",
       "confidence_score": 1.0
     },
@@ -32361,7 +32423,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L248",
+      "source_location": "L249",
       "weight": 1.0,
       "source": "src_pages_workshop_hero",
       "target": "src_pages_workshop_formatclp",
@@ -32372,7 +32434,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L482",
+      "source_location": "L550",
       "weight": 1.0,
       "source": "src_pages_workshop_pricing",
       "target": "src_pages_workshop_formatclp",
@@ -32383,7 +32445,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L613",
+      "source_location": "L681",
       "weight": 1.0,
       "source": "src_pages_workshop_register",
       "target": "src_pages_workshop_formatclp",
@@ -32394,7 +32456,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L804",
+      "source_location": "L898",
       "weight": 1.0,
       "source": "src_pages_workshop_stickycta",
       "target": "src_pages_workshop_formatclp",
@@ -32405,7 +32467,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L801",
+      "source_location": "L895",
       "weight": 1.0,
       "source": "src_pages_workshop_stickycta",
       "target": "src_pages_workshop_usescrolled",
@@ -32416,7 +32478,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L200",
+      "source_location": "L201",
       "weight": 1.0,
       "source": "src_pages_workshop_hero",
       "target": "src_pages_workshop_usecountdown",
@@ -32427,7 +32489,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L176",
+      "source_location": "L177",
       "weight": 1.0,
       "source": "src_pages_workshop_usecountdown",
       "target": "src_pages_workshop_calc",
@@ -32438,7 +32500,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L773",
+      "source_location": "L867",
       "weight": 1.0,
       "source": "src_pages_workshop_footer",
       "target": "src_pages_workshop_smoothto",
@@ -32449,7 +32511,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L229",
+      "source_location": "L230",
       "weight": 1.0,
       "source": "src_pages_workshop_hero",
       "target": "src_pages_workshop_smoothto",
@@ -32460,7 +32522,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "src/pages/Workshop.jsx",
-      "source_location": "L814",
+      "source_location": "L908",
       "weight": 1.0,
       "source": "src_pages_workshop_workshop",
       "target": "src_pages_workshop_smoothto",
@@ -36508,5 +36570,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "df14fce8323c6849ca8c00ad3e2747ae7ace5eb5"
+  "built_at_commit": "109f7a404a90b4c6318d158a537723d7ef3639c8"
 }
