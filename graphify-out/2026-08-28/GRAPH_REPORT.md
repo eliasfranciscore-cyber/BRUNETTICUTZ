@@ -1,16 +1,16 @@
-# Graph Report - BRUNETTICUTZ  (2026-08-28)
+# Graph Report - BRUNETTICUTZ  (2026-08-27)
 
 ## Corpus Check
-- 158 files · ~2,061,948 words
+- 144 files · ~1,980,720 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1482 nodes · 2407 edges · 154 communities (78 shown, 76 thin omitted)
+- 1298 nodes · 2227 edges · 144 communities (68 shown, 76 thin omitted)
 - Extraction: 98% EXTRACTED · 2% INFERRED · 0% AMBIGUOUS · INFERRED: 37 edges (avg confidence: 0.82)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `a9d60c13`
+- Built from commit: `e20daffb`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -156,28 +156,18 @@
 - APIError
 - cleanPhone
 - AppTab
-- M3 · La estructura del video viral
-- M5 · Del scroll a la silla
-- Dinámicas y ejercicios
-- M2 · Ideas virales
-- M1 · Valer más
-- Cifras del workshop
-- README.md
-- Identidad visual
-- Brief del día — Workshop de 6 horas
-- M4 · La calculadora de viralidad
 
 ## God Nodes (most connected - your core abstractions)
 1. `CLP()` - 30 edges
 2. `requireInternal()` - 25 edges
 3. `APIClient` - 25 edges
-4. `V1 — ASCENSIÓN II · El barbero invisible` - 23 edges
-5. `V2 — Del scroll a la silla` - 23 edges
-6. `Dashboard()` - 22 edges
-7. `V3 — 15 segundos · el taller` - 22 edges
-8. `handler()` - 21 edges
-9. `Icon()` - 20 edges
-10. `Apple Design` - 20 edges
+4. `Dashboard()` - 22 edges
+5. `handler()` - 21 edges
+6. `Icon()` - 20 edges
+7. `Apple Design` - 20 edges
+8. `handler()` - 18 edges
+9. `SessionStore` - 16 edges
+10. `cleanPhone()` - 16 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `PIMP STUDIO Logo (JPG, used as brand header/footer image)` --semantically_similar_to--> `PIMP STUDIO Logo JPG (web/assets copy)`  [INFERRED] [semantically similar]
@@ -194,15 +184,15 @@
 ## Import Cycles
 - None detected.
 
-## Communities (154 total, 76 thin omitted)
+## Communities (144 total, 76 thin omitted)
 
 ### Community 0 - "iOS Data Models"
-Cohesion: 0.22
-Nodes (16): AnimatedRing(), CountUp(), Donut(), KpiTile(), prefersReduced(), ProgressBar(), Sparkline(), useCountUp() (+8 more)
+Cohesion: 0.39
+Nodes (8): CATEGORY_META, daysInMonth(), EXPENSE_CATEGORIES, ExpenseModal(), ExpensesModule(), exportExpensesCSV(), metaOf(), monthKey()
 
 ### Community 1 - "iOS API Client"
-Cohesion: 0.14
-Nodes (36): Codable, Hashable, Identifiable, String, APIEndpointStatus, APIHealth, AvailabilitySlot, Barber (+28 more)
+Cohesion: 0.18
+Nodes (30): Codable, Hashable, Identifiable, String, APIEndpointStatus, APIHealth, AvailabilitySlot, Barber (+22 more)
 
 ### Community 2 - "Backend Auth & Project Docs"
 Cohesion: 0.12
@@ -210,15 +200,15 @@ Nodes (16): Account, App(), BarberLogin, Booking, CardShare, Cursos, Dashboard, 
 
 ### Community 3 - "Workshop Page & Content"
 Cohesion: 0.06
-Nodes (38): FEATURE_CARDS, formatWorkshopDate(), TESTIMONIALS, WK_BASE, WK_DIAS, WK_ED, WK_MESES, wkEditionDate() (+30 more)
+Nodes (34): FEATURE_CARDS, formatWorkshopDate(), TESTIMONIALS, WK_BASE, WK_DIAS, WK_ED, WK_MESES, wkEditionDate() (+26 more)
 
 ### Community 4 - "Vercel API Handlers"
-Cohesion: 0.09
-Nodes (50): handler(), businessDateKey(), businessNowMinutes(), handler(), isBridgeRequest(), slotMinutes(), logBookingAttempt(), businessDateKey() (+42 more)
+Cohesion: 0.05
+Nodes (87): b64url(), BARBER_PROFILES, fallbackLogin(), fallbackPasswords(), handleChangePassword(), handleLogin(), handler(), isAdmin() (+79 more)
 
 ### Community 5 - "Cursos.jsx"
 Cohesion: 0.14
-Nodes (18): addDays(), Bars(), BUSINESS_HOURS, CAT_COLORS, DashboardResumen(), DOW_ORDER, DOW_SHORT, getSvcIconByName() (+10 more)
+Nodes (22): addDays(), Bars(), BUSINESS_HOURS, CAT_COLORS, DashboardResumen(), DOW_ORDER, DOW_SHORT, getSvcIconByName() (+14 more)
 
 ### Community 6 - "Legacy Static Site (web/app.js)"
 Cohesion: 0.07
@@ -233,8 +223,8 @@ Cohesion: 0.07
 Nodes (26): dependencies, framer-motion, @neondatabase/serverless, react-dom, react-router-dom, @vercel/analytics, @vercel/blob, web-push (+18 more)
 
 ### Community 9 - "iOS Detail Sheets & Module Views"
-Cohesion: 0.17
-Nodes (4): Any, T, APIClient, cleanPhone()
+Cohesion: 0.06
+Nodes (24): Any, Decodable, Error, LocalizedError, T, APIClient, APIError, badStatus (+16 more)
 
 ### Community 10 - "Fintoc Checkout & Site Nav"
 Cohesion: 0.19
@@ -245,8 +235,8 @@ Cohesion: 0.08
 Nodes (25): 2026-06-12 - Base operativa clientes, agenda y panel interno, 2026-06-13 - Rediseño UI para web y componentes responsivos, 2026-06-22 - Marca personal Brunetti (un solo barbero) + módulo Cursos + panel interno solo-Brunetti, 2026-06-24 - Hero Brunetti sin efecto gooey + modo claro pulido en todos los módulos, Archivos modificados, Archivos modificados, Archivos modificados, Archivos principales tocados (+17 more)
 
 ### Community 12 - "iOS Agenda & Reservations Views"
-Cohesion: 0.06
-Nodes (41): Charts, ColorScheme, SafariServices, ServiceRevenue, SwiftUI, UNAuthorizationStatus, RootView, DashboardView (+33 more)
+Cohesion: 0.10
+Nodes (30): Charts, ServiceRevenue, UNAuthorizationStatus, BarberChartMode, ingresos, servicios, BarberDashboardCharts, BookingRow (+22 more)
 
 ### Community 13 - "ExpensesModule.jsx"
 Cohesion: 0.07
@@ -257,20 +247,20 @@ Cohesion: 0.09
 Nodes (21): 1. Purpose & frequency, 2. Easing & duration, 3. Physicality & origin, 4. Interruptibility, 5. Performance, 6. Accessibility, 7. Cohesion & tokens, 8. Missed opportunities (+13 more)
 
 ### Community 15 - "EncuentraEstilo (Style Finder) Page"
-Cohesion: 0.06
-Nodes (24): App, AppEnum, AppIntent, AppIntents, AppShortcut, AppShortcutsProvider, Data, DisplayRepresentation (+16 more)
+Cohesion: 0.19
+Nodes (3): Data, KeychainStore, SessionStore
 
 ### Community 16 - "Auth & Booking Concepts"
 Cohesion: 0.24
 Nodes (16): Admin Key Authentication (shared internal password pattern), Barber Availability Management (barber sets available slots per day), Barber Authentication Flow (username/password, sets active barber session), Dual Authentication System (client auth via phone vs barber/admin auth via username+password), Phone Number as Client Identity (celular = ID de cliente), Manual Slot Blocking (admin blocks time slots per barber per day), TNE Discount (20% for Tarjeta Nacional Estudiantil, non-Bruno services), PIMP STUDIO Logo (JPG, used as brand header/footer image) (+8 more)
 
 ### Community 17 - "ui.jsx"
-Cohesion: 0.08
-Nodes (24): ALL_MODULE_IDS, BarberModal(), emptyBarber, MODULES, PERMS, BookingSyncIssues(), EnrollmentModal(), badgeClass() (+16 more)
+Cohesion: 0.09
+Nodes (19): ALL_MODULE_IDS, BarberModal(), emptyBarber, MODULES, PERMS, BookingSyncIssues(), badgeClass(), GlobalSearch() (+11 more)
 
 ### Community 18 - "iOS App Intents & Shortcuts"
-Cohesion: 0.08
-Nodes (23): 01 · Workshop de barberos · 6 horas, 02 · La tesis del día, 03 · El día de hoy, 04 · Valer / más., 05 · “, 06 · Tu marca es lo que dicen de ti / cuando no estás en la sala., 07 · ¿Por qué alguien paga más?, 08 · Empaquetá el valor en niveles. (+15 more)
+Cohesion: 0.15
+Nodes (12): AppEnum, AppIntent, AppIntents, AppShortcut, AppShortcutsProvider, DisplayRepresentation, IntentResult, LocalizedStringResource (+4 more)
 
 ### Community 19 - "iOS Design System"
 Cohesion: 0.11
@@ -341,8 +331,8 @@ Cohesion: 0.19
 Nodes (10): scrollToId(), useBrunettiFx(), NAV, SiteNav(), Sparkles(), Cursos(), INCLUDE_ICONS, INCLUDES (+2 more)
 
 ### Community 39 - "Claude Dev Wrapper Script"
-Cohesion: 0.08
-Nodes (23): 01 · 10.000 seguidores. / $0 en la caja., 02 · Muchos barberos generan vistas. / Y cero clientes., 03 · ¿Cuánto vale un cliente tuyo / en dos años?, 04 · El recorrido de hoy, 05 · El / precio., 06 · “, 07 · ¿Por qué alguien paga más?, 08 · Empaquetá el valor. Cobrá en niveles. (+15 more)
+Cohesion: 0.29
+Nodes (5): Foundation, LocalAuthentication, Observation, Security, Keys
 
 ### Community 41 - "DetailSheets.swift"
 Cohesion: 0.47
@@ -425,96 +415,56 @@ Cohesion: 0.50
 Nodes (4): Debugging Animations, Frame-by-frame inspection, Slow motion testing, Test on real devices
 
 ### Community 85 - "BarberLogin.jsx"
-Cohesion: 0.60
-Nodes (5): BARBERS, BarberLogin(), clearLockout(), getLockout(), setLockout()
+Cohesion: 0.29
+Nodes (9): PeakHours(), BARBERS, BarberLogin(), clearLockout(), getLockout(), setLockout(), EnrollmentsPanel(), PedidosPanel() (+1 more)
 
 ### Community 86 - "ADMIN_API_TOKEN env var"
 Cohesion: 0.62
 Nodes (8): addToCart(), cartCount(), clearCart(), readCart(), removeFromCart(), setQty(), writeCart(), Essentials()
 
 ### Community 90 - "Booking.jsx"
-Cohesion: 0.09
-Nodes (22): 01 · Hoy no te vas / sin publicar., 02 · Esto no es una charla. / Es un set de grabación., 03 · El día, hora por hora, 04 · La / idea., 05 · Si no se entiende sin audio, / el video ya murió., 06 · Tus 3 hooks / de dolor., 07 · ¿Vale la pena grabar este video?, 08 · Cómo se lee el puntaje (+14 more)
+Cohesion: 0.12
+Nodes (11): App, ColorScheme, SafariServices, Scene, SwiftUI, BrunettiCutzApp, RootView, DashboardView (+3 more)
 
 ### Community 92 - "bookings.js"
-Cohesion: 0.16
-Nodes (19): Decodable, Error, LocalizedError, APIError, badStatus, invalidURL, missingData, AvailabilityResponse (+11 more)
+Cohesion: 0.13
+Nodes (15): CaseIterable, DashboardFocus, dia, semana, workshop, BookingStatus, cancelada, completada (+7 more)
 
 ### Community 139 - "walletPrompt.js"
 Cohesion: 0.16
 Nodes (30): addLocalBooking(), cancelKeyOf(), cancelLocalBooking(), isCancelled(), isOrphanLocalBooking(), markLocalBookingSynced(), matchKeyOf(), mergeBookings() (+22 more)
 
 ### Community 140 - "auth-barber.js"
-Cohesion: 0.06
-Nodes (63): b64url(), BARBER_PROFILES, fallbackLogin(), fallbackPasswords(), handleChangePassword(), handleLogin(), handler(), isAdmin() (+55 more)
+Cohesion: 0.16
+Nodes (26): buildEssentialsOrder(), cleanPhone(), decodeRef(), encodeRef(), ensureEnrollmentsTable(), ensureSettingsTable(), ensureShopOrdersTable(), FIXED_PRICES (+18 more)
 
 ### Community 142 - "cleanPhone"
-Cohesion: 0.15
-Nodes (12): Banco de frases, hooks de escenario y CTAs, CTA de escenario (el del workshop), CTAs, CTAs para los videos de ellos, Frases martillo, Hooks de escenario, Preguntas para la sala, Sobre clientes y dinero (+4 more)
+Cohesion: 0.24
+Nodes (9): EnrollmentModal(), NewClientModal(), NewEnrollmentModal(), cleanPhone(), addLocalEnrollment(), mergeEnrollments(), readLocalEnrollments(), writeLocalEnrollments() (+1 more)
 
 ### Community 143 - "AppTab"
-Cohesion: 0.09
-Nodes (13): CaseIterable, Sendable, DashboardFocus, dia, semana, workshop, DashboardModel, AppTab (+5 more)
-
-### Community 144 - "M3 · La estructura del video viral"
-Cohesion: 0.17
-Nodes (11): Cómo responder cada pregunta: invertí la expectativa, Edición — los 4 pasos, El ciclo de 4 semanas, Grabación — los 7 planos, Guionización — el framework de las 5 preguntas, Herramientas, Lo que premia el algoritmo, Los 15 segundos, parte por parte (+3 more)
-
-### Community 145 - "M5 · Del scroll a la silla"
-Cohesion: 0.17
-Nodes (12): El embudo completo — 7 pasos, El poder del recomendado, El problema en una línea, La fórmula para pedir la referencia, La objeción de precio, Las 4 métricas que se trackean, M5 · Del scroll a la silla, Mentalidad — de empleado a empresario (+4 more)
-
-### Community 146 - "Dinámicas y ejercicios"
-Cohesion: 0.17
-Nodes (12): Dinámicas y ejercicios, E0 · Diagnóstico de la sala — 5 min, E1 · Construye tu frase de posicionamiento — 5 min, E2 · Los 3 hooks de dolor — 7 min, E3 · Calculadora en vivo — 15 min, E4 · El set de grabación — 60 min ★, E5 · Sprint de edición — 45 min, E6 · Arreglá tu bio — 2 min ★ (+4 more)
-
-### Community 147 - "M2 · Ideas virales"
-Cohesion: 0.18
-Nodes (10): 01 · Dolor (confrontación), 02 · Curiosidad (open loop), 03 · Personalidad (autenticidad), 04 · Referencia viral (memética), Framework EYE — las 3 tipologías de contenido, Las 4 preguntas antes de grabar, Los 3 tipos de hook, por formato, Los 4 hooks visuales (+2 more)
-
-### Community 148 - "M1 · Valer más"
-Cohesion: 0.20
-Nodes (10): 1. Percepción sobre habilidad, 2. Marca personal, 3. El nicho, 4. Tu historia es tu activo, 5. La ecuación de valor (Hormozi), 6. Precio sin miedo, 7. El protocolo (bonus), 8. Escalar más allá de la silla (+2 more)
-
-### Community 149 - "Cifras del workshop"
-Cohesion: 0.20
-Nodes (9): Advertencias de uso, Calculadora de viralidad, Ciclo de vida del cliente, Cifras del workshop, Contenido y algoritmo, El recomendado, Equipo, Precio y servicio (+1 more)
-
-### Community 150 - "README.md"
-Cohesion: 0.22
-Nodes (5): Cómo está organizado, Las tres presentaciones, Los documentos, Regenerar los decks, Workshop ASCENSIÓN — Base de conocimiento
-
-### Community 151 - "Identidad visual"
-Cohesion: 0.22
-Nodes (8): Assets disponibles, Escala tipográfica, Identidad visual, Paleta 2 — Oro y negro *(usada en V2)*, Paleta 3 — REC *(usada en V3)*, Paleta ASCENSIÓN (la oficial), Reglas de composición, Tipografía
-
-### Community 152 - "Brief del día — Workshop de 6 horas"
-Cohesion: 0.25
-Nodes (7): Brief del día — Workshop de 6 horas, El cierre, El corte en vivo es un set de grabación, no una pausa, Estructura de la jornada, Los dos roles, Qué es, Qué tiene que pasar para que el día sea un éxito
-
-### Community 153 - "M4 · La calculadora de viralidad"
 Cohesion: 0.29
-Nodes (6): Cuatro ideas puntuadas, para mostrar cómo se aplica, Ejemplo de puntuación en vivo, La escala de decisión, Los 6 criterios, M4 · La calculadora de viralidad, Versión imprimible (checklist de bolsillo)
+Nodes (7): Sendable, AppTab, clientes, finanzas, hoy, mas, reservas
 
 ## Knowledge Gaps
-- **585 isolated node(s):** `dev-wrapper.sh script`, `NVM_DIR`, `BASE`, `DEMO_PRODUCTS`, `STATIC_BARBERS` (+580 more)
+- **437 isolated node(s):** `dev-wrapper.sh script`, `NVM_DIR`, `BASE`, `DEMO_PRODUCTS`, `STATIC_BARBERS` (+432 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **76 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `dependencies` connect `package.json Config` to `Cursos.jsx`?**
-  _High betweenness centrality (0.016) - this node is a cross-community bridge._
-- **Why does `react` connect `Cursos.jsx` to `package.json Config`, `BarberLogin.jsx`?**
-  _High betweenness centrality (0.016) - this node is a cross-community bridge._
-- **Why does `CLP()` connect `Auth Login API` to `iOS Data Models`, `Cursos.jsx`, `Proposal Generator Script`, `walletPrompt.js`, `ui.jsx`, `data.js`, `BookingsInbox.jsx`, `ADMIN_API_TOKEN env var`, `ModuleFooter.jsx`?**
-  _High betweenness centrality (0.008) - this node is a cross-community bridge._
+- **Why does `dependencies` connect `package.json Config` to `BarberLogin.jsx`?**
+  _High betweenness centrality (0.019) - this node is a cross-community bridge._
+- **Why does `react` connect `BarberLogin.jsx` to `package.json Config`, `Cursos.jsx`?**
+  _High betweenness centrality (0.019) - this node is a cross-community bridge._
+- **Why does `CLP()` connect `Auth Login API` to `iOS Data Models`, `Cursos.jsx`, `Proposal Generator Script`, `walletPrompt.js`, `cleanPhone`, `ui.jsx`, `data.js`, `BarberLogin.jsx`, `BookingsInbox.jsx`, `ADMIN_API_TOKEN env var`, `ModuleFooter.jsx`?**
+  _High betweenness centrality (0.012) - this node is a cross-community bridge._
 - **What connects `dev-wrapper.sh script`, `NVM_DIR`, `BASE` to the rest of the system?**
-  _594 weakly-connected nodes found - possible documentation gaps or missing edges._
-- **Should `iOS API Client` be split into smaller, more focused modules?**
-  _Cohesion score 0.14414414414414414 - nodes in this community are weakly interconnected._
+  _446 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Backend Auth & Project Docs` be split into smaller, more focused modules?**
   _Cohesion score 0.12105263157894737 - nodes in this community are weakly interconnected._
 - **Should `Workshop Page & Content` be split into smaller, more focused modules?**
-  _Cohesion score 0.058069381598793365 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.061979648473635525 - nodes in this community are weakly interconnected._
+- **Should `Vercel API Handlers` be split into smaller, more focused modules?**
+  _Cohesion score 0.05054945054945055 - nodes in this community are weakly interconnected._

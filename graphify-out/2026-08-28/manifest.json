@@ -205,8 +205,8 @@
     "semantic_hash": "b8baf870791352a85cf36d45660fcde1"
   },
   "src/components/BookingsInbox.jsx": {
-    "mtime": 1787943181.465756,
-    "ast_hash": "d90716809024df4ec0c12b48b5019944",
+    "mtime": 1787805907.1744769,
+    "ast_hash": "699fc5fde73c181801d04dba5a12925f",
     "semantic_hash": ""
   },
   "src/components/ClientModal.jsx": {
@@ -315,8 +315,8 @@
     "semantic_hash": ""
   },
   "src/pages/Dashboard.jsx": {
-    "mtime": 1787943181.4655302,
-    "ast_hash": "1e1fe1fbfa9b15d3b36ce222cec4ff04",
+    "mtime": 1787805907.1735258,
+    "ast_hash": "3e899ed9ca124c3eea064226aa214a43",
     "semantic_hash": ""
   },
   "src/pages/EncuentraEstilo.jsx": {
@@ -1035,7 +1035,7 @@
     "semantic_hash": ""
   },
   "src/data/overrides/workshop.json": {
-    "mtime": 1787806158.560216,
+    "mtime": 1787803305.6871583,
     "ast_hash": "811451aa00abe5f11ad899276280efdc",
     "semantic_hash": ""
   },
@@ -1362,116 +1362,6 @@
   "scripts/brand/monogram-source.webp": {
     "mtime": 1787609780.3484044,
     "ast_hash": "404bae8603aec89e8cc6b49dad0b49bd",
-    "semantic_hash": ""
-  },
-  "workshop/README.md": {
-    "mtime": 1787942229.8866572,
-    "ast_hash": "c7d067f165b8b124f4cb1d0d4ed40a58",
-    "semantic_hash": ""
-  },
-  "workshop/decks/outlines/v1-ascension.md": {
-    "mtime": 1787942230.0399842,
-    "ast_hash": "0549ce5b64fad899150444d573f06bd6",
-    "semantic_hash": ""
-  },
-  "workshop/decks/outlines/v2-del-scroll-a-la-silla.md": {
-    "mtime": 1787942230.059985,
-    "ast_hash": "d020cd4a3a5f4036eac73075ba51bb77",
-    "semantic_hash": ""
-  },
-  "workshop/decks/outlines/v3-quince-segundos.md": {
-    "mtime": 1787942230.0785425,
-    "ast_hash": "2a0b933d0be4492e2bd799b565bc0249",
-    "semantic_hash": ""
-  },
-  "workshop/docs/00-brief-domingo.md": {
-    "mtime": 1787940547.793684,
-    "ast_hash": "fc51c720050e004ad58adb9e80962a8b",
-    "semantic_hash": ""
-  },
-  "workshop/docs/01-marca-y-valor.md": {
-    "mtime": 1787940585.113889,
-    "ast_hash": "feb2edb5e64e97b4f6e5bcfb98aaa38e",
-    "semantic_hash": ""
-  },
-  "workshop/docs/02-ideas-virales.md": {
-    "mtime": 1787940638.3321352,
-    "ast_hash": "714602da063f39a799b41808383eddbb",
-    "semantic_hash": ""
-  },
-  "workshop/docs/03-estructura-del-video.md": {
-    "mtime": 1787940638.334168,
-    "ast_hash": "da4d6a2407753660036ba36f7129f223",
-    "semantic_hash": ""
-  },
-  "workshop/docs/04-calculadora-viralidad.md": {
-    "mtime": 1787940697.7649033,
-    "ast_hash": "f4b234e85bbb035bbce39aaeee58a64c",
-    "semantic_hash": ""
-  },
-  "workshop/docs/05-embudo-y-clientes.md": {
-    "mtime": 1787940697.7668731,
-    "ast_hash": "921ad6cfe7ce4d174861fe2c81081132",
-    "semantic_hash": ""
-  },
-  "workshop/docs/06-dinamicas-y-ejercicios.md": {
-    "mtime": 1787940738.7474532,
-    "ast_hash": "a480779c79429a112ce4082e92719888",
-    "semantic_hash": ""
-  },
-  "workshop/docs/07-banco-hooks-frases-ctas.md": {
-    "mtime": 1787940798.623705,
-    "ast_hash": "0e969389a14a185522a8640082828a11",
-    "semantic_hash": ""
-  },
-  "workshop/docs/08-cifras.md": {
-    "mtime": 1787940798.6257315,
-    "ast_hash": "e7a955525bda68db89ec2f7cb2611a16",
-    "semantic_hash": ""
-  },
-  "workshop/docs/09-identidad-visual.md": {
-    "mtime": 1787940834.737343,
-    "ast_hash": "e598194dc9fbd5bad352c32a7e8964d8",
-    "semantic_hash": ""
-  },
-  "workshop/assets/barbero-tijera.jpg": {
-    "mtime": 1787943249.0495727,
-    "ast_hash": "a112958fd7d1172bb343de441b3a4ab0",
-    "semantic_hash": ""
-  },
-  "workshop/assets/bruno-cortando.jpg": {
-    "mtime": 1787943249.0285265,
-    "ast_hash": "66e80f9460f2b2e0d82814d171c6a198",
-    "semantic_hash": ""
-  },
-  "workshop/assets/bruno-pantalla.jpg": {
-    "mtime": 1787943249.0397534,
-    "ast_hash": "57d2b347f93ca1b55245b080496c657f",
-    "semantic_hash": ""
-  },
-  "workshop/assets/bruno-presenta.jpg": {
-    "mtime": 1787943249.0184677,
-    "ast_hash": "4fcce1617c414e6c6891fd1eda2f7dd1",
-    "semantic_hash": ""
-  },
-  "workshop/assets/grupo-final.jpg": {
-    "mtime": 1787943249.078552,
-    "ast_hash": "c3fa1bf4a915ee15f4b20305a1ada811",
-    "semantic_hash": ""
-  },
-  "workshop/assets/logo-ascension-claro.png": {
-    "mtime": 1787943236.323334,
-    "ast_hash": "6747cb759d393d38a70f22471e7f4917",
-    "semantic_hash": ""
-  },
-  "workshop/assets/logo-ascension-oscuro.png": {
-    "mtime": 1787943236.3329263,
-    "ast_hash": "68dc864ea3c3cbbd3d61f3fafe995d63",
-    "semantic_hash": ""
-  },
-  "workshop/assets/trio-diploma.jpg": {
-    "mtime": 1787943249.0635622,
-    "ast_hash": "45b0d23a3d36f1e02ac73f5b0c62a22f",
     "semantic_hash": ""
   }
 }
