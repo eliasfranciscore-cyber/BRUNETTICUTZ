@@ -552,13 +552,16 @@ export default function Dashboard() {
   // 160 que trae el fetch inicial) vía ?from&to, y las mezcla por id al estado.
   // Cachea los rangos ya pedidos para no repetir el viaje al navegar.
   const loadedRangesRef = useRef(new Set())
+  // Devuelve la promesa del fetch SOLO cuando realmente va a la red; si el
+  // rango ya estaba cargado devuelve undefined, y quien llama lo usa para
+  // saber si tiene que mostrar "cargando" (ver CalendarModal).
   const ensurePastBookings = (fromKey, toKey) => {
     if (!fromKey || !toKey) return
     if (toKey >= isoDate(new Date())) return // presente/futuro: ya viene en el fetch inicial
     const rangeKey = `${fromKey}|${toKey}`
     if (loadedRangesRef.current.has(rangeKey)) return
     loadedRangesRef.current.add(rangeKey)
-    fetch(`/api/bookings?from=${fromKey}&to=${toKey}`, { headers: authHeaders() })
+    return fetch(`/api/bookings?from=${fromKey}&to=${toKey}`, { headers: authHeaders() })
       .then((r) => r.headers.get("content-type")?.includes("application/json") ? r.json() : Promise.reject(new Error("api unavailable")))
       .then((data) => {
         if (!data.bookings?.length) return
@@ -659,10 +662,19 @@ export default function Dashboard() {
   // ni recarga de página, así que sin esto la única forma de ver una reserva
   // nueva era cerrar y volver a abrir la app.
   const [refreshing, setRefreshing] = useState(false)
+  // Cambia en cada recarga manual para que las vistas con su propia semana
+  // (BookingsInbox) vuelvan a pedir el rango que están mostrando: los fetches
+  // de abajo REEMPLAZAN la lista por las últimas 160 reservas, así que se
+  // llevan puestas las semanas pasadas que se hubieran cargado por rango.
+  const [pastRangeEpoch, setPastRangeEpoch] = useState(0)
   const refreshAll = async () => {
     if (refreshing) return
     setRefreshing(true)
     const headers = authHeaders()
+    // Sin esto, los rangos ya pedidos quedarían marcados como cargados
+    // mientras sus reservas ya no están en memoria: la semana pasada se
+    // vaciaba al refrescar y no volvía hasta recargar la página entera.
+    loadedRangesRef.current.clear()
     await Promise.all([
       fetch("/api/clients", { headers }).then((r) => r.json()).then((data) => { if (data.clients?.length) setClients(data.clients) }).catch(() => {}),
       fetch("/api/bookings", { headers }).then((r) => r.json()).then((data) => { if (data.bookings) setBookings(mergeBookings(data.bookings)) }).catch(() => {}),
@@ -671,6 +683,10 @@ export default function Dashboard() {
       fetch("/api/services?scope=shop&includeInactive=true", { headers }).then((r) => r.json()).then((data) => { if (data.products) setProducts(data.products) }).catch(() => {}),
       loadAgenda(),
     ])
+    // Ya con la lista fresca en memoria, se vuelve a pedir la semana visible
+    // si es pasada (acá para Agenda; pastRangeEpoch lo hace en Reservas).
+    ensurePastBookings(weekDays[0]?.key, weekDays[6]?.key)
+    setPastRangeEpoch((n) => n + 1)
     setRefreshing(false)
   }
 
@@ -1635,6 +1651,7 @@ export default function Dashboard() {
           <BookingsInbox
             bookings={visibleBookings}
             onEnsureRange={ensurePastBookings}
+            rangeEpoch={pastRangeEpoch}
             barbers={barbers}
             barber={barber}
             admin={admin}

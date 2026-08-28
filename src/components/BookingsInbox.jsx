@@ -231,11 +231,30 @@ function OccRing({ pct }) {
 /* Modal calendario: ventana de 4 semanas con conteo de reservas por día.
    Las flechas corren la ventana hacia atrás/adelante, para poder llegar a
    reservas de semanas ya pasadas. */
-function CalendarModal({ onClose, countsByDay, selectedDay, todayKey, onPick }) {
+function CalendarModal({ onClose, countsByDay, selectedDay, todayKey, onPick, onEnsureRange }) {
   const [base, setBase] = useState(0)
+  const [loading, setLoading] = useState(false)
   const weeks = [0, 1, 2, 3].map((o) => buildWeek(base + o))
   const dows = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
   const rangeLabel = `${weeks[0][0].label} — ${weeks[3][6].label}`
+
+  // Los badges cuentan sobre las reservas que hay EN MEMORIA, así que al
+  // paginar hacia atrás salían todos en cero: el día tenía reservas, pero
+  // nadie las había pedido todavía. Acá se piden las de la ventana visible.
+  // Se pide SEMANA POR SEMANA (y no el rango de 4 de una) a propósito: así
+  // usa las mismas claves de caché que las flechas de semana, y una semana
+  // ya vista por cualquiera de los dos caminos no se vuelve a pedir.
+  useEffect(() => {
+    const pending = weeks
+      .map((w) => onEnsureRange?.(w[0].key, w[6].key))
+      .filter((p) => p && typeof p.then === 'function')
+    if (!pending.length) return
+    let alive = true
+    setLoading(true)
+    Promise.all(pending).finally(() => { if (alive) setLoading(false) })
+    return () => { alive = false }
+  }, [base])
+
   return createPortal((
     <div className="psn-modal" role="dialog" aria-modal="true">
       <button className="psn-scrim" aria-label="Cerrar" onClick={onClose} />
@@ -245,7 +264,7 @@ function CalendarModal({ onClose, countsByDay, selectedDay, todayKey, onPick }) 
         <p className="psn-role">Toca un día para ver su agenda</p>
         <div className="psn-cal-nav">
           <button type="button" className="btn btn-dark btn-sm" onClick={() => setBase((b) => b - 4)} aria-label="Semanas anteriores"><Icon name="arrowLeft" size={13} /></button>
-          <span>{rangeLabel}</span>
+          <span>{rangeLabel}{loading && <em className="psn-cal-loading"> · cargando…</em>}</span>
           <button type="button" className="btn btn-dark btn-sm" onClick={() => setBase((b) => b + 4)} aria-label="Semanas siguientes"><Icon name="arrowRight" size={13} /></button>
         </div>
         <div className="psn-cal-head">{dows.map((d) => <span key={d}>{d}</span>)}</div>
@@ -271,7 +290,7 @@ function CalendarModal({ onClose, countsByDay, selectedDay, todayKey, onPick }) 
   ), document.body)
 }
 
-export default function BookingsInbox({ bookings = [], barbers = [], barber, admin = false, slotsPerDay = 14, onStatus = () => {}, onDelete = () => {}, onReschedule, onNewBooking, onEnsureRange, focus }) {
+export default function BookingsInbox({ bookings = [], barbers = [], barber, admin = false, slotsPerDay = 14, onStatus = () => {}, onDelete = () => {}, onReschedule, onNewBooking, onEnsureRange, rangeEpoch = 0, focus }) {
   const [filter, setFilter] = useState('Todas')
   const [dateScope, setDateScope] = useState('dia')
   const [viewMode, setViewMode] = useState(() => {
@@ -319,8 +338,10 @@ export default function BookingsInbox({ bookings = [], barbers = [], barber, adm
   const weekKeys = useMemo(() => weekDays.map((d) => d.key), [weekDays])
 
   // Al navegar a una semana pasada, pide sus reservas por rango: pueden no
-  // estar entre las últimas 160 que carga el Dashboard al abrir.
-  useEffect(() => { onEnsureRange?.(weekKeys[0], weekKeys[6]) }, [weekKeys])
+  // estar entre las últimas 160 que carga el Dashboard al abrir. rangeEpoch
+  // cambia tras una recarga manual, que reemplaza la lista por esas 160: sin
+  // volver a pedir, la semana pasada que se está viendo quedaría vacía.
+  useEffect(() => { onEnsureRange?.(weekKeys[0], weekKeys[6]) }, [weekKeys, rangeEpoch])
 
   // Reservas del día seleccionado (con filtro de barbero en multi-barbero). Es
   // la base de los KPIs del hero, que siempre hablan del día, sin importar el
@@ -639,7 +660,7 @@ export default function BookingsInbox({ bookings = [], barbers = [], barber, adm
       )}
 
       {calOpen && (
-        <CalendarModal onClose={() => setCalOpen(false)} countsByDay={countsByDay} selectedDay={selectedDay} todayKey={todayKey} onPick={pickFromCalendar} />
+        <CalendarModal onClose={() => setCalOpen(false)} countsByDay={countsByDay} selectedDay={selectedDay} todayKey={todayKey} onPick={pickFromCalendar} onEnsureRange={onEnsureRange} />
       )}
 
       {detailBk && (

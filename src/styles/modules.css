@@ -304,6 +304,9 @@
 /* Paginador de semanas del calendario de reservas (flechas + rango). */
 .psn-cal-nav { display: flex; align-items: center; justify-content: space-between; gap: .6rem; margin-top: .9rem; }
 .psn-cal-nav span { font-size: .78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+/* Aviso mientras se piden las reservas de la ventana visible: sin esto, un
+   "0" en el badge no distingue "ese día no hubo nada" de "todavía no llegó". */
+.psn-cal-loading { font-style: normal; opacity: .7; }
 .psn-cal-head { display: grid; grid-template-columns: repeat(7,1fr); gap: .3rem; margin: .9rem 0 .35rem; }
 .psn-cal-head span { font-size: .6rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); text-align: center; }
 .psn-cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: .3rem; }
