@@ -33,6 +33,27 @@ export default async function handler(req, res) {
       const services = includeInactive
         ? await sql`SELECT id, name, price, duration_min as min, category as cat, tne_eligible as tne, description as desc, active FROM services ORDER BY id`
         : await sql`SELECT id, name, price, duration_min as min, category as cat, tne_eligible as tne, description as desc, active FROM services WHERE active = true ORDER BY id`
+
+      // Caché de CDN para el catálogo PÚBLICO. Cada visita a la landing y a
+      // la reserva pedía esto, y cada pedido despertaba el compute de Neon —
+      // que se cobra por tiempo encendido, no por consulta. El menú cambia
+      // cada varias semanas; que el borde lo sirva 5 min sin tocar la base
+      // saca del camino la mayoría de las despertadas por tráfico público.
+      //
+      // s-maxage (borde) y no max-age (navegador): el navegador revalida
+      // siempre, así que un hard-refresh muestra el precio nuevo al toque.
+      // El precio de esto es que un cambio hecho en el panel tarda hasta
+      // 5 min en verse en el sitio, y hasta 10 min más si el borde alcanza a
+      // servir una copia vencida mientras la refresca por detrás.
+      //
+      // Solo la rama pública: includeInactive=true exige sesión y devuelve
+      // también los servicios ocultos, así que cachearla en el CDN los
+      // filtraría a cualquiera que pidiera la URL sin token.
+      //
+      // Mismo cambio, con el mismo motivo, en pimpstudio (api/services.js).
+      if (!includeInactive) {
+        res.setHeader("Cache-Control", "public, max-age=0, s-maxage=300, stale-while-revalidate=600")
+      }
       return res.json({ ok: true, services })
     }
 

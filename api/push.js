@@ -17,18 +17,33 @@ import { requireInternal } from "./_auth.js"
 
 const BUSINESS_TZ = "America/Santiago"
 
-// Pensado para correr cada 40 minutos vía un disparador externo (cron-job.org,
-// GitHub Actions, etc. — Vercel Hobby no soporta cron nativo de esa
-// frecuencia). Protegido con CRON_SECRET: el llamador debe enviar
+// Pensado para correr cada HORA, 8:00-21:00, vía un disparador externo
+// (cron-job.org, GitHub Actions, etc. — Vercel Hobby no soporta cron nativo
+// de esa frecuencia). Protegido con CRON_SECRET: el llamador debe enviar
 // Authorization: Bearer <CRON_SECRET>.
 //
-// Solo queda el recordatorio de "1 hora antes" (se sacó el de 15 minutos:
-// con un cron cada 40 min, la ventana necesaria para no perderlo tendría
-// que ser de ≥40 min de ancho, y ya no representaría "15 minutos" de forma
-// honesta). La ventana +60/+105 garantiza que el aviso llegue SIEMPRE con
-// al menos 1 hora de anticipación (nunca con menos) y que ningún disparo
-// del cron la salte, ya que sus 45 min de ancho superan el intervalo de
-// 40 min entre disparos.
+// Antes corría cada 40 minutos y SIN corte nocturno: 36 disparos al día, cada
+// uno despertando el compute de Neon (que se cobra por tiempo encendido, no
+// por consulta) para revisar una tabla en la que de madrugada no puede haber
+// nada. Pasa a 14 disparos, 8:00-21:00. El 8:00 y no 9:00 es a propósito: el
+// aviso de la reserva de las 09:00 tiene que salir a las 08:00.
+//
+// Solo queda el recordatorio de "1 hora antes" (se sacó el de 15 minutos: con
+// cualquier cadencia ≥15 min, la ventana necesaria para no perderlo dejaría
+// de representar "15 minutos" de forma honesta).
+//
+// La ventana pasa de +60/+105 a +45/+90, y el ancho de 45 min está elegido
+// para ser correcto con LAS DOS cadencias — así el deploy y el cambio de
+// horario en cron-job.org pueden ir en cualquier orden sin perder avisos:
+//   - cada 40 min: 45 > 40, así que ningún disparo puede saltarse la ventana,
+//     venga la reserva a la hora que venga.
+//   - cada hora en punto: toda reserva cae en hora en punto (SLOT_GROUPS,
+//     src/data.js), así que el disparo de las HH:00 la ve a 60 min de
+//     distancia — con 30 min de atraso o 15 de adelanto tolerados antes de
+//     salirse de la ventana.
+// El costo es que el aviso ahora puede llegar con 45 min de anticipación en
+// vez de 60 como mínimo garantizado. Mismo criterio que pimpstudio (que usa
+// +45/+75), donde "1 hora" se considera honesto igual.
 //
 // `column` viene siempre de una lista fija interna (nunca de input externo),
 // así que se arma el texto del SQL directamente — el driver de Neon no
@@ -187,7 +202,7 @@ export default async function handler(req, res) {
     }
     try {
       const sql = neon(process.env.DATABASE_URL)
-      const sent60 = await sendDueReminders(sql, { column: "reminder_60_sent", label: "1 hora", fromMin: 60, toMin: 105 })
+      const sent60 = await sendDueReminders(sql, { column: "reminder_60_sent", label: "1 hora", fromMin: 45, toMin: 90 })
       return res.json({ ok: true, sent60 })
     } catch (err) {
       console.error("push reminders job error:", err)
