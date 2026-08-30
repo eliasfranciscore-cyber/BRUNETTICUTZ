@@ -40,8 +40,8 @@
     "semantic_hash": ""
   },
   "api/bookings.js": {
-    "mtime": 1787805869.5688264,
-    "ast_hash": "5c9ed75eb5767119843668daf929c09c",
+    "mtime": 1786756225.995678,
+    "ast_hash": "420211f9d6bbece036dc34262db349f5",
     "semantic_hash": ""
   },
   "api/clients.js": {
@@ -50,8 +50,8 @@
     "semantic_hash": ""
   },
   "api/enrollments.js": {
-    "mtime": 1788049398.1427011,
-    "ast_hash": "02982b39f504f6b110f97720d876f5cd",
+    "mtime": 1787277791.117806,
+    "ast_hash": "98913238635d7157263ced713774e17f",
     "semantic_hash": ""
   },
   "api/expenses.js": {
@@ -60,8 +60,8 @@
     "semantic_hash": ""
   },
   "api/push.js": {
-    "mtime": 1788042125.8936365,
-    "ast_hash": "e43fc7183a316e17a2b45cfd964e9994",
+    "mtime": 1786300256.3280299,
+    "ast_hash": "8f38fbb694994d087880d65cab0a6a09",
     "semantic_hash": ""
   },
   "api/register-client.js": {
@@ -70,12 +70,12 @@
     "semantic_hash": "aa2c8ac0c0dbc111671fa1209f170cf3"
   },
   "api/services.js": {
-    "mtime": 1788042042.6419108,
-    "ast_hash": "2f14d820812884a8b49cc7e34be68c1c",
+    "mtime": 1784592757.4336839,
+    "ast_hash": "9096cbba8311b476fbf626b4a9d80e92",
     "semantic_hash": ""
   },
   "db/schema.sql": {
-    "mtime": 1787801518.6337817,
+    "mtime": 1787372990.5749855,
     "ast_hash": "0ac28be8e4fdc38f213ec40240d6dd68",
     "semantic_hash": ""
   },
@@ -200,13 +200,13 @@
     "semantic_hash": "34db8bb888eb593d9687afd50736d5c8"
   },
   "src/components/BarberShowcase.jsx": {
-    "mtime": 1788118827.6183047,
-    "ast_hash": "fa7097b44331928ab64b81ca44109d1f",
-    "semantic_hash": ""
+    "mtime": 1782686874.1552734,
+    "ast_hash": "b8baf870791352a85cf36d45660fcde1",
+    "semantic_hash": "b8baf870791352a85cf36d45660fcde1"
   },
   "src/components/BookingsInbox.jsx": {
-    "mtime": 1787943181.465756,
-    "ast_hash": "d90716809024df4ec0c12b48b5019944",
+    "mtime": 1786307578.8977728,
+    "ast_hash": "ca54e1d73729502881209ab9f80cd72c",
     "semantic_hash": ""
   },
   "src/components/ClientModal.jsx": {
@@ -245,9 +245,9 @@
     "semantic_hash": ""
   },
   "src/components/brunetti.jsx": {
-    "mtime": 1788118827.6188047,
-    "ast_hash": "51bef220c97f91ad95d0de7036404dc6",
-    "semantic_hash": ""
+    "mtime": 1782686874.1548529,
+    "ast_hash": "30d191961090e830a8a8b4911effabcf",
+    "semantic_hash": "30d191961090e830a8a8b4911effabcf"
   },
   "src/components/liquidShowcase.jsx": {
     "mtime": 1782686874.164521,
@@ -280,13 +280,13 @@
     "semantic_hash": ""
   },
   "src/data/workshop.js": {
-    "mtime": 1788117454.2467196,
-    "ast_hash": "34b186a425a2e37367723ca35be92721",
+    "mtime": 1787373035.566278,
+    "ast_hash": "b9085e2e84989e741252d31e86ff18d6",
     "semantic_hash": ""
   },
   "src/enrollmentsStore.js": {
-    "mtime": 1788048319.1892564,
-    "ast_hash": "02449c4fe9af83245e8eae0526b5f17e",
+    "mtime": 1787277778.6793387,
+    "ast_hash": "b6e97dfb04812b60cd77699d2689ecc9",
     "semantic_hash": ""
   },
   "src/main.jsx": {
@@ -305,8 +305,8 @@
     "semantic_hash": "ec9017c0886e63a56a742ab2208a4771"
   },
   "src/pages/Booking.jsx": {
-    "mtime": 1788118827.619462,
-    "ast_hash": "583c70942d74a7bc41d8f83dd35a4682",
+    "mtime": 1786755791.9450529,
+    "ast_hash": "e678e5b76b7ae30011e817fc478084e8",
     "semantic_hash": ""
   },
   "src/pages/Cursos.jsx": {
@@ -315,8 +315,8 @@
     "semantic_hash": ""
   },
   "src/pages/Dashboard.jsx": {
-    "mtime": 1788117554.7679043,
-    "ast_hash": "eb91e2c726ed9b6e525e48df4ebdd183",
+    "mtime": 1787373248.3996506,
+    "ast_hash": "866998aae35f459ccea4eb453df117e6",
     "semantic_hash": ""
   },
   "src/pages/EncuentraEstilo.jsx": {
@@ -335,8 +335,8 @@
     "semantic_hash": ""
   },
   "src/pages/Workshop.jsx": {
-    "mtime": 1788118827.6200023,
-    "ast_hash": "2477430fdb9f26a02f6c92037893d622",
+    "mtime": 1787609106.5983777,
+    "ast_hash": "dd9b2597413d001f10b4d43cba24503d",
     "semantic_hash": ""
   },
   "src/push.js": {
@@ -365,8 +365,8 @@
     "semantic_hash": "8821dc65ef6d88a32b3d71aa793563c1"
   },
   "CLAUDE.md": {
-    "mtime": 1788117800.7830884,
-    "ast_hash": "cf7782ac5590229a2301c22b432d9ca4",
+    "mtime": 1787370761.837692,
+    "ast_hash": "eccde4888b1917181203913f256a7503",
     "semantic_hash": ""
   },
   "IMPLEMENTATION_PLAN.md": {
@@ -538,6 +538,16 @@
     "mtime": 1782685632.9204993,
     "ast_hash": "e27b4bd09b7a608b8151623bbfd648f6",
     "semantic_hash": "e27b4bd09b7a608b8151623bbfd648f6"
+  },
+  "public/assets/pimp-studio-logo.jpg": {
+    "mtime": 1786308354.2946093,
+    "ast_hash": "c685d8656fe24042572176e9de7b4aaf",
+    "semantic_hash": "c685d8656fe24042572176e9de7b4aaf"
+  },
+  "public/assets/pimp-studio-mark.svg": {
+    "mtime": 1786308354.294933,
+    "ast_hash": "271d134b3865677f3971c6b3a2e50893",
+    "semantic_hash": "271d134b3865677f3971c6b3a2e50893"
   },
   "public/assets/workshop-2026.jpg": {
     "mtime": 1782685632.9296603,
@@ -965,8 +975,8 @@
     "semantic_hash": ""
   },
   "src/data/content/workshop.json": {
-    "mtime": 1787802829.310297,
-    "ast_hash": "0308aa2da17d16323e004f2a808d7755",
+    "mtime": 1787609106.5989795,
+    "ast_hash": "80aaf78f5dd712e7270ac2a9c6367c00",
     "semantic_hash": ""
   },
   "public/assets/bruno-hero-bg.webp": {
@@ -1025,8 +1035,8 @@
     "semantic_hash": ""
   },
   "src/data/overrides/workshop.json": {
-    "mtime": 1787806158.560216,
-    "ast_hash": "811451aa00abe5f11ad899276280efdc",
+    "mtime": 1783904452.7632916,
+    "ast_hash": "0d1f951b625794a95c29535480d59156",
     "semantic_hash": ""
   },
   "src/components/DashKit.jsx": {
@@ -1150,8 +1160,8 @@
     "semantic_hash": ""
   },
   "api/_email.js": {
-    "mtime": 1788048944.2874146,
-    "ast_hash": "a4e0b318bae85c474e4fd285758124bb",
+    "mtime": 1786757379.5480568,
+    "ast_hash": "62d0ce7419f008125e05213efc5cbd3c",
     "semantic_hash": ""
   },
   "src/components/ui/container-scroll-animation.jsx": {
@@ -1320,8 +1330,8 @@
     "semantic_hash": ""
   },
   "api/mp-payments.js": {
-    "mtime": 1788117783.2648313,
-    "ast_hash": "d584b6c0762cc04627805a69df965c7b",
+    "mtime": 1787373000.2770846,
+    "ast_hash": "d6def86e4db3fee365d8689de8026e4a",
     "semantic_hash": ""
   },
   "scripts/brand/build-icons.py": {
@@ -1330,7 +1340,7 @@
     "semantic_hash": ""
   },
   "src/components/EnrollmentModal.jsx": {
-    "mtime": 1787801518.6344402,
+    "mtime": 1787277819.3347323,
     "ast_hash": "5652756e3935ebb6e219da065c74b250",
     "semantic_hash": ""
   },
@@ -1340,7 +1350,7 @@
     "semantic_hash": ""
   },
   "src/components/NewEnrollmentModal.jsx": {
-    "mtime": 1787801518.6349263,
+    "mtime": 1787277833.114552,
     "ast_hash": "4d2e756c2cda6ae550be7c0b076df06d",
     "semantic_hash": ""
   },
@@ -1352,991 +1362,6 @@
   "scripts/brand/monogram-source.webp": {
     "mtime": 1787609780.3484044,
     "ast_hash": "404bae8603aec89e8cc6b49dad0b49bd",
-    "semantic_hash": ""
-  },
-  "workshop/README.md": {
-    "mtime": 1787948015.9082208,
-    "ast_hash": "486f9c6400357231cf5f84c67f17717b",
-    "semantic_hash": ""
-  },
-  "workshop/decks/outlines/v1-ascension.md": {
-    "mtime": 1787950975.1143146,
-    "ast_hash": "7b5fff6c7a912d8f71885e41c8d9238f",
-    "semantic_hash": ""
-  },
-  "workshop/decks/outlines/v2-del-scroll-a-la-silla.md": {
-    "mtime": 1787950975.1336892,
-    "ast_hash": "8930b233042bec13e54e7c078f5d3ea0",
-    "semantic_hash": ""
-  },
-  "workshop/decks/outlines/v3-quince-segundos.md": {
-    "mtime": 1787950975.1498861,
-    "ast_hash": "32f1ecadc2a9ed25c703d552c353fbd7",
-    "semantic_hash": ""
-  },
-  "workshop/docs/00-brief-domingo.md": {
-    "mtime": 1787950888.9684362,
-    "ast_hash": "42c4682ff27ebaf946bbecd515dfd165",
-    "semantic_hash": ""
-  },
-  "workshop/docs/01-marca-y-valor.md": {
-    "mtime": 1787944315.3123085,
-    "ast_hash": "3dd3a8d0992c81a08246d5b037cff114",
-    "semantic_hash": ""
-  },
-  "workshop/docs/02-ideas-virales.md": {
-    "mtime": 1787944177.3091905,
-    "ast_hash": "12f86220819727980dacdfef4830a299",
-    "semantic_hash": ""
-  },
-  "workshop/docs/03-estructura-del-video.md": {
-    "mtime": 1787944177.3102796,
-    "ast_hash": "2cd6ea3c71cc4ce75f49740bec3a43df",
-    "semantic_hash": ""
-  },
-  "workshop/docs/04-calculadora-viralidad.md": {
-    "mtime": 1787944177.3110104,
-    "ast_hash": "635260955d370bd282456c8f7720e455",
-    "semantic_hash": ""
-  },
-  "workshop/docs/05-embudo-y-clientes.md": {
-    "mtime": 1787944177.3121738,
-    "ast_hash": "e2a8788c2bedda692f662dd1eb6b490b",
-    "semantic_hash": ""
-  },
-  "workshop/docs/06-dinamicas-y-ejercicios.md": {
-    "mtime": 1787944177.3132222,
-    "ast_hash": "67501a23cd33b737b787b3d848008af0",
-    "semantic_hash": ""
-  },
-  "workshop/docs/07-banco-hooks-frases-ctas.md": {
-    "mtime": 1787944315.3125486,
-    "ast_hash": "e2c91759ee0aba4a9b5a11eb770999ef",
-    "semantic_hash": ""
-  },
-  "workshop/docs/08-cifras.md": {
-    "mtime": 1787944177.3154085,
-    "ast_hash": "2de37f39e27d00bab347d2a6961b2417",
-    "semantic_hash": ""
-  },
-  "workshop/docs/09-identidad-visual.md": {
-    "mtime": 1787948049.1304376,
-    "ast_hash": "f2885e9e8b1416c02d88a32ec3ab20d0",
-    "semantic_hash": ""
-  },
-  "workshop/assets/barbero-tijera.jpg": {
-    "mtime": 1787943249.0495727,
-    "ast_hash": "a112958fd7d1172bb343de441b3a4ab0",
-    "semantic_hash": ""
-  },
-  "workshop/assets/bruno-cortando.jpg": {
-    "mtime": 1787943249.0285265,
-    "ast_hash": "66e80f9460f2b2e0d82814d171c6a198",
-    "semantic_hash": ""
-  },
-  "workshop/assets/bruno-pantalla.jpg": {
-    "mtime": 1787943249.0397534,
-    "ast_hash": "57d2b347f93ca1b55245b080496c657f",
-    "semantic_hash": ""
-  },
-  "workshop/assets/bruno-presenta.jpg": {
-    "mtime": 1787943249.0184677,
-    "ast_hash": "4fcce1617c414e6c6891fd1eda2f7dd1",
-    "semantic_hash": ""
-  },
-  "workshop/assets/grupo-final.jpg": {
-    "mtime": 1787945135.0615144,
-    "ast_hash": "c8407b52acb61054487d02d1e1ea8455",
-    "semantic_hash": ""
-  },
-  "workshop/assets/logo-ascension-claro.png": {
-    "mtime": 1787943236.323334,
-    "ast_hash": "6747cb759d393d38a70f22471e7f4917",
-    "semantic_hash": ""
-  },
-  "workshop/assets/logo-ascension-oscuro.png": {
-    "mtime": 1787943236.3329263,
-    "ast_hash": "68dc864ea3c3cbbd3d61f3fafe995d63",
-    "semantic_hash": ""
-  },
-  "workshop/assets/trio-diploma.jpg": {
-    "mtime": 1787943249.0635622,
-    "ast_hash": "45b0d23a3d36f1e02ac73f5b0c62a22f",
-    "semantic_hash": ""
-  },
-  "workshop/decks/outlines/ascension-completo.md": {
-    "mtime": 1787950975.097441,
-    "ast_hash": "1f4b70590e0f8919558e9c8e023a5d28",
-    "semantic_hash": ""
-  },
-  "public/assets/email/ascension-logo.png": {
-    "mtime": 1788048802.8155336,
-    "ast_hash": "3cb2e03add8914574e712e2dc0637aba",
-    "semantic_hash": ""
-  },
-  "public/assets/email/brunetti-wordmark-morado.png": {
-    "mtime": 1788048802.8064315,
-    "ast_hash": "c1ab3c32afe25d1e34fcfa5ac5fad7f6",
-    "semantic_hash": ""
-  },
-  "public/assets/email/workshop-mapa.png": {
-    "mtime": 1788048823.6072016,
-    "ast_hash": "ce8eee1751017b6ad7f89510b7d60699",
-    "semantic_hash": ""
-  },
-  "workshop/assets/bruno-pantalla-limpia.jpg": {
-    "mtime": 1787950521.4820018,
-    "ast_hash": "eb7b8544f5c7e51e264a9c536a0a5333",
-    "semantic_hash": ""
-  },
-  "workshop/assets/bruno-presenta-limpia.jpg": {
-    "mtime": 1787950738.6805634,
-    "ast_hash": "1af6dc0b5e4a223a19978169ecdd0c9e",
-    "semantic_hash": ""
-  },
-  "workshop/assets/grupo-final-limpia.jpg": {
-    "mtime": 1787950521.489521,
-    "ast_hash": "ff7fe349cd026aec875eedaa26accc88",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/ajustes-blanco.png": {
-    "mtime": 1787950521.268377,
-    "ast_hash": "1f24ae96306274fc0ecd007716cf8003",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/ajustes-crema.png": {
-    "mtime": 1787950521.2651145,
-    "ast_hash": "6cbd0a8c6b56625662a9cdc6958ef4e8",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/ajustes-lila.png": {
-    "mtime": 1787950521.2661994,
-    "ast_hash": "e88af32b3442e3312a52bb7891d75d23",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/ajustes-morado.png": {
-    "mtime": 1787950521.2639828,
-    "ast_hash": "b4aec7e3b06d785f0ad2ef29a6e88403",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/ajustes-tinta.png": {
-    "mtime": 1787950521.2672172,
-    "ast_hash": "56538d01f11d6bc7b2200a170e72ff45",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/alerta-blanco.png": {
-    "mtime": 1787950521.3843105,
-    "ast_hash": "0cc0ff4e2b2c41f87125771b1c9e7907",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/alerta-crema.png": {
-    "mtime": 1787950521.3811357,
-    "ast_hash": "e59393827916394a3ecfa7754d59496d",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/alerta-lila.png": {
-    "mtime": 1787950521.3821495,
-    "ast_hash": "bdb9481670fc22eef58dddaf77ce396f",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/alerta-morado.png": {
-    "mtime": 1787950521.3800755,
-    "ast_hash": "86d2d9f9f1fb584acaaf2bb092cc76cc",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/alerta-tinta.png": {
-    "mtime": 1787950521.3832273,
-    "ast_hash": "6ee570a95507ca4b3fc2a6acf7255c70",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/billete-blanco.png": {
-    "mtime": 1787950521.3387768,
-    "ast_hash": "fac87e9419961f132d7c352632f9d92b",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/billete-crema.png": {
-    "mtime": 1787950521.3354208,
-    "ast_hash": "fc5f47b7aace31b3c050f87cad597040",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/billete-lila.png": {
-    "mtime": 1787950521.3365662,
-    "ast_hash": "785ef0751183ef3f07579864a451a3a9",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/billete-morado.png": {
-    "mtime": 1787950521.334429,
-    "ast_hash": "0865b70028de1939170274097e8aa098",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/billete-tinta.png": {
-    "mtime": 1787950521.3376262,
-    "ast_hash": "1aff0593788d09ba050d87de5225d109",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/calendario-blanco.png": {
-    "mtime": 1787950521.3499553,
-    "ast_hash": "673f0fe23de273ef47f00fb294ccf785",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/calendario-crema.png": {
-    "mtime": 1787950521.3468199,
-    "ast_hash": "084dee24b0d939387a10f1f9bb5bd0b0",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/calendario-lila.png": {
-    "mtime": 1787950521.3478723,
-    "ast_hash": "e8c9aa414d56fc9dad75cfb14b4c1242",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/calendario-morado.png": {
-    "mtime": 1787950521.3457508,
-    "ast_hash": "f2a6f4c8c42b384c8536ad2ee98cc8d6",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/calendario-tinta.png": {
-    "mtime": 1787950521.3489919,
-    "ast_hash": "4aa9d6830b379d4432b6776a44455b92",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/camara-blanco.png": {
-    "mtime": 1787950521.2555976,
-    "ast_hash": "ada96e4974892099c45ec0f051634797",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/camara-crema.png": {
-    "mtime": 1787950521.2523868,
-    "ast_hash": "15f4d90d38329a76a317e36df2befbfa",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/camara-lila.png": {
-    "mtime": 1787950521.253634,
-    "ast_hash": "bb1260844af825ed5567240832e73f53",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/camara-morado.png": {
-    "mtime": 1787950521.2511728,
-    "ast_hash": "fc6657cd323d9018019911e507478e40",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/camara-tinta.png": {
-    "mtime": 1787950521.2546785,
-    "ast_hash": "2a4f97036739b2f18585c1bedc2f959a",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/capas-blanco.png": {
-    "mtime": 1787950521.3263001,
-    "ast_hash": "4241fdac0ce33bbdd482cbbd87c75b03",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/capas-crema.png": {
-    "mtime": 1787950521.3230329,
-    "ast_hash": "a91aa81d83514662f1615f08d5c06c48",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/capas-lila.png": {
-    "mtime": 1787950521.3240798,
-    "ast_hash": "032b700763d11f500df4ecb6153a4710",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/capas-morado.png": {
-    "mtime": 1787950521.3219185,
-    "ast_hash": "8bd766b382e6589f1a6c1ac08465af60",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/capas-tinta.png": {
-    "mtime": 1787950521.3251789,
-    "ast_hash": "de60e39e3bc3b62b02e2219b8e6bea39",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/chat-blanco.png": {
-    "mtime": 1787950521.2747197,
-    "ast_hash": "54fb365b5888cc3e562f44eba1cafeb2",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/chat-crema.png": {
-    "mtime": 1787950521.2709813,
-    "ast_hash": "ef417ea58900b1a814c9b94342f57c5c",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/chat-lila.png": {
-    "mtime": 1787950521.2721984,
-    "ast_hash": "9dccdc6c09528104e5bc5622951f842b",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/chat-morado.png": {
-    "mtime": 1787950521.2696607,
-    "ast_hash": "5786189d4047bbd897ce829ac07adc33",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/chat-tinta.png": {
-    "mtime": 1787950521.2733905,
-    "ast_hash": "067cbda4ea4a39c78f895169a75ef924",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/check-blanco.png": {
-    "mtime": 1787950521.3616238,
-    "ast_hash": "fcb818ee89d56eea62d03615011ec748",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/check-crema.png": {
-    "mtime": 1787950521.3576725,
-    "ast_hash": "7de11ebe796bd528c95f2c027be64fbb",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/check-lila.png": {
-    "mtime": 1787950521.3589745,
-    "ast_hash": "b8c30729891978331153c6020eaaf6f5",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/check-morado.png": {
-    "mtime": 1787950521.3562176,
-    "ast_hash": "851bb9adf10b77a597f76c76f18f8ca9",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/check-tinta.png": {
-    "mtime": 1787950521.3602917,
-    "ast_hash": "377c09a01b5735d7028ce29ef8bd008c",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/chispa-blanco.png": {
-    "mtime": 1787950521.3446589,
-    "ast_hash": "d1b0364cc2c9ad052deb461e2b33cfb6",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/chispa-crema.png": {
-    "mtime": 1787950521.3411233,
-    "ast_hash": "69aadd9b991334ccd45dff855606df35",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/chispa-lila.png": {
-    "mtime": 1787950521.3422472,
-    "ast_hash": "2bf2782353db0a8ad6a82229ef5d0e38",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/chispa-morado.png": {
-    "mtime": 1787950521.3398993,
-    "ast_hash": "db99ede09b69b701c12712ea45691a47",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/chispa-tinta.png": {
-    "mtime": 1787950521.3434994,
-    "ast_hash": "26f2bc7deaa868106f1198b9623b71fb",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/compartir-blanco.png": {
-    "mtime": 1787950521.3086827,
-    "ast_hash": "6f7227f730603bdca085bcd2eafc9745",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/compartir-crema.png": {
-    "mtime": 1787950521.304789,
-    "ast_hash": "27a8b1baf736d946f74fc00f1bafba34",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/compartir-lila.png": {
-    "mtime": 1787950521.306025,
-    "ast_hash": "1eae6ee43930d03c36c429a6c81c287d",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/compartir-morado.png": {
-    "mtime": 1787950521.3034585,
-    "ast_hash": "39dfa18650b8cf2f2f24ce5180c282b3",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/compartir-tinta.png": {
-    "mtime": 1787950521.307399,
-    "ast_hash": "9392dceca47e1b2ebe06f48157596ee1",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/corazon-blanco.png": {
-    "mtime": 1787950521.30213,
-    "ast_hash": "55043b9db624c922b1d90241fce8dda0",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/corazon-crema.png": {
-    "mtime": 1787950521.2988074,
-    "ast_hash": "f63d4ac48f9e3cf4b50c97d2dd27750f",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/corazon-lila.png": {
-    "mtime": 1787950521.300003,
-    "ast_hash": "4f07a88e95be6b2a604c77bf29d20b2d",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/corazon-morado.png": {
-    "mtime": 1787950521.2975118,
-    "ast_hash": "66a0bf4855791a0e4fe9e59885ecde3b",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/corazon-tinta.png": {
-    "mtime": 1787950521.3010194,
-    "ast_hash": "96c71136a3e5d17076fff6f7a3fee0f2",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/cruz-blanco.png": {
-    "mtime": 1787950521.3682587,
-    "ast_hash": "be7df2654436d553083d10ab41fa0f5c",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/cruz-crema.png": {
-    "mtime": 1787950521.3645213,
-    "ast_hash": "ac475cf23ca9c5c0011192a67627c7b1",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/cruz-lila.png": {
-    "mtime": 1787950521.365611,
-    "ast_hash": "d823b32d1a89df7d2ee7d85015c8a192",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/cruz-morado.png": {
-    "mtime": 1787950521.363143,
-    "ast_hash": "2b55d8459c65eae6fc812b43b37e1fb2",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/cruz-tinta.png": {
-    "mtime": 1787950521.3668346,
-    "ast_hash": "bd2000090cb9bb7f117a485730672cb5",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/diana-blanco.png": {
-    "mtime": 1787950521.249944,
-    "ast_hash": "b38cd4535806a1c8c894bcf6e2081572",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/diana-crema.png": {
-    "mtime": 1787950521.2448735,
-    "ast_hash": "55e0f1daccbcb0258e6a10992d7c8d99",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/diana-lila.png": {
-    "mtime": 1787950521.2465332,
-    "ast_hash": "fff3ccbc443d4d33ba252c40c0d88ca3",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/diana-morado.png": {
-    "mtime": 1787950521.2432053,
-    "ast_hash": "88e57be87c0e969bba0ea6941db1d8fb",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/diana-tinta.png": {
-    "mtime": 1787950521.2481651,
-    "ast_hash": "4662006b4aa2b2d46b662aef31d49a22",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/enlace-blanco.png": {
-    "mtime": 1787950521.3334126,
-    "ast_hash": "1f77040027a125c78b7dc6da86c06c4f",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/enlace-crema.png": {
-    "mtime": 1787950521.3295226,
-    "ast_hash": "367b12fc97bf4cf96bc2c6b081d540c1",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/enlace-lila.png": {
-    "mtime": 1787950521.3308053,
-    "ast_hash": "73240ea90df2c72891be681ba09adeda",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/enlace-morado.png": {
-    "mtime": 1787950521.3280525,
-    "ast_hash": "17d7b07474738fefd5f5598def75e39a",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/enlace-tinta.png": {
-    "mtime": 1787950521.332141,
-    "ast_hash": "ab0161586b3d8a0842a38b2fd692850f",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/estrella-blanco.png": {
-    "mtime": 1787950521.2358727,
-    "ast_hash": "5dd8499a1440637d24cc077c245cb62e",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/estrella-crema.png": {
-    "mtime": 1787950521.2319167,
-    "ast_hash": "67732162983c827a435db949e6a61565",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/estrella-lila.png": {
-    "mtime": 1787950521.233346,
-    "ast_hash": "489da1e7f9e464f18edddc31cb0bedac",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/estrella-morado.png": {
-    "mtime": 1787950521.2306118,
-    "ast_hash": "f77c4bc472c90ceea9daa903d5a6e130",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/estrella-tinta.png": {
-    "mtime": 1787950521.234628,
-    "ast_hash": "f3a6b8db78c862e65fae8e8605fb4356",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/filtro-blanco.png": {
-    "mtime": 1787950521.3548388,
-    "ast_hash": "270656bc4d96994bfc665ae3facea3c8",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/filtro-crema.png": {
-    "mtime": 1787950521.351757,
-    "ast_hash": "64c9711db3a4ac8f688fbefacb2f6b4b",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/filtro-lila.png": {
-    "mtime": 1787950521.3527396,
-    "ast_hash": "0275ce437780aa2432507e84c4b6c6e5",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/filtro-morado.png": {
-    "mtime": 1787950521.3508623,
-    "ast_hash": "c5dc52ae45fe30f102bce90724b3f7b8",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/filtro-tinta.png": {
-    "mtime": 1787950521.3537571,
-    "ast_hash": "6e96ca313daece98053d40ecb183314e",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/flecha-blanco.png": {
-    "mtime": 1787950521.372593,
-    "ast_hash": "05df920a0c5056e312ce5f15b0b39dfc",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/flecha-crema.png": {
-    "mtime": 1787950521.369963,
-    "ast_hash": "9aaecfaa8d553af18dce3d5138cd9b7a",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/flecha-lila.png": {
-    "mtime": 1787950521.3707905,
-    "ast_hash": "63d1c3a1d8d438fbfffdafb00d018b41",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/flecha-morado.png": {
-    "mtime": 1787950521.3691256,
-    "ast_hash": "b9d0b2d0b716842ba5ab5d238bd93ed2",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/flecha-tinta.png": {
-    "mtime": 1787950521.371653,
-    "ast_hash": "e08af68be36eef03f22b0f36375745b1",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/grafico-blanco.png": {
-    "mtime": 1787950521.2863226,
-    "ast_hash": "db8221340fc231c4896fca89003dee17",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/grafico-crema.png": {
-    "mtime": 1787950521.2833645,
-    "ast_hash": "6cba09ff5ca7dc92d21d9b13fd881504",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/grafico-lila.png": {
-    "mtime": 1787950521.284488,
-    "ast_hash": "d570efc9ce49839b4445cdb1f443e078",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/grafico-morado.png": {
-    "mtime": 1787950521.2824354,
-    "ast_hash": "c22842fcbf238a1284c714ce3c239286",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/grafico-tinta.png": {
-    "mtime": 1787950521.2852921,
-    "ast_hash": "bc16c358a975fd5901bf0095b721c0af",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/guardado-blanco.png": {
-    "mtime": 1787950521.2912223,
-    "ast_hash": "bca731ecbf296ca904308054e90a47ad",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/guardado-crema.png": {
-    "mtime": 1787950521.288325,
-    "ast_hash": "dbad5149a915df836e6320df5cdee87b",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/guardado-lila.png": {
-    "mtime": 1787950521.2892363,
-    "ast_hash": "9ed7bdbfca281dcd7946612ba6cedc4a",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/guardado-morado.png": {
-    "mtime": 1787950521.2873733,
-    "ast_hash": "9ac3871a86da3d82298092404be82085",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/guardado-tinta.png": {
-    "mtime": 1787950521.2902162,
-    "ast_hash": "a860a1353132a0594e77c403a7d87b25",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/micro-blanco.png": {
-    "mtime": 1787950521.378892,
-    "ast_hash": "f704084396b8b243cf0f55774adbcfb4",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/micro-crema.png": {
-    "mtime": 1787950521.375074,
-    "ast_hash": "a2beaf46f1113820346367a1c0606e79",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/micro-lila.png": {
-    "mtime": 1787950521.376413,
-    "ast_hash": "b344af82c4390e4defe68d5b5ef5a5a1",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/micro-morado.png": {
-    "mtime": 1787950521.3738422,
-    "ast_hash": "cd688276bc8259da1e27c4a454d1a7c1",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/micro-tinta.png": {
-    "mtime": 1787950521.3775885,
-    "ast_hash": "59d3d3aef101329c92ae987d34fb8105",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/mudo-blanco.png": {
-    "mtime": 1787950521.398419,
-    "ast_hash": "30ec439ea3b7edef0bbbdccc4c3393aa",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/mudo-crema.png": {
-    "mtime": 1787950521.3961535,
-    "ast_hash": "7f70d40470acbe2f41bef441d5ab27c4",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/mudo-lila.png": {
-    "mtime": 1787950521.396906,
-    "ast_hash": "6b2b02d4df67f8d4be739ef95ccf2188",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/mudo-morado.png": {
-    "mtime": 1787950521.3952417,
-    "ast_hash": "eafbc44eaab8df1e310e548e2952efff",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/mudo-tinta.png": {
-    "mtime": 1787950521.397665,
-    "ast_hash": "4f0c25ef0038ae7314e04275109583c5",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/ojo-blanco.png": {
-    "mtime": 1787950521.2163706,
-    "ast_hash": "585e88b6664900b944699c26554853a0",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/ojo-crema.png": {
-    "mtime": 1787950521.2120514,
-    "ast_hash": "faea93451553825465c4ac23b04a1709",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/ojo-lila.png": {
-    "mtime": 1787950521.2135124,
-    "ast_hash": "e1fc21538b66d34bafdfcc2a9212b382",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/ojo-morado.png": {
-    "mtime": 1787950521.2104988,
-    "ast_hash": "c5e998344882df57d7c099af095792a4",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/ojo-tinta.png": {
-    "mtime": 1787950521.2149885,
-    "ast_hash": "001810aabb45c215bb8e0e883621bfd5",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/personas-blanco.png": {
-    "mtime": 1787950521.2814322,
-    "ast_hash": "02a8750ca791d69ce65a15ea1e5a9fb3",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/personas-crema.png": {
-    "mtime": 1787950521.2773626,
-    "ast_hash": "13ce90b0150cb1deada06e7058a68a88",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/personas-lila.png": {
-    "mtime": 1787950521.278624,
-    "ast_hash": "dff0d84c981f4a5b96304ee824119836",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/personas-morado.png": {
-    "mtime": 1787950521.276051,
-    "ast_hash": "1eb4ec796f2c2ba75fe891330e34782e",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/personas-tinta.png": {
-    "mtime": 1787950521.2799332,
-    "ast_hash": "98c5232754cebee78c1d10b8c258b9b5",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/play-blanco.png": {
-    "mtime": 1787950521.313514,
-    "ast_hash": "3a4c6e809cd609795b685d900d931130",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/play-crema.png": {
-    "mtime": 1787950521.3104892,
-    "ast_hash": "a43f6b771015ca752de347a03e1c362e",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/play-lila.png": {
-    "mtime": 1787950521.311493,
-    "ast_hash": "c8eb50e39502ef5922c3a814e74403d7",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/play-morado.png": {
-    "mtime": 1787950521.3097847,
-    "ast_hash": "d829239a8b24c86c5bf58f1fac193ddd",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/play-tinta.png": {
-    "mtime": 1787950521.3124754,
-    "ast_hash": "bd391177150e294449e9b8cbfba1a176",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/precio-blanco.png": {
-    "mtime": 1787950521.2290447,
-    "ast_hash": "24c3184be9fbb8d11ebbfc149af8ec6d",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/precio-crema.png": {
-    "mtime": 1787950521.2254798,
-    "ast_hash": "f2485348b4b79f41f1c034d03ad4b6ad",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/precio-lila.png": {
-    "mtime": 1787950521.226673,
-    "ast_hash": "6ef04f8db281ff806cd4b2d19a9ff98e",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/precio-morado.png": {
-    "mtime": 1787950521.224427,
-    "ast_hash": "2e8b4da32b0a1b6813438b2a5ac92f41",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/precio-tinta.png": {
-    "mtime": 1787950521.227831,
-    "ast_hash": "393519c1213488456da0bfec6da0a715",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/pregunta-blanco.png": {
-    "mtime": 1787950521.404092,
-    "ast_hash": "f1b804b714690984e3234c8e6ab9780a",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/pregunta-crema.png": {
-    "mtime": 1787950521.4006162,
-    "ast_hash": "7765251758369928c43fd719e2a4e4b7",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/pregunta-lila.png": {
-    "mtime": 1787950521.4018693,
-    "ast_hash": "f3d75aa9a4a3f54baaee4d47b605d90b",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/pregunta-morado.png": {
-    "mtime": 1787950521.399513,
-    "ast_hash": "8403f36426c03707093a1f841e438181",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/pregunta-tinta.png": {
-    "mtime": 1787950521.4029734,
-    "ast_hash": "8c69b7d40107635ffe9df3d5349c0098",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/premio-blanco.png": {
-    "mtime": 1787950521.3207192,
-    "ast_hash": "ede10b888b33a6fb1146816aea60144b",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/premio-crema.png": {
-    "mtime": 1787950521.3162549,
-    "ast_hash": "e70fa2a90a3a0e028313a1e53c777d90",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/premio-lila.png": {
-    "mtime": 1787950521.3176482,
-    "ast_hash": "ff95bc57e8f835001c1fe15606d004cb",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/premio-morado.png": {
-    "mtime": 1787950521.3147962,
-    "ast_hash": "6965d1a6fca30c451374d6470810bbf6",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/premio-tinta.png": {
-    "mtime": 1787950521.3190928,
-    "ast_hash": "3d4e8b239e62de0111a749d903c25e7f",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/rayo-blanco.png": {
-    "mtime": 1787950521.2415082,
-    "ast_hash": "a6ee2c3fa8d1bc939fda06bde85dd4b0",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/rayo-crema.png": {
-    "mtime": 1787950521.2383938,
-    "ast_hash": "d68e7e6c02472bd7eefa3cffc763e9d8",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/rayo-lila.png": {
-    "mtime": 1787950521.239388,
-    "ast_hash": "9c49ed9e7d8c8fa147b8905599bfb1c5",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/rayo-morado.png": {
-    "mtime": 1787950521.2371564,
-    "ast_hash": "ebc28484cc9fca26b922ecf4bb0f052a",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/rayo-tinta.png": {
-    "mtime": 1787950521.2405903,
-    "ast_hash": "5663ee3b0decbc6ef602074c67ecd5f4",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/reloj-blanco.png": {
-    "mtime": 1787950521.2627358,
-    "ast_hash": "3ee3fb21ce1fb0d8b40d790295820241",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/reloj-crema.png": {
-    "mtime": 1787950521.258364,
-    "ast_hash": "a6d6d524cf8660aeab77b02d4df4667d",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/reloj-lila.png": {
-    "mtime": 1787950521.2598217,
-    "ast_hash": "ad07063f1d116802ed753736709e35ec",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/reloj-morado.png": {
-    "mtime": 1787950521.2569208,
-    "ast_hash": "69ea1f68797e7c1423c0b4d360325c4a",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/reloj-tinta.png": {
-    "mtime": 1787950521.261272,
-    "ast_hash": "860f2bd0d41f46d1b252a779486ced6d",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/sonrisa-blanco.png": {
-    "mtime": 1787950521.3899145,
-    "ast_hash": "72bade13078afb0ed10b3998eb1288b2",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/sonrisa-crema.png": {
-    "mtime": 1787950521.3864963,
-    "ast_hash": "98154981a59499f9cfc675d9447c0f48",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/sonrisa-lila.png": {
-    "mtime": 1787950521.3876264,
-    "ast_hash": "1e3d71a019b1325a9f75d74557ac0e60",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/sonrisa-morado.png": {
-    "mtime": 1787950521.3854012,
-    "ast_hash": "f45eb6ab2eed9d2ec7c1733f16143c57",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/sonrisa-tinta.png": {
-    "mtime": 1787950521.3887556,
-    "ast_hash": "49d96c8cc36720e9b63d280f85bf4370",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/telefono-blanco.png": {
-    "mtime": 1787950521.296414,
-    "ast_hash": "0929366bbf347246f5b7d3f86c31312f",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/telefono-crema.png": {
-    "mtime": 1787950521.2931664,
-    "ast_hash": "a9c6f4fdac52f85b9559f27a567ca691",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/telefono-lila.png": {
-    "mtime": 1787950521.2943742,
-    "ast_hash": "b6f85dc9ff3efee19e20bc8dc23d9540",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/telefono-morado.png": {
-    "mtime": 1787950521.2921886,
-    "ast_hash": "68a0a17372c08b38420561cd7bf9f408",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/telefono-tinta.png": {
-    "mtime": 1787950521.2954047,
-    "ast_hash": "7a81c1c3da92a3fa1e0890d52e075911",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/tijera-blanco.png": {
-    "mtime": 1787950521.2233176,
-    "ast_hash": "33c0c24c385e32d4a5dc88c735007c60",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/tijera-crema.png": {
-    "mtime": 1787950521.2192094,
-    "ast_hash": "c16dcecdcc53c492e4e96eaec774290f",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/tijera-lila.png": {
-    "mtime": 1787950521.2206452,
-    "ast_hash": "6960491b970d84389bd56c8944d303f6",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/tijera-morado.png": {
-    "mtime": 1787950521.2177966,
-    "ast_hash": "cd66427b30e4de5b5c8acebd8d59a986",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/tijera-tinta.png": {
-    "mtime": 1787950521.221934,
-    "ast_hash": "38744a6103110bd0184ff9d6e5095011",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/usuario-blanco.png": {
-    "mtime": 1787950521.3943315,
-    "ast_hash": "63d86520e49e334307d4582f6e56bbe0",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/usuario-crema.png": {
-    "mtime": 1787950521.3917148,
-    "ast_hash": "8de67ff9c37625fc63148161b269cdf6",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/usuario-lila.png": {
-    "mtime": 1787950521.3925736,
-    "ast_hash": "2e3e482a6b9d852c81057bca4a0badb1",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/usuario-morado.png": {
-    "mtime": 1787950521.3908217,
-    "ast_hash": "67a51c1b62eaaf5358e31c5ca3b1d888",
-    "semantic_hash": ""
-  },
-  "workshop/assets/icons/usuario-tinta.png": {
-    "mtime": 1787950521.39346,
-    "ast_hash": "854e5c03ee7354fc683299c54bc6b796",
-    "semantic_hash": ""
-  },
-  "workshop/assets/logo-brunetti-crema.png": {
-    "mtime": 1787950521.1865835,
-    "ast_hash": "7975b6fd167f06276296fa40a25340f3",
-    "semantic_hash": ""
-  },
-  "workshop/assets/logo-brunetti-morado.png": {
-    "mtime": 1787950521.162986,
-    "ast_hash": "44ccd6418e7f9f73a0cd1c83b9d97006",
-    "semantic_hash": ""
-  },
-  "workshop/assets/logo-brunetti-tinta.png": {
-    "mtime": 1787950521.208324,
-    "ast_hash": "20cfbd72f9ccafad891863716c9faaf0",
     "semantic_hash": ""
   }
 }
