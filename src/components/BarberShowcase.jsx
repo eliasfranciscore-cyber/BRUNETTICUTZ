@@ -18,7 +18,7 @@ import { BARBERS } from '../data.js'
  * (ver README → data.js). Si falta `photo`, usa el logo como respaldo.
  */
 
-const LOGO = '/assets/pimp-studio-logo.jpg'
+const LOGO = '/assets/brunetti-logo-icon.svg'
 
 function BarberCard({ b, featured, onOpen }) {
   return (

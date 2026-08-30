@@ -231,7 +231,7 @@ export default function Booking() {
           <div className="animate-in" style={{ display: "grid", gap: ".8rem" }}>
             <h3 className="font-display" style={{ margin: ".2rem 0", fontSize: "1.05rem" }}>Elige tu barbero</h3>
             {(() => {
-              const LOGO = "/assets/pimp-studio-logo.jpg"
+              const LOGO = "/assets/brunetti-logo-icon.svg"
               const onImgErr = (e) => { if (e.currentTarget.src !== window.location.origin + LOGO) e.currentTarget.src = LOGO }
               const ordered = [...barbers].sort((a, b) => (b.tier === "premium" ? 1 : 0) - (a.tier === "premium" ? 1 : 0))
               const featured = ordered.find((b) => b.tier === "premium")

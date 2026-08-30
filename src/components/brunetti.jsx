@@ -139,7 +139,7 @@ export function BrunettiFooter({ rightSlot }) {
     <footer className="site-footer">
       <div className="container footer-wrap">
         <div className="footer-brand">
-          <img src="/assets/pimp-studio-logo.jpg" alt="Brunetti" className="footer-logo" />
+          <img src="/assets/brunetti-logo-icon.svg" alt="Brunetti" className="footer-logo" />
           <span>BRUNETTI</span>
         </div>
         <p>© 2026 Brunetti · Bruno Herrera. Todos los derechos reservados.</p>

@@ -23,6 +23,12 @@ Archivos en desuso/
 # graphify scratch/temp files
 graphify-out/.graphify_*
 
+# Herramientas locales de Claude Code: .claude/skills son symlinks a .agents,
+# que es una biblioteca de skills de la máquina, no del proyecto.
+.agents/
+.claude/skills/
+skills-lock.json
+
 # PDF viewer plugin scratch
 tmp/
 output/

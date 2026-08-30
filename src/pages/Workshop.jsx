@@ -1,6 +1,6 @@
 /* PIMP STUDIO · Workshop "Contenido que Vende" — Página (React + React Router)
    Drop-in para Vite. Requiere react-router-dom. Importa su propio CSS y datos.
-   Logo esperado en /public/assets/pimp-studio-logo.jpg (degrada si falta). */
+   Logo esperado en /public/assets/brunetti-logo-icon.svg (degrada si falta). */
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { WORKSHOP, formatWorkshopDate, WORKSHOP_TBD } from '../data/workshop.js'
