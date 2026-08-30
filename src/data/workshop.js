@@ -178,6 +178,10 @@ function wkEditionDate() {
 }
 const WK_ED = wkEditionDate();
 
+/* Lo que se muestra en vez de la fecha mientras los pagos están en pausa: no
+   hay próxima edición confirmada, así que tampoco se anuncia una. */
+export const WORKSHOP_TBD = "Fecha por confirmar";
+
 export const WORKSHOP = {
   meta: {
     kicker: "Workshop de marca personal para barberos",
@@ -196,6 +200,11 @@ export const WORKSHOP = {
     off: "-50%",
     seatsTotal: 20,
     seatsTaken: 13,
+    /* Interruptor de pagos (panel interno → Config → Precios y fechas). Parte
+       apagado igual que el default del servidor (api/mp-payments.js): la
+       página solo ofrece pagar cuando ?settings=1 confirma que está activo,
+       así nunca se cobra un cupo sin fecha. */
+    paymentsEnabled: false,
   },
 
   // Video VSL del workshop — sección dedicada (usa la vista previa de YouTube).

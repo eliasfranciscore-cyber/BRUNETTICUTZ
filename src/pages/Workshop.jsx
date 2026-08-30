@@ -3,7 +3,7 @@
    Logo esperado en /public/assets/pimp-studio-logo.jpg (degrada si falta). */
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { WORKSHOP, formatWorkshopDate } from '../data/workshop.js'
+import { WORKSHOP, formatWorkshopDate, WORKSHOP_TBD } from '../data/workshop.js'
 import SiteNav from '../components/SiteNav.jsx'
 import { addLocalEnrollment } from '../enrollmentsStore.js'
 import { Lamp } from '../components/ui/lamp.jsx'
@@ -201,6 +201,9 @@ function Hero({ onReserve }) {
   const cd = useCountdown(WK.meta.dateISO);
   const [failed, setFailed] = useState(false);
   const m = WK.meta;
+  /* Con los pagos en pausa no hay fecha que anunciar ni cuenta regresiva que
+     mostrar: la página pasa a modo "te aviso cuando abra". */
+  const paused = !m.paymentsEnabled;
   return (
     <section className="wks-hero" id="top">
       <div className={`wks-hero-media ${failed ? "is-failed" : ""}`}>
@@ -225,7 +228,7 @@ function Hero({ onReserve }) {
             <p className="wks-hero-sub"><EditableText file="workshop" path="meta.subtitle" as="span">{WKC.meta.subtitle}</EditableText></p>
             <div className="wks-hero-actions">
               <button className="wks-btn wks-btn-gold" onClick={onReserve}>
-                <Icon name="calendar" size={16} /> Asegura tu silla
+                <Icon name="calendar" size={16} /> {paused ? "Avísame la próxima fecha" : "Asegura tu silla"}
               </button>
               <button className="wks-btn wks-btn-ghost" onClick={() => smoothTo("programa")}>
                 Ver el programa
@@ -236,15 +239,21 @@ function Hero({ onReserve }) {
           <aside className="wks-hero-card">
             <div className="wks-card-row">
               <div className="wks-date-badge">
-                <b>{m.dateLabel}</b>
+                <b>{paused ? WORKSHOP_TBD : m.dateLabel}</b>
               </div>
               <span className="wks-chip"><Icon name="pin" size={12} /> Cupos 20</span>
             </div>
-            <div className="wks-countdown">
-              {[["d", "Días"], ["h", "Hrs"], ["m", "Min"], ["s", "Seg"]].map(([k, l]) => (
-                <div className="wks-cd-cell" key={k}><b>{cd[k]}</b><span>{l}</span></div>
-              ))}
-            </div>
+            {paused ? (
+              <p className="wks-paused-line">
+                Estamos cerrando la fecha de la próxima edición. Déjanos tus datos y te avisamos antes que a nadie.
+              </p>
+            ) : (
+              <div className="wks-countdown">
+                {[["d", "Días"], ["h", "Hrs"], ["m", "Min"], ["s", "Seg"]].map(([k, l]) => (
+                  <div className="wks-cd-cell" key={k}><b>{cd[k]}</b><span>{l}</span></div>
+                ))}
+              </div>
+            )}
             <div className="wks-price-line">
               <span className="wks-price-now">{formatCLP(m.priceNow)}</span>
               <span className="wks-price-was">{formatCLP(m.priceWas)}</span>
@@ -536,6 +545,7 @@ function Pricing({ onReserve }) {
   const m = WK.meta;
   const pct = Math.round((m.seatsTaken / m.seatsTotal) * 100);
   const left = m.seatsTotal - m.seatsTaken;
+  const paused = !m.paymentsEnabled;
   return (
     <section className="wks-section wks-pricing" id="precio">
       <div className={`wks-pricing-bg ${failed ? "is-failed" : ""}`}>
@@ -563,9 +573,9 @@ function Pricing({ onReserve }) {
             </div>
           </div>
           <div className="wks-pricing-foot">
-            <p className="wks-pricing-note" style={{ margin: 0 }}>{m.dateLong}</p>
+            <p className="wks-pricing-note" style={{ margin: 0 }}>{paused ? "Próxima fecha por confirmar" : m.dateLong}</p>
             <button className="wks-btn wks-btn-gold" onClick={onReserve}>
-              <Icon name="calendar" size={16} /> Reservar ahora
+              <Icon name="calendar" size={16} /> {paused ? "Avísame primero" : "Reservar ahora"}
             </button>
           </div>
         </div>
@@ -578,13 +588,22 @@ function Pricing({ onReserve }) {
 const WAITLIST_OPTION = "Próxima edición · lista de espera";
 
 function Register({ formRef }) {
-  const [form, setForm] = useState({ name: "", phone: "", email: "", edition: WK.meta.dateLabel });
+  const [form, setForm] = useState({ name: "", phone: "", email: "" });
+  /* La edición no se guarda como texto en el estado: se deriva al enviar desde
+     la fecha vigente (que llega del panel, después de montar el formulario) o
+     de la lista de espera. Así no queda una fecha vieja pegada al lead. */
+  const [waitlist, setWaitlist] = useState(false);
   const [errors, setErrors] = useState({});
   const [sent, setSent] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
   const [payError, setPayError] = useState("");
   const [returnStatus, setReturnStatus] = useState(null); // null | 'checking' | 'paid' | 'pending' | 'failed'
   const m = WK.meta;
+  /* En pausa solo existe la lista de espera: el cobro está apagado en el panel
+     y api/mp-payments rechaza el checkout igual. */
+  const paused = !m.paymentsEnabled;
+  const onlyWaitlist = paused || waitlist;
+  const edition = onlyWaitlist ? WAITLIST_OPTION : m.dateLabel;
 
   // Si volvemos desde Mercado Pago, lee status/payment_id de la URL de retorno.
   useEffect(() => {
@@ -627,13 +646,14 @@ function Register({ formRef }) {
     if (!validate()) return;
 
     /* Lista de espera: no hay cupo que cobrar, sigue siendo un lead simple. */
-    if (form.edition === WAITLIST_OPTION) {
-      addLocalEnrollment({ ...form, source: 'workshop' });
+    if (onlyWaitlist) {
+      const lead = { ...form, edition, source: 'workshop' };
+      addLocalEnrollment(lead);
       try {
         await fetch('/api/enrollments', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...form, source: 'workshop' }),
+          body: JSON.stringify(lead),
         });
       } catch (x) { /* noop */ }
       setSent(true);
@@ -648,7 +668,7 @@ function Register({ formRef }) {
       const response = await fetch('/api/mp-payments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ source: 'workshop', ...form }),
+        body: JSON.stringify({ source: 'workshop', ...form, edition }),
       });
       if (!response.ok) {
         const data = await response.json();
@@ -673,7 +693,7 @@ function Register({ formRef }) {
         <div className="wks-register-grid">
           <aside className="wks-form-aside">
             <div className="wks-summary-row"><span>Workshop</span><b>Contenido que Vende</b></div>
-            <div className="wks-summary-row"><span>Fecha</span><b>{m.dateLabel}</b></div>
+            <div className="wks-summary-row"><span>Fecha</span><b>{paused ? WORKSHOP_TBD : m.dateLabel}</b></div>
             <div className="wks-summary-row"><span>Cupos</span><b>{m.seatsTotal - m.seatsTaken} disponibles</b></div>
             <div className="wks-summary-total">
               <div><span style={{ color: "var(--wk-muted)", fontSize: "0.8rem" }}>Inversión total</span>
@@ -695,7 +715,7 @@ function Register({ formRef }) {
               <span className="ring"><Icon name="check" size={26} /></span>
               <h3>¡Cupo reservado!</h3>
               <p style={{ margin: 0, color: "var(--wk-ink-soft)" }}>
-                Tu pago fue confirmado. Te escribiremos con la ubicación exacta y los detalles. Nos vemos el {m.dateLabel}.
+                Tu pago fue confirmado. Te escribiremos con la ubicación exacta y los detalles.{paused ? "" : ` Nos vemos el ${m.dateLabel}.`}
               </p>
             </div>
           ) : returnStatus === "pending" ? (
@@ -722,7 +742,7 @@ function Register({ formRef }) {
               <p style={{ margin: 0, color: "var(--wk-ink-soft)" }}>
                 Te escribiremos a <b className="wks-gold">{form.email}</b> y al {form.phone} apenas se abra un cupo en la próxima edición.
               </p>
-              <button className="wks-btn wks-btn-ghost wks-btn-sm" onClick={() => { setSent(false); setForm({ name: "", phone: "", email: "", edition: form.edition }); }}>
+              <button className="wks-btn wks-btn-ghost wks-btn-sm" onClick={() => { setSent(false); setForm({ name: "", phone: "", email: "" }); }}>
                 Inscribir a otra persona
               </button>
             </div>
@@ -732,6 +752,12 @@ function Register({ formRef }) {
             </div>
           ) : (
             <form className="wks-form" onSubmit={submit} noValidate>
+              {paused && (
+                <div className="wks-paused-note">
+                  <b>Inscripciones en pausa</b>
+                  <span>Estamos confirmando la fecha de la próxima edición. Déjanos tus datos y te escribimos apenas abramos los cupos — no se cobra nada ahora.</span>
+                </div>
+              )}
               <div className={`wks-field ${errors.name ? "is-error" : ""}`}>
                 <label>Nombre completo</label>
                 <input value={form.name} onChange={set("name")} placeholder="Tu nombre y apellido" />
@@ -751,15 +777,19 @@ function Register({ formRef }) {
               </div>
               <div className="wks-field">
                 <label>Edición</label>
-                <select value={form.edition} onChange={set("edition")}>
-                  <option>{m.dateLabel}</option>
+                <select
+                  value={edition}
+                  disabled={paused}
+                  onChange={(e) => setWaitlist(e.target.value === WAITLIST_OPTION)}
+                >
+                  {!paused && <option>{m.dateLabel}</option>}
                   <option>{WAITLIST_OPTION}</option>
                 </select>
               </div>
               {payError && <p className="err" style={{ textAlign: "center" }}>{payError}</p>}
               <button className="wks-btn wks-btn-gold wks-btn-block" type="submit" style={{ marginTop: "0.4rem" }}>
                 <Icon name="check" size={16} />
-                {form.edition === WAITLIST_OPTION ? " Sumarme a la lista de espera" : ` Pagar con Mercado Pago · ${formatCLP(m.priceNow)}`}
+                {onlyWaitlist ? " Sumarme a la lista de espera" : ` Pagar con Mercado Pago · ${formatCLP(m.priceNow)}`}
               </button>
             </form>
           )}
@@ -883,7 +913,7 @@ function Footer({ onReserve }) {
 
         <div className="wks-footer-bottom">
           <span>© 2026 ASCENSIÓN · por Brunetti</span>
-          <span>Edición barbería premium · {m.dateLabel}</span>
+          <span>Edición barbería premium · {m.paymentsEnabled ? m.dateLabel : WORKSHOP_TBD}</span>
         </div>
       </div>
     </footer>
@@ -908,26 +938,27 @@ export default function Workshop() {
   const reserve = () => smoothTo("inscribir");
   void navigate;
 
-  // Precio y fecha reales vienen del panel interno (Config → Precios y
-  // fechas). WK.meta se lee directo (sin props) desde varios componentes de
-  // esta página, así que se sobreescribe in-place acá y se fuerza un
-  // re-render — evita meter Context solo para esto.
+  // Precio, fecha y el interruptor de pagos vienen del panel interno (Config →
+  // Precios y fechas). WK.meta se lee directo (sin props) desde varios
+  // componentes de esta página, así que se sobreescribe in-place acá y se
+  // fuerza un re-render — evita meter Context solo para esto.
+  // Ojo: `paymentsEnabled` arranca en false, así que si esta llamada falla la
+  // página se queda en modo lista de espera, que es el lado seguro.
   const [, forceUpdate] = useState(0);
   useEffect(() => {
     fetch('/api/mp-payments?settings=1')
       .then((r) => r.json())
       .then((s) => {
-        let changed = false;
-        if (s.workshopPrice) { WK.meta.priceNow = s.workshopPrice; changed = true; }
+        if (s.workshopPrice) WK.meta.priceNow = s.workshopPrice;
         if (s.workshopDate) {
           const d = new Date(s.workshopDate);
           if (!Number.isNaN(d.getTime())) {
             const { iso, label, long } = formatWorkshopDate(d);
             WK.meta.dateISO = iso; WK.meta.dateLabel = label; WK.meta.dateLong = long;
-            changed = true;
           }
         }
-        if (changed) forceUpdate((n) => n + 1);
+        WK.meta.paymentsEnabled = !!s.workshopPaymentsEnabled;
+        forceUpdate((n) => n + 1);
       })
       .catch(() => {});
   }, []);

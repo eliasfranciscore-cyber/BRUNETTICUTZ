@@ -2941,10 +2941,11 @@ function ConfigPanel({ brunettiOnly, barber, barbers, admin, canManageTeam, barb
   // localStorage), esto se guarda en la DB porque también lo lee el
   // cobro real de Mercado Pago (api/mp-payments.js) y las páginas
   // públicas de Cursos/Workshop.
-  const [precios, setPrecios] = useState({ cursosPrice: "", workshopPrice: "", workshopDate: "" })
+  const [precios, setPrecios] = useState({ cursosPrice: "", workshopPrice: "", workshopDate: "", workshopPaymentsEnabled: false })
   const [preciosLoading, setPreciosLoading] = useState(true)
   const [preciosStatus, setPreciosStatus] = useState("") // "", "saving", "done"
   const [preciosError, setPreciosError] = useState("")
+  const [pagosBusy, setPagosBusy] = useState(false)
   useEffect(() => {
     fetch("/api/mp-payments?settings=1")
       .then((r) => r.json())
@@ -2952,6 +2953,7 @@ function ConfigPanel({ brunettiOnly, barber, barbers, admin, canManageTeam, barb
         cursosPrice: s.cursosPrice ?? "",
         workshopPrice: s.workshopPrice ?? "",
         workshopDate: s.workshopDate ? new Date(s.workshopDate).toISOString().slice(0, 16) : "",
+        workshopPaymentsEnabled: !!s.workshopPaymentsEnabled,
       }))
       .catch(() => {})
       .finally(() => setPreciosLoading(false))
@@ -2967,6 +2969,7 @@ function ConfigPanel({ brunettiOnly, barber, barbers, admin, canManageTeam, barb
           cursosPrice: Number(precios.cursosPrice) || 0,
           workshopPrice: Number(precios.workshopPrice) || 0,
           workshopDate: precios.workshopDate ? new Date(precios.workshopDate).toISOString() : "",
+          workshopPaymentsEnabled: precios.workshopPaymentsEnabled,
         }),
       })
       const data = await res.json().catch(() => ({}))
@@ -2976,6 +2979,30 @@ function ConfigPanel({ brunettiOnly, barber, barbers, admin, canManageTeam, barb
     } catch (err) {
       setPreciosStatus("")
       setPreciosError(err.message || "No se pudo conectar con el servidor.")
+    }
+  }
+
+  /* El interruptor guarda solo, sin pasar por "Guardar": cortar los cobros es
+     algo que se hace de urgencia y no puede quedar a medias en pantalla. Si el
+     PATCH falla se revierte para no mostrar un estado que el servidor no tiene. */
+  const toggleWorkshopPagos = async (v) => {
+    const prev = precios.workshopPaymentsEnabled
+    setPagosBusy(true); setPreciosError("")
+    setPrecios((p) => ({ ...p, workshopPaymentsEnabled: v }))
+    try {
+      const token = localStorage.getItem("ps_barber_token") || ""
+      const res = await fetch("/api/mp-payments?settings=1", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({ workshopPaymentsEnabled: v }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || "No se pudo guardar")
+    } catch (err) {
+      setPrecios((p) => ({ ...p, workshopPaymentsEnabled: prev }))
+      setPreciosError(err.message || "No se pudo conectar con el servidor.")
+    } finally {
+      setPagosBusy(false)
     }
   }
 
@@ -3254,9 +3281,9 @@ function ConfigPanel({ brunettiOnly, barber, barbers, admin, canManageTeam, barb
           </div>
         )}
 
-        {/* PRECIOS Y FECHAS — precio de Cursos, precio de Workshop y fecha
-            del Workshop. Se guarda en la DB: lo lee el cobro real y las
-            páginas públicas de Cursos/Workshop. */}
+        {/* PRECIOS Y FECHAS — precio de Cursos, precio de Workshop, fecha del
+            Workshop y el interruptor de pagos del Workshop. Se guarda en la DB:
+            lo lee el cobro real y las páginas públicas de Cursos/Workshop. */}
         {section === "precios" && (
           <div style={{ display: "grid", gap: "1.4rem" }}>
             <div className="cfg-card">
@@ -3268,7 +3295,21 @@ function ConfigPanel({ brunettiOnly, barber, barbers, admin, canManageTeam, barb
                 <p className="empty-state">Cargando…</p>
               ) : (
                 <>
-                  <div className="cfg-form-grid">
+                  {/* Corta o abre el cobro del Workshop en la web pública. Se
+                      guarda al tiro, sin apretar "Guardar". */}
+                  <CfgRow
+                    label="Pagos del Workshop"
+                    sub={precios.workshopPaymentsEnabled
+                      ? "Activos: la web cobra por Mercado Pago para la fecha de abajo."
+                      : "En pausa: nadie puede pagar. La web solo ofrece la lista de espera y no muestra fecha."}
+                  >
+                    <ConfigSwitch
+                      checked={precios.workshopPaymentsEnabled}
+                      disabled={pagosBusy}
+                      onChange={toggleWorkshopPagos}
+                    />
+                  </CfgRow>
+                  <div className="cfg-form-grid" style={{ marginTop: ".8rem" }}>
                     <div className="cfg-field">
                       <label>Precio Cursos (CLP)</label>
                       <input
@@ -3297,6 +3338,9 @@ function ConfigPanel({ brunettiOnly, barber, barbers, admin, canManageTeam, barb
                         value={precios.workshopDate}
                         onChange={(e) => setPrecios((p) => ({ ...p, workshopDate: e.target.value }))}
                       />
+                      <span style={{ fontSize: ".72rem", color: "var(--muted)" }}>
+                        Guarda la fecha nueva y recién ahí enciende los pagos.
+                      </span>
                     </div>
                   </div>
                   {preciosError && <p style={{ fontSize: ".8rem", color: "#d99a8f", margin: ".5rem 0 0" }}>{preciosError}</p>}

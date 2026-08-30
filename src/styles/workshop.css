@@ -614,8 +614,23 @@
 .wks-field input:focus, .wks-field select:focus { outline: none; border-color: var(--wk-gold-line); box-shadow: 0 0 0 3px var(--wk-gold-glow); background: rgba(0,0,0,0.65); }
 .wks-field.is-error input, .wks-field.is-error select { border-color: #c97a6e; box-shadow: 0 0 0 3px rgba(201,122,110,0.16); }
 .wks-field .err { color: #d99a8f; font-size: 0.74rem; min-height: 0; }
+.wks-field select:disabled { opacity: 0.62; cursor: default; }
 .wks-form-row { display: grid; gap: 1rem; }
 @media (min-width: 560px) { .wks-form-row { grid-template-columns: 1fr 1fr; } }
+
+/* Modo pausa: mientras no hay próxima fecha confirmada la página no ofrece
+   pagar, solo lista de espera (ver `paymentsEnabled` en src/data/workshop.js
+   y el interruptor del panel en Config → Precios y fechas). */
+.wks-paused-line { margin: 0; color: var(--wk-ink-soft); font-size: 0.86rem; line-height: 1.6; }
+.wks-paused-note {
+  display: grid; gap: 0.35rem; padding: 0.9rem 1rem; border-radius: 14px;
+  border: 1px solid var(--wk-gold-line); background: var(--wk-gold-glow);
+}
+.wks-paused-note b {
+  font-family: var(--wk-font-display); font-size: 0.72rem; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--wk-gold-lt);
+}
+.wks-paused-note span { color: var(--wk-ink-soft); font-size: 0.84rem; line-height: 1.55; }
 .wks-form-aside { border: 1px solid var(--wk-hair); border-radius: 18px; padding: clamp(1.4rem, 3vw, 2rem); background: var(--wk-panel); display: grid; gap: 1.2rem; align-content: start; }
 .wks-summary-row { display: flex; justify-content: space-between; align-items: baseline; padding: 0.6rem 0; border-bottom: 1px solid var(--wk-hair); }
 .wks-summary-row:last-of-type { border-bottom: 0; }
@@ -985,4 +1000,6 @@
 [data-theme="light"] .wks-cupos-head b { color: #8838d8; }
 [data-theme="light"] .wks-cupos-head span { color: #666; }
 [data-theme="light"] .wks-pricing-note { color: #666; }
+[data-theme="light"] .wks-paused-line, [data-theme="light"] .wks-paused-note span { color: #555; }
+[data-theme="light"] .wks-paused-note b { color: #8838d8; }
 [data-theme="light"] .wks-pricing::after { background: linear-gradient(180deg, rgba(250,249,247,0.7), rgba(255,255,255,0.9)); }

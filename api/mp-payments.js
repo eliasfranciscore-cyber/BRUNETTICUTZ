@@ -3,7 +3,7 @@
    POST  /api/mp-payments                     (checkout: crea preferencia de pago)
    POST  /api/mp-payments?webhook=1           (Mercado Pago notifica, server-to-server)
    GET   /api/mp-payments?status=1&payment_id= (frontend consulta estado, solo lectura)
-   GET   /api/mp-payments?settings=1          (público: precio Cursos/Workshop + fecha Workshop)
+   GET   /api/mp-payments?settings=1          (público: precio Cursos/Workshop + fecha Workshop + si el Workshop cobra)
    PATCH /api/mp-payments?settings=1          (panel interno: edita esos ajustes)
    GET   /api/mp-payments?panel=1             (panel interno: lista unificada de pedidos pagados)
 
@@ -86,14 +86,15 @@ export default async function handler(req, res) {
 }
 
 /* ============================================================
-   SETTINGS: precio de Cursos/Workshop y fecha del Workshop,
-   editables desde el panel interno (Config → Precios y fechas).
+   SETTINGS: precio de Cursos/Workshop, fecha del Workshop y el
+   interruptor de pagos del Workshop, editables desde el panel
+   interno (Config → Precios y fechas).
    GET es público (lo consumen Cursos.jsx/Workshop.jsx para mostrar
    el precio real); PATCH requiere sesión interna. Guardado en una
-   tabla clave/valor simple — nunca bloquea el cobro: si la lectura
-   falla, se usan los defaults de FIXED_PRICES.
+   tabla clave/valor simple: si la lectura falla se usan los defaults
+   (FIXED_PRICES para el precio, y el Workshop sin cobrar).
    ============================================================ */
-const SETTINGS_KEYS = ['cursos_price', 'workshop_price', 'workshop_date']
+const SETTINGS_KEYS = ['cursos_price', 'workshop_price', 'workshop_date', 'workshop_payments']
 
 async function ensureSettingsTable(sql) {
   await sql`
@@ -106,7 +107,10 @@ async function ensureSettingsTable(sql) {
 }
 
 async function readSettings(sql) {
-  const defaults = { cursosPrice: FIXED_PRICES.cursos, workshopPrice: FIXED_PRICES.workshop, workshopDate: null }
+  /* workshopPaymentsEnabled arranca apagado a propósito: si la fila todavía
+     no existe, o la DB no responde, el Workshop queda en pausa y nadie puede
+     pagar un cupo sin fecha confirmada. Se enciende desde el panel interno. */
+  const defaults = { cursosPrice: FIXED_PRICES.cursos, workshopPrice: FIXED_PRICES.workshop, workshopDate: null, workshopPaymentsEnabled: false }
   try {
     await ensureSettingsTable(sql)
     const rows = await sql`SELECT key, value FROM settings WHERE key = ANY(${SETTINGS_KEYS})`
@@ -115,6 +119,7 @@ async function readSettings(sql) {
       cursosPrice: byKey.cursos_price ? Number(byKey.cursos_price) : defaults.cursosPrice,
       workshopPrice: byKey.workshop_price ? Number(byKey.workshop_price) : defaults.workshopPrice,
       workshopDate: byKey.workshop_date || defaults.workshopDate,
+      workshopPaymentsEnabled: byKey.workshop_payments === '1',
     }
   } catch (err) {
     console.error('readSettings error (usando defaults):', err?.message)
@@ -132,7 +137,7 @@ async function handlePatchSettings(req, res) {
   const session = requireInternal(req, res)
   if (!session) return
 
-  const { cursosPrice, workshopPrice, workshopDate } = req.body || {}
+  const { cursosPrice, workshopPrice, workshopDate, workshopPaymentsEnabled } = req.body || {}
   const updates = []
   if (cursosPrice !== undefined) {
     const n = Number(cursosPrice)
@@ -149,6 +154,9 @@ async function handlePatchSettings(req, res) {
       return res.status(400).json({ error: 'workshopDate inválida' })
     }
     updates.push(['workshop_date', String(workshopDate || '')])
+  }
+  if (workshopPaymentsEnabled !== undefined) {
+    updates.push(['workshop_payments', workshopPaymentsEnabled ? '1' : '0'])
   }
   if (!updates.length) return res.status(400).json({ error: 'Nada que guardar' })
 
@@ -274,6 +282,12 @@ async function handleCheckout(req, res) {
       externalReference = `essentials-${built.orderId}`
     } else {
       const settings = await readSettings(neon(process.env.DATABASE_URL))
+      /* Interruptor del panel: con los pagos del Workshop en pausa no se crea
+         ninguna preferencia, aunque alguien llame a este endpoint directo. El
+         front cae solo a la lista de espera. */
+      if (source === 'workshop' && !settings.workshopPaymentsEnabled) {
+        return res.status(409).json({ error: 'Las inscripciones al Workshop están en pausa mientras confirmamos la próxima fecha.', paused: true })
+      }
       const amount = source === 'cursos' ? settings.cursosPrice : settings.workshopPrice
       const payload = { source, name: cleanedName, phone: cleanedPhone, email: cleanedEmail }
       if (source === 'workshop') payload.edition = String(edition || '').trim()
