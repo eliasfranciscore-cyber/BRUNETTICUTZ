@@ -42,6 +42,20 @@ export function addLocalEnrollment(data = {}) {
   return entry
 }
 
+/* Quita una inscripción del respaldo local. Sin esto, borrarla desde el panel
+   solo saca la fila de Neon: `mergeEnrollments` vuelve a inyectar la copia
+   local en la siguiente carga y el registro "revive" al recargar la página.
+   Se busca por id y también por teléfono|origen, porque la copia local puede
+   tener un id `local-…` distinto al del servidor. */
+export function removeLocalEnrollment(entry = {}) {
+  const list = readLocalEnrollments()
+  const keyOf = (e) => `${String(e.phone || "").replace(/\D/g, "")}|${e.source}`
+  const key = keyOf(entry)
+  const next = list.filter((e) => String(e.id) !== String(entry.id) && keyOf(e) !== key)
+  if (next.length !== list.length) writeLocalEnrollments(next)
+  return list.length - next.length
+}
+
 /* Combina inscripciones del backend con las locales sin duplicar
    (clave: teléfono|origen). Las del servidor tienen prioridad. */
 export function mergeEnrollments(serverRows = []) {

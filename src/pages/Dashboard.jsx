@@ -6,7 +6,7 @@ import { ThemeProvider, ThemeToggle, useTheme } from '../components/theme.jsx'
 import MobileDock from '../components/MobileDock.jsx'
 import { BARBERS, CLIENTS, EXPENSES, SERVICES, TODAY_BOOKINGS, barberById, CLP, CLPk, isAdminUser, cleanPhone } from '../data.js'
 import { addLocalBooking, mergeBookings, readLocalBookings } from '../bookingsStore.js'
-import { mergeEnrollments } from '../enrollmentsStore.js'
+import { mergeEnrollments, removeLocalEnrollment } from '../enrollmentsStore.js'
 import BookingsInbox from '../components/BookingsInbox.jsx'
 import BookingSyncIssues from '../components/BookingSyncIssues.jsx'
 import DashboardResumen from '../components/DashboardResumen.jsx'
@@ -1872,7 +1872,7 @@ export default function Dashboard() {
 
         {/* INSCRIPCIONES */}
         {tab === "inscripciones" && (
-          <EnrollmentsPanel clients={clients} authHeaders={authHeaders} onCreateClient={createClient} />
+          <EnrollmentsPanel clients={clients} authHeaders={authHeaders} onCreateClient={createClient} onToast={pushToast} />
         )}
 
         {/* PEDIDOS */}
@@ -2460,7 +2460,7 @@ const CFG_SECTIONS = [
    Carga desde /api/enrollments (requiere sesión interna).
    Categoriza con colores del módulo: azul = cursos, morado = workshop.
    ============================================================ */
-function EnrollmentsPanel({ clients = [], authHeaders = () => ({}), onCreateClient = async () => {} }) {
+function EnrollmentsPanel({ clients = [], authHeaders = () => ({}), onCreateClient = async () => {}, onToast = () => {} }) {
   const [rows, setRows] = React.useState([])
   const [loading, setLoading] = React.useState(true)
   const [filter, setFilter] = React.useState("todos") // todos | cursos | workshop
@@ -2497,7 +2497,54 @@ function EnrollmentsPanel({ clients = [], authHeaders = () => ({}), onCreateClie
   const deleteEnrollment = async (enrollment) => {
     setRows((list) => list.filter((r) => r.id !== enrollment.id))
     setSelected(null)
+    /* Borrar también la copia del respaldo local: si no, mergeEnrollments la
+       vuelve a mostrar al recargar aunque la fila ya no exista en Neon. */
+    removeLocalEnrollment(enrollment)
+    /* Las inscripciones que solo viven en localStorage (id `local-…`) no
+       tienen fila que borrar en el backend. */
+    if (!Number(enrollment.id)) return
     fetch(`/api/enrollments?id=${enrollment.id}`, { method: "DELETE", headers: authHeaders() }).catch(() => {})
+  }
+
+  /* Correo con la ubicación y el horario del día a quienes ya tienen cupo en
+     el Workshop. Primero pregunta al backend a quiénes les llegaría (dryRun),
+     confirma con el barbero y recién ahí manda: son correos a clientes
+     reales. Quien ya lo recibió queda fuera (details_sent_at). */
+  const [sendingDetails, setSendingDetails] = React.useState(false)
+  const sendWorkshopDetails = async () => {
+    if (sendingDetails) return
+    setSendingDetails(true)
+    try {
+      const preview = await fetch("/api/enrollments?job=workshop-details", {
+        method: "POST",
+        headers: authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ dryRun: true }),
+      }).then((r) => r.json())
+
+      const list = preview?.recipients || []
+      if (!list.length) {
+        onToast("✉️", preview?.skipped ? "Ya se les había enviado a todos" : "No hay a quién enviarle")
+        return
+      }
+      const names = list.map((r) => `· ${r.name} (${r.email})`).join("\n")
+      if (!window.confirm(`Enviar el correo con ubicación y horario a ${list.length} ${list.length === 1 ? "persona" : "personas"}:\n\n${names}`)) return
+
+      const out = await fetch("/api/enrollments?job=workshop-details", {
+        method: "POST",
+        headers: authHeaders({ "Content-Type": "application/json" }),
+        body: JSON.stringify({ whenLabel: null }),
+      }).then((r) => r.json())
+
+      const okCount = out?.sent?.length || 0
+      const badCount = out?.failed?.length || 0
+      onToast(badCount ? "⚠️" : "✉️", badCount ? `Enviados ${okCount}, fallaron ${badCount}` : `Correo enviado a ${okCount}`)
+      if (badCount) console.error("workshop-details fallidos:", out.failed)
+    } catch (err) {
+      console.error("sendWorkshopDetails:", err?.message)
+      onToast("⚠️", "No se pudo enviar")
+    } finally {
+      setSendingDetails(false)
+    }
   }
 
   const createEnrollment = async (draft) => {
@@ -2543,6 +2590,9 @@ function EnrollmentsPanel({ clients = [], authHeaders = () => ({}), onCreateClie
               <button key={f} type="button" className={filter === f ? "is-on" : ""} style={{ textTransform: "capitalize" }} onClick={() => setFilter(f)}>{f}</button>
             ))}
           </div>
+          <button type="button" className="btn btn-dark btn-sm" disabled={sendingDetails} onClick={sendWorkshopDetails} title="Manda ubicación y horario del día a quienes tienen cupo en el Workshop">
+            <Icon name="spark" size={14} /> {sendingDetails ? "Enviando…" : "Enviar detalles"}
+          </button>
           <button type="button" className="btn btn-gold btn-sm" onClick={() => setCreating(true)}>
             <Icon name="user" size={14} /> Nueva inscripción
           </button>

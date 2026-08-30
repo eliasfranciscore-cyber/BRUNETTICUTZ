@@ -1,7 +1,7 @@
 import { neon } from "@neondatabase/serverless"
 import { requireInternal } from "./_auth.js"
 import { notifyAll } from "./push.js"
-import { sendWorkshopConfirmationEmail } from "./_email.js"
+import { sendWorkshopConfirmationEmail, sendWorkshopWaitlistEmail, sendWorkshopDetailsEmail } from "./_email.js"
 
 /* Tabla esperada en Neon (créala si no existe):
    CREATE TABLE IF NOT EXISTS enrollments (
@@ -44,6 +44,72 @@ export default async function handler(req, res) {
     } catch (err) {
       console.error("enrollments GET error:", err?.message)
       return sendJson(res, 200, { ok: true, enrollments: DEMO, demo: true })
+    }
+  }
+
+  /* POST ?job=workshop-details — manda el correo con la ubicación y el
+     horario del día a quienes ya tienen cupo en el Workshop.
+     Se dispara desde el panel (botón "Enviar detalles"), no automáticamente:
+     es un correo a clientes reales y lo decide el barbero.
+
+     `details_sent_at` evita mandarlo dos veces a la misma persona; con
+     `force: true` se reenvía igual. La pausa entre correos respeta el límite
+     de 2 por segundo de Resend. Vive acá y no en un archivo nuevo porque el
+     proyecto está en 12/12 funciones del plan Hobby de Vercel. */
+  if (req.method === "POST" && req.query.job === "workshop-details") {
+    const session = requireInternal(req, res)
+    if (!session) return
+
+    const body = req.body || {}
+    const ids = Array.isArray(body.ids) ? body.ids.map(Number).filter(Boolean) : null
+    const whenLabel = String(body.whenLabel || "").trim() || null
+    const force = body.force === true
+    const dryRun = body.dryRun === true
+
+    try {
+      const sql = neon(process.env.DATABASE_URL)
+      await sql`ALTER TABLE enrollments ADD COLUMN IF NOT EXISTS details_sent_at TIMESTAMPTZ`
+
+      const rows = await sql`
+        SELECT id, name, email, edition, details_sent_at
+        FROM enrollments WHERE source = 'workshop' ORDER BY id
+      `
+      /* El filtro va en JS y no en SQL a propósito: son pocas filas y así se
+         evita componer el template tag de neon con condiciones opcionales. */
+      let list = rows.filter((r) => r.edition && !/lista de espera/i.test(r.edition))
+      if (ids) list = list.filter((r) => ids.includes(Number(r.id)))
+      const skipped = force ? [] : list.filter((r) => r.details_sent_at)
+      if (!force) list = list.filter((r) => !r.details_sent_at)
+
+      if (dryRun) {
+        return sendJson(res, 200, {
+          ok: true, dryRun: true,
+          recipients: list.map((r) => ({ id: r.id, name: r.name, email: r.email })),
+          skipped: skipped.length,
+        })
+      }
+
+      const sent = []
+      const failed = []
+      for (const r of list) {
+        try {
+          const out = await sendWorkshopDetailsEmail({ to: r.email, name: r.name, edition: r.edition, whenLabel })
+          if (out?.ok) {
+            sent.push({ id: r.id, email: r.email })
+            await sql`UPDATE enrollments SET details_sent_at = NOW() WHERE id = ${r.id}`
+          } else {
+            failed.push({ id: r.id, email: r.email, reason: out?.reason || "desconocido" })
+          }
+        } catch (err) {
+          failed.push({ id: r.id, email: r.email, reason: err?.message || "error" })
+        }
+        await new Promise((ok) => setTimeout(ok, 600))
+      }
+
+      return sendJson(res, 200, { ok: true, sent, failed, skipped: skipped.length })
+    } catch (err) {
+      console.error("enrollments workshop-details error:", err?.message)
+      return sendJson(res, 500, { ok: false, error: "No se pudieron enviar los correos" })
     }
   }
 
@@ -119,11 +185,17 @@ export default async function handler(req, res) {
         console.error("enrollments notify (no bloquea):", nerr?.message)
       }
 
-      /* 4) Correo de confirmación al inscrito (solo workshop por ahora).
+      /* 4) Correo al inscrito (solo workshop por ahora). Son dos correos
+         distintos: por acá nunca hay pago, así que el de "cupo confirmado"
+         (con hora y ubicación) solo corresponde cuando hay una edición con
+         fecha —alta manual del panel—; la lista de espera recibe el suyo,
+         que sí dice que no hay cobro en este paso.
          Best-effort: si falla o no hay RESEND_API_KEY, no bloquea. */
       if (source === "workshop") {
         try {
-          await sendWorkshopConfirmationEmail({ to: email, name, edition })
+          const isWaitlist = !edition || /lista de espera/i.test(edition)
+          if (isWaitlist) await sendWorkshopWaitlistEmail({ to: email, name })
+          else await sendWorkshopConfirmationEmail({ to: email, name, edition })
         } catch (eerr) {
           console.error("enrollments email (no bloquea):", eerr?.message)
         }

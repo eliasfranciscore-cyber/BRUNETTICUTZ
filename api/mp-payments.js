@@ -468,7 +468,11 @@ async function handleEnrollmentPaid(sql, ref, payment, res) {
 
     if (source === 'workshop') {
       try {
-        await sendWorkshopConfirmationEmail({ to: email, name, edition })
+        await sendWorkshopConfirmationEmail({
+          to: email, name, edition,
+          amount: payment.transaction_amount,
+          paymentId: payment.id,
+        })
       } catch (eerr) {
         console.error('[WEBHOOK] email (no bloquea):', eerr?.message)
       }
