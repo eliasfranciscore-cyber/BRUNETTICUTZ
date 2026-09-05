@@ -1,7 +1,7 @@
 # Graph Report - BRUNETTICUTZ  (2026-09-05)
 
 ## Corpus Check
-- 150 files · ~2,159,387 words
+- 150 files · ~2,159,431 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -213,8 +213,8 @@ Cohesion: 0.07
 Nodes (28): API Error Handling, Architecture, Backend (Vercel Functions), Build & Deployment, Build for production, Common Tasks, Database (PostgreSQL), Database schema setup (after cloning) (+20 more)
 
 ### Community 7 - "UI Components & Login"
-Cohesion: 0.30
-Nodes (11): useAutoWalletPrompt(), CardShare(), fetchGoogleWalletSaveURLByToken(), fetchTarjetaInfo(), hasWalletPass(), isAndroid(), rememberWalletDismissal(), walletAvailable() (+3 more)
+Cohesion: 0.27
+Nodes (12): Brandmark(), useAutoWalletPrompt(), CardShare(), fetchGoogleWalletSaveURLByToken(), fetchTarjetaInfo(), hasWalletPass(), isAndroid(), rememberWalletDismissal() (+4 more)
 
 ### Community 8 - "package.json Config"
 Cohesion: 0.29
@@ -250,7 +250,7 @@ Nodes (16): Admin Key Authentication (shared internal password pattern), Barber 
 
 ### Community 17 - "ui.jsx"
 Cohesion: 0.09
-Nodes (20): ALL_MODULE_IDS, BarberModal(), emptyBarber, MODULES, PERMS, BookingSyncIssues(), badgeClass(), GlobalSearch() (+12 more)
+Nodes (19): ALL_MODULE_IDS, BarberModal(), emptyBarber, MODULES, PERMS, BookingSyncIssues(), badgeClass(), GlobalSearch() (+11 more)
 
 ### Community 18 - "iOS App Intents & Shortcuts"
 Cohesion: 0.08

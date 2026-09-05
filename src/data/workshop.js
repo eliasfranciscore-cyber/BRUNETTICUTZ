@@ -375,3 +375,42 @@ export const WORKSHOP = {
     },
   ],
 };
+
+/* ------------------------------------------------------------------
+   MURO PARALLAX — fotos de la edicion anterior (certificaciones).
+   Optimizadas a webp de 720px de ancho (~40 KB c/u) en
+   public/assets/workshop-gallery/.
+
+   Estan las 23 y el muro las muestra todas: se reparten en orden entre las
+   columnas (5/6/5/7 en escritorio, 7/8/8 en tablet, 12/11 en movil), asi que
+   este ORDEN es el de lectura del muro.
+
+   `wide` marca la unica foto apaisada (la grupal): su recuadro va en 4:3 en vez
+   de 3:4. Los recuadros respetan el formato original a proposito — con
+   `object-fit: cover` sobre un aspecto que calza, no se recorta ninguna cara.
+   ------------------------------------------------------------------ */
+export const WORKSHOP_GALLERY = [
+  { src: "/assets/workshop-gallery/wk-08.webp", wide: true, },
+  { src: "/assets/workshop-gallery/wk-15.webp", },
+  { src: "/assets/workshop-gallery/wk-04.webp", },
+  { src: "/assets/workshop-gallery/wk-12.webp", },
+  { src: "/assets/workshop-gallery/wk-19.webp", },
+  { src: "/assets/workshop-gallery/wk-01.webp", },
+  { src: "/assets/workshop-gallery/wk-06.webp", },
+  { src: "/assets/workshop-gallery/wk-22.webp", },
+  { src: "/assets/workshop-gallery/wk-09.webp", },
+  { src: "/assets/workshop-gallery/wk-17.webp", },
+  { src: "/assets/workshop-gallery/wk-02.webp", },
+  { src: "/assets/workshop-gallery/wk-14.webp", },
+  { src: "/assets/workshop-gallery/wk-13.webp", },
+  { src: "/assets/workshop-gallery/wk-20.webp", },
+  { src: "/assets/workshop-gallery/wk-05.webp", },
+  { src: "/assets/workshop-gallery/wk-23.webp", },
+  { src: "/assets/workshop-gallery/wk-10.webp", },
+  { src: "/assets/workshop-gallery/wk-18.webp", },
+  { src: "/assets/workshop-gallery/wk-16.webp", },
+  { src: "/assets/workshop-gallery/wk-03.webp", },
+  { src: "/assets/workshop-gallery/wk-21.webp", },
+  { src: "/assets/workshop-gallery/wk-07.webp", },
+  { src: "/assets/workshop-gallery/wk-11.webp", },
+]

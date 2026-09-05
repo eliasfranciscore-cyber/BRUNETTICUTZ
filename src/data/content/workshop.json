@@ -184,6 +184,12 @@
       }
     ]
   },
+  "gallery": {
+    "eyebrow": "Edición anterior · generación certificada",
+    "h2": "Ellos ya Pasaron por Acá. El Próximo Diploma Lleva tu Nombre.",
+    "lead": "Barberos reales que entraron con dudas y salieron con su certificado, su contenido grabado y una forma distinta de mostrar su trabajo.",
+    "caption": "Generación 2025 · 20 cupos, 20 certificados"
+  },
   "concurso": {
     "eyebrow": "Concurso · después del workshop",
     "h2": "El Mejor Reel del Workshop se Lleva un Kit Tadeus Personalizado.",

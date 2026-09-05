@@ -1003,3 +1003,90 @@
 [data-theme="light"] .wks-paused-line, [data-theme="light"] .wks-paused-note span { color: #555; }
 [data-theme="light"] .wks-paused-note b { color: #8838d8; }
 [data-theme="light"] .wks-pricing::after { background: linear-gradient(180deg, rgba(250,249,247,0.7), rgba(255,255,255,0.9)); }
+
+/* ============================================================
+   MURO PARALLAX — fotos de la edición anterior
+   El movimiento y el relleno vertical los calcula JS (ver PX_LAYOUTS en
+   Workshop.jsx); acá van la caja, el aspecto de los recuadros y el color.
+   ============================================================ */
+/* Aire recortado a propósito por abajo y alrededor del muro: entre el relleno
+   de la sección, el margen del encabezado, el del pie de foto y el relleno que
+   el muro necesita para el `clip`, se juntaban ~200px de negro vacío pegados a
+   las fotos. */
+.wks-gallery { padding-block: clamp(2.6rem, 5vw, 3.8rem) clamp(0.9rem, 1.8vw, 1.4rem); }
+.wks-gallery .wks-head { margin-bottom: clamp(1.1rem, 2.2vw, 1.8rem); }
+
+.wks-parallax {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(0.5rem, 1.1vw, 1rem);
+  padding-inline: clamp(0.5rem, 1.1vw, 1.25rem);
+  /* El relleno vertical (inline, desde JS) es igual al desplazamiento máximo de
+     las columnas: es lo que las recibe cuando se salen de su posición, y lo que
+     evita que `clip` les coma un pedazo. Va SIN fondo ni borde a propósito: si
+     el muro fuera una caja visible, ese relleno se vería como una franja vacía
+     arriba y abajo en vez de como aire entre secciones. */
+  overflow: clip;
+}
+
+.wks-parallax-col {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(0.5rem, 1.1vw, 1rem);
+  /* el ancho de cada columna sale del flex-grow que le pone JS */
+  flex-basis: 0;
+  min-width: 0;
+  will-change: transform;
+}
+
+/* Mismo aspecto que el archivo original: así `cover` no recorta nada y las
+   caras y el cuerpo entero quedan dentro del recuadro. */
+.wks-parallax-cell {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 14px;
+  border: 1px solid var(--wk-hair);
+  background: var(--wk-panel);
+}
+.wks-parallax-cell.is-wide { aspect-ratio: 4 / 3; }
+.wks-parallax-cell img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* red de seguridad: si alguna foto no calzara exacto, se recorta por abajo
+     antes que por arriba, que es donde están las caras */
+  object-position: center 35%;
+  filter: contrast(1.03) saturate(1.04);
+}
+
+/* Bloque, no flex: con el tracking que lleva, en móvil el texto se parte en dos
+   líneas, y como flex-row la segunda quedaba descolgada bajo el ícono. */
+.wks-parallax-caption {
+  display: block;
+  margin-top: clamp(0.8rem, 1.6vw, 1.3rem);
+  color: var(--wk-muted);
+  font-family: var(--wk-font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.24em;
+  font-size: 0.68rem;
+  text-align: center;
+}
+.wks-parallax-caption svg {
+  color: var(--wk-gold-lt);
+  display: inline-block;
+  vertical-align: -0.2em;
+  margin-right: 0.5rem;
+}
+
+/* prefers-reduced-motion: mismas columnas, quietas. JS ya deja de aplicar el
+   relleno, el desfase y la transformación, así que acá solo queda el aire. */
+.wks-parallax.is-still { padding-block: clamp(1rem, 3vw, 2rem); }
+
+/* Lenis apaga los eventos de puntero de TODOS los iframes mientras el scroll
+   suave está activo (regla `.lenis.lenis-smooth iframe` de lenis.css). Eso
+   dejaría muerto el reproductor de YouTube de la VSL, así que se lo devolvemos.
+   Va sin `.lenis-smooth` a propósito: esa clase entra y sale sola según Lenis
+   esté animando o no, y el reproductor no puede quedar muerto a ratos. */
+html.lenis .wks-video-frame { pointer-events: auto; }

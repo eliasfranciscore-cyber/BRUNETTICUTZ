@@ -3,7 +3,9 @@
    Logo esperado en /public/assets/brunetti-logo-icon.svg (degrada si falta). */
 import React, { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { WORKSHOP, formatWorkshopDate, WORKSHOP_TBD } from '../data/workshop.js'
+import { motion, useScroll, useTransform } from 'framer-motion'
+import Lenis from 'lenis'
+import { WORKSHOP, WORKSHOP_GALLERY, formatWorkshopDate, WORKSHOP_TBD } from '../data/workshop.js'
 import SiteNav from '../components/SiteNav.jsx'
 import { addLocalEnrollment } from '../enrollmentsStore.js'
 import { Lamp } from '../components/ui/lamp.jsx'
@@ -11,6 +13,7 @@ import { Sparkles } from '../components/ui/sparkles.jsx'
 import { EditableText } from '../components/edit/EditableText.jsx'
 import { Editable } from '../components/edit/Editable.jsx'
 import WKC from '../data/content/workshop.json'
+import 'lenis/dist/lenis.css'
 import '../styles/workshop.css'
 
 /* ---------- helpers UI ---------- */
@@ -191,9 +194,38 @@ function calc(targetISO) {
   return { d: pad(d), h: pad(h), m: pad(m), s: pad(s) };
 }
 
+/* Scroll suave (Lenis) para toda la pagina del workshop. Es lo que hace que el
+   muro parallax se sienta con inercia en vez de a tirones con la rueda del
+   mouse. Se apaga con prefers-reduced-motion, y en touch queda el scroll nativo
+   (`syncTouch: false`) porque el momentum de iOS ya se siente mejor que
+   cualquier emulacion. La instancia vive a nivel de modulo solo para que
+   `smoothTo` la pueda usar sin pasarla por props o context. */
+let lenisInstance = null;
+
+function useSmoothScroll() {
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const lenis = new Lenis({ duration: 1.1, smoothWheel: true, syncTouch: false });
+    lenisInstance = lenis;
+    let frame = requestAnimationFrame(function raf(time) {
+      lenis.raf(time);
+      frame = requestAnimationFrame(raf);
+    });
+    return () => {
+      cancelAnimationFrame(frame);
+      lenis.destroy();
+      lenisInstance = null;
+    };
+  }, []);
+}
+
 function smoothTo(id) {
   const el = document.getElementById(id);
-  if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 64, behavior: "smooth" });
+  if (!el) return;
+  // Con Lenis andando hay que pedirle el scroll a el: un `behavior: "smooth"`
+  // nativo pelea contra su rAF y el viaje sale a saltos.
+  if (lenisInstance) { lenisInstance.scrollTo(el, { offset: -64 }); return; }
+  window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 64, behavior: "smooth" });
 }
 
 /* ============================================================ HERO */
@@ -533,6 +565,161 @@ function Concurso() {
             </div>
           </Reveal>
         </div>
+      </div>
+    </section>
+  );
+}
+
+/* ============================================================ MURO PARALLAX
+   Muro con las 23 fotos de la edicion anterior. Cada columna tiene su propio
+   ancho, su propio numero de fotos y su propia velocidad de scroll, asi que el
+   bloque se mueve por capas en vez de subir plano.
+
+   Tres decisiones que conviene no deshacer sin querer:
+
+   1. Los recuadros usan el MISMO aspecto que el archivo (3:4, o 4:3 en la
+      grupal). Con `object-fit: cover` sobre un aspecto que calza, el recorte es
+      cero: las caras y el cuerpo entero quedan dentro. Cambiar el aspecto del
+      recuadro vuelve a cortar cabezas.
+
+   2. El muro NO tiene alto fijo: las columnas van en flujo normal y el parallax
+      es un desplazamiento chico alrededor de su posicion real. La version
+      anterior si tenia alto fijo y columnas mucho mas altas que el contenedor:
+      se veia mas dramatica, pero era imposible que pasaran todas las fotos por
+      pantalla — un contenedor recortado no puede a la vez estar siempre lleno y
+      dejar desfilar contenido mas alto que el.
+
+   3. TODOS los `drift` son >= 0, y esa es la razon de que el muro no necesite
+      relleno vertical ni deje franjas de negro pegadas a las fotos. Cada columna
+      va de +drift a -drift, o sea que baja durante la primera mitad del
+      recorrido y sube durante la segunda. El borde de arriba del muro solo se ve
+      hasta p = V/S (siempre < 0.5) y el de abajo recien desde p = C/S (siempre
+      > 0.5, porque el muro es mas alto que la ventana): en los dos tramos las
+      columnas se mueven hacia adentro. Un solo `drift` negativo rompe eso y
+      obliga a devolver el relleno.
+
+   `n` suma 23 en cada breakpoint. `w` es el flex-grow (ancho relativo). Los dos
+   estan calibrados para que las columnas terminen a la MISMA altura — una
+   columna angosta necesita mas fotos para llegar abajo, y la grupal apaisada
+   ocupa medio recuadro. Esa paridad es la otra mitad del arreglo: si las alturas
+   se desbalancean vuelve a aparecer el hueco. La columna mas alta lleva
+   `drift: 0` a proposito: es la que define los bordes de arriba y de abajo, y
+   las demas se escalonan alrededor de ella.
+   ============================================================ */
+const PX_LAYOUTS = [
+  {
+    min: 1100,
+    columns: [
+      { w: 1.200, n: 5, drift: 0.09 },
+      { w: 0.915, n: 6, drift: 0.04 },
+      { w: 1.100, n: 5, drift: 0.06 },
+      { w: 0.785, n: 7, drift: 0.00 },
+    ],
+  },
+  {
+    min: 760,
+    columns: [
+      { w: 0.99, n: 8, drift: 0.07 },
+      { w: 0.94, n: 8, drift: 0.00 },
+      { w: 1.07, n: 7, drift: 0.05 },
+    ],
+  },
+  {
+    min: 0,
+    columns: [
+      { w: 0.975, n: 12, drift: 0.08 },
+      { w: 1.025, n: 11, drift: 0.00 },
+    ],
+  },
+];
+
+function ParallaxGallery() {
+  const wall = useRef(null);
+  const [vh, setVh] = useState(0);
+  const [vw, setVw] = useState(1440);
+  const [still, setStill] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => {
+      setVh(window.innerHeight);
+      setVw(window.innerWidth);
+      setStill(mq.matches);
+    };
+    sync();
+    window.addEventListener("resize", sync);
+    mq.addEventListener("change", sync);
+    return () => {
+      window.removeEventListener("resize", sync);
+      mq.removeEventListener("change", sync);
+    };
+  }, []);
+
+  const layout = PX_LAYOUTS.find((l) => vw >= l.min) || PX_LAYOUTS[PX_LAYOUTS.length - 1];
+  const cols = layout.columns;
+  const { scrollYProgress } = useScroll({ target: wall, offset: ["start end", "end start"] });
+
+  // Un hook por columna (cuatro como maximo, que es lo que usa el layout mas
+  // ancho): no pueden ir dentro del map. Cada columna baja desde +drift hasta
+  // -drift, asi que a mitad de la seccion todas pasan por su posicion real.
+  const d0 = (cols[0]?.drift || 0) * vh;
+  const d1 = (cols[1]?.drift || 0) * vh;
+  const d2 = (cols[2]?.drift || 0) * vh;
+  const d3 = (cols[3]?.drift || 0) * vh;
+  const y0 = useTransform(scrollYProgress, [0, 1], [d0, -d0]);
+  const y1 = useTransform(scrollYProgress, [0, 1], [d1, -d1]);
+  const y2 = useTransform(scrollYProgress, [0, 1], [d2, -d2]);
+  const y3 = useTransform(scrollYProgress, [0, 1], [d3, -d3]);
+  const ys = [y0, y1, y2, y3];
+
+  let taken = 0;
+  const slices = cols.map((c) => {
+    const from = taken;
+    taken += c.n;
+    return WORKSHOP_GALLERY.slice(from, taken);
+  });
+
+  return (
+    <section className="wks-section wks-gallery" id="galeria">
+      <div className="wks-container">
+        <Reveal className="wks-head is-center">
+          <Lamp className="bru-lamp--sec" />
+          <span className="wks-eyebrow"><EditableText file="workshop" path="gallery.eyebrow">{WKC.gallery.eyebrow}</EditableText></span>
+          <h2 className="wks-h2"><EditableText file="workshop" path="gallery.h2" as="span">{WKC.gallery.h2}</EditableText></h2>
+          <hr className="wks-rule" />
+          <p className="wks-lead" style={{ maxWidth: "58ch" }}>
+            <EditableText file="workshop" path="gallery.lead" as="span">{WKC.gallery.lead}</EditableText>
+          </p>
+        </Reveal>
+      </div>
+
+      {/* Decorativo: el encabezado ya dice lo que hay que saber, y las fotos van
+          sin alt para no leerle 23 veces "foto" a un lector de pantalla. */}
+      <div
+        ref={wall}
+        className={`wks-parallax ${still ? "is-still" : ""}`}
+        aria-hidden="true"
+      >
+        {cols.map((col, i) => (
+          <motion.div
+            key={i}
+            className="wks-parallax-col"
+            style={still ? { flexGrow: col.w } : { flexGrow: col.w, y: ys[i] }}
+          >
+            {slices[i].map((photo) => (
+              <div key={photo.src} className={`wks-parallax-cell ${photo.wide ? "is-wide" : ""}`}>
+                <img src={photo.src} alt="" loading="lazy" decoding="async" />
+              </div>
+            ))}
+          </motion.div>
+        ))}
+      </div>
+
+      <div className="wks-container">
+        <p className="wks-parallax-caption">
+          <Icon name="award" size={14} />
+          <EditableText file="workshop" path="gallery.caption" as="span">{WKC.gallery.caption}</EditableText>
+        </p>
       </div>
     </section>
   );
@@ -936,6 +1123,7 @@ export default function Workshop() {
   const navigate = useNavigate();
   const formRef = useRef(null);
   const reserve = () => smoothTo("inscribir");
+  useSmoothScroll();
   void navigate;
 
   // Precio, fecha y el interruptor de pagos vienen del panel interno (Config →
@@ -981,6 +1169,7 @@ export default function Workshop() {
           <Cronograma />
           <GiveKit />
           <Concurso />
+          <ParallaxGallery />
           <Pricing onReserve={reserve} />
           <Register formRef={formRef} />
           <Faq />
