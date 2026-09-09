@@ -58,9 +58,23 @@ function formatCLP(price) {
   return new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 }).format(price)
 }
 
+/* La fecha de una reserva es un día de calendario ("2026-09-10"), no un
+   instante: no hay que convertirla de zona horaria. Antes esto armaba
+   `new Date("2026-09-10T00:00:00")`, que al no llevar offset se interpreta en
+   la zona del runtime — y Vercel corre en UTC. Formatearlo después en
+   America/Santiago restaba 3 o 4 horas y caía en las 20:00/21:00 del día
+   anterior, así que el correo mostraba la fecha corrida un día para atrás.
+   Ahora se arma en UTC y se formatea en UTC: el día llega intacto. Si algún
+   día llega un Date de verdad (un instante), ese sí se muestra en Santiago. */
 function formatDate(dateStr) {
   try {
-    return new Intl.DateTimeFormat("es-CL", { timeZone: "America/Santiago", weekday: "long", day: "numeric", month: "long" }).format(new Date(`${dateStr}T00:00:00`))
+    if (dateStr instanceof Date) {
+      return new Intl.DateTimeFormat("es-CL", { timeZone: "America/Santiago", weekday: "long", day: "numeric", month: "long" }).format(dateStr)
+    }
+    const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(dateStr ?? ""))
+    if (!m) return dateStr
+    const day = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])))
+    return new Intl.DateTimeFormat("es-CL", { timeZone: "UTC", weekday: "long", day: "numeric", month: "long" }).format(day)
   } catch {
     return dateStr
   }
