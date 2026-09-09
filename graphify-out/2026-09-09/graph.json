@@ -169,7 +169,7 @@
       "label": "formatDate()",
       "file_type": "code",
       "source_file": "api/_email.js",
-      "source_location": "L61",
+      "source_location": "L69",
       "_origin": "ast",
       "id": "api_email_formatdate",
       "community": 140,
@@ -179,7 +179,7 @@
       "label": "sendBookingConfirmationEmail()",
       "file_type": "code",
       "source_file": "api/_email.js",
-      "source_location": "L69",
+      "source_location": "L83",
       "_origin": "ast",
       "id": "api_email_sendbookingconfirmationemail",
       "community": 140,
@@ -189,7 +189,7 @@
       "label": "sendLoyaltyCardEmail()",
       "file_type": "code",
       "source_file": "api/_email.js",
-      "source_location": "L107",
+      "source_location": "L121",
       "_origin": "ast",
       "id": "api_email_sendloyaltycardemail",
       "community": 4,
@@ -199,7 +199,7 @@
       "label": "esc()",
       "file_type": "code",
       "source_file": "api/_email.js",
-      "source_location": "L158",
+      "source_location": "L172",
       "_origin": "ast",
       "id": "api_email_esc",
       "community": 140,
@@ -209,7 +209,7 @@
       "label": "firstName()",
       "file_type": "code",
       "source_file": "api/_email.js",
-      "source_location": "L162",
+      "source_location": "L176",
       "_origin": "ast",
       "id": "api_email_firstname",
       "community": 140,
@@ -219,7 +219,7 @@
       "label": "wkRow()",
       "file_type": "code",
       "source_file": "api/_email.js",
-      "source_location": "L167",
+      "source_location": "L181",
       "_origin": "ast",
       "id": "api_email_wkrow",
       "community": 140,
@@ -229,7 +229,7 @@
       "label": "wkButton()",
       "file_type": "code",
       "source_file": "api/_email.js",
-      "source_location": "L176",
+      "source_location": "L190",
       "_origin": "ast",
       "id": "api_email_wkbutton",
       "community": 140,
@@ -239,7 +239,7 @@
       "label": "wkLocationBlock()",
       "file_type": "code",
       "source_file": "api/_email.js",
-      "source_location": "L181",
+      "source_location": "L195",
       "_origin": "ast",
       "id": "api_email_wklocationblock",
       "community": 140,
@@ -249,7 +249,7 @@
       "label": "wkShell()",
       "file_type": "code",
       "source_file": "api/_email.js",
-      "source_location": "L201",
+      "source_location": "L215",
       "_origin": "ast",
       "id": "api_email_wkshell",
       "community": 140,
@@ -259,7 +259,7 @@
       "label": "sendWorkshopConfirmationEmail()",
       "file_type": "code",
       "source_file": "api/_email.js",
-      "source_location": "L264",
+      "source_location": "L278",
       "_origin": "ast",
       "id": "api_email_sendworkshopconfirmationemail",
       "community": 140,
@@ -269,7 +269,7 @@
       "label": "sendWorkshopWaitlistEmail()",
       "file_type": "code",
       "source_file": "api/_email.js",
-      "source_location": "L309",
+      "source_location": "L323",
       "_origin": "ast",
       "id": "api_email_sendworkshopwaitlistemail",
       "community": 140,
@@ -279,7 +279,7 @@
       "label": "sendWorkshopDetailsEmail()",
       "file_type": "code",
       "source_file": "api/_email.js",
-      "source_location": "L343",
+      "source_location": "L357",
       "_origin": "ast",
       "id": "api_email_sendworkshopdetailsemail",
       "community": 140,
@@ -3450,7 +3450,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_apptab",
-      "community": 8,
+      "community": 143,
       "norm_label": "apptab"
     },
     {
@@ -3460,7 +3460,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "string",
-      "community": 1,
+      "community": 12,
       "norm_label": "string"
     },
     {
@@ -3470,7 +3470,7 @@
       "source_location": "",
       "_origin": "ast",
       "id": "sendable",
-      "community": 8,
+      "community": 143,
       "norm_label": "sendable"
     },
     {
@@ -3480,7 +3480,7 @@
       "source_location": "L5",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_apptab_hoy",
-      "community": 8,
+      "community": 143,
       "norm_label": "hoy"
     },
     {
@@ -3490,7 +3490,7 @@
       "source_location": "L6",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_apptab_reservas",
-      "community": 8,
+      "community": 143,
       "norm_label": "reservas"
     },
     {
@@ -3500,7 +3500,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_apptab_clientes",
-      "community": 8,
+      "community": 143,
       "norm_label": "clientes"
     },
     {
@@ -3510,7 +3510,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_apptab_finanzas",
-      "community": 8,
+      "community": 143,
       "norm_label": "finanzas"
     },
     {
@@ -3520,7 +3520,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_apptab_mas",
-      "community": 8,
+      "community": 143,
       "norm_label": "mas"
     },
     {
@@ -3530,7 +3530,7 @@
       "source_location": "L34",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_thememode",
-      "community": 143,
+      "community": 15,
       "norm_label": "thememode"
     },
     {
@@ -3550,7 +3550,7 @@
       "source_location": "L35",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_thememode_system",
-      "community": 143,
+      "community": 15,
       "norm_label": "system"
     },
     {
@@ -3560,7 +3560,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_thememode_light",
-      "community": 143,
+      "community": 15,
       "norm_label": "light"
     },
     {
@@ -3570,7 +3570,7 @@
       "source_location": "L37",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_thememode_dark",
-      "community": 143,
+      "community": 15,
       "norm_label": "dark"
     },
     {
@@ -3980,7 +3980,7 @@
       "source_location": "L252",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_paymentsessionresponse",
-      "community": 1,
+      "community": 12,
       "norm_label": "paymentsessionresponse"
     },
     {
@@ -4000,7 +4000,7 @@
       "source_location": "L265",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_clp",
-      "community": 1,
+      "community": 12,
       "norm_label": "clp()"
     },
     {
@@ -4010,7 +4010,7 @@
       "source_location": "L275",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_models_isodate",
-      "community": 1,
+      "community": 12,
       "norm_label": "isodate()"
     },
     {
@@ -4411,7 +4411,7 @@
       "source_location": "L1607",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_moduleviews_serviceicon",
-      "community": 1,
+      "community": 12,
       "norm_label": "serviceicon()"
     },
     {
@@ -4461,7 +4461,7 @@
       "source_location": "L1660",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_moduleviews_servicesymbol",
-      "community": 1,
+      "community": 12,
       "norm_label": "servicesymbol()"
     },
     {
@@ -4471,7 +4471,7 @@
       "source_location": "L1668",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_moduleviews_exportsummary",
-      "community": 1,
+      "community": 12,
       "norm_label": "exportsummary()"
     },
     {
@@ -4481,7 +4481,7 @@
       "source_location": "L1677",
       "_origin": "ast",
       "id": "users_elija_documents_github_pimpstudio_desarrollo_ios_brunetticutz_brunetticutz_moduleviews_exportbookingscsv",
-      "community": 1,
+      "community": 12,
       "norm_label": "exportbookingscsv()"
     },
     {
@@ -4802,7 +4802,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "package_dependencies",
-      "community": 0,
+      "community": 43,
       "norm_label": "dependencies"
     },
     {
@@ -4812,7 +4812,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "package_dependencies_neondatabase_serverless",
-      "community": 0,
+      "community": 43,
       "norm_label": "@neondatabase/serverless"
     },
     {
@@ -4822,7 +4822,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "package_dependencies_vercel_analytics",
-      "community": 0,
+      "community": 43,
       "norm_label": "@vercel/analytics"
     },
     {
@@ -4832,7 +4832,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "package_dependencies_vercel_blob",
-      "community": 0,
+      "community": 43,
       "norm_label": "@vercel/blob"
     },
     {
@@ -4842,7 +4842,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "package_dependencies_framer_motion",
-      "community": 0,
+      "community": 43,
       "norm_label": "framer-motion"
     },
     {
@@ -4852,7 +4852,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "package_dependencies_lenis",
-      "community": 3,
+      "community": 65,
       "norm_label": "lenis"
     },
     {
@@ -4862,7 +4862,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "package_dependencies_react",
-      "community": 5,
+      "community": 24,
       "norm_label": "react"
     },
     {
@@ -4872,7 +4872,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "package_dependencies_react_dom",
-      "community": 0,
+      "community": 43,
       "norm_label": "react-dom"
     },
     {
@@ -4882,7 +4882,7 @@
       "source_location": "L21",
       "_origin": "ast",
       "id": "package_dependencies_react_router_dom",
-      "community": 0,
+      "community": 43,
       "norm_label": "react-router-dom"
     },
     {
@@ -4892,7 +4892,7 @@
       "source_location": "L22",
       "_origin": "ast",
       "id": "package_dependencies_web_push",
-      "community": 0,
+      "community": 43,
       "norm_label": "web-push"
     },
     {
@@ -4902,7 +4902,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "package_devdependencies",
-      "community": 0,
+      "community": 52,
       "norm_label": "devdependencies"
     },
     {
@@ -4912,7 +4912,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "package_devdependencies_vitejs_plugin_react",
-      "community": 0,
+      "community": 52,
       "norm_label": "@vitejs/plugin-react"
     },
     {
@@ -4922,7 +4922,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "package_devdependencies_autoprefixer",
-      "community": 0,
+      "community": 52,
       "norm_label": "autoprefixer"
     },
     {
@@ -4932,7 +4932,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "package_devdependencies_postcss",
-      "community": 0,
+      "community": 52,
       "norm_label": "postcss"
     },
     {
@@ -4942,7 +4942,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "package_devdependencies_tailwindcss",
-      "community": 0,
+      "community": 52,
       "norm_label": "tailwindcss"
     },
     {
@@ -4952,7 +4952,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "package_devdependencies_vite",
-      "community": 0,
+      "community": 52,
       "norm_label": "vite"
     },
     {
@@ -4994,6 +4994,146 @@
       "id": "public_sw",
       "community": 59,
       "norm_label": "sw.js"
+    },
+    {
+      "label": "build-engraving-svg.py",
+      "file_type": "code",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "scripts_brand_build_engraving_svg",
+      "community": 14,
+      "norm_label": "build-engraving-svg.py"
+    },
+    {
+      "label": "clean_alpha()",
+      "file_type": "code",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L45",
+      "_origin": "ast",
+      "id": "scripts_brand_build_engraving_svg_clean_alpha",
+      "community": 14,
+      "norm_label": "clean_alpha()"
+    },
+    {
+      "label": "components()",
+      "file_type": "code",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L58",
+      "_origin": "ast",
+      "id": "scripts_brand_build_engraving_svg_components",
+      "community": 14,
+      "norm_label": "components()"
+    },
+    {
+      "label": "fmt()",
+      "file_type": "code",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L65",
+      "_origin": "ast",
+      "id": "scripts_brand_build_engraving_svg_fmt",
+      "community": 14,
+      "norm_label": "fmt()"
+    },
+    {
+      "label": "trace()",
+      "file_type": "code",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L70",
+      "_origin": "ast",
+      "id": "scripts_brand_build_engraving_svg_trace",
+      "community": 14,
+      "norm_label": "trace()"
+    },
+    {
+      "label": "bezier()",
+      "file_type": "code",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L129",
+      "_origin": "ast",
+      "id": "scripts_brand_build_engraving_svg_bezier",
+      "community": 14,
+      "norm_label": "bezier()"
+    },
+    {
+      "label": "rasterize()",
+      "file_type": "code",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L143",
+      "_origin": "ast",
+      "id": "scripts_brand_build_engraving_svg_rasterize",
+      "community": 14,
+      "norm_label": "rasterize()"
+    },
+    {
+      "label": "write()",
+      "file_type": "code",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L171",
+      "_origin": "ast",
+      "id": "scripts_brand_build_engraving_svg_write",
+      "community": 14,
+      "norm_label": "write()"
+    },
+    {
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L193",
+      "_origin": "ast",
+      "id": "scripts_brand_build_engraving_svg_main",
+      "community": 14,
+      "norm_label": "main()"
+    },
+    {
+      "label": "Canal alfa con los pinholes del render met\u00e1lico rellenados.",
+      "file_type": "rationale",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L46",
+      "_origin": "ast",
+      "id": "scripts_brand_build_engraving_svg_rationale_46",
+      "community": 14,
+      "norm_label": "canal alfa con los pinholes del render metalico rellenados."
+    },
+    {
+      "label": "Etiquetas de las partes del lockup, ordenadas por posici\u00f3n.",
+      "file_type": "rationale",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L59",
+      "_origin": "ast",
+      "id": "scripts_brand_build_engraving_svg_rationale_59",
+      "community": 14,
+      "norm_label": "etiquetas de las partes del lockup, ordenadas por posicion."
+    },
+    {
+      "label": "Traza la m\u00e1scara (opcionalmente solo ciertas etiquetas) y devuelve el SVG.",
+      "file_type": "rationale",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L71",
+      "_origin": "ast",
+      "id": "scripts_brand_build_engraving_svg_rationale_71",
+      "community": 14,
+      "norm_label": "traza la mascara (opcionalmente solo ciertas etiquetas) y devuelve el svg."
+    },
+    {
+      "label": "Aplana una c\u00fabica en segmentos de no m\u00e1s de FLAT unidades.",
+      "file_type": "rationale",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L130",
+      "_origin": "ast",
+      "id": "scripts_brand_build_engraving_svg_rationale_130",
+      "community": 14,
+      "norm_label": "aplana una cubica en segmentos de no mas de flat unidades."
+    },
+    {
+      "label": "Silueta en blanco y negro con aire alrededor, lista para guardar.",
+      "file_type": "rationale",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L144",
+      "_origin": "ast",
+      "id": "scripts_brand_build_engraving_svg_rationale_144",
+      "community": 14,
+      "norm_label": "silueta en blanco y negro con aire alrededor, lista para guardar."
     },
     {
       "label": "build-icons.py",
@@ -5862,7 +6002,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_bookingsinbox",
-      "community": 5,
+      "community": 7,
       "norm_label": "bookingsinbox.jsx"
     },
     {
@@ -5872,7 +6012,7 @@
       "source_location": "L23",
       "_origin": "ast",
       "id": "src_components_bookingsinbox_status_label",
-      "community": 5,
+      "community": 7,
       "norm_label": "status_label"
     },
     {
@@ -5882,7 +6022,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "src_components_bookingsinbox_status_options",
-      "community": 5,
+      "community": 7,
       "norm_label": "status_options"
     },
     {
@@ -5892,7 +6032,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "src_components_bookingsinbox_filters",
-      "community": 5,
+      "community": 7,
       "norm_label": "filters"
     },
     {
@@ -5902,7 +6042,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "src_components_bookingsinbox_filter_map",
-      "community": 5,
+      "community": 7,
       "norm_label": "filter_map"
     },
     {
@@ -5912,7 +6052,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "src_components_bookingsinbox_status_to_filter",
-      "community": 5,
+      "community": 7,
       "norm_label": "status_to_filter"
     },
     {
@@ -5922,7 +6062,7 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "src_components_bookingsinbox_next_status",
-      "community": 5,
+      "community": 7,
       "norm_label": "next_status"
     },
     {
@@ -5932,7 +6072,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "src_components_bookingsinbox_scopes",
-      "community": 5,
+      "community": 7,
       "norm_label": "scopes"
     },
     {
@@ -5942,7 +6082,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "src_components_bookingsinbox_walink",
-      "community": 5,
+      "community": 7,
       "norm_label": "walink()"
     },
     {
@@ -5952,7 +6092,7 @@
       "source_location": "L47",
       "_origin": "ast",
       "id": "src_components_bookingsinbox_resolvebarber",
-      "community": 5,
+      "community": 7,
       "norm_label": "resolvebarber()"
     },
     {
@@ -5962,7 +6102,7 @@
       "source_location": "L48",
       "_origin": "ast",
       "id": "src_components_bookingsinbox_initialsof",
-      "community": 5,
+      "community": 7,
       "norm_label": "initialsof()"
     },
     {
@@ -5972,7 +6112,7 @@
       "source_location": "L51",
       "_origin": "ast",
       "id": "src_components_bookingsinbox_rescard",
-      "community": 5,
+      "community": 7,
       "norm_label": "rescard()"
     },
     {
@@ -5982,7 +6122,7 @@
       "source_location": "L119",
       "_origin": "ast",
       "id": "src_components_bookingsinbox_resmodal",
-      "community": 5,
+      "community": 7,
       "norm_label": "resmodal()"
     },
     {
@@ -5992,7 +6132,7 @@
       "source_location": "L187",
       "_origin": "ast",
       "id": "src_components_bookingsinbox_confirmdelete",
-      "community": 5,
+      "community": 7,
       "norm_label": "confirmdelete()"
     },
     {
@@ -6002,7 +6142,7 @@
       "source_location": "L206",
       "_origin": "ast",
       "id": "src_components_bookingsinbox_undotoast",
-      "community": 5,
+      "community": 7,
       "norm_label": "undotoast()"
     },
     {
@@ -6012,7 +6152,7 @@
       "source_location": "L217",
       "_origin": "ast",
       "id": "src_components_bookingsinbox_occring",
-      "community": 5,
+      "community": 7,
       "norm_label": "occring()"
     },
     {
@@ -6022,7 +6162,7 @@
       "source_location": "L234",
       "_origin": "ast",
       "id": "src_components_bookingsinbox_calendarmodal",
-      "community": 5,
+      "community": 7,
       "norm_label": "calendarmodal()"
     },
     {
@@ -6032,7 +6172,7 @@
       "source_location": "L293",
       "_origin": "ast",
       "id": "src_components_bookingsinbox_bookingsinbox",
-      "community": 5,
+      "community": 7,
       "norm_label": "bookingsinbox()"
     },
     {
@@ -6042,7 +6182,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_clientmodal",
-      "community": 20,
+      "community": 7,
       "norm_label": "clientmodal.jsx"
     },
     {
@@ -6052,7 +6192,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "src_components_clientmodal_clientmodal",
-      "community": 20,
+      "community": 7,
       "norm_label": "clientmodal()"
     },
     {
@@ -6242,7 +6382,7 @@
       "source_location": "L81",
       "_origin": "ast",
       "id": "src_components_dashboardresumen_peakhours",
-      "community": 5,
+      "community": 24,
       "norm_label": "peakhours()"
     },
     {
@@ -6322,7 +6462,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_expensesmodule",
-      "community": 5,
+      "community": 42,
       "norm_label": "expensesmodule.jsx"
     },
     {
@@ -6332,7 +6472,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "src_components_expensesmodule_category_meta",
-      "community": 5,
+      "community": 42,
       "norm_label": "category_meta"
     },
     {
@@ -6342,7 +6482,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "src_components_expensesmodule_expense_categories",
-      "community": 5,
+      "community": 42,
       "norm_label": "expense_categories"
     },
     {
@@ -6352,7 +6492,7 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "src_components_expensesmodule_metaof",
-      "community": 5,
+      "community": 42,
       "norm_label": "metaof()"
     },
     {
@@ -6362,7 +6502,7 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "src_components_expensesmodule_monthkey",
-      "community": 5,
+      "community": 42,
       "norm_label": "monthkey()"
     },
     {
@@ -6372,7 +6512,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "src_components_expensesmodule_daysinmonth",
-      "community": 5,
+      "community": 42,
       "norm_label": "daysinmonth()"
     },
     {
@@ -6382,7 +6522,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "src_components_expensesmodule_exportexpensescsv",
-      "community": 5,
+      "community": 42,
       "norm_label": "exportexpensescsv()"
     },
     {
@@ -6392,7 +6532,7 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "src_components_expensesmodule_expensemodal",
-      "community": 5,
+      "community": 42,
       "norm_label": "expensemodal()"
     },
     {
@@ -6402,7 +6542,7 @@
       "source_location": "L122",
       "_origin": "ast",
       "id": "src_components_expensesmodule_expensesmodule",
-      "community": 5,
+      "community": 42,
       "norm_label": "expensesmodule()"
     },
     {
@@ -6432,7 +6572,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_globalsearch",
-      "community": 17,
+      "community": 7,
       "norm_label": "globalsearch.jsx"
     },
     {
@@ -6442,7 +6582,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "src_components_globalsearch_badgeclass",
-      "community": 17,
+      "community": 7,
       "norm_label": "badgeclass()"
     },
     {
@@ -6452,7 +6592,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "src_components_globalsearch_globalsearch",
-      "community": 17,
+      "community": 7,
       "norm_label": "globalsearch()"
     },
     {
@@ -6492,7 +6632,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_mercadopagocheckout",
-      "community": 5,
+      "community": 38,
       "norm_label": "mercadopagocheckout.jsx"
     },
     {
@@ -6502,7 +6642,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "src_components_mercadopagocheckout_checkout_items",
-      "community": 5,
+      "community": 38,
       "norm_label": "checkout_items"
     },
     {
@@ -6512,7 +6652,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "src_components_mercadopagocheckout_mercadopagocheckout",
-      "community": 5,
+      "community": 38,
       "norm_label": "mercadopagocheckout()"
     },
     {
@@ -6542,7 +6682,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_modulefooter",
-      "community": 65,
+      "community": 38,
       "norm_label": "modulefooter.jsx"
     },
     {
@@ -6552,7 +6692,7 @@
       "source_location": "L11",
       "_origin": "ast",
       "id": "src_components_modulefooter_icons",
-      "community": 65,
+      "community": 38,
       "norm_label": "icons"
     },
     {
@@ -6562,7 +6702,7 @@
       "source_location": "L16",
       "_origin": "ast",
       "id": "src_components_modulefooter_ic",
-      "community": 65,
+      "community": 38,
       "norm_label": "ic()"
     },
     {
@@ -6572,7 +6712,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "src_components_modulefooter_modulefooter",
-      "community": 65,
+      "community": 38,
       "norm_label": "modulefooter()"
     },
     {
@@ -6582,7 +6722,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_newbookingmodal",
-      "community": 5,
+      "community": 156,
       "norm_label": "newbookingmodal.jsx"
     },
     {
@@ -6592,7 +6732,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "src_components_newbookingmodal_status_options",
-      "community": 5,
+      "community": 156,
       "norm_label": "status_options"
     },
     {
@@ -6602,7 +6742,7 @@
       "source_location": "L25",
       "_origin": "ast",
       "id": "src_components_newbookingmodal_default_slots",
-      "community": 5,
+      "community": 156,
       "norm_label": "default_slots"
     },
     {
@@ -6612,7 +6752,7 @@
       "source_location": "L26",
       "_origin": "ast",
       "id": "src_components_newbookingmodal_step_labels",
-      "community": 5,
+      "community": 156,
       "norm_label": "step_labels"
     },
     {
@@ -6622,7 +6762,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "src_components_newbookingmodal_svcicon",
-      "community": 5,
+      "community": 156,
       "norm_label": "svcicon()"
     },
     {
@@ -6632,7 +6772,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "src_components_newbookingmodal_todaykey",
-      "community": 5,
+      "community": 156,
       "norm_label": "todaykey()"
     },
     {
@@ -6642,7 +6782,7 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "src_components_newbookingmodal_newbookingmodal",
-      "community": 5,
+      "community": 156,
       "norm_label": "newbookingmodal()"
     },
     {
@@ -6722,7 +6862,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_walletprompt",
-      "community": 7,
+      "community": 139,
       "norm_label": "walletprompt.jsx"
     },
     {
@@ -6742,7 +6882,7 @@
       "source_location": "L67",
       "_origin": "ast",
       "id": "src_components_walletprompt_useautowalletprompt",
-      "community": 7,
+      "community": 139,
       "norm_label": "useautowalletprompt()"
     },
     {
@@ -6752,7 +6892,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_brunetti",
-      "community": 38,
+      "community": 86,
       "norm_label": "brunetti.jsx"
     },
     {
@@ -6762,7 +6902,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "src_components_brunetti_usebrunettifx",
-      "community": 38,
+      "community": 86,
       "norm_label": "usebrunettifx()"
     },
     {
@@ -6772,7 +6912,7 @@
       "source_location": "L130",
       "_origin": "ast",
       "id": "src_components_brunetti_scrolltoid",
-      "community": 38,
+      "community": 86,
       "norm_label": "scrolltoid()"
     },
     {
@@ -6782,7 +6922,7 @@
       "source_location": "L137",
       "_origin": "ast",
       "id": "src_components_brunetti_brunettifooter",
-      "community": 38,
+      "community": 86,
       "norm_label": "brunettifooter()"
     },
     {
@@ -6872,7 +7012,7 @@
       "source_location": "L18",
       "_origin": "ast",
       "id": "src_components_edit_editabletext_editabletext",
-      "community": 32,
+      "community": 38,
       "norm_label": "editabletext()"
     },
     {
@@ -7142,7 +7282,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "src_components_ui_brandmark",
-      "community": 17,
+      "community": 139,
       "norm_label": "brandmark()"
     },
     {
@@ -7272,7 +7412,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_ui_lamp",
-      "community": 37,
+      "community": 38,
       "norm_label": "lamp.jsx"
     },
     {
@@ -7282,7 +7422,7 @@
       "source_location": "L8",
       "_origin": "ast",
       "id": "src_components_ui_lamp_lamp",
-      "community": 37,
+      "community": 38,
       "norm_label": "lamp()"
     },
     {
@@ -7292,7 +7432,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_ui_sparkles",
-      "community": 38,
+      "community": 37,
       "norm_label": "sparkles.jsx"
     },
     {
@@ -7302,7 +7442,7 @@
       "source_location": "L9",
       "_origin": "ast",
       "id": "src_components_ui_sparkles_sparkles",
-      "community": 38,
+      "community": 37,
       "norm_label": "sparkles()"
     },
     {
@@ -7452,7 +7592,7 @@
       "source_location": "L78",
       "_origin": "ast",
       "id": "src_data_clp",
-      "community": 5,
+      "community": 7,
       "norm_label": "clp()"
     },
     {
@@ -7472,7 +7612,7 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "src_data_barberbyid",
-      "community": 20,
+      "community": 7,
       "norm_label": "barberbyid()"
     },
     {
@@ -7512,7 +7652,7 @@
       "source_location": "L95",
       "_origin": "ast",
       "id": "src_data_isodate",
-      "community": 5,
+      "community": 7,
       "norm_label": "isodate()"
     },
     {
@@ -7522,7 +7662,7 @@
       "source_location": "L104",
       "_origin": "ast",
       "id": "src_data_buildweek",
-      "community": 5,
+      "community": 7,
       "norm_label": "buildweek()"
     },
     {
@@ -7592,7 +7732,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_data_workshop",
-      "community": 3,
+      "community": 8,
       "norm_label": "workshop.js"
     },
     {
@@ -7602,7 +7742,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_data_workshop_workshop_highlights",
-      "community": 3,
+      "community": 8,
       "norm_label": "workshop_highlights"
     },
     {
@@ -7612,7 +7752,7 @@
       "source_location": "L7",
       "_origin": "ast",
       "id": "src_data_workshop_testimonials",
-      "community": 3,
+      "community": 8,
       "norm_label": "testimonials"
     },
     {
@@ -7622,7 +7762,7 @@
       "source_location": "L28",
       "_origin": "ast",
       "id": "src_data_workshop_feature_cards",
-      "community": 3,
+      "community": 8,
       "norm_label": "feature_cards"
     },
     {
@@ -7632,7 +7772,7 @@
       "source_location": "L61",
       "_origin": "ast",
       "id": "src_data_workshop_workshop_modules",
-      "community": 3,
+      "community": 8,
       "norm_label": "workshop_modules"
     },
     {
@@ -7642,7 +7782,7 @@
       "source_location": "L88",
       "_origin": "ast",
       "id": "src_data_workshop_workshop_timeline",
-      "community": 3,
+      "community": 8,
       "norm_label": "workshop_timeline"
     },
     {
@@ -7652,7 +7792,7 @@
       "source_location": "L96",
       "_origin": "ast",
       "id": "src_data_workshop_workshop_includes",
-      "community": 3,
+      "community": 8,
       "norm_label": "workshop_includes"
     },
     {
@@ -7662,7 +7802,7 @@
       "source_location": "L103",
       "_origin": "ast",
       "id": "src_data_workshop_workshop_dates",
-      "community": 3,
+      "community": 8,
       "norm_label": "workshop_dates"
     },
     {
@@ -7672,7 +7812,7 @@
       "source_location": "L120",
       "_origin": "ast",
       "id": "src_data_workshop_workshop_videos",
-      "community": 3,
+      "community": 8,
       "norm_label": "workshop_videos"
     },
     {
@@ -7682,7 +7822,7 @@
       "source_location": "L140",
       "_origin": "ast",
       "id": "src_data_workshop_wk_base",
-      "community": 3,
+      "community": 8,
       "norm_label": "wk_base"
     },
     {
@@ -7692,7 +7832,7 @@
       "source_location": "L145",
       "_origin": "ast",
       "id": "src_data_workshop_wkrango",
-      "community": 3,
+      "community": 8,
       "norm_label": "wkrango()"
     },
     {
@@ -7702,7 +7842,7 @@
       "source_location": "L149",
       "_origin": "ast",
       "id": "src_data_workshop_wk_meses",
-      "community": 3,
+      "community": 8,
       "norm_label": "wk_meses"
     },
     {
@@ -7712,7 +7852,7 @@
       "source_location": "L150",
       "_origin": "ast",
       "id": "src_data_workshop_wk_dias",
-      "community": 3,
+      "community": 8,
       "norm_label": "wk_dias"
     },
     {
@@ -7722,7 +7862,7 @@
       "source_location": "L155",
       "_origin": "ast",
       "id": "src_data_workshop_formatworkshopdate",
-      "community": 3,
+      "community": 8,
       "norm_label": "formatworkshopdate()"
     },
     {
@@ -7732,7 +7872,7 @@
       "source_location": "L166",
       "_origin": "ast",
       "id": "src_data_workshop_wkeditiondate",
-      "community": 3,
+      "community": 8,
       "norm_label": "wkeditiondate()"
     },
     {
@@ -7742,7 +7882,7 @@
       "source_location": "L179",
       "_origin": "ast",
       "id": "src_data_workshop_wk_ed",
-      "community": 3,
+      "community": 8,
       "norm_label": "wk_ed"
     },
     {
@@ -7752,7 +7892,7 @@
       "source_location": "L185",
       "_origin": "ast",
       "id": "src_data_workshop_workshop",
-      "community": 3,
+      "community": 8,
       "norm_label": "workshop"
     },
     {
@@ -7762,7 +7902,7 @@
       "source_location": "L392",
       "_origin": "ast",
       "id": "src_data_workshop_workshop_gallery",
-      "community": 3,
+      "community": 66,
       "norm_label": "workshop_gallery"
     },
     {
@@ -7772,7 +7912,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_enrollmentsstore",
-      "community": 156,
+      "community": 24,
       "norm_label": "enrollmentsstore.js"
     },
     {
@@ -7782,7 +7922,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "src_enrollmentsstore_readlocalenrollments",
-      "community": 156,
+      "community": 24,
       "norm_label": "readlocalenrollments()"
     },
     {
@@ -7792,7 +7932,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "src_enrollmentsstore_writelocalenrollments",
-      "community": 156,
+      "community": 24,
       "norm_label": "writelocalenrollments()"
     },
     {
@@ -7802,7 +7942,7 @@
       "source_location": "L24",
       "_origin": "ast",
       "id": "src_enrollmentsstore_addlocalenrollment",
-      "community": 156,
+      "community": 24,
       "norm_label": "addlocalenrollment()"
     },
     {
@@ -7812,7 +7952,7 @@
       "source_location": "L50",
       "_origin": "ast",
       "id": "src_enrollmentsstore_removelocalenrollment",
-      "community": 156,
+      "community": 24,
       "norm_label": "removelocalenrollment()"
     },
     {
@@ -7822,7 +7962,7 @@
       "source_location": "L61",
       "_origin": "ast",
       "id": "src_enrollmentsstore_mergeenrollments",
-      "community": 156,
+      "community": 24,
       "norm_label": "mergeenrollments()"
     },
     {
@@ -8032,7 +8172,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_pages_cardshare",
-      "community": 7,
+      "community": 139,
       "norm_label": "cardshare.jsx"
     },
     {
@@ -8042,7 +8182,7 @@
       "source_location": "L13",
       "_origin": "ast",
       "id": "src_pages_cardshare_cardshare",
-      "community": 7,
+      "community": 139,
       "norm_label": "cardshare()"
     },
     {
@@ -8102,7 +8242,7 @@
       "source_location": "L42",
       "_origin": "ast",
       "id": "src_pages_cursos_cursos",
-      "community": 38,
+      "community": 86,
       "norm_label": "cursos()"
     },
     {
@@ -8342,7 +8482,7 @@
       "source_location": "L2463",
       "_origin": "ast",
       "id": "src_pages_dashboard_enrollmentspanel",
-      "community": 156,
+      "community": 24,
       "norm_label": "enrollmentspanel()"
     },
     {
@@ -8372,7 +8512,7 @@
       "source_location": "L2666",
       "_origin": "ast",
       "id": "src_pages_dashboard_pedidospanel",
-      "community": 5,
+      "community": 24,
       "norm_label": "pedidospanel()"
     },
     {
@@ -8842,7 +8982,7 @@
       "source_location": "L93",
       "_origin": "ast",
       "id": "src_pages_workshop_ytid",
-      "community": 3,
+      "community": 67,
       "norm_label": "ytid()"
     },
     {
@@ -8852,7 +8992,7 @@
       "source_location": "L100",
       "_origin": "ast",
       "id": "src_pages_workshop_toembedurl",
-      "community": 3,
+      "community": 67,
       "norm_label": "toembedurl()"
     },
     {
@@ -8862,7 +9002,7 @@
       "source_location": "L113",
       "_origin": "ast",
       "id": "src_pages_workshop_videoembed",
-      "community": 3,
+      "community": 67,
       "norm_label": "videoembed()"
     },
     {
@@ -8922,7 +9062,7 @@
       "source_location": "L205",
       "_origin": "ast",
       "id": "src_pages_workshop_usesmoothscroll",
-      "community": 3,
+      "community": 65,
       "norm_label": "usesmoothscroll()"
     },
     {
@@ -8932,7 +9072,7 @@
       "source_location": "L222",
       "_origin": "ast",
       "id": "src_pages_workshop_smoothto",
-      "community": 3,
+      "community": 65,
       "norm_label": "smoothto()"
     },
     {
@@ -9022,7 +9162,7 @@
       "source_location": "L609",
       "_origin": "ast",
       "id": "src_pages_workshop_px_layouts",
-      "community": 3,
+      "community": 66,
       "norm_label": "px_layouts"
     },
     {
@@ -9032,7 +9172,7 @@
       "source_location": "L636",
       "_origin": "ast",
       "id": "src_pages_workshop_parallaxgallery",
-      "community": 3,
+      "community": 66,
       "norm_label": "parallaxgallery()"
     },
     {
@@ -9082,7 +9222,7 @@
       "source_location": "L1057",
       "_origin": "ast",
       "id": "src_pages_workshop_footer",
-      "community": 3,
+      "community": 65,
       "norm_label": "footer()"
     },
     {
@@ -9102,7 +9242,7 @@
       "source_location": "L1122",
       "_origin": "ast",
       "id": "src_pages_workshop_workshop",
-      "community": 3,
+      "community": 65,
       "norm_label": "workshop()"
     },
     {
@@ -9252,7 +9392,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_walletprompt",
-      "community": 7,
+      "community": 139,
       "norm_label": "walletprompt.js"
     },
     {
@@ -9262,7 +9402,7 @@
       "source_location": "L27",
       "_origin": "ast",
       "id": "src_walletprompt_isandroid",
-      "community": 7,
+      "community": 139,
       "norm_label": "isandroid()"
     },
     {
@@ -9272,7 +9412,7 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "src_walletprompt_walletplatform",
-      "community": 7,
+      "community": 139,
       "norm_label": "walletplatform()"
     },
     {
@@ -9282,7 +9422,7 @@
       "source_location": "L39",
       "_origin": "ast",
       "id": "src_walletprompt_walletavailable",
-      "community": 7,
+      "community": 139,
       "norm_label": "walletavailable()"
     },
     {
@@ -9292,7 +9432,7 @@
       "source_location": "L43",
       "_origin": "ast",
       "id": "src_walletprompt_waswalletdismissedrecently",
-      "community": 7,
+      "community": 139,
       "norm_label": "waswalletdismissedrecently()"
     },
     {
@@ -9302,7 +9442,7 @@
       "source_location": "L52",
       "_origin": "ast",
       "id": "src_walletprompt_rememberwalletdismissal",
-      "community": 7,
+      "community": 139,
       "norm_label": "rememberwalletdismissal()"
     },
     {
@@ -9312,7 +9452,7 @@
       "source_location": "L61",
       "_origin": "ast",
       "id": "src_walletprompt_haswalletpass",
-      "community": 7,
+      "community": 139,
       "norm_label": "haswalletpass()"
     },
     {
@@ -9322,7 +9462,7 @@
       "source_location": "L74",
       "_origin": "ast",
       "id": "src_walletprompt_fetchloyalty",
-      "community": 7,
+      "community": 139,
       "norm_label": "fetchloyalty()"
     },
     {
@@ -9352,7 +9492,7 @@
       "source_location": "L102",
       "_origin": "ast",
       "id": "src_walletprompt_walletpassurlbytoken",
-      "community": 7,
+      "community": 139,
       "norm_label": "walletpassurlbytoken()"
     },
     {
@@ -9362,7 +9502,7 @@
       "source_location": "L106",
       "_origin": "ast",
       "id": "src_walletprompt_fetchgooglewalletsaveurlbytoken",
-      "community": 7,
+      "community": 139,
       "norm_label": "fetchgooglewalletsaveurlbytoken()"
     },
     {
@@ -9372,7 +9512,7 @@
       "source_location": "L113",
       "_origin": "ast",
       "id": "src_walletprompt_fetchtarjetainfo",
-      "community": 7,
+      "community": 139,
       "norm_label": "fetchtarjetainfo()"
     },
     {
@@ -14740,7 +14880,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L158",
+      "source_location": "L172",
       "weight": 1.0,
       "source": "api_email",
       "target": "api_email_esc",
@@ -14750,7 +14890,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L162",
+      "source_location": "L176",
       "weight": 1.0,
       "source": "api_email",
       "target": "api_email_firstname",
@@ -14770,7 +14910,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L61",
+      "source_location": "L69",
       "weight": 1.0,
       "source": "api_email",
       "target": "api_email_formatdate",
@@ -14780,7 +14920,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L69",
+      "source_location": "L83",
       "weight": 1.0,
       "source": "api_email",
       "target": "api_email_sendbookingconfirmationemail",
@@ -14790,7 +14930,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L107",
+      "source_location": "L121",
       "weight": 1.0,
       "source": "api_email",
       "target": "api_email_sendloyaltycardemail",
@@ -14810,7 +14950,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L264",
+      "source_location": "L278",
       "weight": 1.0,
       "source": "api_email",
       "target": "api_email_sendworkshopconfirmationemail",
@@ -14820,7 +14960,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L343",
+      "source_location": "L357",
       "weight": 1.0,
       "source": "api_email",
       "target": "api_email_sendworkshopdetailsemail",
@@ -14830,7 +14970,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L309",
+      "source_location": "L323",
       "weight": 1.0,
       "source": "api_email",
       "target": "api_email_sendworkshopwaitlistemail",
@@ -14850,7 +14990,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L176",
+      "source_location": "L190",
       "weight": 1.0,
       "source": "api_email",
       "target": "api_email_wkbutton",
@@ -14860,7 +15000,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L181",
+      "source_location": "L195",
       "weight": 1.0,
       "source": "api_email",
       "target": "api_email_wklocationblock",
@@ -14870,7 +15010,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L167",
+      "source_location": "L181",
       "weight": 1.0,
       "source": "api_email",
       "target": "api_email_wkrow",
@@ -14880,7 +15020,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L201",
+      "source_location": "L215",
       "weight": 1.0,
       "source": "api_email",
       "target": "api_email_wkshell",
@@ -14913,7 +15053,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L99",
+      "source_location": "L113",
       "weight": 1.0,
       "source": "api_email_sendbookingconfirmationemail",
       "target": "api_email_sendviaresend",
@@ -14924,7 +15064,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L139",
+      "source_location": "L153",
       "weight": 1.0,
       "source": "api_email_sendloyaltycardemail",
       "target": "api_email_sendviaresend",
@@ -14935,7 +15075,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L292",
+      "source_location": "L306",
       "weight": 1.0,
       "source": "api_email_sendworkshopconfirmationemail",
       "target": "api_email_sendviaresend",
@@ -14946,7 +15086,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L364",
+      "source_location": "L378",
       "weight": 1.0,
       "source": "api_email_sendworkshopdetailsemail",
       "target": "api_email_sendviaresend",
@@ -14957,7 +15097,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L326",
+      "source_location": "L340",
       "weight": 1.0,
       "source": "api_email_sendworkshopwaitlistemail",
       "target": "api_email_sendviaresend",
@@ -14968,7 +15108,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L72",
+      "source_location": "L86",
       "weight": 1.0,
       "source": "api_email_sendbookingconfirmationemail",
       "target": "api_email_formatclp",
@@ -14979,7 +15119,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L267",
+      "source_location": "L281",
       "weight": 1.0,
       "source": "api_email_sendworkshopconfirmationemail",
       "target": "api_email_formatclp",
@@ -14990,7 +15130,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L70",
+      "source_location": "L84",
       "weight": 1.0,
       "source": "api_email_sendbookingconfirmationemail",
       "target": "api_email_formatdate",
@@ -15045,7 +15185,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L275",
+      "source_location": "L289",
       "weight": 1.0,
       "source": "api_email_sendworkshopconfirmationemail",
       "target": "api_email_esc",
@@ -15056,7 +15196,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L346",
+      "source_location": "L360",
       "weight": 1.0,
       "source": "api_email_sendworkshopdetailsemail",
       "target": "api_email_esc",
@@ -15067,7 +15207,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L312",
+      "source_location": "L326",
       "weight": 1.0,
       "source": "api_email_sendworkshopwaitlistemail",
       "target": "api_email_esc",
@@ -15078,7 +15218,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L187",
+      "source_location": "L201",
       "weight": 1.0,
       "source": "api_email_wklocationblock",
       "target": "api_email_esc",
@@ -15089,7 +15229,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L171",
+      "source_location": "L185",
       "weight": 1.0,
       "source": "api_email_wkrow",
       "target": "api_email_esc",
@@ -15100,7 +15240,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L228",
+      "source_location": "L242",
       "weight": 1.0,
       "source": "api_email_wkshell",
       "target": "api_email_esc",
@@ -15122,98 +15262,10 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L265",
-      "weight": 1.0,
-      "source": "api_email_sendworkshopconfirmationemail",
-      "target": "api_email_firstname",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "api/_email.js",
-      "source_location": "L344",
-      "weight": 1.0,
-      "source": "api_email_sendworkshopdetailsemail",
-      "target": "api_email_firstname",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "api/_email.js",
-      "source_location": "L310",
-      "weight": 1.0,
-      "source": "api_email_sendworkshopwaitlistemail",
-      "target": "api_email_firstname",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "api/_email.js",
       "source_location": "L279",
       "weight": 1.0,
       "source": "api_email_sendworkshopconfirmationemail",
-      "target": "api_email_wkrow",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "api/_email.js",
-      "source_location": "L353",
-      "weight": 1.0,
-      "source": "api_email_sendworkshopdetailsemail",
-      "target": "api_email_wkrow",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "api/_email.js",
-      "source_location": "L318",
-      "weight": 1.0,
-      "source": "api_email_sendworkshopwaitlistemail",
-      "target": "api_email_wkrow",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "api/_email.js",
-      "source_location": "L321",
-      "weight": 1.0,
-      "source": "api_email_sendworkshopwaitlistemail",
-      "target": "api_email_wkbutton",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "api/_email.js",
-      "source_location": "L195",
-      "weight": 1.0,
-      "source": "api_email_wklocationblock",
-      "target": "api_email_wkbutton",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "api/_email.js",
-      "source_location": "L286",
-      "weight": 1.0,
-      "source": "api_email_sendworkshopconfirmationemail",
-      "target": "api_email_wklocationblock",
+      "target": "api_email_firstname",
       "confidence_score": 1.0
     },
     {
@@ -15224,6 +15276,83 @@
       "source_location": "L358",
       "weight": 1.0,
       "source": "api_email_sendworkshopdetailsemail",
+      "target": "api_email_firstname",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "api/_email.js",
+      "source_location": "L324",
+      "weight": 1.0,
+      "source": "api_email_sendworkshopwaitlistemail",
+      "target": "api_email_firstname",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "api/_email.js",
+      "source_location": "L293",
+      "weight": 1.0,
+      "source": "api_email_sendworkshopconfirmationemail",
+      "target": "api_email_wkrow",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "api/_email.js",
+      "source_location": "L367",
+      "weight": 1.0,
+      "source": "api_email_sendworkshopdetailsemail",
+      "target": "api_email_wkrow",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "api/_email.js",
+      "source_location": "L332",
+      "weight": 1.0,
+      "source": "api_email_sendworkshopwaitlistemail",
+      "target": "api_email_wkrow",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "api/_email.js",
+      "source_location": "L335",
+      "weight": 1.0,
+      "source": "api_email_sendworkshopwaitlistemail",
+      "target": "api_email_wkbutton",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "api/_email.js",
+      "source_location": "L209",
+      "weight": 1.0,
+      "source": "api_email_wklocationblock",
+      "target": "api_email_wkbutton",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "api/_email.js",
+      "source_location": "L300",
+      "weight": 1.0,
+      "source": "api_email_sendworkshopconfirmationemail",
       "target": "api_email_wklocationblock",
       "confidence_score": 1.0
     },
@@ -15232,7 +15361,18 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L295",
+      "source_location": "L372",
+      "weight": 1.0,
+      "source": "api_email_sendworkshopdetailsemail",
+      "target": "api_email_wklocationblock",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "api/_email.js",
+      "source_location": "L309",
       "weight": 1.0,
       "source": "api_email_sendworkshopconfirmationemail",
       "target": "api_email_wkshell",
@@ -15243,7 +15383,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L369",
+      "source_location": "L383",
       "weight": 1.0,
       "source": "api_email_sendworkshopdetailsemail",
       "target": "api_email_wkshell",
@@ -15254,7 +15394,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/_email.js",
-      "source_location": "L329",
+      "source_location": "L343",
       "weight": 1.0,
       "source": "api_email_sendworkshopwaitlistemail",
       "target": "api_email_wkshell",
@@ -24128,6 +24268,224 @@
       "weight": 1.0,
       "source": "package_engines",
       "target": "package_engines_node",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L129",
+      "weight": 1.0,
+      "source": "scripts_brand_build_engraving_svg",
+      "target": "scripts_brand_build_engraving_svg_bezier",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L45",
+      "weight": 1.0,
+      "source": "scripts_brand_build_engraving_svg",
+      "target": "scripts_brand_build_engraving_svg_clean_alpha",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L58",
+      "weight": 1.0,
+      "source": "scripts_brand_build_engraving_svg",
+      "target": "scripts_brand_build_engraving_svg_components",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L65",
+      "weight": 1.0,
+      "source": "scripts_brand_build_engraving_svg",
+      "target": "scripts_brand_build_engraving_svg_fmt",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L193",
+      "weight": 1.0,
+      "source": "scripts_brand_build_engraving_svg",
+      "target": "scripts_brand_build_engraving_svg_main",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L143",
+      "weight": 1.0,
+      "source": "scripts_brand_build_engraving_svg",
+      "target": "scripts_brand_build_engraving_svg_rasterize",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L70",
+      "weight": 1.0,
+      "source": "scripts_brand_build_engraving_svg",
+      "target": "scripts_brand_build_engraving_svg_trace",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L171",
+      "weight": 1.0,
+      "source": "scripts_brand_build_engraving_svg",
+      "target": "scripts_brand_build_engraving_svg_write",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L194",
+      "weight": 1.0,
+      "source": "scripts_brand_build_engraving_svg_main",
+      "target": "scripts_brand_build_engraving_svg_clean_alpha",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L46",
+      "weight": 1.0,
+      "source": "scripts_brand_build_engraving_svg_rationale_46",
+      "target": "scripts_brand_build_engraving_svg_clean_alpha",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L195",
+      "weight": 1.0,
+      "source": "scripts_brand_build_engraving_svg_main",
+      "target": "scripts_brand_build_engraving_svg_components",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L59",
+      "weight": 1.0,
+      "source": "scripts_brand_build_engraving_svg_rationale_59",
+      "target": "scripts_brand_build_engraving_svg_components",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "indirect_call",
+      "context": "argument",
+      "confidence": "INFERRED",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L111",
+      "weight": 1.0,
+      "source": "scripts_brand_build_engraving_svg_trace",
+      "target": "scripts_brand_build_engraving_svg_fmt",
+      "confidence_score": 0.5
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L175",
+      "weight": 1.0,
+      "source": "scripts_brand_build_engraving_svg_write",
+      "target": "scripts_brand_build_engraving_svg_fmt",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L71",
+      "weight": 1.0,
+      "source": "scripts_brand_build_engraving_svg_rationale_71",
+      "target": "scripts_brand_build_engraving_svg_trace",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L121",
+      "weight": 1.0,
+      "source": "scripts_brand_build_engraving_svg_trace",
+      "target": "scripts_brand_build_engraving_svg_bezier",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L172",
+      "weight": 1.0,
+      "source": "scripts_brand_build_engraving_svg_write",
+      "target": "scripts_brand_build_engraving_svg_trace",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L130",
+      "weight": 1.0,
+      "source": "scripts_brand_build_engraving_svg_rationale_130",
+      "target": "scripts_brand_build_engraving_svg_bezier",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L144",
+      "weight": 1.0,
+      "source": "scripts_brand_build_engraving_svg_rationale_144",
+      "target": "scripts_brand_build_engraving_svg_rasterize",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L186",
+      "weight": 1.0,
+      "source": "scripts_brand_build_engraving_svg_write",
+      "target": "scripts_brand_build_engraving_svg_rasterize",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/brand/build-engraving-svg.py",
+      "source_location": "L199",
+      "weight": 1.0,
+      "source": "scripts_brand_build_engraving_svg_main",
+      "target": "scripts_brand_build_engraving_svg_write",
       "confidence_score": 1.0
     },
     {
@@ -38767,5 +39125,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "4575e37de281c0b22970622250d4cc964ebbc542"
+  "built_at_commit": "9234b583f2c7e0e1c1395b27a8ca0827f687ebba"
 }

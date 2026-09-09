@@ -1150,8 +1150,8 @@
     "semantic_hash": ""
   },
   "api/_email.js": {
-    "mtime": 1788048944.2874146,
-    "ast_hash": "a4e0b318bae85c474e4fd285758124bb",
+    "mtime": 1788926300.842083,
+    "ast_hash": "0e448de5f260346384c8b791f37722e4",
     "semantic_hash": ""
   },
   "src/components/ui/container-scroll-animation.jsx": {
@@ -2452,6 +2452,31 @@
   "public/assets/workshop-gallery/wk-23.webp": {
     "mtime": 1788625738.6062777,
     "ast_hash": "6b2b520ec6b39ce75663feb0156304a3",
+    "semantic_hash": ""
+  },
+  "scripts/brand/build-engraving-svg.py": {
+    "mtime": 1788895875.5291626,
+    "ast_hash": "c30f2d2b5fba54e636a766c9130d183d",
+    "semantic_hash": ""
+  },
+  "scripts/brand/brunetti-lockup-negro.jpg": {
+    "mtime": 1788895887.8974035,
+    "ast_hash": "65c18ae793a3c15434ede5a03a74b758",
+    "semantic_hash": ""
+  },
+  "scripts/brand/brunetti-lockup-negro.svg": {
+    "mtime": 1788895887.3733907,
+    "ast_hash": "cf3397d48d5ed07a1faf9a7e7b2d404c",
+    "semantic_hash": ""
+  },
+  "scripts/brand/brunetti-monograma-negro.jpg": {
+    "mtime": 1788895892.3238363,
+    "ast_hash": "b9279d8d3d4b89a1373dd6581b561d91",
+    "semantic_hash": ""
+  },
+  "scripts/brand/brunetti-monograma-negro.svg": {
+    "mtime": 1788895891.7710571,
+    "ast_hash": "a35b88b8c3542490b2601977dffb89d8",
     "semantic_hash": ""
   }
 }

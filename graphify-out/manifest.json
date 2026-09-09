@@ -40,8 +40,8 @@
     "semantic_hash": ""
   },
   "api/bookings.js": {
-    "mtime": 1787805869.5688264,
-    "ast_hash": "5c9ed75eb5767119843668daf929c09c",
+    "mtime": 1788968661.3056617,
+    "ast_hash": "07d547f14f13a8f38e1d2d7b046922fd",
     "semantic_hash": ""
   },
   "api/clients.js": {
@@ -305,8 +305,8 @@
     "semantic_hash": "ec9017c0886e63a56a742ab2208a4771"
   },
   "src/pages/Booking.jsx": {
-    "mtime": 1788118827.619462,
-    "ast_hash": "583c70942d74a7bc41d8f83dd35a4682",
+    "mtime": 1788968661.3052058,
+    "ast_hash": "0c6f67605992ab78b8b4e0281d0c7f71",
     "semantic_hash": ""
   },
   "src/pages/Cursos.jsx": {
@@ -315,8 +315,8 @@
     "semantic_hash": ""
   },
   "src/pages/Dashboard.jsx": {
-    "mtime": 1788117554.7679043,
-    "ast_hash": "eb91e2c726ed9b6e525e48df4ebdd183",
+    "mtime": 1788968700.33265,
+    "ast_hash": "85553564a32b8287d140e127546e9539",
     "semantic_hash": ""
   },
   "src/pages/EncuentraEstilo.jsx": {
