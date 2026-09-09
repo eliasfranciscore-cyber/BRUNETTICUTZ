@@ -9,7 +9,7 @@ import { blocksForDuration, slotsForBooking, busySlotsForBarberDate } from "./_s
 import { creditStar, revertStar, redeemFreeCut, cancelRedeem } from "./_loyaltyBridge.js"
 
 const MIN_CANCEL_NOTICE_HOURS = 10
-const MAX_LEAD_DAYS = 7
+const MAX_LEAD_DAYS = 10  // debe coincidir con el del calendario en src/pages/Booking.jsx
 const MIN_BOOKING_LEAD_MINUTES = 55
 const MAX_BOOKINGS_PER_DAY = 2
 const BUSINESS_TZ = "America/Santiago"

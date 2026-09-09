@@ -73,6 +73,24 @@ function buildWeek(offset = 0) {
   })
 }
 
+// Ventana reservable del cliente (espejo de src/pages/Booking.jsx y de
+// api/bookings.js, que rechaza con 422 fuera de rango).
+const MAX_LEAD_DAYS = 10
+
+/* Último día que la agenda deja administrar hacia adelante. Es el mayor entre
+   el domingo de la semana siguiente y hoy+MAX_LEAD_DAYS: el tope viejo era solo
+   lo primero, y un viernes/sábado/domingo eso cae a +9/+8/+7, o sea menos que
+   la ventana del cliente — el barbero no podía abrir ni bloquear días que sí
+   eran reservables. El max también conserva lo de antes (preparar la semana
+   siguiente completa, hasta +13 un lunes). */
+function AGENDA_MAX_KEY() {
+  const endOfNextWeek = buildWeek(1)[6].key
+  const lead = new Date()
+  lead.setDate(lead.getDate() + MAX_LEAD_DAYS)
+  const leadKey = isoDate(lead)
+  return endOfNextWeek > leadKey ? endOfNextWeek : leadKey
+}
+
 function localBlockKey(barberId, date, slot) {
   return `${barberId}|${date}|${slot}`
 }
@@ -1253,11 +1271,10 @@ export default function Dashboard() {
     return acc
   }, { booked: 0, free: 0, blocked: 0 })
 
-  // El cliente solo puede reservar dentro de los próximos 7 días, así que la
-  // agenda del barbero se administra semana por semana: "esta semana" y la
-  // "semana siguiente" (la única que tiene sentido dejar preparada con
-  // anticipación). Cambiar de semana reubica el día seleccionado si el
-  // actual no pertenece a la semana nueva.
+  // La agenda del barbero se administra semana por semana, y hacia adelante
+  // llega hasta AGENDA_MAX_KEY (siempre alcanza la ventana reservable del
+  // cliente, MAX_LEAD_DAYS). Cambiar de semana reubica el día seleccionado si
+  // el actual no pertenece a la semana nueva.
   const goToWeek = (offset) => {
     const wd = buildWeek(offset)
     setWeekOffset(offset)
@@ -1265,15 +1282,16 @@ export default function Dashboard() {
   }
 
   // Date-picker propio de Agenda: cualquier fecha pasada es elegible (para
-  // revisar semanas ya transcurridas); hacia adelante sigue topado en la
-  // semana siguiente — el cliente no puede reservar más allá de 7 días, así
-  // que después de eso no hay nada que administrar.
+  // revisar semanas ya transcurridas); hacia adelante el tope es AGENDA_MAX_KEY.
+  // Cubre siempre la ventana reservable del cliente (MAX_LEAD_DAYS): el tope
+  // anterior era el domingo de la semana siguiente, que un viernes/sábado/domingo
+  // cae a +9/+8/+7 y dejaba días reservables que el barbero no podía abrir acá.
   const calPrevMonth = () => setCalMonth((m) => { if (m === 0) { setCalYear((y) => y - 1); return 11 } return m - 1 })
   const calNextMonth = () => setCalMonth((m) => { if (m === 11) { setCalYear((y) => y + 1); return 0 } return m + 1 })
   const pickCalendarDay = (key) => {
     setCalOpen(false)
-    const maxKey = buildWeek(1)[6].key
-    if (key > maxKey) { pushToast("📅", "Fecha fuera del rango reservable (7 días)"); return }
+    const maxKey = AGENDA_MAX_KEY()
+    if (key > maxKey) { pushToast("📅", `Fecha fuera del rango reservable (${MAX_LEAD_DAYS} días)`); return }
     const mondayOf = (iso) => {
       const d = new Date(`${iso}T00:00:00`)
       const dow = d.getDay() || 7
@@ -1421,9 +1439,9 @@ export default function Dashboard() {
             <div className="agenda-controls">
               {/* Selector de barbero retirado: la agenda es exclusiva de Brunetti.
                   (Se conserva agendaBarber fijado a Bruno para la API de disponibilidad.) */}
-              {/* La agenda se administra semana por semana: el cliente solo puede
-                  reservar dentro de los próximos 7 días, así que no tiene sentido
-                  exponer más de "esta semana" y la "semana siguiente". */}
+              {/* La agenda se administra semana por semana. Hacia adelante el tope
+                  es AGENDA_MAX_KEY, que siempre alcanza la ventana reservable del
+                  cliente (MAX_LEAD_DAYS); hacia atrás no hay tope. */}
               <div className="agenda-bulk-actions">
                 {/* Flechas sin tope hacia atrás: las semanas pasadas se pueden
                     revisar (reservas no atendidas, cancelaciones tardías). */}
@@ -1451,7 +1469,7 @@ export default function Dashboard() {
                       onPrevMonth={calPrevMonth}
                       onNextMonth={calNextMonth}
                       onPick={pickCalendarDay}
-                      maxKey={buildWeek(1)[6].key}
+                      maxKey={AGENDA_MAX_KEY()}
                     />
                   )}
                 </div>

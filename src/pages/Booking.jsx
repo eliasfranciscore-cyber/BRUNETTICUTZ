@@ -127,9 +127,12 @@ export default function Booking() {
   const now = new Date()
   const todayKey = localDateKey(now)
   // El cliente solo puede reservar dentro de los próximos MAX_LEAD_DAYS días:
-  // más allá de eso el barbero todavía no publicó su disponibilidad de esa
-  // semana (ver agenda del panel interno, que se administra semana a semana).
-  const MAX_LEAD_DAYS = 7
+  // más allá de eso el barbero todavía no publicó su disponibilidad (ver
+  // agenda del panel interno, que se administra semana a semana).
+  // Debe coincidir con MAX_LEAD_DAYS en api/bookings.js — el servidor rechaza
+  // con 422 lo que quede fuera, así que subir solo este número deja días
+  // clicleables que fallan al confirmar.
+  const MAX_LEAD_DAYS = 10
   const maxDate = new Date()
   maxDate.setDate(maxDate.getDate() + MAX_LEAD_DAYS)
   const maxDateKey = localDateKey(maxDate)
@@ -141,7 +144,7 @@ export default function Booking() {
   const isPast = (d) => dk(d) < todayKey
   const isTooFar = (d) => dk(d) > maxDateKey
   // No tiene sentido dejar avanzar de mes si ningún día del mes siguiente cae
-  // dentro de la ventana de 7 días (p. ej. a inicios de mes).
+  // dentro de la ventana de MAX_LEAD_DAYS días (p. ej. a inicios de mes).
   const nextMonthFirstKey = `${month === 11 ? year + 1 : year}-${String(month === 11 ? 1 : month + 2).padStart(2, "0")}-01`
   const canGoNextMonth = month < 11 && nextMonthFirstKey <= maxDateKey
 
