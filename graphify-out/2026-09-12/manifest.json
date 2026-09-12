@@ -60,8 +60,8 @@
     "semantic_hash": ""
   },
   "api/push.js": {
-    "mtime": 1788042125.8936365,
-    "ast_hash": "e43fc7183a316e17a2b45cfd964e9994",
+    "mtime": 1789247806.5893922,
+    "ast_hash": "959d64f3d9828cb20e5aa982eb618d60",
     "semantic_hash": ""
   },
   "api/register-client.js": {
@@ -365,8 +365,8 @@
     "semantic_hash": "8821dc65ef6d88a32b3d71aa793563c1"
   },
   "CLAUDE.md": {
-    "mtime": 1788117800.7830884,
-    "ast_hash": "cf7782ac5590229a2301c22b432d9ca4",
+    "mtime": 1789247202.1964927,
+    "ast_hash": "1f522e36f3a1377aa4ba27216678928a",
     "semantic_hash": ""
   },
   "IMPLEMENTATION_PLAN.md": {

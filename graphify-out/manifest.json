@@ -70,8 +70,8 @@
     "semantic_hash": "aa2c8ac0c0dbc111671fa1209f170cf3"
   },
   "api/services.js": {
-    "mtime": 1788042042.6419108,
-    "ast_hash": "2f14d820812884a8b49cc7e34be68c1c",
+    "mtime": 1789248882.0895197,
+    "ast_hash": "f533373d6b75bb0ce2114ec1ecd43be3",
     "semantic_hash": ""
   },
   "db/schema.sql": {
@@ -80,8 +80,8 @@
     "semantic_hash": ""
   },
   "db/seed.sql": {
-    "mtime": 1783792587.5086474,
-    "ast_hash": "dd6882577dd14f9ec2128fd91979d55c",
+    "mtime": 1789248882.089816,
+    "ast_hash": "f44866838d0f3d4caf3f107048aa49ee",
     "semantic_hash": ""
   },
   "ios/BrunettiCutz/BrunettiCutz/APIClient.swift": {
@@ -270,8 +270,8 @@
     "semantic_hash": "f89b02ca2d0dcd3d8fb34440ae601ca7"
   },
   "src/data.js": {
-    "mtime": 1787277769.0662794,
-    "ast_hash": "1bf42de2a444ec9d3ae8bdff1ed8f865",
+    "mtime": 1789248882.0892107,
+    "ast_hash": "79c82fef6d591a10b5d5bcbaaf6286ea",
     "semantic_hash": ""
   },
   "src/data/estilo.js": {
@@ -305,8 +305,8 @@
     "semantic_hash": "ec9017c0886e63a56a742ab2208a4771"
   },
   "src/pages/Booking.jsx": {
-    "mtime": 1788968661.3052058,
-    "ast_hash": "0c6f67605992ab78b8b4e0281d0c7f71",
+    "mtime": 1789248841.147368,
+    "ast_hash": "be2218091aaf8968122246f3a535562b",
     "semantic_hash": ""
   },
   "src/pages/Cursos.jsx": {
@@ -325,8 +325,8 @@
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
-    "mtime": 1783905719.8799222,
-    "ast_hash": "f853200fe7a18992618566221672b1f8",
+    "mtime": 1789248882.0902264,
+    "ast_hash": "dfefcabe722603c5f78561ec3b098fc8",
     "semantic_hash": ""
   },
   "src/pages/Login.jsx": {
