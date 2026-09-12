@@ -15,17 +15,17 @@ INSERT INTO barbers (id, name, short_name, code, role, tier, exp_years, rating, 
 ON CONFLICT (id) DO UPDATE SET password_hash = EXCLUDED.password_hash WHERE barbers.password_hash IS NULL;
 
 INSERT INTO services (id, name, price, duration_min, category, tne_eligible, description) VALUES
-  (5,  'Asesoría de corte',              24990, 90,  'general', true,  'Consulta profesional para encontrar tu estilo ideal.'),
-  (6,  'Corte de cabello',               15990, 60,  'general', true,  'Corte profesional con técnicas modernas y clásicas.'),
-  (7,  'Corte + perfilado de barba',     22990, 75,  'general', true,  'Servicio completo de corte y arreglo de barba.'),
-  (8,  'Perfilado de barba',             11990, 45,  'general', true,  'Perfilado y arreglo profesional de barba.'),
+  (5,  'Asesoría de corte',              24990, 90,  'general', true,  'Corte más una conversación de estilo: forma de rostro, qué te acomoda y cómo mantenerlo.'),
+  (6,  'Corte de cabello',               15990, 60,  'general', true,  'Corte completo de principio a fin: largo, forma y terminación. El indicado si es tu primera vez.'),
+  (7,  'Corte + perfilado de barba',     22990, 75,  'general', true,  'Corte completo más perfilado de barba, todo en la misma sesión.'),
+  (8,  'Perfilado de barba',             11990, 45,  'general', true,  'Solo barba: perfilado, contornos y arreglo. No incluye corte de pelo.'),
   (9,  'Solo fade',                      11990,  40,  'general', true,  'Solo mantención de un fade ya hecho. No es un corte completo: si es tu primera vez acá, elige Corte de cabello.'),
-  (10, 'Asesoría de Imagen · Visagista', 39990, 120, 'premium', false, 'Consulta personalizada según tu fisonomía.'),
-  (11, 'Corte de cabello',               19990, 60,  'premium', false, 'Corte de precisión con técnicas avanzadas.'),
-  (12, 'Corte de cabello y barba',       29990, 90,  'premium', false, 'Servicio premium completo de corte y barba.'),
-  (13, 'Ondulación permanente',          65990, 180, 'quimico', false, 'Forma y textura duradera al cabello.'),
-  (14, 'Platinado Global',               89990, 240, 'quimico', false, 'Decoloración completa para un rubio platino.'),
-  (15, 'Visos Platinados',               74990, 210, 'quimico', false, 'Mechas platinadas para un look sofisticado.')
+  (10, 'Asesoría de Imagen · Visagista', 49990, 120, 'premium', false, 'Análisis de tu fisonomía para definir el estilo que te favorece y cómo llevarlo.'),
+  (11, 'Corte de cabello',               19990, 60,  'premium', false, 'Corte completo de principio a fin: largo, forma y terminación. El indicado si es tu primera vez.'),
+  (12, 'Corte de cabello y barba',       29990, 90,  'premium', false, 'Corte completo y barba perfilada, con terminación de detalle.'),
+  (13, 'Ondulación permanente',          66990, 180, 'quimico', false, 'Ondulación química: da forma y textura al pelo liso, con resultado duradero.'),
+  (14, 'Platinado Global',               89990, 240, 'quimico', false, 'Decoloración de todo el pelo hasta rubio platino. El resultado depende de tu base.'),
+  (15, 'Visos Platinados',               74990, 210, 'quimico', false, 'Mechas platinadas sobre tu color, sin decolorar todo el pelo.')
 ON CONFLICT (id) DO NOTHING;
 
 -- Usuarios de prueba

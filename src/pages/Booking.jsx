@@ -60,7 +60,11 @@ export default function Booking() {
   // Marca personal de un solo barbero: Brunetti. Se reserva siempre con él.
   const SINGLE_BARBER = BARBERS[0]?.id ?? 6
   const [barbers] = useState(BARBERS)
-  const [services, setServices] = useState(SERVICES)
+  // El catálogo estático es lo que se ve hasta que responde /api/services, así
+  // que se filtra igual que la respuesta real: sin esto, los servicios que el
+  // panel tiene apagados alcanzaban a mostrarse — en este local, el corte de
+  // $15.990, que no se vende acá (el corte de Brunetti es el de $19.990).
+  const [services, setServices] = useState(() => SERVICES.filter((item) => item.active !== false))
   const [availableSlots, setAvailableSlots] = useState([])
   // El paso "Barbero" se omite: arrancamos en Servicio con Brunetti ya elegido.
   const [step, setStep] = useState(1)

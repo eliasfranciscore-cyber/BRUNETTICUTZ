@@ -52,9 +52,9 @@ const PILLARS = VISAGISMO.pillars.map((p, i) => ({ ...p, icon: PILLAR_ICONS[i], 
 // panel interno — antes esta lista vivía hardcodeada acá y nunca reflejaba
 // los precios ni el ocultar/mostrar que hacía el barbero desde Servicios.
 const FALLBACK_SERVICES = [
-  { id: 10, tag: 'Visagismo', featured: true, title: 'Asesoría de Imagen — Visagista', desc: 'Consulta personalizada donde analizamos tu fisonomía, estilo de vida y objetivos para definir el corte y la imagen que te representan.', price: '$39.990', dur: '120 min', cta: 'Reservar hora' },
-  { id: 11, tag: 'Corte', title: 'Corte de cabello', desc: 'Corte de precisión ejecutado con técnicas avanzadas, pensado para favorecer tus rasgos y tu estilo.', price: '$19.990', dur: '60 min', cta: 'Reservar hora' },
-  { id: 12, tag: 'Corte + Barba', title: 'Corte de cabello y barba', desc: 'Servicio premium completo: corte a medida y perfilado de barba para un acabado impecable y armónico.', price: '$29.990', dur: '90 min', cta: 'Reservar hora' },
+  { id: 10, tag: 'Visagismo', featured: true, title: 'Asesoría de Imagen — Visagista', desc: 'Análisis de tu fisonomía para definir el estilo que te favorece y cómo llevarlo.', price: '$49.990', dur: '120 min', cta: 'Reservar hora' },
+  { id: 11, tag: 'Corte', title: 'Corte de cabello', desc: 'Corte completo de principio a fin: largo, forma y terminación. El indicado si es tu primera vez.', price: '$19.990', dur: '60 min', cta: 'Reservar hora' },
+  { id: 12, tag: 'Corte + Barba', title: 'Corte de cabello y barba', desc: 'Corte completo y barba perfilada, con terminación de detalle.', price: '$29.990', dur: '90 min', cta: 'Reservar hora' },
 ]
 
 const CAT_TAG = { premium: 'Premium', quimico: 'Color', general: 'Corte' }

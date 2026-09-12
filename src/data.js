@@ -5,17 +5,17 @@ export const BARBERS = [
 ]
 
 export const SERVICES = [
-  { id: 5,  name: "Asesoría de corte",              price: 24990, min: 90,  cat: "general",  tne: true,  desc: "Consulta profesional para encontrar tu estilo ideal." },
-  { id: 6,  name: "Corte de cabello",               price: 15990, min: 60,  cat: "general",  tne: true,  desc: "Corte profesional con técnicas modernas y clásicas." },
-  { id: 7,  name: "Corte + perfilado de barba",     price: 22990, min: 75,  cat: "general",  tne: true,  desc: "Servicio completo de corte y arreglo de barba." },
-  { id: 8,  name: "Perfilado de barba",             price: 11990, min: 45,  cat: "general",  tne: true,  desc: "Perfilado y arreglo profesional de barba." },
+  { id: 5,  name: "Asesoría de corte",              price: 24990, min: 90,  cat: "general",  tne: true,  active: false, desc: "Corte más una conversación de estilo: forma de rostro, qué te acomoda y cómo mantenerlo." },
+  { id: 6,  name: "Corte de cabello",               price: 15990, min: 60,  cat: "general",  tne: true,  active: false, desc: "Corte completo de principio a fin: largo, forma y terminación. El indicado si es tu primera vez." },
+  { id: 7,  name: "Corte + perfilado de barba",     price: 22990, min: 75,  cat: "general",  tne: true,  active: false, desc: "Corte completo más perfilado de barba, todo en la misma sesión." },
+  { id: 8,  name: "Perfilado de barba",             price: 11990, min: 45,  cat: "general",  tne: true,  active: false, desc: "Solo barba: perfilado, contornos y arreglo. No incluye corte de pelo." },
   { id: 9,  name: "Solo fade",                      price: 11990,  min: 40,  cat: "general",  tne: true,  desc: "Solo mantención de un fade ya hecho. No es un corte completo: si es tu primera vez acá, elige Corte de cabello." },
-  { id: 10, name: "Asesoría de Imagen · Visagista", price: 39990, min: 120, cat: "premium",  tne: false, desc: "Consulta personalizada según tu fisonomía." },
-  { id: 11, name: "Corte de cabello",               price: 19990, min: 60,  cat: "premium",  tne: false, desc: "Corte de precisión con técnicas avanzadas." },
-  { id: 12, name: "Corte de cabello y barba",       price: 29990, min: 90,  cat: "premium",  tne: false, desc: "Servicio premium completo de corte y barba." },
-  { id: 13, name: "Ondulación permanente",          price: 65990, min: 180, cat: "quimico",  tne: false, desc: "Forma y textura duradera al cabello." },
-  { id: 14, name: "Platinado Global",               price: 89990, min: 240, cat: "quimico",  tne: false, desc: "Decoloración completa para un rubio platino." },
-  { id: 15, name: "Visos Platinados",               price: 74990, min: 210, cat: "quimico",  tne: false, desc: "Mechas platinadas para un look sofisticado." },
+  { id: 10, name: "Asesoría de Imagen · Visagista", price: 49990, min: 120, cat: "premium",  tne: false, desc: "Análisis de tu fisonomía para definir el estilo que te favorece y cómo llevarlo." },
+  { id: 11, name: "Corte de cabello",               price: 19990, min: 60,  cat: "premium",  tne: false, desc: "Corte completo de principio a fin: largo, forma y terminación. El indicado si es tu primera vez." },
+  { id: 12, name: "Corte de cabello y barba",       price: 29990, min: 90,  cat: "premium",  tne: false, desc: "Corte completo y barba perfilada, con terminación de detalle." },
+  { id: 13, name: "Ondulación permanente",          price: 66990, min: 180, cat: "quimico",  tne: false, desc: "Ondulación química: da forma y textura al pelo liso, con resultado duradero." },
+  { id: 14, name: "Platinado Global",               price: 89990, min: 240, cat: "quimico",  tne: false, desc: "Decoloración de todo el pelo hasta rubio platino. El resultado depende de tu base." },
+  { id: 15, name: "Visos Platinados",               price: 74990, min: 210, cat: "quimico",  tne: false, desc: "Mechas platinadas sobre tu color, sin decolorar todo el pelo." },
 ]
 
 export const CLIENTS = [
