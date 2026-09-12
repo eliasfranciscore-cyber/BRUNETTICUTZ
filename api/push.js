@@ -226,14 +226,19 @@ export default async function handler(req, res) {
     // Últimas notificaciones para el popup de la campana del panel (distinto
     // del GET ?job=reminders de arriba, que no lleva sesión de barbero).
     if (req.method === "GET") {
-      // `created_at` va sin castear a texto: el driver lo entrega como Date y
-      // res.json() lo serializa en ISO-8601 con Z. El `::text` de antes lo
-      // devolvía como "2026-09-12 20:57:28.497+00" — con espacio en vez de
-      // "T", un formato que la especificación no obliga a parsear. V8 lo
-      // acepta, Safari/iOS lo deja en Invalid Date, y ahí la campana del
-      // panel perdía el "hace 5m" y el contador de no leídas.
+      // La fecha se arma acá en ISO-8601 UTC y SIN milisegundos, en vez de
+      // castearla a texto o de dejar que el driver la entregue como Date:
+      //   - `created_at::text` devuelve el formato de Postgres
+      //     ("2026-09-12 20:57:28.497397+00"), con espacio en vez de "T" y
+      //     microsegundos. La especificación de JS solo obliga a parsear el
+      //     ISO simplificado; V8 lo acepta igual, Safari/iOS lo deja en
+      //     Invalid Date y la campana pierde el "hace 5m" y el contador.
+      //   - dejar el Date del driver tampoco sirve: res.json() lo serializa
+      //     CON milisegundos, y el ISO8601DateFormatter de Swift los rechaza
+      //     por defecto, así que la app nativa se queda sin fecha.
+      // Sin milisegundos lo parsean los dos.
       const rows = await sql`
-        SELECT id, title, body, url, tag, created_at as "createdAt"
+        SELECT id, title, body, url, tag, to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as "createdAt"
         FROM notifications
         WHERE barber_id = ${Number(session.id)} OR barber_id IS NULL
         ORDER BY created_at DESC
