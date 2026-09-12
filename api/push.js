@@ -226,8 +226,14 @@ export default async function handler(req, res) {
     // Últimas notificaciones para el popup de la campana del panel (distinto
     // del GET ?job=reminders de arriba, que no lleva sesión de barbero).
     if (req.method === "GET") {
+      // `created_at` va sin castear a texto: el driver lo entrega como Date y
+      // res.json() lo serializa en ISO-8601 con Z. El `::text` de antes lo
+      // devolvía como "2026-09-12 20:57:28.497+00" — con espacio en vez de
+      // "T", un formato que la especificación no obliga a parsear. V8 lo
+      // acepta, Safari/iOS lo deja en Invalid Date, y ahí la campana del
+      // panel perdía el "hace 5m" y el contador de no leídas.
       const rows = await sql`
-        SELECT id, title, body, url, tag, created_at::text as "createdAt"
+        SELECT id, title, body, url, tag, created_at as "createdAt"
         FROM notifications
         WHERE barber_id = ${Number(session.id)} OR barber_id IS NULL
         ORDER BY created_at DESC
