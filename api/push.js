@@ -32,18 +32,25 @@ const BUSINESS_TZ = "America/Santiago"
 // cualquier cadencia ≥15 min, la ventana necesaria para no perderlo dejaría
 // de representar "15 minutos" de forma honesta).
 //
-// La ventana pasa de +60/+105 a +45/+90, y el ancho de 45 min está elegido
-// para ser correcto con LAS DOS cadencias — así el deploy y el cambio de
-// horario en cron-job.org pueden ir en cualquier orden sin perder avisos:
-//   - cada 40 min: 45 > 40, así que ningún disparo puede saltarse la ventana,
-//     venga la reserva a la hora que venga.
-//   - cada hora en punto: toda reserva cae en hora en punto (SLOT_GROUPS,
-//     src/data.js), así que el disparo de las HH:00 la ve a 60 min de
-//     distancia — con 30 min de atraso o 15 de adelanto tolerados antes de
-//     salirse de la ventana.
-// El costo es que el aviso ahora puede llegar con 45 min de anticipación en
-// vez de 60 como mínimo garantizado. Mismo criterio que pimpstudio (que usa
-// +45/+75), donde "1 hora" se considera honesto igual.
+// La ventana tiene que ser AL MENOS tan ancha como el intervalo del cron, o
+// deja huecos. Se busca `NOW()+fromMin .. NOW()+toMin`, así que una reserva a
+// la hora T se avisa solo si algún disparo cae en [T-toMin, T-fromMin]: con
+// cadencia horaria, un intervalo de menos de 60 min puede no contener ningún
+// disparo y la reserva se pierde entera, sin dejar rastro.
+//
+// Estuvo en +45/+90 (45 min de ancho) con el argumento de que un cron horario
+// no deja huecos porque toda reserva cae en hora en punto (SLOT_GROUPS,
+// src/data.js). Es falso: que las reservas estén alineadas entre sí no las
+// alinea con el MINUTO en que dispara el cron, y bastan 15 min de atraso del
+// disparador para que la reserva de las HH:00 no la vea ninguna corrida.
+// pimpstudio tenía la misma ventana angosta y lo midió sobre datos reales —
+// de 37 reservas elegibles el aviso de 1 hora llegó a 31 (84%) — y la
+// ensanchó a 60 min el 2026-09-09; acá va el mismo arreglo.
+//
+// Con la ventana de 60 min de ancho el aviso puede salir entre 45 y 105 min
+// antes, así que el texto dice la hora ABSOLUTA de la cita ("hoy a las
+// 16:00") en vez de una duración ("en 1 hora"), que mentiría por hasta 45
+// min. Mismo criterio y mismo texto que pimpstudio.
 //
 // `column` viene siempre de una lista fija interna (nunca de input externo),
 // así que se arma el texto del SQL directamente — el driver de Neon no
@@ -67,8 +74,8 @@ async function sendDueReminders(sql, { column, label, fromMin, toMin }) {
 
   await Promise.all(rows.map((b) =>
     notifyBarber(b.barberId, {
-      title: `Turno en ${label}`,
-      body: `${b.client || "Cliente"} · ${b.service || "Servicio"} · ${String(b.time).slice(0, 5)}`,
+      title: "Próximo turno",
+      body: `${b.client || "Cliente"} · ${b.service || "Servicio"} · hoy a las ${String(b.time).slice(0, 5)}`,
       url: `/panel?tab=reservas&date=${b.date}&bookingId=${b.id}`,
       tag: `recordatorio-${column}-${b.id}`,
     }).catch((err) => console.error(`notifyBarber (${label}) error:`, err))
@@ -202,7 +209,7 @@ export default async function handler(req, res) {
     }
     try {
       const sql = neon(process.env.DATABASE_URL)
-      const sent60 = await sendDueReminders(sql, { column: "reminder_60_sent", label: "1 hora", fromMin: 45, toMin: 90 })
+      const sent60 = await sendDueReminders(sql, { column: "reminder_60_sent", label: "1 hora", fromMin: 45, toMin: 105 })
       return res.json({ ok: true, sent60 })
     } catch (err) {
       console.error("push reminders job error:", err)
