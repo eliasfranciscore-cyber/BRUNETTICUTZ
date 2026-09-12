@@ -296,6 +296,19 @@ export default function Booking() {
                   <div style={{ display: "flex", gap: ".3rem", color: "var(--muted)", fontSize: ".7rem", alignItems: "center", justifyContent: "center" }}>
                     <Icon name="clock" size={12} /> {s.min} min
                   </div>
+                  {/* La descripción se muestra dentro de la tarjeta elegida, no
+                      bajo la grilla: en un teléfono la grilla es más alta que la
+                      pantalla, así que una nota al final queda fuera de vista
+                      justo cuando hay que leerla. Acá aparece bajo el dedo que
+                      acaba de elegir. "Solo fade" es el caso que lo motivó — se
+                      elegía creyendo que era el precio del corte, cuando cubre
+                      solo la mantención del degradado. El texto vive en
+                      `description` del servicio, que edita el panel. */}
+                  {serviceId === s.id && s.desc && (
+                    <span style={{ display: "block", marginTop: ".15rem", paddingTop: ".35rem", borderTop: "1px solid var(--hair-2)", color: "var(--muted)", fontSize: ".68rem", lineHeight: 1.4, whiteSpace: "normal" }}>
+                      {s.desc}
+                    </span>
+                  )}
                 </GlareCard>
               ))}
             </div>

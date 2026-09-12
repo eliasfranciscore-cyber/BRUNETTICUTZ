@@ -19,7 +19,7 @@ INSERT INTO services (id, name, price, duration_min, category, tne_eligible, des
   (6,  'Corte de cabello',               15990, 60,  'general', true,  'Corte profesional con técnicas modernas y clásicas.'),
   (7,  'Corte + perfilado de barba',     22990, 75,  'general', true,  'Servicio completo de corte y arreglo de barba.'),
   (8,  'Perfilado de barba',             11990, 45,  'general', true,  'Perfilado y arreglo profesional de barba.'),
-  (9,  'Solo fade',                      9990,  40,  'general', true,  'Degradado perfecto y limpio.'),
+  (9,  'Solo fade',                      9990,  40,  'general', true,  'Solo mantención de un fade ya hecho. No es un corte completo: si es tu primera vez acá, elige Corte de cabello.'),
   (10, 'Asesoría de Imagen · Visagista', 39990, 120, 'premium', false, 'Consulta personalizada según tu fisonomía.'),
   (11, 'Corte de cabello',               19990, 60,  'premium', false, 'Corte de precisión con técnicas avanzadas.'),
   (12, 'Corte de cabello y barba',       29990, 90,  'premium', false, 'Servicio premium completo de corte y barba.'),
