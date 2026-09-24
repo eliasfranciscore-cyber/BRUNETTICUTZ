@@ -60,6 +60,7 @@
 .pn-agenda-legend i.is-free { background: var(--pn-ok); }
 .pn-agenda-legend i.is-blocked { background: var(--pn-bad); }
 .pn-agenda-legend i.is-booked { background: var(--pn-accent); }
+.pn-agenda-legend i.is-unknown { background: transparent; border: 1px dashed var(--pn-text-3); box-sizing: border-box; }
 .pn-agenda-hint { margin: 0; font-size: var(--pn-fs-xs); color: var(--pn-text-3); }
 
 /* ---- Mañana / Tarde ---- */
@@ -93,6 +94,11 @@
 .pn-agenda-tile.is-booked .pn-agenda-tile-h,
 .pn-agenda-tile.is-booked .pn-agenda-tile-tag { color: var(--pn-text); }
 .pn-agenda-tile.is-past { opacity: .45; }
+/* Hora sin leer (respuesta degradada de api/availability.js): gris y con
+   borde punteado, para que nunca se confunda con una hora libre. */
+.pn-agenda-tile.is-unknown { background: var(--pn-card-2); border-style: dashed; border-color: var(--pn-line-2); }
+.pn-agenda-tile.is-unknown .pn-agenda-tile-h,
+.pn-agenda-tile.is-unknown .pn-agenda-tile-tag { color: var(--pn-text-3); }
 .pn-agenda-tile.is-busy { opacity: .6; }
 .pn-agenda-tile.is-selected { box-shadow: inset 0 0 0 2px var(--pn-accent); }
 .pn-agenda-tile.is-selected::after {
@@ -109,12 +115,14 @@
 .pn-agenda-tl-rail { flex: 0 0 auto; width: 3px; border-radius: 999px; background: var(--pn-line-2); }
 .pn-agenda-tl-rail.is-booked { background: var(--pn-accent); }
 .pn-agenda-tl-rail.is-blocked { background: var(--pn-bad); }
+.pn-agenda-tl-rail.is-unknown { background: transparent; border-left: 2px dashed var(--pn-line-2); width: 0; }
 .pn-agenda-tl-card { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .pn-agenda-tl-info { display: grid; gap: 1px; min-width: 0; }
 .pn-agenda-tl-info strong { font-size: var(--pn-fs-sm); font-weight: 600; color: var(--pn-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pn-agenda-tl-info span { font-size: var(--pn-fs-xs); color: var(--pn-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pn-agenda-tl-empty { font-size: var(--pn-fs-sm); color: var(--pn-text-3); }
 .pn-agenda-tl-row.is-past .pn-agenda-tl-empty { opacity: .7; }
+.pn-agenda-tl-row[role="button"]:focus-visible { outline: 2px solid var(--pn-accent); outline-offset: 1px; }
 
 /* ---- Modo Seleccionar: barra de acciones pegada abajo ---- */
 .pn-agenda-selectbar {
