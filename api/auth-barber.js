@@ -55,17 +55,17 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
    api/barbers.js (que importa isValidPassword de acá). Las contraseñas ya
    guardadas siguen entrando igual, cumplan la regla que cumplan.
 
-   Hoy rige la de siempre de BrunettiCutz: de 8 a 64 letras y números, con al
-   menos 1 mayúscula y 1 número (espejo de src/passwordRules.js). La de
-   PimpStudio —10+ caracteres, mayúscula, minúscula y número, símbolos
-   permitidos— queda lista detrás de PASSWORD_RULE=strong. Se enciende en el
-   MISMO deploy en que src/passwordRules.js pasa a esa regla
-   (FEATURES.passwordReset); si el front pide una y el servidor otra, la
-   persona recién se entera al guardar, por el error del servidor.
+   Rige la de PimpStudio: 10+ caracteres, con mayúscula, minúscula y número
+   (símbolos permitidos), espejo de src/passwordRules.js. Las dos cambiaron en
+   el mismo commit a propósito: si el front pide una regla y el servidor otra,
+   la persona recién se entera al guardar, por el error del servidor.
+   PASSWORD_RULE=legacy vuelve a la regla vieja de BrunettiCutz (8 a 64 letras
+   y números, con 1 mayúscula y 1 número) si alguna vez hace falta, pero
+   entonces src/passwordRules.js tiene que volver con ella.
    Se lee en cada request (no al cargar el módulo) para que cambiar la
    variable en Vercel no dependa de qué lambdas siguen tibias. */
 export function usesStrongPasswordRule() {
-  return process.env.PASSWORD_RULE === "strong"
+  return process.env.PASSWORD_RULE !== "legacy"
 }
 
 const BRUNETTI_PASSWORD_RULES = "La contraseña debe tener de 8 a 64 letras y números (sin símbolos), con al menos 1 mayúscula y 1 número."
