@@ -1,10 +1,10 @@
 import { neon } from "@neondatabase/serverless"
-import crypto from "crypto"
 import { requireInternal } from "./_auth.js"
 // Misma regla de contraseña que el login y el cambio de contraseña: una sola
 // definición (igual que bookings.js importa notifyBarber de push.js).
 import { isValidPassword } from "./auth-barber.js"
-import { ensureSettingsTable } from "./_schema.js"
+import { hashPassword } from "./_password.js"
+import { ensureSettingsTable, ensureAuthColumns } from "./_schema.js"
 import { rateLimit, clientIp } from "./_rateLimit.js"
 
 const STATIC_BARBERS = [
@@ -563,7 +563,17 @@ export default async function handler(req, res) {
       if (!isValidPassword(password)) {
         return res.status(400).json({ ok: false, error: "Define una contraseña de 8 caracteres alfanuméricos, con al menos 1 mayúscula y 1 número." })
       }
-      const passwordHash = crypto.createHash("sha256").update(String(password)).digest("hex")
+      // PBKDF2 (api/_password.js), no el SHA-256 pelado que había acá: una
+      // cuenta creada desde el panel quedaba con el mismo hash sin sal y sin
+      // costo que el endurecimiento de contraseñas de auth-barber.js existe
+      // para eliminar. verifyPassword() sigue aceptando el formato viejo, así
+      // que esto no rompe logins existentes; solo cambia cómo se guarda uno
+      // nuevo. ensureAuthColumns primero: password_hash puede seguir siendo
+      // VARCHAR(64) (el tamaño justo de un SHA-256 hex) en una base sin
+      // migrar, y un hash "pbkdf2$…" no cabe ahí (auth-barber.js hace lo
+      // mismo antes de escribir uno).
+      await ensureAuthColumns(sql)
+      const passwordHash = hashPassword(String(password))
       const [barber] = await sql`
         INSERT INTO barbers (id, name, short_name, code, role, tier, exp_years, rating, active, password_hash)
         VALUES ((SELECT COALESCE(MAX(id), 3) + 1 FROM barbers), ${String(name).trim()}, ${String(name).trim().split(" ")[0]}, ${String(code).trim().toLowerCase()}, ${String(role || "Barbero").trim()}, ${tier}, 0, 5.0, true, ${passwordHash})
