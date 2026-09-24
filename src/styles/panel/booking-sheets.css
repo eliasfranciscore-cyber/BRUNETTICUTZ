@@ -67,8 +67,15 @@
 .pn-booking-slot:disabled { opacity: .4; cursor: default; }
 .pn-booking-slot.is-on { background: var(--pn-accent-soft); border-color: var(--gold-edge); color: var(--pn-text); font-weight: 650; }
 .pn-booking-slot.is-booked { background: var(--pn-bad-soft); border-color: transparent; }
-.pn-booking-freetime { display: flex; gap: 8px; align-items: center; }
-.pn-booking-freetime .input { flex: 1 1 auto; }
+/* Bloqueado por el barbero: no es una reserva (no va en rojo), pero el
+   servidor lo rechaza igual (409), así que tampoco se puede tomar. */
+.pn-booking-slot.is-blocked { background: var(--pn-card-2); border-style: dashed; color: var(--pn-text-3); }
+/* Ya pasó: se puede tomar (alguien que llegó sin hora), solo se ve apagado. */
+.pn-booking-slot.is-past:not(.is-on) { color: var(--pn-text-3); }
+
+/* ---- Cobro: lista de productos para agregar ----
+   Con un catálogo largo la lista no empuja "Medio de pago" fuera de la hoja. */
+.pn-charge-pick { max-height: min(320px, 42vh); overflow-y: auto; overscroll-behavior: contain; }
 
 /* ---- Cobro: desglose ---- */
 .pn-charge-total .pn-row-title { font-weight: 650; }
