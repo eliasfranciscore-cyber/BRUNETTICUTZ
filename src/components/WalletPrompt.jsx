@@ -38,7 +38,7 @@ export default function WalletPrompt({ open, onClose, phone }) {
         <p>Agrega tu tarjeta de fidelidad a {platform === 'android' ? 'Google Wallet' : 'Apple Wallet'}: cada corte suma una estrella y a las 10 el tuyo va gratis. Se actualiza sola, sin abrir la web.</p>
         {error && <p style={{ color: '#d99a8f', fontSize: '.8rem' }}>{error}</p>}
 
-        <div className="psn-confirm-actions">
+        <div className="psn-confirm-actions wallet-prompt-actions">
           <button className="btn btn-ghost btn-block" onClick={dismiss}>Ahora no</button>
           {platform === 'android' ? (
             <button className="btn btn-gold btn-block" onClick={addAndroid} disabled={loading}>

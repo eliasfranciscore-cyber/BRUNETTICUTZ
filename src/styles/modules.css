@@ -499,6 +499,14 @@ a.home-footer-access { display: inline-flex; align-items: center; gap: .4rem; te
 .psn-confirm h3 { margin: 0; font-family: var(--font-display); font-size: 1.3rem; }
 .psn-confirm p { color: var(--muted); font-size: .9rem; margin: 0 0 .8rem; }
 .psn-confirm-actions { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; width: 100%; }
+/* WalletPrompt (público, /reservar paso 3 y /cuenta): "AGREGAR A WALLET" no
+   entra en la mitad de las dos columnas bajo ~400px (scrollWidth 167 en un
+   botón de 135px, texto recortado a "AGREGAR A WALLE"). Se apilan los
+   botones en vez de tocar el letter-spacing/padding de .btn-gold, que usan
+   igual el resto de los confirm del panel. */
+@media (max-width: 400px) {
+  .wallet-prompt-actions { grid-template-columns: 1fr; }
+}
 
 /* ---------- Clientes: fila tappable + modal de detalle ---------- */
 .client-row { cursor: pointer; }

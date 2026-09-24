@@ -180,18 +180,25 @@
 }
 
 /* ------------------------------------------------------------------
-   Banda 900–1040px: desde los 900px (donde deja de haber hamburguesa) la
+   Banda 900–1110px: desde los 900px (donde deja de haber hamburguesa) la
    barra lleva los nueve enlaces + acceso interno + "Reservar" y va sin
    holgura: con el gap fluido de pimp.css (1.5vw) y el tamaño normal de los
-   enlaces, "Reservar" queda pegado o cortado contra el borde derecho.
-   En esa banda se aprieta solo el interlineado y el cuerpo de los enlaces;
-   arriba de 1040px el gap fluido ya da de sobra y no se toca nada. El
-   padding-izq de la marca tampoco se toca: está calzado con la geometría de
-   la píldora (ver comentario más arriba).
+   enlaces, "Reservar" queda pegado o cortado contra el borde derecho. La
+   banda anterior (900–1040px, solo interlineado/cuerpo de los enlaces) no
+   alcanzaba: medido con fuentes cargadas, el CTA seguía saliéndose entre
+   ~930 y ~1000px. Se ensancha hasta 1110px y se aprieta también el gap y
+   el botón Reservar; arriba de 1110px el gap fluido ya da de sobra y no se
+   toca nada. El padding-izq de la marca tampoco se toca: está calzado con
+   la geometría de la píldora (ver comentario más arriba).
    ------------------------------------------------------------------ */
-@media (min-width: 900px) and (max-width: 1040px) {
-  .home-nav-links { gap: clamp(0.4rem, 0.95vw, 0.85rem); }
-  .home-nav .nav-link { font-size: 0.79rem; letter-spacing: 0.02em; }
+@media (min-width: 900px) and (max-width: 1110px) {
+  .home-nav-links { gap: clamp(0.3rem, 0.6vw, 0.6rem); }
+  .home-nav .nav-link { font-size: 0.74rem; letter-spacing: 0; }
+  .home-nav-links .site-nav-reserve-desktop {
+    padding: 0.55rem 0.85rem;
+    letter-spacing: 0.03em;
+    gap: 0.35rem;
+  }
 }
 
 /* Botón acceso interno — solo ícono, cuadrado */
