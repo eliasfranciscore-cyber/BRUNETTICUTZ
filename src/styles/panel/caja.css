@@ -1,0 +1,48 @@
+/* ============================================================
+   CAJA — CSS propio del módulo (rediseño 2026, Fase 6)
+   Solo tokens --pn-* y clases con prefijo pn-caja-. Ver panel.css para las
+   primitivas compartidas (Card, Kpi, DataTable, StackedBar…) que este
+   archivo complementa, nunca reemplaza.
+   ============================================================ */
+
+.pn-caja-skel { display: grid; gap: 14px; padding: 4px 0; }
+
+/* ---- Cobrado (hero) + Servicios/Productos/Por cobrar en una fila ----
+   En un celular angosto, 3 columnas iguales no dejaban ancho para el rótulo
+   ("Por cobrar" quedaba cortado): bajo 480px se envuelve a 2 columnas (3
+   ítems quedan 2+1); de ahí para arriba entran los 3 en una fila, como pide
+   el diseño. */
+.pn-caja-summary { display: grid; gap: 12px; }
+.pn-caja-summary-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+/* En 2 columnas, el tercero (Por cobrar) va a lo ancho: si no, quedaba solo con
+   media fila vacía al lado. */
+@media (max-width: 479px) { .pn-caja-summary-row > :last-child:nth-child(odd) { grid-column: 1 / -1; } }
+@media (min-width: 480px) { .pn-caja-summary-row { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.pn-caja-summary-row .pn-kpi { background: var(--pn-card-2); box-shadow: none; }
+
+/* Monto + botón "Cobrar" en la misma celda (tabla de escritorio). */
+.pn-caja-amount-cell { display: inline-flex; align-items: center; justify-content: flex-end; gap: 10px; white-space: nowrap; }
+
+/* ---- Por medio de pago ---- */
+.pn-caja-methods { display: grid; gap: 12px; }
+.pn-caja-methods-legend { gap: 8px; }
+.pn-caja-methods-row { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 8px; font-size: var(--pn-fs-sm); color: var(--pn-text-2); }
+.pn-caja-methods-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pn-caja-methods-pct { font-variant-numeric: tabular-nums; }
+.pn-caja-methods-row b { font-family: var(--font-display); color: var(--pn-text); font-variant-numeric: tabular-nums; }
+.pn-caja-methods-total { padding-top: 10px; border-top: 1px solid var(--pn-line); }
+.pn-caja-methods-total b { font-family: var(--font-display); font-size: var(--pn-fs-md); color: var(--pn-text); }
+
+/* Con "Por confirmar" la fila de KPIs puede llegar a 4: 2×2 en el celular y
+   en pantallas medianas (3+1 dejaba uno solo abajo), los 4 en fila en las
+   anchas. */
+@media (min-width: 480px) { .pn-caja-summary-row.is-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 900px) { .pn-caja-summary-row.is-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+/* Filas del celular con botón ("Cobrar", "Confirmar pago"): el botón baja bajo
+   el nombre, igual que en la tarjeta "Sin cerrar", y la hora y el monto se
+   alinean arriba con el nombre. */
+.pn-caja-row { align-items: flex-start; }
+.pn-caja-row .pn-row-lead { align-self: flex-start; padding-top: 1px; }
+.pn-caja-row .pn-row-trail { align-self: flex-start; }
+.pn-caja-row-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }

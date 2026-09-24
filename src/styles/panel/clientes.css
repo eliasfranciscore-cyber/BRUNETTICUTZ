@@ -1,0 +1,37 @@
+/* ============================================================
+   CLIENTES — CSS propio del módulo (rediseño 2026)
+   Solo tokens --pn-* y clases con prefijo pn-clientes-. Ver panel.css para
+   las primitivas compartidas (Card, DataTable, Sheet, KpiGrid…) que este
+   archivo complementa, nunca reemplaza.
+   ============================================================ */
+
+/* ---- Fila de la tabla (escritorio): avatar + nombre + teléfono/profesión ---- */
+.pn-clientes-cell { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.pn-clientes-cell-text { display: grid; gap: 1px; min-width: 0; flex: 1 1 auto; }
+.pn-clientes-cell-text strong { font-size: var(--pn-fs-sm); font-weight: 600; color: var(--pn-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pn-clientes-cell-text span { font-size: var(--pn-fs-xs); color: var(--pn-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---- Fila de la lista (celular): tercera línea con las cifras ---- */
+.pn-clientes-stats { display: block; margin-top: 2px; font-size: var(--pn-fs-xs); color: var(--pn-text-3); }
+
+/* ---- Ficha del cliente ---- */
+.pn-clientes-profession { margin: 0; font-size: var(--pn-fs-sm); color: var(--pn-text-2); }
+
+.pn-clientes-barbers { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.pn-clientes-loyalty {
+  display: grid; gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--pn-line);
+  border-radius: var(--pn-r);
+  background: var(--pn-card-2);
+}
+.pn-clientes-loyalty-label { display: inline-flex; align-items: center; gap: 6px; font-size: var(--pn-fs-sm); font-weight: 600; color: var(--pn-text-2); }
+.pn-clientes-loyalty-hint { font-size: var(--pn-fs-xs); color: var(--pn-text-3); }
+
+/* ---- Formulario de edición: 2 columnas en tablet/escritorio ---- */
+.pn-clientes-form { display: grid; gap: 12px; }
+@media (min-width: 641px) {
+  .pn-clientes-form { grid-template-columns: 1fr 1fr; gap: 12px 16px; }
+  .pn-clientes-form .pn-field-full { grid-column: 1 / -1; }
+}

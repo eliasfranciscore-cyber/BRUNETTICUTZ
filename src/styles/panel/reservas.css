@@ -1,0 +1,133 @@
+/* ============================================================
+   RESERVAS (bandeja) + hoja de detalle — CSS propio (rediseño 2026)
+   Solo tokens --pn-* y clases con prefijo pn-reservas-. Ver panel.css para
+   las primitivas compartidas (Sheet, ListRow, Chip, ChoiceGrid…).
+   ============================================================ */
+
+/* ---- Selector de semana (solo visible con el segmentado "Semana") ---- */
+.pn-reservas-week { display: grid; gap: 10px; }
+.pn-reservas-daystrip { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.pn-reservas-day {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 2px;
+  min-height: 56px;
+  padding: 6px 2px;
+  border-radius: var(--pn-r-sm);
+  border: 1px solid var(--pn-line);
+  background: var(--pn-card);
+  color: var(--pn-text);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .15s, border-color .15s;
+}
+.pn-reservas-day:hover { background: var(--pn-card-2); }
+.pn-reservas-day span { font-size: var(--pn-fs-2xs); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; color: var(--pn-text-3); }
+.pn-reservas-day b { font-family: var(--font-display); font-size: var(--pn-fs-md); font-weight: 650; line-height: 1; }
+.pn-reservas-day i { font-style: normal; font-size: var(--pn-fs-2xs); font-weight: 700; color: var(--pn-text-3); min-height: 12px; line-height: 1; }
+.pn-reservas-day.is-today { box-shadow: inset 0 0 0 1.5px var(--pn-line-2); }
+.pn-reservas-day.is-active { background: var(--gold-grad); border-color: transparent; color: var(--on-gold); }
+.pn-reservas-day.is-active span, .pn-reservas-day.is-active i { color: var(--on-gold); opacity: .8; }
+
+.pn-reservas-note { display: flex; align-items: center; gap: 6px; margin: -2px 0 0; }
+
+/* ---- Tarjetas: de partida en el celular (selector Tarjetas|Lista, ver
+   BookingsInbox), siempre en escritorio ---- */
+.pn-reservas-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+/* Celular: una columna, aire más ajustado para que no se sienta pesado
+   (pedido explícito: "tarjetas compactas, sin huecos y alineadas"). */
+.pn-reservas-cards.is-compact { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.pn-reservas-card {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--pn-r-lg);
+  border: 1px solid var(--pn-line);
+  background: var(--pn-card);
+  box-shadow: var(--pn-shadow-1);
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+.pn-reservas-card.is-compact { gap: 8px; padding: 12px; }
+.pn-reservas-card:hover { background: var(--pn-card-2); }
+.pn-reservas-card:focus-visible { outline: 2px solid var(--pn-text-3); outline-offset: 2px; }
+.pn-reservas-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pn-reservas-card-client { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.pn-reservas-card-clienttext { display: grid; gap: 2px; min-width: 0; }
+.pn-reservas-card-clienttext b { font: 650 var(--pn-fs-md)/1.25 var(--font-display); color: var(--pn-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pn-reservas-card-clienttext span { font-size: var(--pn-fs-sm); color: var(--pn-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pn-reservas-card-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: var(--pn-fs-sm); color: var(--pn-text-3); }
+.pn-reservas-card-row b { font-family: var(--font-display); font-weight: 650; color: var(--pn-text); }
+/* Botones EXTERNOS: la acción principal crece y absorbe el rótulo largo
+   ("Iniciar atención"); WhatsApp y "···" quedan fijos a la derecha. Sin
+   primaria (completada/cancelada), el spacer empuja los dos íconos al borde. */
+.pn-reservas-card-actions { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
+.pn-reservas-card-actions .pn-btn { flex: 1 1 auto; min-width: 0; }
+.pn-reservas-card-actions-spacer { flex: 1 1 auto; }
+
+/* ---- Toast de deshacer (cancelar / reagendar) ---- */
+.pn-reservas-toast {
+  position: fixed;
+  left: 16px; right: 16px;
+  bottom: calc(12px + var(--pn-dock-space));
+  z-index: var(--pn-z-toast);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 8px 12px 16px;
+  border-radius: var(--pn-r-lg);
+  background: var(--pn-card-3);
+  border: 1px solid var(--pn-line-2);
+  box-shadow: var(--pn-shadow-pop);
+  color: var(--pn-text);
+  font-size: var(--pn-fs-sm);
+  animation: pnPop .18s var(--pn-ease) both;
+}
+.pn-reservas-toast > span { min-width: 0; }
+.pn-reservas-toast-actions { display: flex; align-items: center; gap: 4px; flex: 0 0 auto; }
+.pn-reservas-toast-actions a, .pn-reservas-toast-actions button {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 34px; padding: 0 10px;
+  border-radius: 999px;
+  border: 0;
+  background: var(--pn-card-2);
+  color: var(--pn-text);
+  font: 600 var(--pn-fs-xs)/1 var(--font-display);
+  text-decoration: none;
+  cursor: pointer;
+}
+/* Zona de toque ampliada a 44px sin agrandar el botón visible (mismo patrón
+   que .pn-icon-btn en panel.css, que el chequeo automático ya reconoce). */
+.pn-reservas-toast-actions a::after, .pn-reservas-toast-actions button::after {
+  content: ""; position: absolute; left: 50%; top: 50%;
+  width: max(100%, 44px); height: 44px; transform: translate(-50%, -50%);
+}
+@media (min-width: 1025px) {
+  .pn-reservas-toast { left: auto; right: 28px; bottom: 24px; width: min(380px, calc(100vw - 56px)); }
+}
+
+/* ---- Hoja de detalle: precio editable y estrellas ---- */
+.pn-reservas-price { display: inline-flex; align-items: center; gap: 2px; font-family: var(--font-display); font-size: var(--pn-fs-md); font-weight: 650; color: var(--pn-text); }
+.pn-reservas-priceedit { display: inline-flex; align-items: center; gap: 6px; }
+.pn-reservas-priceedit input { width: 92px; text-align: right; }
+.pn-reservas-stars { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-display); font-size: var(--pn-fs-md); font-weight: 650; color: var(--pn-warn); }
+
+/* ---- Banner de corte gratis (canje) ---- */
+.pn-reservas-loyalty {
+  display: grid; gap: 8px;
+  padding: 14px;
+  border-radius: var(--pn-r-lg);
+  background: var(--pn-accent-soft);
+  border: 1px solid var(--pn-line-2);
+}
+/* `p`, no `span`: un selector `span` acá se habría colado hasta el
+   <span className="pn-btn-label"> del botón "Canjear" de más abajo (misma
+   especificidad que .pn-btn--primary) y le habría apagado el color. */
+.pn-reservas-loyalty > b { font: 650 var(--pn-fs-md)/1.3 var(--font-display); color: var(--pn-text); }
+.pn-reservas-loyalty > p { margin: 0; font-size: var(--pn-fs-sm); color: var(--pn-text-2); }
+
+/* ---- Fila del celular: estado a la izquierda, acción rápida a la derecha ---- */
+.pn-reservas-rowfoot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; min-width: 0; }

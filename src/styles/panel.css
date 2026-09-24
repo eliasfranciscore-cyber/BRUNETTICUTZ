@@ -1,0 +1,1244 @@
+/* ============================================================
+   PANEL INTERNO — sistema visual (rediseño 2026)
+   ------------------------------------------------------------
+   Una sola fuente para tokens y primitivas del panel. Antes cada
+   módulo inventaba su encabezado, sus botones y su modal (cuatro
+   formatos de modal, 214 style={{}} en Dashboard.jsx, ~15 breakpoints),
+   y eso es exactamente lo que se veía "poco prolijo".
+
+   Reglas:
+   · Celular primero. Tres cortes: ≤640 celular · 641–1024 tablet
+     (dock, diálogos centrados, tablas) · ≥1025 escritorio (sidebar).
+   · Todo lo nuevo lleva prefijo `pn-`. `.psn-modal` y compañía los usa
+     también el sitio público (el aviso de Wallet de /reservar y /cuenta),
+     así que NO se tocan desde acá.
+   · Lo que retoca clases heredadas (.btn, .input, .chip…) va con scope
+     `body.dash-mode`, que solo existe mientras el panel está montado.
+   · Se importa al final de main.jsx: gana por orden sobre pimp/modules/
+     brunetti sin necesidad de !important.
+   · Dorado de Brunetti: el acento del panel sale de los --gold-* de la
+     marca. Este archivo define SOLO tokens --pn-* en :root y en claro;
+     todo lo demás va con scope de panel, así nunca toca el sitio público.
+   ============================================================ */
+
+:root {
+  /* Escalas */
+  --pn-sp-1: 4px; --pn-sp-2: 8px; --pn-sp-3: 12px; --pn-sp-4: 16px;
+  --pn-sp-5: 20px; --pn-sp-6: 24px; --pn-sp-7: 32px; --pn-sp-8: 40px;
+  --pn-h-sm: 32px; --pn-h-md: 40px; --pn-h-lg: 48px;
+  --pn-r-xs: 8px; --pn-r-sm: 10px; --pn-r: 14px; --pn-r-lg: 18px; --pn-r-xl: 24px;
+  --pn-fs-2xs: .6875rem; /* 11 */
+  --pn-fs-xs: .75rem;    /* 12 */
+  --pn-fs-sm: .8125rem;  /* 13 */
+  --pn-fs-md: .9375rem;  /* 15 */
+  --pn-fs-lg: 1.0625rem; /* 17 */
+  --pn-fs-xl: 1.375rem;  /* 22 */
+  --pn-fs-2xl: 1.75rem;  /* 28 */
+  --pn-z-topbar: 50; --pn-z-dock: 80; --pn-z-menu: 120; --pn-z-sheet: 170; --pn-z-alert: 180; --pn-z-toast: 200;
+  --pn-safe-top: env(safe-area-inset-top, 0px);
+  --pn-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --pn-ease: cubic-bezier(.2, .8, .2, 1);
+  /* Espacio que reserva el contenido para que el dock flotante no lo tape. */
+  --pn-dock-space: calc(92px + var(--pn-safe-bottom));
+
+  /* Superficies — oscuro */
+  --pn-bg: #080807;
+  --pn-card: #111110;
+  --pn-card-2: #171715;
+  --pn-card-3: #1f1f1c;
+  --pn-line: rgba(255, 255, 255, .075);
+  --pn-line-2: rgba(255, 255, 255, .13);
+  --pn-hover: rgba(255, 255, 255, .035);
+  --pn-press: rgba(255, 255, 255, .065);
+  --pn-text: var(--ink, #f6f5f3);
+  --pn-text-2: var(--ink-soft, #cfcdc8);
+  --pn-text-3: var(--muted, #8d8a84);
+  --pn-accent: var(--gold-lt, #e6cd90);
+  --pn-accent-soft: rgba(201, 161, 78, .12);
+  --pn-ok: #6fbf86;   --pn-ok-soft: rgba(111, 191, 134, .14);
+  --pn-warn: #e2b45c; --pn-warn-soft: rgba(226, 180, 92, .14);
+  --pn-bad: #e8877d;  --pn-bad-soft: rgba(232, 135, 125, .13);
+  --pn-info: #92b4ff; --pn-info-soft: rgba(146, 180, 255, .13);
+  --pn-shadow-1: inset 0 1px 0 rgba(255, 255, 255, .025);
+  --pn-shadow-pop: 0 24px 64px rgba(0, 0, 0, .62), 0 0 0 1px rgba(255, 255, 255, .04);
+  --pn-scrim: rgba(3, 3, 3, .6);
+
+  /* Los --gold-* los define brunetti.css (:root y el bloque DORADO PROFUNDO
+     de claro). Este archivo se importa último: si los redefiniera, pisaría
+     el dorado de todo el sitio público. */
+}
+[data-theme="light"] {
+  /* Neutros crema de la marca: --pn-bg es el mismo #f7f3ea con que
+     theme.jsx pinta html/body (ese estilo inline le gana a
+     body.dash-mode), así que tienen que coincidir. */
+  --pn-bg: #f7f3ea;
+  --pn-card: #fffdf8;
+  --pn-card-2: #faf6ee;
+  --pn-card-3: #f1ebdd;
+  --pn-line: rgba(40, 33, 18, .10);
+  --pn-line-2: rgba(40, 33, 18, .18);
+  --pn-hover: rgba(40, 33, 18, .035);
+  --pn-press: rgba(40, 33, 18, .065);
+  /* #8a6a22 sobre #f7f3ea da 4,55:1 y sobre #fffdf8 4,96:1 (AA). */
+  --pn-accent: var(--gold-lt, #8a6a22);
+  --pn-accent-soft: rgba(160, 124, 46, .12);
+  --pn-ok: #2b8750;   --pn-ok-soft: rgba(43, 135, 80, .11);
+  --pn-warn: #a8710f; --pn-warn-soft: rgba(168, 113, 15, .12);
+  --pn-bad: #bf463a;  --pn-bad-soft: rgba(191, 70, 58, .10);
+  --pn-info: #2d5bc2; --pn-info-soft: rgba(45, 91, 194, .10);
+  --pn-shadow-1: 0 1px 2px rgba(60, 40, 8, .05);
+  --pn-shadow-pop: 0 24px 64px rgba(60, 40, 8, .20), 0 0 0 1px rgba(40, 33, 18, .05);
+  --pn-scrim: rgba(33, 27, 15, .36);
+}
+
+/* ============================================================
+   SHELL — fondo, scroll, sidebar, barra superior, dock
+   ============================================================ */
+body.dash-mode { background: var(--pn-bg); }
+body.dash-mode .dashboard-shell {
+  background: var(--pn-bg);
+  color: var(--pn-text);
+  grid-template-columns: 248px minmax(0, 1fr);
+}
+
+/* El contenido scrollea dentro de .dashboard-main en TODOS los tamaños (en
+   el celular ya era así, ver "anti-rebote" en pimp.css). En escritorio el
+   documento scrolleaba y la barra superior no se enteraba: el título no
+   podía colapsarse a la barra ni la barra marcar su borde al bajar. */
+@media (min-width: 1025px) {
+  body.dash-mode { overflow: hidden; height: 100%; }
+  body.dash-mode .dashboard-shell { height: 100vh; height: 100dvh; min-height: 0; }
+  body.dash-mode .dashboard-main {
+    height: 100vh; height: 100dvh;
+    overflow-y: auto; overflow-x: clip;
+    padding: 0 28px 56px;
+    scrollbar-gutter: stable;
+  }
+}
+@media (max-width: 1024px) {
+  body.dash-mode .dashboard-main {
+    padding: 0 16px var(--pn-dock-space) 16px !important;
+  }
+}
+
+/* ---- Sidebar (escritorio) ---- */
+/* El brillo dorado de arriba es el de la barra lateral de antes (pimp.css):
+   sin él, el fondo sólido de --pn-card lo borraba. */
+body.dash-mode .dashboard-sidebar {
+  background: radial-gradient(420px 260px at 50% -10%, rgba(201, 161, 78, .10), transparent 60%), var(--pn-card);
+  border-right: 1px solid var(--pn-line);
+  padding: 18px 12px 14px;
+  gap: 6px;
+}
+.pn-side-brand { display: flex; align-items: center; gap: 10px; padding: 2px 8px 14px; }
+.pn-side-brand .pimp-mark { height: 34px; }
+.pn-side-brand-text { display: grid; gap: 1px; min-width: 0; }
+.pn-side-brand-text strong { font-family: var(--font-display); font-size: .95rem; font-weight: 650; letter-spacing: .01em; color: var(--pn-text); }
+.pn-side-brand-text small { font-size: var(--pn-fs-2xs); color: var(--pn-text-3); letter-spacing: .02em; }
+.pn-nav-group { display: grid; gap: 2px; }
+.pn-nav-group + .pn-nav-group { margin-top: 10px; }
+.pn-nav-label {
+  padding: 6px 12px 4px;
+  font-size: var(--pn-fs-2xs);
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--pn-text-3);
+}
+body.dash-mode .dashboard-nav { display: grid; gap: 0; align-content: start; flex: 1; }
+body.dash-mode .dashboard-nav-item {
+  height: 40px;
+  padding: 0 12px;
+  gap: 12px;
+  border-radius: 10px;
+  font-family: var(--font-body);
+  font-size: .875rem;
+  font-weight: 500;
+  color: var(--pn-text-2);
+  box-shadow: none;
+  cursor: pointer;
+}
+body.dash-mode .dashboard-nav-item svg { color: var(--pn-text-3); flex: 0 0 auto; }
+body.dash-mode .dashboard-nav-item:hover { background: var(--pn-hover); color: var(--pn-text); }
+body.dash-mode .dashboard-nav-item.is-active {
+  background: var(--pn-accent-soft);
+  color: var(--pn-text);
+  font-weight: 600;
+  box-shadow: none;
+}
+body.dash-mode .dashboard-nav-item.is-active svg { color: var(--pn-accent); }
+[data-theme="light"] body.dash-mode .dashboard-sidebar {
+  background: radial-gradient(420px 260px at 50% -10%, rgba(201, 161, 78, .16), transparent 60%), var(--pn-card);
+}
+[data-theme="light"] body.dash-mode .dashboard-nav-item.is-active { background: var(--pn-accent-soft); }
+
+.pn-side-user {
+  margin-top: auto;
+  display: flex; align-items: center; gap: 10px;
+  width: 100%;
+  padding: 8px;
+  border-radius: 12px;
+  border: 1px solid var(--pn-line);
+  background: var(--pn-card-2);
+  color: var(--pn-text);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+}
+.pn-side-user:hover { background: var(--pn-card-3); }
+.pn-side-user-text { display: grid; gap: 1px; min-width: 0; flex: 1; }
+.pn-side-user-text strong { font-size: var(--pn-fs-sm); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pn-side-user-text small { font-size: var(--pn-fs-2xs); color: var(--pn-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pn-side-user-wrap { position: relative; margin-top: auto; padding-top: 12px; }
+.pn-side-user-wrap .pn-menu { top: auto; bottom: calc(100% + 6px); left: 0; right: 0; }
+
+/* ---- Barra superior ---- */
+body.dash-mode .dashboard-topbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--pn-z-topbar);
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  height: 64px;
+  margin: 0 -28px 4px;
+  padding: 0 28px;
+  border-radius: 0;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  /* Sólida, sin blur: con el fondo translúcido + backdrop-filter el contenido
+     que pasaba por debajo se veía borroso bajo la barra, y en el iPhone ese
+     blur sobre contenido en movimiento se recalcula en cada cuadro del
+     scroll (era parte de lo que lo hacía poco fluido). */
+  background: var(--pn-bg);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  transition: border-color .2s ease;
+}
+body.dash-mode .dashboard-topbar.is-scrolled { border-bottom-color: var(--pn-line); }
+.pn-topbar-left { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
+.pn-topbar-title {
+  font-family: var(--font-display);
+  font-size: var(--pn-fs-lg);
+  font-weight: 650;
+  color: var(--pn-text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  opacity: 0; transform: translateY(4px);
+  transition: opacity .18s ease, transform .18s ease;
+  pointer-events: none;
+}
+.dashboard-topbar.is-scrolled .pn-topbar-title { opacity: 1; transform: none; }
+.pn-topbar-brand { display: none; align-items: center; gap: 8px; }
+.pn-topbar-brand .pimp-mark { height: 28px; }
+.pn-topbar-actions { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+body.dash-mode .dashboard-topbar .global-search { width: min(340px, 32vw); }
+
+.pn-icon-btn {
+  position: relative;
+  width: 40px; height: 40px;
+  border-radius: 999px;
+  display: grid; place-items: center;
+  border: 1px solid var(--pn-line);
+  background: var(--pn-card);
+  color: var(--pn-text-2);
+  cursor: pointer;
+  transition: background .15s, color .15s, transform .12s;
+  -webkit-tap-highlight-color: transparent;
+  flex: 0 0 auto;
+}
+.pn-icon-btn:hover { background: var(--pn-card-2); color: var(--pn-text); }
+.pn-icon-btn:active { transform: scale(.94); }
+.pn-icon-btn:disabled { opacity: .5; cursor: default; }
+.pn-icon-btn.is-plain { border-color: transparent; background: transparent; }
+.pn-icon-btn.is-sm { width: 34px; height: 34px; }
+.pn-icon-btn .pn-badge-dot {
+  position: absolute; top: 6px; right: 6px;
+  min-width: 16px; height: 16px; padding: 0 4px;
+  border-radius: 99px;
+  background: #e0574b; color: #fff;
+  font: 700 10px/16px var(--font-body);
+  text-align: center;
+  box-shadow: 0 0 0 2px var(--pn-bg);
+}
+@media (pointer: coarse) {
+  .pn-icon-btn::after,
+  .pn-topbar-avatar::after { content: ""; position: absolute; left: 50%; top: 50%; width: max(100%, 44px); height: max(100%, 44px); transform: translate(-50%, -50%); }
+}
+@media (max-width: 1024px) { .pn-topbar-theme { display: none; } }
+.pn-topbar-avatar { padding: 0; border: 0; background: none; cursor: pointer; border-radius: 999px; position: relative; }
+.pn-topbar-avatar .pn-avatar { --s: 38px; }
+
+@media (max-width: 1024px) {
+  body.dash-mode .dashboard-topbar {
+    /* Alto FIJO: arriba muestra la marca y al bajar el título.
+       Con alto automático esos dos estados medían distinto, y al cruzar el
+       umbral todo el contenido se corría unos px: el scroll "saltaba" y, cerca
+       del borde, rebotaba entre los dos estados. */
+    height: 60px;
+    min-height: 60px;
+    box-sizing: border-box;
+    margin: 0 -16px 2px !important;
+    padding: 8px 16px !important;
+    border-radius: 0 !important;
+    background: var(--pn-bg) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    top: 0 !important;
+  }
+  .pn-topbar-brand { display: inline-flex; }
+  .dashboard-topbar.is-scrolled .pn-topbar-brand { display: none; }
+  .pn-topbar-title { font-size: var(--pn-fs-md); }
+  .dashboard-topbar:not(.is-scrolled) .pn-topbar-title { display: none; }
+  body.dash-mode .dashboard-topbar .global-search { display: none; }
+  /* 38 px de círculo + 6 px de separación = 44 px por botón: las zonas de
+     toque de 44 px (::after, arriba) quedan justas, sin pisarse. */
+  .pn-topbar-actions { gap: 6px; }
+  .pn-icon-btn { width: 38px; height: 38px; }
+  .pn-topbar-avatar .pn-avatar { --s: 36px; }
+}
+@media (min-width: 1025px) {
+  .pn-topbar-search-btn { display: none; }
+}
+
+/* ---- Dock (celular/tablet) ---- */
+body.dash-mode .mobile-dock {
+  gap: 2px;
+  padding: 6px;
+  border-radius: 26px;
+  bottom: calc(10px + var(--pn-safe-bottom));
+  background: color-mix(in srgb, var(--pn-card) 90%, transparent);
+  border: 1px solid var(--pn-line-2);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, .45);
+  /* Blur liviano: 28 px + saturate sobre contenido en movimiento se recalcula
+     en cada cuadro del scroll y el iPhone lo notaba. Con el fondo más opaco
+     el efecto se ve igual. */
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+[data-theme="light"] body.dash-mode .mobile-dock { box-shadow: 0 18px 48px rgba(60, 40, 8, .16); }
+body.dash-mode .mobile-dock-item {
+  width: 64px; height: 54px;
+  border-radius: 20px;
+  display: grid;
+  grid-template-rows: 24px 14px;
+  align-content: center;
+  justify-items: center;
+  gap: 3px;
+  color: var(--pn-text-3);
+  box-shadow: none;
+}
+body.dash-mode .mobile-dock-item .pn-dock-label {
+  font-size: 10.5px; font-weight: 600; letter-spacing: .01em;
+  max-width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+body.dash-mode .mobile-dock-item.is-active { background: var(--pn-accent-soft); color: var(--pn-text); box-shadow: none; }
+[data-theme="light"] body.dash-mode .mobile-dock-item.is-active { background: var(--pn-accent-soft); color: var(--pn-text); }
+body.dash-mode .mobile-dock-center {
+  width: 54px; height: 54px;
+  margin: 0 3px;
+  border-radius: 20px;
+  box-shadow: 0 10px 22px -12px rgba(201, 161, 78, .55);
+  display: grid; grid-template-rows: 24px 14px; align-content: center; justify-items: center; gap: 3px;
+  color: var(--on-gold);
+}
+body.dash-mode .mobile-dock-center .pn-dock-label { font-size: 10.5px; font-weight: 700; }
+
+/* Menú completo del dock: grilla de módulos agrupada, dentro de un Sheet. */
+.pn-dock-group + .pn-dock-group { margin-top: 18px; }
+.pn-dock-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.pn-dock-tile {
+  display: grid; justify-items: center; align-content: center; gap: 8px;
+  min-height: 84px;
+  padding: 12px 6px;
+  border-radius: 16px;
+  border: 1px solid var(--pn-line);
+  background: var(--pn-card-2);
+  color: var(--pn-text);
+  font: 550 var(--pn-fs-xs)/1.2 var(--font-body);
+  text-align: center;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, transform .12s;
+  -webkit-tap-highlight-color: transparent;
+}
+.pn-dock-tile:active { transform: scale(.96); }
+.pn-dock-tile.is-active { border-color: var(--pn-line-2); background: var(--pn-card-3); }
+.pn-dock-tile-icon { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: var(--pn-card); color: var(--pn-accent); border: 1px solid var(--pn-line); }
+.pn-dock-tile.is-active .pn-dock-tile-icon { background: var(--gold-grad); color: var(--on-gold); border: 0; }
+
+/* Cambio de pestaña: cross-fade corto. */
+@keyframes pnTabIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ============================================================
+   ENCABEZADO DE MÓDULO
+   ============================================================ */
+.pn-page { display: grid; gap: 16px; min-width: 0; }
+.pn-mh {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 12px 16px; flex-wrap: wrap;
+  padding: 10px 0 4px;
+}
+.pn-mh-text { flex: 1 1 220px; min-width: 0; }
+.pn-mh-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--pn-fs-2xl);
+  font-weight: 650;
+  letter-spacing: -.015em;
+  line-height: 1.12;
+  color: var(--pn-text);
+}
+.pn-mh-sub {
+  margin: 6px 0 0;
+  display: flex; align-items: center; gap: 6px 8px; flex-wrap: wrap;
+  font-size: var(--pn-fs-sm);
+  color: var(--pn-text-3);
+  line-height: 1.35;
+}
+.pn-mh-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+.pn-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.pn-toolbar > .pn-grow { flex: 1 1 auto; min-width: 0; }
+.pn-toolbar-spacer { flex: 1 1 auto; }
+.pn-mh-actions { margin-left: auto; }
+@media (max-width: 640px) {
+  .pn-mh { padding-top: 6px; }
+  /* Base de 150 px y no 220: con un subtítulo largo (texto + un chip), la
+     primaria se iba sola a otra línea aunque cabía al lado. Si
+     de verdad no cabe (título largo + primaria larga), baja y queda a la
+     derecha (margin-left:auto de arriba). */
+  .pn-mh-text { flex-basis: 150px; }
+  .pn-mh-title { font-size: 1.625rem; }
+  .pn-toolbar.is-stack-mobile { display: grid; grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ============================================================
+   BOTONES
+   ============================================================ */
+.pn-btn {
+  --h: var(--pn-h-md);
+  position: relative;
+  height: var(--h);
+  min-width: 0;
+  max-width: 100%;
+  padding: 0 16px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-family: var(--font-display);
+  font-size: var(--pn-fs-sm);
+  font-weight: 600;
+  letter-spacing: .005em;
+  line-height: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .15s, border-color .15s, color .15s, transform .12s, box-shadow .15s, filter .15s;
+}
+.pn-btn-label { overflow: hidden; text-overflow: ellipsis; }
+.pn-btn svg { flex: 0 0 auto; }
+.pn-btn:active:not(:disabled) { transform: scale(.97); }
+.pn-btn:disabled { opacity: .45; cursor: not-allowed; }
+.pn-btn:focus-visible { outline: 2px solid var(--pn-text-3); outline-offset: 2px; }
+.pn-btn--sm { --h: var(--pn-h-sm); padding: 0 12px; gap: 6px; font-size: var(--pn-fs-xs); }
+.pn-btn--lg { --h: var(--pn-h-lg); padding: 0 20px; font-size: var(--pn-fs-md); }
+.pn-btn--block { width: 100%; }
+.pn-btn--icon { width: var(--h); padding: 0; }
+.pn-btn--primary { background: var(--gold-grad); color: var(--on-gold); box-shadow: 0 8px 20px -14px rgba(201, 161, 78, .6); }
+.pn-btn--primary:hover:not(:disabled) { filter: brightness(1.07); }
+.pn-btn--secondary { background: var(--pn-card-2); border-color: var(--pn-line-2); color: var(--pn-text); }
+.pn-btn--secondary:hover:not(:disabled) { background: var(--pn-card-3); }
+.pn-btn--plain { background: transparent; color: var(--pn-text-2); }
+.pn-btn--plain:hover:not(:disabled) { background: var(--pn-hover); color: var(--pn-text); }
+.pn-btn--danger { background: transparent; color: var(--pn-bad); border-color: color-mix(in srgb, var(--pn-bad) 35%, transparent); }
+.pn-btn--danger:hover:not(:disabled) { background: var(--pn-bad-soft); }
+.pn-btn--danger-solid { background: #c7473c; color: #fff; }
+.pn-btn--danger-solid:hover:not(:disabled) { filter: brightness(1.07); }
+.pn-btn--success { background: var(--pn-ok-soft); color: var(--pn-ok); border-color: color-mix(in srgb, var(--pn-ok) 30%, transparent); }
+.pn-btn--success:hover:not(:disabled) { background: color-mix(in srgb, var(--pn-ok) 20%, transparent); }
+.pn-btn.is-loading { color: transparent !important; }
+.pn-btn.is-loading::before {
+  content: ""; position: absolute; width: 16px; height: 16px; border-radius: 99px;
+  border: 2px solid currentColor; border-color: var(--pn-text-3) transparent var(--pn-text-3) transparent;
+  animation: pnSpin .7s linear infinite;
+}
+@keyframes pnSpin { to { transform: rotate(360deg); } }
+@media (pointer: coarse) {
+  .pn-btn { --h: 44px; }
+  .pn-btn--sm { --h: 36px; }
+  /* -5 y no -4: el pseudo se mide desde DENTRO del borde (34 px), así que
+     con -4 la zona real quedaba en 42 px. */
+  .pn-btn--sm::after { content: ""; position: absolute; inset: -5px 0; }
+  .pn-btn--lg { --h: 50px; }
+}
+
+/* Botones heredados (.btn) dentro del panel: mismo lenguaje mientras se
+   migran — sin mayúsculas espaciadas, que en español se vuelven bandas
+   ilegibles ("ELIMINAR RESERVA DEFINITIVAMENTE"). */
+body.dash-mode .btn {
+  text-transform: none;
+  letter-spacing: .005em;
+  font-size: var(--pn-fs-sm);
+  font-weight: 600;
+  text-overflow: ellipsis;
+}
+body.dash-mode .btn-sm { font-size: var(--pn-fs-xs); }
+
+/* ============================================================
+   CHIPS, ESTADOS, AVATAR
+   ============================================================ */
+.pn-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 24px; padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--pn-line);
+  background: var(--pn-card-2);
+  color: var(--pn-text-2);
+  font-family: var(--font-body);
+  font-size: var(--pn-fs-xs);
+  font-weight: 550;
+  white-space: nowrap;
+  line-height: 1;
+}
+.pn-chip .pn-dot { width: 6px; height: 6px; border-radius: 99px; background: currentColor; flex: 0 0 auto; }
+.pn-chip--ok { background: var(--pn-ok-soft); color: var(--pn-ok); border-color: transparent; }
+.pn-chip--warn { background: var(--pn-warn-soft); color: var(--pn-warn); border-color: transparent; }
+.pn-chip--bad { background: var(--pn-bad-soft); color: var(--pn-bad); border-color: transparent; }
+.pn-chip--info { background: var(--pn-info-soft); color: var(--pn-info); border-color: transparent; }
+.pn-chip--accent { background: var(--pn-accent-soft); color: var(--pn-text); border-color: var(--pn-line-2); }
+.pn-chip--muted { background: transparent; color: var(--pn-text-3); }
+.pn-chip.is-lg { height: 28px; padding: 0 12px; font-size: var(--pn-fs-sm); }
+
+/* Chips de filtro (tocables, con contador): estado de reservas, clientes… */
+.pn-fchips { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; padding: 1px; margin: -1px; min-width: 0; }
+.pn-fchips::-webkit-scrollbar { display: none; }
+.pn-fchip {
+  flex: 0 0 auto;
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 34px; padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--pn-line);
+  background: var(--pn-card);
+  color: var(--pn-text-2);
+  font: 550 var(--pn-fs-sm)/1 var(--font-body);
+  cursor: pointer;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.pn-fchip:hover { background: var(--pn-card-2); }
+.pn-fchip.is-on { background: var(--pn-text); color: var(--pn-bg); border-color: var(--pn-text); }
+.pn-fchip-count { font-size: var(--pn-fs-2xs); font-weight: 650; padding: 2px 6px; border-radius: 99px; background: var(--pn-card-3); color: var(--pn-text-3); }
+.pn-fchip.is-on .pn-fchip-count { background: color-mix(in srgb, var(--pn-bg) 22%, transparent); color: var(--pn-bg); }
+@media (pointer: coarse) {
+  .pn-fchip { height: 38px; position: relative; }
+  /* Zona de toque de 44 px sin agrandar el chip. El carril lleva 4 px de
+     relleno (compensado con margen) para que el scroll horizontal no recorte
+     esa franja: overflow-x:auto también recorta en vertical. */
+  .pn-fchip::after { content: ""; position: absolute; inset: -4px 0; }
+  .pn-fchips { padding: 4px 1px; margin: -4px -1px; }
+}
+
+.pn-avatar {
+  --s: 36px;
+  width: var(--s); height: var(--s);
+  border-radius: 999px;
+  overflow: hidden;
+  flex: 0 0 auto;
+  display: grid; place-items: center;
+  background: var(--pn-card-3);
+  border: 1px solid var(--pn-line-2);
+  color: var(--pn-text-2);
+  font-family: var(--font-display);
+  font-weight: 650;
+  font-size: calc(var(--s) * .38);
+  line-height: 1;
+  letter-spacing: .01em;
+  user-select: none;
+}
+.pn-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pn-avatar.is-accent { background: var(--gold-grad); color: var(--on-gold); border-color: transparent; }
+.pn-avatar-stack { display: inline-flex; }
+.pn-avatar-stack .pn-avatar + .pn-avatar { margin-left: -8px; box-shadow: 0 0 0 2px var(--pn-card); }
+
+/* ============================================================
+   TARJETAS Y LISTAS
+   ============================================================ */
+.pn-card {
+  background: var(--pn-card);
+  border: 1px solid var(--pn-line);
+  border-radius: var(--pn-r-lg);
+  box-shadow: var(--pn-shadow-1);
+  min-width: 0;
+}
+.pn-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px 0; min-height: 44px; }
+/* La acción del encabezado nunca se achica; si con ella el título quedaría en
+   menos de 160 px (una acción ancha, como Seleccionar + Bloques/Línea en
+   Agenda), baja a su propia fila, a la derecha. Antes el título se apretaba
+   hasta quedar en cuatro líneas. */
+.pn-card-head { flex-wrap: wrap; row-gap: 10px; }
+.pn-card-head-text { flex: 1 1 160px; min-width: 0; }
+.pn-card-head > :not(.pn-card-head-text) { flex-shrink: 0; margin-left: auto; }
+.pn-card-title { margin: 0; font-family: var(--font-display); font-size: var(--pn-fs-md); font-weight: 650; color: var(--pn-text); line-height: 1.25; }
+.pn-card-sub { margin: 2px 0 0; font-size: var(--pn-fs-xs); color: var(--pn-text-3); }
+.pn-card-body { padding: 12px 16px 16px; min-width: 0; }
+.pn-card.is-flush > .pn-card-body { padding: 6px 0 6px; }
+.pn-card.is-flush > .pn-card-head { padding-bottom: 4px; }
+.pn-card.is-pad-lg > .pn-card-body { padding: 16px 20px 20px; }
+.pn-card.is-link { cursor: pointer; transition: background .15s; }
+.pn-card.is-link:hover { background: var(--pn-card-2); }
+
+.pn-section-label {
+  margin: 10px 4px 8px;
+  font-size: var(--pn-fs-2xs);
+  font-weight: 650;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--pn-text-3);
+}
+
+/* minmax(0,1fr) explícito: con la columna implícita, la fila más ancha (foto +
+   nombre + chip) fijaba el ancho de TODAS y las sacaba del celular. */
+.pn-list { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; }
+.pn-row {
+  --pn-row-inset: 16px;
+  position: relative;
+  display: flex; align-items: center; gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 10px 16px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  -webkit-tap-highlight-color: transparent;
+}
+.pn-row.has-lead { --pn-row-inset: 64px; }
+.pn-row + .pn-row::before { content: ""; position: absolute; top: 0; left: var(--pn-row-inset); right: 0; border-top: 1px solid var(--pn-line); }
+.pn-row.is-link { cursor: pointer; transition: background .12s; }
+.pn-row.is-link:hover { background: var(--pn-hover); }
+.pn-row.is-link:active { background: var(--pn-press); }
+.pn-row.is-dim .pn-row-title, .pn-row.is-dim .pn-row-value { color: var(--pn-text-3); }
+.pn-row-lead { flex: 0 0 auto; display: grid; place-items: center; min-width: 36px; }
+.pn-row-main { flex: 1 1 auto; min-width: 0; display: grid; gap: 3px; }
+.pn-row-title { font-size: var(--pn-fs-md); font-weight: 550; color: var(--pn-text); line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pn-row-sub { font-size: var(--pn-fs-sm); color: var(--pn-text-3); line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pn-row-sub.is-wrap, .pn-row-title.is-wrap { white-space: normal; overflow-wrap: break-word; }
+.pn-row-trail { flex: 0 0 auto; display: grid; justify-items: end; gap: 4px; text-align: right; }
+.pn-row-value { font-family: var(--font-display); font-size: var(--pn-fs-md); font-weight: 650; color: var(--pn-text); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pn-row-meta { font-size: var(--pn-fs-xs); color: var(--pn-text-3); white-space: nowrap; }
+.pn-row-chev { flex: 0 0 auto; color: var(--pn-text-3); margin-right: -4px; }
+.pn-row-actions { flex: 0 0 auto; display: flex; gap: 6px; }
+.pn-time { font-family: var(--font-display); font-size: var(--pn-fs-md); font-weight: 650; font-variant-numeric: tabular-nums; color: var(--pn-text); min-width: 44px; text-align: left; }
+.pn-time small { display: block; font-size: var(--pn-fs-2xs); font-weight: 500; color: var(--pn-text-3); margin-top: 2px; }
+
+/* ============================================================
+   KPI
+   ============================================================ */
+/* Filas automáticas, no 1fr: con 1fr la fila del botón "Ver N más" medía lo
+   mismo que una de KPIs y dejaba un hueco de ~60 px debajo. Dentro de cada
+   fila las tarjetas igual se estiran al alto de la más alta. */
+.pn-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (min-width: 641px) { .pn-kpis { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; } }
+@media (min-width: 1025px) { .pn-kpis.cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); } .pn-kpis.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.pn-kpi {
+  display: grid; align-content: start; gap: 6px;
+  min-width: 0;
+  padding: 12px 14px;
+  border-radius: var(--pn-r);
+  border: 1px solid var(--pn-line);
+  background: var(--pn-card);
+  box-shadow: var(--pn-shadow-1);
+  color: inherit; font: inherit; text-align: left;
+}
+button.pn-kpi { cursor: pointer; transition: background .15s, border-color .15s; }
+button.pn-kpi:hover { background: var(--pn-card-2); }
+.pn-kpi.is-on { border-color: var(--pn-text-3); }
+.pn-kpi-label { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: var(--pn-fs-xs); color: var(--pn-text-3); }
+.pn-kpi-label span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pn-kpi-label svg { flex: 0 0 auto; }
+.pn-kpi-label .pn-dot { width: 7px; height: 7px; border-radius: 99px; background: var(--c, var(--pn-text-3)); flex: 0 0 auto; }
+.pn-kpi-value {
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 650;
+  letter-spacing: -.01em;
+  line-height: 1.1;
+  color: var(--pn-text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.pn-kpi-value small { font-size: .62em; font-weight: 550; color: var(--pn-text-3); margin-left: 3px; letter-spacing: 0; }
+.pn-kpi-hint { font-size: var(--pn-fs-xs); color: var(--pn-text-3); line-height: 1.3; }
+.pn-kpi-hint.is-up { color: var(--pn-ok); }
+.pn-kpi-hint.is-down { color: var(--pn-bad); }
+.pn-kpi.is-hero { padding: 16px; }
+.pn-kpi.is-hero .pn-kpi-value { font-size: 2rem; }
+@media (min-width: 1025px) { .pn-kpi-value { font-size: 1.5rem; } .pn-kpi.is-hero .pn-kpi-value { font-size: 2.25rem; } }
+.pn-kpis-more { grid-column: 1 / -1; justify-self: center; }
+
+/* ============================================================
+   SEGMENTADO, PERÍODO, BÚSQUEDA
+   ============================================================ */
+.pn-seg {
+  display: inline-flex; align-items: stretch; gap: 2px;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--pn-card-2);
+  border: 1px solid var(--pn-line);
+  max-width: 100%;
+  min-width: 0;
+}
+.pn-seg.is-full { display: flex; width: 100%; }
+.pn-seg.is-scroll { overflow-x: auto; scrollbar-width: none; }
+.pn-seg.is-scroll::-webkit-scrollbar { display: none; }
+.pn-seg-btn {
+  flex: 0 0 auto;
+  height: 32px;
+  padding: 0 12px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  border: 0; border-radius: 9px;
+  background: transparent;
+  color: var(--pn-text-3);
+  font: 600 var(--pn-fs-sm)/1 var(--font-display);
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .15s, color .15s, box-shadow .15s;
+}
+.pn-seg.is-full .pn-seg-btn { flex: 1 1 0; min-width: 0; }
+.pn-seg-btn:hover { color: var(--pn-text); }
+.pn-seg-btn.is-on { background: var(--pn-card); color: var(--pn-text); box-shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 0 0 1px var(--pn-line-2); }
+[data-theme="light"] .pn-seg-btn.is-on { box-shadow: 0 1px 3px rgba(60, 40, 8, .14), 0 0 0 1px var(--pn-line); }
+.pn-seg-count { font-size: var(--pn-fs-2xs); font-weight: 650; padding: 2px 6px; border-radius: 99px; background: var(--pn-card-3); color: var(--pn-text-3); }
+.pn-seg.is-sm .pn-seg-btn { height: 28px; padding: 0 10px; font-size: var(--pn-fs-xs); }
+@media (pointer: coarse) {
+  .pn-seg-btn { height: 36px; position: relative; }
+  .pn-seg.is-sm .pn-seg-btn { height: 32px; }
+  /* 36 px de botón + 4 px por lado = 44 px, que caen dentro del relleno del
+     propio segmentado: se toca bien sin que el control crezca. */
+  .pn-seg-btn::after { content: ""; position: absolute; inset: -4px 0; }
+}
+
+.pn-period {
+  display: inline-flex; align-items: stretch; gap: 2px;
+  padding: 3px;
+  border-radius: 12px;
+  background: var(--pn-card-2);
+  border: 1px solid var(--pn-line);
+  min-width: 0;
+  max-width: 100%;
+}
+.pn-period-arrow {
+  width: 34px; flex: 0 0 auto;
+  display: grid; place-items: center;
+  border: 0; border-radius: 9px;
+  background: transparent;
+  color: var(--pn-text-2);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.pn-period-arrow:hover:not(:disabled) { background: var(--pn-hover); color: var(--pn-text); }
+.pn-period-arrow:disabled { opacity: .3; cursor: default; }
+.pn-period-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 32px;
+  padding: 0 10px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  border: 0; border-radius: 9px;
+  background: transparent;
+  color: var(--pn-text);
+  font: 650 var(--pn-fs-sm)/1 var(--font-display);
+  white-space: nowrap;
+}
+.pn-period-label > span { overflow: hidden; text-overflow: ellipsis; }
+button.pn-period-label { cursor: pointer; }
+button.pn-period-label:hover { background: var(--pn-hover); }
+.pn-period-label small { font: 500 var(--pn-fs-xs)/1 var(--font-body); color: var(--pn-text-3); }
+.pn-period-today { margin-left: 2px; }
+@media (pointer: coarse) {
+  .pn-period-label { height: 36px; position: relative; }
+  .pn-period-arrow { width: 38px; position: relative; }
+  /* Zona de toque de 44 px sin agrandar el control (también las flechas de
+     CalendarSheet, que usan la misma clase). */
+  .pn-period-label::after,
+  .pn-period-arrow::after { content: ""; position: absolute; left: 50%; top: 50%; width: max(100%, 44px); height: max(100%, 44px); transform: translate(-50%, -50%); }
+}
+
+.pn-search {
+  display: flex; align-items: center; gap: 8px;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 12px;
+  background: var(--pn-card);
+  border: 1px solid var(--pn-line);
+  color: var(--pn-text-3);
+  min-width: 0;
+  transition: border-color .15s, box-shadow .15s;
+}
+.pn-search:focus-within { border-color: var(--pn-line-2); box-shadow: 0 0 0 3px var(--pn-accent-soft); }
+.pn-search input {
+  flex: 1 1 auto; min-width: 0;
+  height: 100%;
+  border: 0; outline: 0; background: transparent;
+  color: var(--pn-text);
+  font: 400 15px/1 var(--font-body);
+}
+.pn-search input::placeholder { color: var(--pn-text-3); }
+.pn-search-clear { border: 0; background: var(--pn-card-3); color: var(--pn-text-2); width: 22px; height: 22px; border-radius: 99px; display: grid; place-items: center; cursor: pointer; flex: 0 0 auto; }
+.pn-search-clear { position: relative; }
+@media (pointer: coarse) { .pn-search-clear::after { content: ""; position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; transform: translate(-50%, -50%); } }
+@media (pointer: coarse) {
+  .pn-search { height: 44px; }
+  .pn-search input { font-size: 16px; height: calc(100% + 2px); margin: -1px 0; }
+}
+
+/* ============================================================
+   FORMULARIOS
+   ============================================================ */
+.pn-form { display: grid; gap: 16px; }
+.pn-form-row { display: grid; gap: 12px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.pn-form-row.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 640px) { .pn-form-row:not(.is-keep) { grid-template-columns: minmax(0, 1fr); } }
+.pn-field { display: grid; gap: 6px; min-width: 0; }
+.pn-field-label { font-size: var(--pn-fs-sm); font-weight: 550; color: var(--pn-text-2); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pn-field-label em { font-style: normal; font-weight: 450; color: var(--pn-text-3); font-size: var(--pn-fs-xs); }
+.pn-field-hint { font-size: var(--pn-fs-xs); color: var(--pn-text-3); line-height: 1.4; }
+.pn-field-error { font-size: var(--pn-fs-xs); color: var(--pn-bad); line-height: 1.4; }
+
+/* Inputs heredados dentro del panel (y de sus hojas, que se montan en body). */
+body.dash-mode .input,
+.pn-sheet .input {
+  min-height: 44px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--pn-card-2);
+  border: 1px solid var(--pn-line-2);
+  color: var(--pn-text);
+  font-family: var(--font-body);
+  font-size: 15px;
+}
+body.dash-mode .input:focus,
+.pn-sheet .input:focus { background: var(--pn-card); border-color: var(--pn-text-3); box-shadow: 0 0 0 3px var(--pn-accent-soft); }
+body.dash-mode textarea.input, .pn-sheet textarea.input { min-height: 96px; line-height: 1.45; resize: vertical; }
+body.dash-mode select.input, .pn-sheet select.input {
+  -webkit-appearance: none; appearance: none;
+  padding-right: 34px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238d8a84' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+body.dash-mode input[type="date"].input, .pn-sheet input[type="date"].input { min-width: 0; }
+@media (pointer: coarse) {
+  body.dash-mode .input, .pn-sheet .input { font-size: 16px; }
+}
+/* Rótulos heredados: sin mayúsculas micro, que no se leían en el iPhone. */
+body.dash-mode .field label,
+body.dash-mode .dk-field-lbl,
+body.dash-mode .cfg-field label,
+.pn-sheet .field label,
+.pn-sheet .dk-field-lbl {
+  text-transform: none;
+  letter-spacing: 0;
+  font-family: var(--font-body);
+  font-size: var(--pn-fs-sm);
+  font-weight: 550;
+  color: var(--pn-text-2);
+}
+
+.pn-switch {
+  position: relative;
+  width: 46px; height: 28px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  border: 1px solid var(--pn-line-2);
+  background: var(--pn-card-3);
+  padding: 0;
+  cursor: pointer;
+  transition: background .2s ease, border-color .2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.pn-switch::after {
+  content: ""; position: absolute; top: 2px; left: 2px;
+  width: 22px; height: 22px; border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .35);
+  transition: transform .2s var(--pn-ease);
+}
+.pn-switch.is-on { background: var(--pn-ok); border-color: transparent; }
+@media (pointer: coarse) {
+  .pn-switch::before { content: ""; position: absolute; left: 50%; top: 50%; width: max(100%, 48px); height: 44px; transform: translate(-50%, -50%); }
+}
+.pn-switch.is-on::after { transform: translateX(18px); }
+.pn-switch:disabled { opacity: .45; cursor: not-allowed; }
+.pn-toggle-row { cursor: pointer; }
+.pn-toggle-row.is-disabled { cursor: default; opacity: .6; }
+.pn-toggle-row .pn-row-sub { white-space: normal; }
+
+.pn-note {
+  display: flex; gap: 8px; align-items: flex-start;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--pn-card-2);
+  color: var(--pn-text-2);
+  font-size: var(--pn-fs-sm);
+  line-height: 1.45;
+}
+.pn-note svg { flex: 0 0 auto; margin-top: 1px; color: var(--pn-text-3); }
+
+.pn-savebar {
+  position: sticky;
+  bottom: 16px;
+  z-index: 6;
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 16px;
+  padding: 8px 8px 8px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--pn-line-2);
+  background: color-mix(in srgb, var(--pn-card) 92%, transparent);
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  box-shadow: var(--pn-shadow-pop);
+  animation: pnPop .18s var(--pn-ease) both;
+}
+.pn-savebar-msg { flex: 1 1 auto; min-width: 0; font-size: var(--pn-fs-sm); color: var(--pn-text-2); line-height: 1.3; }
+/* Los botones no se achican (quedaban en "Desca…"/"Guar…" a 390 px): el que
+   cede es el mensaje, que baja a dos líneas. */
+.pn-savebar > .pn-btn { flex: 0 0 auto; }
+@media (max-width: 1024px) { .pn-savebar { bottom: var(--pn-dock-space); } }
+
+/* ============================================================
+   ESTADOS: vacío, aviso, carga, guardado
+   ============================================================ */
+.pn-empty { display: grid; justify-items: center; gap: 6px; padding: 28px 16px; text-align: center; color: var(--pn-text-3); }
+.pn-empty-icon { width: 44px; height: 44px; border-radius: 999px; display: grid; place-items: center; background: var(--pn-card-2); color: var(--pn-text-2); margin-bottom: 4px; }
+.pn-empty-title { margin: 0; font: 650 var(--pn-fs-md)/1.3 var(--font-display); color: var(--pn-text); }
+.pn-empty-text { margin: 0; font-size: var(--pn-fs-sm); line-height: 1.45; max-width: 38ch; }
+.pn-empty-action { margin-top: 8px; }
+.pn-empty.is-compact { grid-auto-flow: column; justify-content: start; align-items: center; justify-items: start; gap: 10px; padding: 14px 16px; text-align: left; }
+.pn-empty.is-compact .pn-empty-icon { width: 32px; height: 32px; margin: 0; }
+.pn-empty.is-compact .pn-empty-title { font-size: var(--pn-fs-sm); font-weight: 600; }
+
+.pn-alert {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 1px solid var(--pn-line);
+  background: var(--pn-card);
+  font-size: var(--pn-fs-sm);
+  line-height: 1.45;
+  color: var(--pn-text-2);
+}
+.pn-alert > svg { flex: 0 0 auto; margin-top: 1px; }
+.pn-alert-body { flex: 1 1 auto; min-width: 0; }
+.pn-alert-title { font-weight: 650; color: var(--pn-text); }
+.pn-alert-actions { display: flex; gap: 4px; flex: 0 0 auto; align-items: center; margin: -4px -4px -4px 0; }
+.pn-alert--warn { background: var(--pn-warn-soft); border-color: color-mix(in srgb, var(--pn-warn) 28%, transparent); }
+.pn-alert--warn > svg { color: var(--pn-warn); }
+.pn-alert--error { background: var(--pn-bad-soft); border-color: color-mix(in srgb, var(--pn-bad) 28%, transparent); }
+.pn-alert--error > svg { color: var(--pn-bad); }
+.pn-alert--info { background: var(--pn-info-soft); border-color: color-mix(in srgb, var(--pn-info) 25%, transparent); }
+.pn-alert--info > svg { color: var(--pn-info); }
+.pn-alert--success { background: var(--pn-ok-soft); border-color: color-mix(in srgb, var(--pn-ok) 25%, transparent); }
+.pn-alert--success > svg { color: var(--pn-ok); }
+
+.pn-skel {
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--pn-card-2) 25%, var(--pn-card-3) 37%, var(--pn-card-2) 63%);
+  background-size: 400% 100%;
+  animation: pnShimmer 1.4s ease infinite;
+}
+@keyframes pnShimmer { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }
+
+.pn-saved { display: inline-flex; align-items: center; gap: 4px; font-size: var(--pn-fs-xs); font-weight: 600; color: var(--pn-ok); animation: pnFade .2s ease both; }
+
+/* ============================================================
+   HOJA (modal único del panel)
+   Celular: hoja inferior pegada al borde, se arrastra para cerrar.
+   Tablet y escritorio: diálogo centrado. Encabezado y pie siempre
+   visibles; solo el cuerpo scrollea.
+   ============================================================ */
+.pn-sheet-root {
+  position: fixed;
+  left: 0; right: 0; top: 0;
+  height: 100vh;
+  height: var(--pn-vvh, 100dvh);
+  transform: translateY(var(--pn-vvt, 0px));
+  z-index: var(--pn-z-sheet);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+}
+.pn-sheet-root.is-alert { z-index: var(--pn-z-alert); }
+.pn-sheet-scrim {
+  position: absolute; inset: 0;
+  border: 0; padding: 0;
+  background: var(--pn-scrim);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  cursor: pointer;
+  animation: pnFade .18s ease both;
+}
+.pn-sheet {
+  --w: 560px;
+  position: relative;
+  width: min(var(--w), 100%);
+  max-height: min(86vh, 880px);
+  max-height: min(calc(var(--pn-vvh, 100dvh) - 48px), 880px);
+  display: flex; flex-direction: column;
+  background: var(--pn-card);
+  color: var(--pn-text);
+  border: 1px solid var(--pn-line-2);
+  border-radius: 22px;
+  box-shadow: var(--pn-shadow-pop);
+  overflow: hidden;
+  outline: none;
+  animation: pnPop .2s var(--pn-ease) both;
+}
+.pn-sheet--sm { --w: 420px; }
+.pn-sheet--md { --w: 560px; }
+.pn-sheet--lg { --w: 820px; }
+.pn-sheet--xl { --w: 1000px; }
+.pn-sheet-grab { display: none; }
+.pn-sheet-head { flex: 0 0 auto; display: flex; align-items: flex-start; gap: 12px; padding: 18px 20px 14px; }
+.pn-sheet-head.has-border { border-bottom: 1px solid var(--pn-line); }
+.pn-sheet-head-lead { flex: 0 0 auto; }
+.pn-sheet-head-icon { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: var(--pn-card-2); color: var(--pn-accent); border: 1px solid var(--pn-line); }
+.pn-sheet-titles { flex: 1 1 auto; min-width: 0; padding-top: 2px; }
+.pn-sheet-title { margin: 0; font-family: var(--font-display); font-size: 1.125rem; font-weight: 650; line-height: 1.25; color: var(--pn-text); }
+.pn-sheet-sub { margin: 3px 0 0; font-size: var(--pn-fs-sm); color: var(--pn-text-3); line-height: 1.35; }
+.pn-sheet-head-actions { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; margin: -2px -6px 0 0; }
+.pn-sheet-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 2px 20px 20px; }
+.pn-sheet-body.is-flush { padding-left: 0; padding-right: 0; }
+.pn-sheet-foot {
+  flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: flex-end; gap: 10px;
+  padding: 12px 20px 16px;
+  border-top: 1px solid var(--pn-line);
+  background: var(--pn-card);
+}
+.pn-sheet-foot > .pn-btn { min-width: 120px; }
+.pn-sheet-foot .pn-foot-start { margin-right: auto; }
+.pn-sheet.is-closing { animation: pnPopOut .16s ease both; }
+.pn-sheet-root.is-closing .pn-sheet-scrim { animation: pnFadeOut .16s ease both; }
+@keyframes pnPop { from { opacity: 0; transform: translateY(8px) scale(.985); } to { opacity: 1; transform: none; } }
+@keyframes pnPopOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateY(6px) scale(.985); } }
+@keyframes pnFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pnFadeOut { from { opacity: 1; } to { opacity: 0; } }
+
+@media (max-width: 640px) {
+  .pn-sheet-root:not(.is-alert) { align-items: flex-end; padding: 0; }
+  .pn-sheet-root:not(.is-alert) .pn-sheet {
+    width: 100%;
+    max-height: calc(var(--pn-vvh, 100dvh) - var(--pn-safe-top) - 10px);
+    border-radius: 24px 24px 0 0;
+    border-bottom: 0;
+    animation: pnSheetUp .3s var(--pn-ease) both;
+  }
+  .pn-sheet-root:not(.is-alert) .pn-sheet.is-full { height: calc(var(--pn-vvh, 100dvh) - var(--pn-safe-top) - 10px); }
+  .pn-sheet-root:not(.is-alert) .pn-sheet.is-closing { animation: pnSheetDown .22s ease-in both; }
+  .pn-sheet-root:not(.is-alert) .pn-sheet-grab {
+    display: block; flex: 0 0 auto;
+    width: 38px; height: 5px; border-radius: 99px;
+    margin: 8px auto 0;
+    background: var(--pn-line-2);
+  }
+  .pn-sheet-root:not(.is-alert) .pn-sheet-head { padding: 10px 16px 12px; touch-action: none; }
+  .pn-sheet-root:not(.is-alert) .pn-sheet-body { padding: 2px 16px 16px; }
+  .pn-sheet-root:not(.is-alert) .pn-sheet-body.is-flush { padding-left: 0; padding-right: 0; }
+  .pn-sheet-root:not(.is-alert) .pn-sheet-body.is-last { padding-bottom: calc(16px + var(--pn-safe-bottom)); }
+  .pn-sheet-root:not(.is-alert) .pn-sheet-foot { padding: 10px 16px calc(12px + var(--pn-safe-bottom)); }
+  .pn-sheet-root:not(.is-alert) .pn-sheet-foot > .pn-btn { flex: 1 1 0; min-width: 0; }
+  .pn-sheet-root:not(.is-alert) .pn-sheet-foot .pn-foot-start { margin-right: 0; }
+  .pn-sheet-root:not(.is-alert) .pn-sheet-foot.is-stack { flex-direction: column-reverse; align-items: stretch; }
+}
+@keyframes pnSheetUp { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes pnSheetDown { from { transform: translateY(var(--pn-drag, 0px)); } to { transform: translateY(100%); } }
+@media (prefers-reduced-motion: reduce) {
+  .pn-sheet, .pn-sheet.is-closing, .pn-sheet-root:not(.is-alert) .pn-sheet,
+  .pn-sheet-root:not(.is-alert) .pn-sheet.is-closing { animation: pnFade .15s ease both; }
+}
+
+/* Confirmación (siempre centrada, también en el celular: es una alerta, no una hoja). */
+.pn-sheet-root.is-alert .pn-sheet { --w: 360px; border-radius: 22px; }
+.pn-confirm { padding: 22px 20px 18px; text-align: center; display: grid; gap: 6px; justify-items: center; }
+.pn-confirm-icon { width: 46px; height: 46px; border-radius: 999px; display: grid; place-items: center; margin-bottom: 6px; background: var(--pn-card-2); color: var(--pn-text-2); }
+.pn-confirm-icon.is-danger { background: var(--pn-bad-soft); color: var(--pn-bad); }
+.pn-confirm-title { margin: 0; font: 650 1.0625rem/1.3 var(--font-display); color: var(--pn-text); }
+.pn-confirm-msg { margin: 0; font-size: var(--pn-fs-sm); color: var(--pn-text-2); line-height: 1.5; }
+.pn-confirm-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin-top: 14px; }
+
+/* ============================================================
+   MENÚ "···"
+   ============================================================ */
+.pn-menu-wrap { position: relative; display: inline-flex; }
+.pn-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 232px;
+  max-width: min(320px, calc(100vw - 32px));
+  padding: 6px;
+  border-radius: 14px;
+  background: var(--pop-bg, var(--pn-card));
+  border: 1px solid var(--pn-line-2);
+  box-shadow: var(--pn-shadow-pop);
+  -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+  z-index: var(--pn-z-menu);
+  display: grid;
+  animation: pnPop .14s var(--pn-ease) both;
+}
+.pn-menu.is-start { right: auto; left: 0; }
+.pn-menu-item {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 0; border-radius: 9px;
+  background: none;
+  color: var(--pn-text);
+  font: 500 var(--pn-fs-sm)/1.3 var(--font-body);
+  text-align: left;
+  cursor: pointer;
+}
+.pn-menu-item svg { color: var(--pn-text-3); flex: 0 0 auto; }
+.pn-menu-item:hover:not(:disabled) { background: var(--pn-hover); }
+.pn-menu-item:disabled { opacity: .45; cursor: not-allowed; }
+.pn-menu-item.is-danger, .pn-menu-item.is-danger svg { color: var(--pn-bad); }
+.pn-menu-item small { display: block; color: var(--pn-text-3); font-size: var(--pn-fs-xs); margin-top: 2px; }
+.pn-menu-sep { height: 1px; margin: 6px 4px; background: var(--pn-line); }
+/* En el celular el menú es una hoja de acciones (filas grandes). */
+.pn-actsheet .pn-menu-item { min-height: 52px; padding: 12px 16px; border-radius: 0; font-size: var(--pn-fs-md); }
+.pn-actsheet .pn-menu-item + .pn-menu-item { border-top: 1px solid var(--pn-line); }
+.pn-actsheet .pn-menu-sep { margin: 0; height: 8px; background: var(--pn-card-2); }
+
+/* ============================================================
+   TABLA (escritorio) → LISTA (celular)
+   ============================================================ */
+.pn-table-wrap { overflow-x: auto; min-width: 0; }
+.pn-table { width: 100%; border-collapse: collapse; font-size: var(--pn-fs-sm); }
+.pn-table th {
+  position: sticky; top: 0;
+  padding: 10px 16px;
+  text-align: left;
+  white-space: nowrap;
+  font-size: var(--pn-fs-xs);
+  font-weight: 600;
+  color: var(--pn-text-3);
+  background: var(--pn-card);
+  border-bottom: 1px solid var(--pn-line);
+}
+.pn-table td { padding: 12px 16px; border-bottom: 1px solid var(--pn-line); color: var(--pn-text); vertical-align: middle; }
+.pn-table tbody tr:last-child td { border-bottom: 0; }
+.pn-table tr.is-link { cursor: pointer; }
+.pn-table tr.is-link:hover td { background: var(--pn-hover); }
+.pn-table tr.is-dim td { color: var(--pn-text-3); }
+.pn-table .is-num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.pn-table .is-strong { font-weight: 650; font-family: var(--font-display); }
+.pn-table .is-muted { color: var(--pn-text-3); }
+.pn-table .is-nowrap { white-space: nowrap; }
+.pn-table tfoot td { font-weight: 650; border-top: 1px solid var(--pn-line-2); border-bottom: 0; }
+
+/* ============================================================
+   UTILIDADES DE LAYOUT
+   ============================================================ */
+.pn-cols { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 1025px) {
+  .pn-cols--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pn-cols--main { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); }
+  .pn-cols--side { grid-template-columns: minmax(280px, .8fr) minmax(0, 1.6fr); }
+  .pn-cols .is-span-all { grid-column: 1 / -1; }
+}
+.pn-stack { display: grid; gap: 12px; min-width: 0; }
+.pn-stack.is-lg { gap: 16px; }
+.pn-hstack { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.pn-between { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; }
+.pn-num { font-variant-numeric: tabular-nums; }
+.pn-muted { color: var(--pn-text-3); }
+.pn-warn-text { color: var(--pn-warn); font-weight: 600; }
+.pn-strong { font-weight: 650; color: var(--pn-text); }
+.pn-divider { height: 1px; background: var(--pn-line); border: 0; margin: 4px 0; }
+.pn-only-phone { display: none; }
+@media (max-width: 640px) { .pn-only-phone { display: revert; } .pn-hide-phone { display: none !important; } }
+
+/* Barra de progreso simple (presupuestos, ocupación, medios de pago). */
+.pn-bar { height: 8px; border-radius: 99px; background: var(--pn-card-3); overflow: hidden; display: flex; }
+.pn-bar > i { display: block; height: 100%; background: var(--c, var(--pn-text-2)); border-radius: inherit; transition: width .5s var(--pn-ease); }
+.pn-bar.is-stacked > i { border-radius: 0; }
+.pn-bar.is-stacked > i + i { box-shadow: -1px 0 0 var(--pn-card); }
+.pn-legend { display: grid; gap: 2px; }
+.pn-legend-dot { width: 9px; height: 9px; border-radius: 3px; background: var(--c); flex: 0 0 auto; }
+
+/* ============================================================
+   CALENDARIO (CalendarSheet)
+   ============================================================ */
+.pn-cal { display: grid; gap: 10px; }
+.pn-cal-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pn-cal-head .pn-period-arrow { height: 36px; width: 36px; background: var(--pn-card-2); border: 1px solid var(--pn-line); }
+.pn-cal-month { font: 650 var(--pn-fs-md)/1 var(--font-display); text-transform: capitalize; color: var(--pn-text); }
+.pn-cal-month em { font: 500 var(--pn-fs-xs)/1 var(--font-body); color: var(--pn-text-3); text-transform: none; font-style: normal; }
+.pn-cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.pn-cal-dow { text-align: center; font-size: var(--pn-fs-2xs); font-weight: 600; color: var(--pn-text-3); padding: 4px 0; text-transform: uppercase; letter-spacing: .04em; }
+.pn-cal-day {
+  position: relative;
+  aspect-ratio: 1;
+  min-height: 40px;
+  display: grid; place-items: center;
+  border: 0; border-radius: 12px;
+  background: transparent;
+  color: var(--pn-text);
+  font: 600 var(--pn-fs-md)/1 var(--font-display);
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.pn-cal-day:hover:not(:disabled) { background: var(--pn-hover); }
+.pn-cal-day:disabled { color: var(--pn-text-3); opacity: .45; cursor: default; }
+.pn-cal-day.is-today { box-shadow: inset 0 0 0 1.5px var(--pn-line-2); }
+.pn-cal-day.is-sel { background: var(--gold-grad); color: var(--on-gold); box-shadow: none; }
+.pn-cal-day i { position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); font: 700 9px/1 var(--font-body); font-style: normal; color: var(--pn-text-3); }
+.pn-cal-day.is-sel i { color: var(--on-gold); opacity: .8; }
+
+/* ---- Menú de usuario, notificaciones y búsqueda de la barra ---- */
+.pn-usermenu-head { display: flex; align-items: center; gap: 10px; padding: 8px 10px 6px; }
+.pn-actsheet .pn-usermenu-head { padding: 12px 16px; }
+.pn-actsheet .pn-usermenu-head + .pn-menu-sep { margin: 0; height: 8px; background: var(--pn-card-2); }
+.pn-notif-pop { width: min(380px, calc(100vw - 32px)); max-height: min(70vh, 520px); overflow-y: auto; padding: 4px 0; }
+.pn-notif-head { padding: 10px 16px 6px; font: 650 var(--pn-fs-sm)/1 var(--font-display); color: var(--pn-text); }
+.pn-icon-btn.is-spinning svg { animation: pnSpin .8s linear infinite; }
+.pn-gsearch { position: relative; }
+.pn-gsearch .pn-search { height: 40px; background: var(--pn-card); }
+.pn-gsearch-pop { right: auto; left: 0; width: min(460px, 80vw); max-height: min(72vh, 560px); overflow-y: auto; padding: 4px 0 10px; }
+.pn-gsearch-pop .pn-section-label { margin: 10px 16px 4px; }
+.pn-row.is-active { background: var(--pn-hover); }
+body.dash-mode .dashboard-main > :not(.dashboard-topbar):not(.agenda-toasts) { width: 100%; max-width: 1320px; margin-inline: auto; }
+
+/* ---- Productos (Essentials, hoja de venta) ---- */
+.pn-thumb { width: 44px; height: 44px; border-radius: 12px; overflow: hidden; display: grid; place-items: center; background: var(--pn-card-2); border: 1px solid var(--pn-line); color: var(--pn-text-3); flex: 0 0 auto; }
+.pn-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pn-row.has-lead:has(.pn-thumb) { --pn-row-inset: 72px; }
+.pn-qty { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border-radius: 999px; background: var(--pn-card-2); border: 1px solid var(--pn-line); }
+.pn-qty button { width: 32px; height: 32px; border-radius: 999px; border: 0; background: transparent; color: var(--pn-text); display: grid; place-items: center; cursor: pointer; }
+.pn-qty button:hover:not(:disabled) { background: var(--pn-hover); }
+.pn-qty button:disabled { opacity: .35; cursor: default; }
+.pn-qty b { min-width: 22px; text-align: center; font: 650 var(--pn-fs-md)/1 var(--font-display); }
+.pn-sale-total { padding: 12px 14px; border-radius: 14px; background: var(--pn-card-2); }
+.pn-sale-total b { font: 700 1.375rem/1 var(--font-display); color: var(--pn-text); }
+.pn-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+@media (min-width: 641px) { .pn-choices { grid-template-columns: repeat(4, minmax(0, 1fr)); } .pn-choices.cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .pn-choices.cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.pn-choice {
+  min-height: 44px; padding: 8px 12px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border-radius: 12px; border: 1px solid var(--pn-line-2);
+  background: var(--pn-card-2); color: var(--pn-text-2);
+  font: 600 var(--pn-fs-sm)/1.2 var(--font-display); text-align: center;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: background .15s, border-color .15s, color .15s, box-shadow .15s;
+}
+.pn-choice:hover:not(:disabled) { background: var(--pn-card-3); color: var(--pn-text); }
+.pn-choice.is-on { background: var(--pn-card); color: var(--pn-text); border-color: var(--pn-text-3); box-shadow: 0 0 0 3px var(--pn-accent-soft); }
+.pn-choice:disabled { opacity: .45; cursor: not-allowed; }
+.pn-row-chips { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 4px; font-size: var(--pn-fs-xs); }
+
+/* Avisos del panel en el celular y la tablet: el dock ocupa el borde
+   inferior, así que el aviso va encima de él, no tapándolo. */
+@media (max-width: 1024px) {
+  body.dash-mode .agenda-toasts { bottom: calc(env(safe-area-inset-bottom, 0px) + 96px); }
+}

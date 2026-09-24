@@ -1,7 +1,9 @@
 // Marca personal de un solo barbero: Brunetti (Bruno Herrera). Se eliminaron
 // los demás barberos del sitio público y del flujo de reserva.
+// `avatar` es un recorte chico (~20 KB) de la cara para el panel, que dibuja
+// la foto a 32-96 px: `photo` pesa ~340 KB y se usa donde se ve grande.
 export const BARBERS = [
-  { id: 6, name: "Brunetti", short: "Brunetti", code: "bruno-herrera", role: "Visagista · Director de imagen", exp: "12 años", rating: 5.0, tier: "premium", instagram: "brunetticutz", photo: "/assets/bruno-hero.jpg" },
+  { id: 6, name: "Brunetti", short: "Brunetti", code: "bruno-herrera", role: "Visagista · Director de imagen", exp: "12 años", rating: 5.0, tier: "premium", instagram: "brunetticutz", photo: "/assets/bruno-hero.jpg", avatar: "/assets/avatars/bruno.jpg" },
 ]
 
 export const SERVICES = [
@@ -89,6 +91,17 @@ export function isAdminUser(user) {
   return haystack.includes("brunetti") || haystack.includes("bruno") || haystack.includes("admin")
 }
 
+/* Identificador estable de una reserva, para keys de React y para abrir el
+   detalle con un `find`. Acá todas vienen de la misma base y el `id` basta;
+   una reserva que llegue con `source` (así lo arma PimpStudio para las de
+   otra base) lleva el prefijo, para que dos ids iguales de bases distintas
+   nunca se confundan. Los componentes del panel lo usan tal cual. */
+export function bookingUid(b) {
+  if (!b) return ""
+  const base = b.id ?? `${b.barberId}-${b.date}-${b.time}`
+  return b.source ? `${b.source}:${base}` : String(base)
+}
+
 // --- Utilidades de fecha (locales, no UTC) -------------------------------
 // toISOString() usa UTC: en Chile (UTC-3/-4) hace rollover al día siguiente
 // de noche, desalineando "hoy". Estas usan componentes locales.
@@ -113,4 +126,107 @@ export function buildWeek(offset = 0) {
     const num = date.getDate()
     return { key: isoDate(date), label: `${dow} ${num}`, dow, num }
   })
+}
+
+// Mismas constantes que loyaltySummary() en api/_loyalty.js de PimpStudio —
+// el programa de fidelidad es uno solo y vive allá (10 estrellas para el
+// corte gratis, 5 para el 30% de descuento en productos). El panel arma el
+// resumen acá mismo a partir del saldo numérico, sin pedirle este cálculo al
+// servidor aparte. Mismo formato que el `loyalty` que ya devuelve el puente.
+export function loyaltyFromStars(stars) {
+  const FREE_CUT_STARS = 10
+  const PRODUCT_DISCOUNT_STARS = 5
+  const PRODUCT_DISCOUNT_PCT = 30
+  const n = Number(stars || 0)
+  return {
+    stars: n,
+    cutsToFreeCut: Math.max(0, FREE_CUT_STARS - n),
+    freeCutReady: n >= FREE_CUT_STARS,
+    productDiscountReady: n >= PRODUCT_DISCOUNT_STARS,
+    productDiscountPct: PRODUCT_DISCOUNT_PCT,
+    goal: FREE_CUT_STARS,
+  }
+}
+
+// --- Fechas en español de Chile (panel) ----------------------------------
+// Mismo problema (y misma solución) que formatDate() en api/_email.js: un
+// dateKey "YYYY-MM-DD" es un día de calendario, no un instante. Armarlo con
+// `new Date("2026-09-23")` lo interpreta en la zona del runtime y, si se
+// formatea después en America/Santiago, cae en el día anterior por la noche
+// (Chile es UTC-3/-4). Por eso se arma y se formatea en UTC: el día llega
+// intacto. Cuando SÍ llega un Date de verdad (un instante, no una clave de
+// calendario) se formatea en America/Santiago, que es su zona real.
+function dateAndZone(dateKey) {
+  if (dateKey instanceof Date) return { date: dateKey, timeZone: "America/Santiago" }
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(dateKey ?? ""))
+  if (!m) return null
+  return { date: new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]))), timeZone: "UTC" }
+}
+
+const dayPart = (date, timeZone) => Number(new Intl.DateTimeFormat("es-CL", { timeZone, day: "numeric" }).format(date))
+const yearPart = (date, timeZone) => Number(new Intl.DateTimeFormat("es-CL", { timeZone, year: "numeric" }).format(date))
+// Número de mes (1-12), no el nombre: para comparar "mismo mes" sin
+// depender de comparar strings localizados.
+const monthIndexPart = (date, timeZone) => Number(new Intl.DateTimeFormat("en-US", { timeZone, month: "numeric" }).format(date))
+// Minúsculas, 3 letras y sin punto ("sep", no "sept." ni "sept"): el
+// abreviado de Intl en es-CL viene en 4 letras para septiembre (y a veces
+// con punto final según la versión de ICU) — se fuerza a 3 para que el
+// formato sea uniforme entre meses y estable entre entornos.
+const monthPart = (date, timeZone, form = "short") => {
+  const raw = new Intl.DateTimeFormat("es-CL", { timeZone, month: form }).format(date).toLowerCase().replace(/\.$/, "")
+  return form === "short" ? raw.slice(0, 3) : raw
+}
+const dowPart = (date, timeZone, form = "short") =>
+  new Intl.DateTimeFormat("es-CL", { timeZone, weekday: form }).format(date).toLowerCase().replace(/\.$/, "")
+
+/* Estilos: 'short' → "mié 23 sep", 'long' → "miércoles 23 de septiembre",
+   'dm' → "23 sep", 'dmy' → "23 sep 2026". Un dateKey inválido devuelve el
+   valor tal cual llegó (no truena, no inventa una fecha). */
+export function fmtDate(dateKey, style = "short") {
+  const parsed = dateAndZone(dateKey)
+  if (!parsed) return dateKey
+  const { date, timeZone } = parsed
+  const day = dayPart(date, timeZone)
+  if (style === "long") return `${dowPart(date, timeZone, "long")} ${day} de ${monthPart(date, timeZone, "long")}`
+  if (style === "dm") return `${day} ${monthPart(date, timeZone)}`
+  if (style === "dmy") return `${day} ${monthPart(date, timeZone)} ${yearPart(date, timeZone)}`
+  return `${dowPart(date, timeZone)} ${day} ${monthPart(date, timeZone)}`
+}
+
+/* "16–30 sep" (mismo mes), "28 sep – 4 oct" (distinto mes). El año se agrega
+   por punta y solo si esa punta no cae en el año actual, así que un rango
+   dentro de este año nunca lo repite, pero un rango que cruza fin de año
+   (o que quedó de un año anterior) sí lo deja explícito. */
+export function fmtRange(startKey, endKey) {
+  const start = dateAndZone(startKey)
+  const end = dateAndZone(endKey)
+  if (!start || !end) return `${startKey} – ${endKey}`
+  const currentYear = yearPart(new Date(), "America/Santiago")
+  const yearSuffix = (parsed) => {
+    const y = yearPart(parsed.date, parsed.timeZone)
+    return y === currentYear ? "" : ` ${y}`
+  }
+  const sameMonth = yearPart(start.date, start.timeZone) === yearPart(end.date, end.timeZone)
+    && monthIndexPart(start.date, start.timeZone) === monthIndexPart(end.date, end.timeZone)
+  if (sameMonth) {
+    return `${dayPart(start.date, start.timeZone)}–${dayPart(end.date, end.timeZone)} ${monthPart(end.date, end.timeZone)}${yearSuffix(end)}`
+  }
+  return `${dayPart(start.date, start.timeZone)} ${monthPart(start.date, start.timeZone)}${yearSuffix(start)} – ${dayPart(end.date, end.timeZone)} ${monthPart(end.date, end.timeZone)}${yearSuffix(end)}`
+}
+
+/* Día de calendario en Chile ("YYYY-MM-DD") de un instante. Un `created_at`
+   de la base (p. ej. los pedidos de Mercado Pago) viene en UTC: pasado por
+   isoDate() queda en la zona del navegador y, de noche o fuera de Chile, cae
+   en otro día que el de Caja o el del período. Una clave "YYYY-MM-DD" ya es
+   un día y vuelve tal cual; un valor vacío o inválido devuelve "". Se arma
+   con formatToParts (y no con el string de en-CA) para no depender de cómo
+   escribe cada motor esa fecha. */
+const SANTIAGO_DAY = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Santiago", year: "numeric", month: "2-digit", day: "2-digit" })
+export function santiagoDateKey(value = new Date()) {
+  if (value == null || value === "") return ""
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value
+  const date = value instanceof Date ? value : new Date(value)
+  if (Number.isNaN(date.getTime())) return ""
+  const parts = Object.fromEntries(SANTIAGO_DAY.formatToParts(date).map((p) => [p.type, p.value]))
+  return `${parts.year}-${parts.month}-${parts.day}`
 }

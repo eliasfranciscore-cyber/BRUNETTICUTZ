@@ -1,0 +1,79 @@
+/* ============================================================
+   MARKETING — CSS propio del módulo (rediseño 2026)
+   Solo tokens --pn-* y clases con prefijo pn-mkt-. Ver panel.css para las
+   primitivas compartidas (Card, KpiGrid, FilterChips…) que este archivo
+   complementa, nunca reemplaza.
+   ============================================================ */
+
+/* ---- Compositor bloqueado para un no-administrador ---- */
+.pn-mkt-locked {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 4px 2px;
+  color: var(--pn-text-3);
+  font-size: var(--pn-fs-sm);
+  line-height: 1.4;
+}
+.pn-mkt-locked svg { flex: 0 0 auto; margin-top: 2px; }
+
+/* ---- Campaña en 3 pasos, dentro de una sola tarjeta ---- */
+.pn-mkt-step { display: grid; gap: 10px; }
+.pn-mkt-step + .pn-mkt-step { padding-top: 16px; border-top: 1px solid var(--pn-line); }
+
+/* Sugerencias de mensaje: fila deslizable de plantillas rápidas. */
+.pn-mkt-tpls { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; padding: 1px; margin: -1px; }
+.pn-mkt-tpls::-webkit-scrollbar { display: none; }
+.pn-mkt-tpl {
+  /* Sin max-width ni elipsis: la fila ya es deslizable (overflow-x: auto),
+     así que una sugerencia larga solo hace la fila un poco más ancha en vez
+     de perder texto. */
+  flex: 0 0 auto;
+  display: inline-flex; align-items: center;
+  min-height: 44px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--pn-line);
+  background: var(--pn-card-2);
+  color: var(--pn-text-2);
+  font-size: var(--pn-fs-xs);
+  line-height: 1.3;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.pn-mkt-tpl:hover { background: var(--pn-hover); }
+.pn-mkt-tpl:active { background: var(--pn-press); }
+
+.pn-mkt-counter { font-size: var(--pn-fs-xs); color: var(--pn-text-3); font-variant-numeric: tabular-nums; flex: 0 0 auto; }
+.pn-mkt-counter.is-near { color: var(--pn-warn); font-weight: 650; }
+
+/* Vista previa: cómo se ve el mensaje en la tarjeta del cliente. */
+.pn-mkt-preview {
+  display: grid; gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--pn-line);
+  border-radius: var(--pn-r);
+  background: var(--pn-card-2);
+}
+.pn-mkt-preview .who { font-size: var(--pn-fs-xs); font-weight: 650; color: var(--pn-accent); text-transform: uppercase; letter-spacing: .02em; }
+.pn-mkt-preview .msg { font-size: var(--pn-fs-md); color: var(--pn-text); line-height: 1.4; }
+.pn-mkt-preview .to { font-size: var(--pn-fs-xs); color: var(--pn-text-3); }
+
+/* ---- Histograma de clientes por número de estrellas ---- */
+.pn-mkt-hist { display: flex; align-items: flex-end; gap: 6px; height: 96px; padding-top: 4px; }
+.pn-mkt-hist-bar { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 6px; height: 100%; }
+.pn-mkt-hist-bar i { display: block; width: 100%; height: var(--h, 4%); border-radius: 4px 4px 0 0; background: var(--pn-text-3); }
+.pn-mkt-hist-bar.is-goal i { background: var(--pn-ok); }
+.pn-mkt-hist-bar span { font-size: var(--pn-fs-2xs); color: var(--pn-text-3); }
+
+/* ---- Clientes frecuentes: auto-fit para que no queden columnas vacías ---- */
+.pn-mkt-clients { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; align-items: start; }
+.pn-mkt-client {
+  display: grid; gap: 3px;
+  padding: 12px 14px;
+  border: 1px solid var(--pn-line);
+  border-radius: var(--pn-r);
+  background: var(--pn-card-2);
+}
+.pn-mkt-client-name { font-size: var(--pn-fs-sm); color: var(--pn-text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pn-mkt-client-amt { font-family: var(--font-display); font-size: var(--pn-fs-lg); font-weight: 650; color: var(--pn-accent); }
+.pn-mkt-client-meta { font-size: var(--pn-fs-xs); color: var(--pn-text-3); }
