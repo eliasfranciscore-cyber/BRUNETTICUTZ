@@ -1,13 +1,30 @@
 /* ============================================================
    RESUMEN — CSS propio del módulo (rediseño 2026, Fase 5)
-   Solo tokens --pn-* y clases con prefijo pn-resumen-. Ver panel.css para
-   las primitivas compartidas (Card, List, Kpi, Segmented…) que este
-   archivo complementa, nunca reemplaza.
+   Solo tokens --pn-* (y el --gold-grad que define brunetti.css, nunca
+   redefinido acá) y clases con prefijo pn-resumen-. Ver panel.css para las
+   primitivas compartidas (Card, List, Kpi, Segmented…) que este archivo
+   complementa, nunca reemplaza.
    ============================================================ */
+
+/* Dorado apagado de las barras que no son la pico. Sale del acento del tema
+   mezclado con la tarjeta, así que cambia solo entre claro y oscuro; en claro
+   lleva más acento porque sobre el crema el 45% quedaba casi del color del
+   riel. La barra pico va con el degradado dorado de la marca. */
+.pn-resumen { --pn-resumen-bar: color-mix(in srgb, var(--pn-accent) 45%, var(--pn-card)); }
+[data-theme="light"] .pn-resumen { --pn-resumen-bar: color-mix(in srgb, var(--pn-accent) 62%, var(--pn-card)); }
+/* Safari < 16.2 no conoce color-mix(): la variable quedaría inválida y las
+   barras transparentes. Ahí va el acento con opacidad. */
+@supports not (color: color-mix(in srgb, red 50%, blue)) {
+  .pn-resumen, [data-theme="light"] .pn-resumen { --pn-resumen-bar: rgba(201, 161, 78, .45); }
+}
 
 /* ---- Saludo (arriba de todo, con la foto de quien tiene la sesión) ---- */
 .pn-resumen-greet { display: flex; align-items: center; gap: 12px; padding: 4px 2px 2px; }
-.pn-resumen-greet-text { min-width: 0; }
+.pn-resumen-greet-text { flex: 1 1 auto; min-width: 0; }
+/* "Nueva reserva" junto al saludo (el Resumen de antes la tenía en el hero).
+   En el celular va solo el ícono, cuadrado de 44px, para no apretar el
+   saludo. */
+.pn-resumen-greet-new { flex: 0 0 auto; margin-left: auto; }
 .pn-resumen-greet-text h1 {
   margin: 0;
   font-family: var(--font-display);
@@ -21,25 +38,29 @@
 .pn-resumen-greet-text p::first-letter { text-transform: uppercase; }
 
 /* El segmentado Hoy/Tendencias solo alterna algo en el celular y la tablet:
-   en escritorio las dos columnas ya van lado a lado (.pn-cols--side), así
-   que ahí el control no tiene nada que hacer y se oculta. */
+   en escritorio las dos columnas ya van lado a lado (.pn-cols--2), así que
+   ahí el control no tiene nada que hacer y se oculta. */
 .pn-resumen-seg { width: 100%; }
 @media (min-width: 1025px) { .pn-seg.pn-resumen-seg { display: none; } }
 
 .pn-resumen-col { display: grid; gap: 16px; min-width: 0; align-content: start; }
 @media (max-width: 1024px) { .pn-resumen-col.is-hidden { display: none; } }
 
-/* ---- Alcance (a quién se está mirando) ----
-   El selector de barbero vive en la barra superior (fuera de este archivo);
-   sin este aviso, elegir uno ahí cambiaba los números de Tendencias pero no
-   había ninguna señal en pantalla de que el selector hubiera hecho algo. */
-.pn-resumen-scope {
-  margin: -6px 2px 0;
-  display: flex; align-items: center; gap: 6px;
-  font-size: var(--pn-fs-xs); color: var(--pn-text-3);
+/* ---- Grillas de KPI según el ancho de su columna ----
+   La grilla global (.pn-kpis de panel.css) decide por el ancho de la
+   pantalla, pero acá cada grilla vive en media pantalla (escritorio) o en
+   pantalla completa (tablet): a 1280px los 4 de "Hoy" quedaban en ~110px y
+   el monto cobrado salía recortado ("$31.…"), y en la tablet el auto-fit
+   dejaba 3 + 1. Con una container query, cada grilla va de a 2 si su columna
+   mide menos de 580px y de a 4 si mide más. El contenedor es un envoltorio
+   propio (y no la columna) para no volver bloque contenedor de nada más. */
+.pn-resumen-kpiwrap { container-type: inline-size; min-width: 0; }
+.pn-resumen-kpiwrap > .pn-kpis,
+.pn-resumen-kpiwrap > .pn-kpis.cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@container (min-width: 580px) {
+  .pn-resumen-kpiwrap > .pn-kpis,
+  .pn-resumen-kpiwrap > .pn-kpis.cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
-.pn-resumen-scope svg { flex: 0 0 auto; }
-.pn-resumen-scope b { color: var(--pn-text); font-weight: 650; }
 
 /* La fila de "Ahora" es la única del panel que junta trailing (el estado) Y
    acciones (WhatsApp + Iniciar/Cobrar) en el mismo pn-row: a 375-390px eso le
@@ -82,20 +103,29 @@
    centra el align-items del padre. */
 .pn-resumen-bars-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-end; gap: 6px; height: 100%; }
 .pn-resumen-bars-track { width: 100%; max-width: 30px; height: 84px; margin: 0 auto; display: flex; align-items: flex-end; background: var(--pn-card-3); border-radius: 6px; overflow: hidden; }
-.pn-resumen-bars-fill { width: 100%; min-height: 3px; background: var(--pn-text-3); border-radius: 6px 6px 0 0; transition: height .5s var(--pn-ease); }
+.pn-resumen-bars-fill { width: 100%; min-height: 3px; background: var(--pn-resumen-bar); border-radius: 6px 6px 0 0; transition: height .5s var(--pn-ease); }
 .pn-resumen-bars-col.is-peak .pn-resumen-bars-fill { background: var(--gold-grad); }
-.pn-resumen-bars-val { font-size: var(--pn-fs-2xs); color: var(--pn-text-3); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: center; overflow: hidden; }
+.pn-resumen-bars-val { font-size: var(--pn-fs-2xs); line-height: 1.3; min-height: 1.3em; color: var(--pn-text-3); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: center; overflow: hidden; }
 .pn-resumen-bars-lbl { font-size: var(--pn-fs-2xs); color: var(--pn-text-3); white-space: nowrap; text-align: center; overflow: hidden; }
+/* El rótulo de la barra pico se lee en el color del texto (la barra ya va en
+   dorado): así se ubica de un vistazo a qué hora o día corresponde. */
+.pn-resumen-bars-col.is-peak .pn-resumen-bars-lbl,
+.pn-resumen-bars-col.is-peak .pn-resumen-bars-val { color: var(--pn-text); font-weight: 650; }
 .pn-resumen-bars.is-compact { min-height: 76px; gap: 4px; }
+/* Ingresos por día a 375px: 7 columnas con "20 sep" debajo no entraban con
+   8px de separación (se cortaba el último par de píxeles del rótulo). */
+@media (max-width: 640px) { .pn-resumen-bars:not(.is-compact) { gap: 4px; padding-left: 12px; padding-right: 12px; } }
 .pn-resumen-bars.is-compact .pn-resumen-bars-track { height: 52px; max-width: 20px; }
 
-/* Horas y días pico: dos mini-gráficos de a par. A 375-390px, 171px por
-   columna (mitad del ancho de tarjeta menos el gap) alcanzaba apenas para
-   las 11 barras de hora y sus rótulos se pisaban ("9h10h11h…"). Bajo
-   ~480px se apilan uno sobre el otro — cada uno se queda con el ancho
-   completo (~330px), de sobra para 11 columnas de ~26px con su rótulo. */
-.pn-resumen-peak-split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 4px 16px 16px; }
-@media (max-width: 640px) { .pn-resumen-peak-split { grid-template-columns: 1fr; gap: 20px; } }
+/* Horas y días pico: dos mini-gráficos. De a par solo si la TARJETA es
+   ancha (≥600px: cada gráfico queda con ~270px, ~21px por hora); si no, uno
+   debajo del otro, cada uno con el ancho completo. Antes se decidía por el
+   ancho de la pantalla (≤640px), y en la media pantalla del escritorio (la
+   tarjeta mide ~475px a 1280px) las 11 horas quedaban en columnas de ~14px y
+   los rótulos se cortaban. El contenedor es un envoltorio propio. */
+.pn-resumen-peakwrap { container-type: inline-size; min-width: 0; }
+.pn-resumen-peak-split { display: grid; grid-template-columns: 1fr; gap: 20px; padding: 4px 16px 16px; }
+@container (min-width: 600px) { .pn-resumen-peak-split { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; } }
 /* Antes "Hora pico: 18:00 · 5 reservas" salía directo como texto suelto
    dentro del <p> flex: cada palabra entre el ícono y el resto quedaba como
    un ítem flex separado, y a este ancho el navegador los partía en
@@ -103,18 +133,18 @@
    <span> lo deja como UN solo ítem flex que ajusta línea (wrap) como texto
    normal. */
 .pn-resumen-peak-note { margin: 8px 0 0; display: flex; align-items: flex-start; gap: 5px; font-size: var(--pn-fs-xs); color: var(--pn-text-3); }
-.pn-resumen-peak-note svg { flex: 0 0 auto; margin-top: 1px; }
+.pn-resumen-peak-note svg { flex: 0 0 auto; margin-top: 1px; color: var(--pn-accent); }
 .pn-resumen-peak-note span { flex: 1 1 auto; min-width: 0; }
 .pn-resumen-peak-note b { color: var(--pn-text); font-weight: 650; }
 
 /* ---- Servicios más pedidos (barras horizontales) ---- */
 .pn-resumen-topsvc { display: grid; gap: 10px; padding: 4px 16px 16px; }
 .pn-resumen-topsvc-row { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.pn-resumen-topsvc-icon { flex: 0 0 auto; width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; background: var(--pn-card-2); color: var(--pn-text-3); }
+.pn-resumen-topsvc-icon { flex: 0 0 auto; width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; background: var(--pn-accent-soft); color: var(--pn-accent); }
 .pn-resumen-topsvc-bar { flex: 1 1 auto; min-width: 0; display: grid; gap: 4px; }
 .pn-resumen-topsvc-name { font-size: var(--pn-fs-sm); color: var(--pn-text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pn-resumen-topsvc-track { height: 6px; border-radius: 99px; background: var(--pn-card-3); overflow: hidden; }
-.pn-resumen-topsvc-fill { display: block; height: 100%; background: var(--pn-text-3); border-radius: inherit; }
+.pn-resumen-topsvc-fill { display: block; height: 100%; background: var(--gold-grad); border-radius: inherit; }
 .pn-resumen-topsvc-count { flex: 0 0 auto; text-align: right; }
 .pn-resumen-topsvc-count b { display: block; font-family: var(--font-display); font-size: var(--pn-fs-sm); color: var(--pn-text); }
 .pn-resumen-topsvc-count small { font-size: var(--pn-fs-2xs); color: var(--pn-text-3); }
@@ -126,9 +156,14 @@
 
 /* ---- Gastos del mes (donut + leyenda) ---- */
 .pn-resumen-donut { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; padding: 4px 16px 16px; }
+@media (max-width: 640px) { .pn-resumen-donut { gap: 14px; } }
 .pn-resumen-donut-legend { flex: 1 1 160px; min-width: 0; gap: 8px; }
 .pn-resumen-legend-row { display: flex; align-items: center; gap: 8px; font-size: var(--pn-fs-sm); color: var(--pn-text-2); min-width: 0; }
 .pn-resumen-legend-row span { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* El punto de color también es un <span>: sin esto la regla de arriba lo
+   estiraba a media fila (una barra en vez de un punto) y el nombre quedaba
+   corrido a la derecha. */
+.pn-resumen-legend-row .pn-legend-dot { flex: 0 0 auto; }
 .pn-resumen-legend-row b { flex: 0 0 auto; color: var(--pn-text); font-weight: 650; }
 
 /* ---- Ocupación (anillo + retención/margen) ---- */
