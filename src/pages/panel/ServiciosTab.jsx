@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from '../../components/ui.jsx'
-import { CAT_LABEL, CLP } from '../../data.js'
+import { CAT_LABEL, CLP, fmtDate } from '../../data.js'
 import {
   ModuleHeader, Card, List, ListRow, Chip, Button, ActionMenu, Sheet, ConfirmDialog,
   Field, ToggleRow, FilterChips, EmptyState, SectionLabel, Note, useIsPhone,
@@ -36,10 +36,13 @@ function catLabel(cat) {
    como texto. */
 const isExpired = (svc, today) => Boolean(FEATURES.singleDay && svc.onlyOnDate && svc.onlyOnDate < today)
 
-function svcMeta(svc, dayLabel, showCat) {
+// La fecha de "Día único" se formatea acá con el mismo fmtDate/'dm' del
+// resto del panel ("29 sep"), no con el `dayLabel` de Dashboard.jsx, que usa
+// Intl con mes 'short' en es-CL y da "sept".
+function svcMeta(svc, showCat) {
   const parts = [`${svc.min} min`]
   if (showCat) parts.push(catLabel(svc.cat))
-  if (FEATURES.singleDay && svc.onlyOnDate) parts.push(`solo el ${dayLabel ? dayLabel(svc.onlyOnDate) : svc.onlyOnDate}`)
+  if (FEATURES.singleDay && svc.onlyOnDate) parts.push(`solo el ${fmtDate(svc.onlyOnDate, 'dm')}`)
   if (FEATURES.serviceLoyalty && svc.loyaltyEligible === false) parts.push('sin estrella')
   return parts.join(' · ')
 }
@@ -65,7 +68,7 @@ function StatusChip({ svc, today }) {
 
 /* Celular: filas dentro de una Card por categoría. Escritorio: tarjetas de
    alto parejo (pn-svc-grid / pn-svc-card, ver servicios.css). */
-function ServiceGroup({ items, dayLabel, showCat, today, onOpen }) {
+function ServiceGroup({ items, showCat, today, onOpen }) {
   const isPhone = useIsPhone()
   if (isPhone) {
     return (
@@ -77,7 +80,7 @@ function ServiceGroup({ items, dayLabel, showCat, today, onOpen }) {
               lead={<span className="pn-svc-ic"><Icon name={getSvcIcon(svc)} size={18} /></span>}
               title={svc.name}
               titleWrap
-              subtitle={svcMeta(svc, dayLabel, showCat)}
+              subtitle={svcMeta(svc, showCat)}
               subtitleWrap
               value={CLP(svc.price)}
               trailing={<StatusChip svc={svc} today={today} />}
@@ -104,7 +107,7 @@ function ServiceGroup({ items, dayLabel, showCat, today, onOpen }) {
             <StatusChip svc={svc} today={today} />
           </span>
           <span className="pn-svc-card-name">{svc.name}</span>
-          <span className="pn-svc-card-meta">{svcMeta(svc, dayLabel, showCat)}</span>
+          <span className="pn-svc-card-meta">{svcMeta(svc, showCat)}</span>
           <span className="pn-svc-card-price">{CLP(svc.price)}</span>
         </button>
       ))}
@@ -170,7 +173,7 @@ function ServiceSheet({ open, isEdit, service, admin, draft, onDraftChange, onCl
       open={open}
       onClose={onClose}
       title={isEdit ? 'Editar servicio' : 'Nuevo servicio'}
-      subtitle={isEdit ? undefined : 'Se publica al tiro en brunetticutz.cl'}
+      subtitle={isEdit ? undefined : 'Se publica al instante en brunetticutz.cl'}
       icon={isEdit && service ? getSvcIcon(service) : 'scissors'}
       size="md"
       headActions={isEdit && admin && service ? (
@@ -271,7 +274,7 @@ function ServiceSheet({ open, isEdit, service, admin, draft, onDraftChange, onCl
 
 export default function ServiciosTab({ ctx }) {
   const {
-    admin, dayLabel, deleteService, deleteSvc, editSvcId, saveService,
+    admin, deleteService, deleteSvc, editSvcId, saveService,
     serviceDraft, serviceOpen, services, setDeleteSvc, setEditSvcId,
     setServiceDraft, setServiceOpen,
   } = ctx
@@ -339,7 +342,7 @@ export default function ServiciosTab({ ctx }) {
           {visibleGroups.map((g) => (
             <section key={g.cat} className="pn-svc-cat">
               {grouped && <SectionLabel>{g.label}</SectionLabel>}
-              <ServiceGroup items={g.items} dayLabel={dayLabel} showCat={!grouped} today={today} onOpen={setEditSvcId} />
+              <ServiceGroup items={g.items} showCat={!grouped} today={today} onOpen={setEditSvcId} />
             </section>
           ))}
         </div>
