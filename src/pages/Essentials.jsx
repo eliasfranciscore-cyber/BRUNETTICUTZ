@@ -41,6 +41,19 @@ function readBuyer() {
   }
 }
 
+// El login por teléfono deliberadamente no trae el email de vuelta (evita un
+// oráculo de enumeración, ver api/auth-login.js), así que un cliente que solo
+// inició sesión nunca lo tiene en ps_user. Al pagar en Essentials sí lo
+// escribe él mismo: se lo guardamos para la próxima compra sin tocar nada
+// más de ps_user (ni nombre ni teléfono, que ya vienen de otra parte).
+function rememberEmail(email) {
+  try {
+    const current = JSON.parse(localStorage.getItem('ps_user') || 'null') || {}
+    if (current.email === email) return
+    localStorage.setItem('ps_user', JSON.stringify({ ...current, email }))
+  } catch { /* localStorage bloqueado: el prefill de la próxima vez no mejora, el pago sigue igual */ }
+}
+
 export default function Essentials() {
   const rootRef = useRef(null)
   const { theme } = useTheme()
@@ -175,6 +188,10 @@ export default function Essentials() {
       }
       const data = await response.json()
       if (!data.checkoutUrl) throw new Error('No pudimos iniciar el pago. Intenta de nuevo en un momento.')
+      // Checkout iniciado con éxito: guarda el correo para precargarlo la
+      // próxima vez (Q22). No espera al webhook de Mercado Pago porque el
+      // navegador nunca se entera de si ese pago se aprobó.
+      rememberEmail(contact.email.trim())
       // El carrito NO se vacía acá: se vacía en /essentials/gracias cuando el
       // pago aparece aprobado. Si alguien se arrepiente en Mercado Pago y
       // vuelve atrás, su carrito tiene que seguir ahí.

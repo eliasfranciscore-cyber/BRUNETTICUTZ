@@ -18,13 +18,20 @@ const mockMpPlugin = {
   // a este middleware. Los POST no se veían afectados (el servido estático
   // solo aplica a GET/HEAD), pero el status check si.
   configureServer(server) {
+    // Montos "cobrados" por este mock, por payment_id (Q26): así el GET de
+    // estado devuelve lo mismo que se registró al pagar, en vez de un 9990
+    // fijo sin relación con el checkout que lo generó. Solo vive en memoria
+    // de este proceso de `vite`, como el resto del mock.
+    const payments = new Map()
+
     server.middlewares.use('/api/mp-payments', (req, res, next) => {
       const url = new URL(req.url, 'http://localhost')
 
       // GET ?status=1&payment_id=... — usado por el frontend al volver del checkout mock
       if (req.method === 'GET' && url.searchParams.get('status') === '1') {
+        const amount = payments.get(url.searchParams.get('payment_id')) ?? 9990
         res.setHeader('Content-Type', 'application/json')
-        res.end(JSON.stringify({ status: 'approved', paid: true, amount: 9990 }))
+        res.end(JSON.stringify({ status: 'approved', paid: true, amount }))
         return
       }
 
@@ -37,10 +44,18 @@ const mockMpPlugin = {
           console.log('✓ Mock Mercado Pago:', data.source, data.email)
           const paymentId = `mock_${Date.now()}`
           const path = SOURCE_PATHS[data.source] || '/'
-          const port = parseInt(process.env.PORT) || 5173
+          const amount = 9990
+          payments.set(paymentId, amount)
+          // El Host de la propia petición, no un puerto fijo: `npm run dev`
+          // (sin VITE_DEV_MOCKS) puede levantar en otro puerto
+          // (strictPort:false) o abrirse por 127.0.0.1, y un checkoutUrl a un
+          // origen distinto deja atrás el sessionStorage/localStorage de esta
+          // pestaña — el carrito real nunca se vacía y el comprobante sale
+          // sin detalle.
+          const host = req.headers.host || `localhost:${parseInt(process.env.PORT) || 5173}`
           res.setHeader('Content-Type', 'application/json')
           res.end(JSON.stringify({
-            checkoutUrl: `http://localhost:${port}${path}?status=approved&payment_id=${paymentId}`,
+            checkoutUrl: `http://${host}${path}?status=approved&payment_id=${paymentId}`,
             preferenceId: paymentId,
           }))
         } catch (e) {

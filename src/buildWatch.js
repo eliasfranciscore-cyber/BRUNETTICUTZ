@@ -68,6 +68,43 @@ function hasOpenLayer() {
 
 const onPanel = () => window.location.pathname.startsWith("/panel")
 
+// Rutas públicas donde el visitante puede tener algo a medio llenar (Q21): el
+// pickup de fecha/hora en /reservar, el carro en Essentials, un token de
+// reseña o de reset ya cargado, la tarjeta de fidelidad en /cuenta. La
+// recarga se reintenta en la próxima visita a esa ruta o el próximo latido,
+// nunca se pierde para siempre.
+const HOLD_PATH_PREFIXES = ["/reservar", "/essentials/gracias", "/resena", "/restablecer", "/cuenta"]
+
+// El drawer de Essentials abierto ya cae en hasOpenLayer() (role="dialog"
+// aria-modal="true"); esto cubre el carro con el drawer CERRADO, que de otra
+// forma se ve vacío como si nada lo protegiera.
+function isCartHeld() {
+  try {
+    const items = JSON.parse(localStorage.getItem("ps_cart") || "[]")
+    return Array.isArray(items) && items.length > 0
+  } catch {
+    return false
+  }
+}
+
+function isHeldPublicRoute() {
+  const path = window.location.pathname
+  if (HOLD_PATH_PREFIXES.some((prefix) => path.startsWith(prefix))) return true
+  if (path.startsWith("/essentials") && isCartHeld()) return true
+  return false
+}
+
+// Además del foco (isTyping) y las hojas abiertas, en el sitio público no se
+// recarga si algún campo ya tiene algo escrito: un input/textarea/select con
+// valor es una señal de que hay algo que perder aunque el foco ya no esté ahí
+// (por ejemplo, tras tocar otro control de la misma pantalla).
+function hasFilledField() {
+  return Array.from(document.querySelectorAll("input, textarea, select")).some((el) => {
+    if (el.type === "hidden" || el.type === "submit" || el.type === "button" || el.type === "checkbox" || el.type === "radio") return false
+    return String(el.value ?? "").trim() !== ""
+  })
+}
+
 /* `fromHeartbeat`: el latido solo vale en el panel. Se revisa antes de ir al
    servidor (fuera del panel ni siquiera se pregunta) y otra vez antes de
    recargar, por si en medio de la consulta la persona salió del panel. */
@@ -95,6 +132,9 @@ async function check(fromHeartbeat = false) {
   if (fromHeartbeat && !onPanel()) return
   // Se reintenta en el próximo latido o la próxima vuelta a la app.
   if (isTyping() || hasOpenLayer()) return
+  // Sitio público a medio flujo (Q21): el panel sigue con el criterio de
+  // siempre (hoja/diálogo abierto o foco), sin este filtro extra.
+  if (!onPanel() && (isHeldPublicRoute() || hasFilledField())) return
 
   try {
     const last = Number(sessionStorage.getItem(RELOAD_GUARD_KEY) || 0)
