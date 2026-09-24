@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react'
-import { createPortal } from 'react-dom'
-import { Icon } from './ui.jsx'
+import React, { useEffect, useRef, useState } from 'react'
 import { cleanPhone } from '../data.js'
+import { Sheet, Button, Field, InlineAlert, useIsPhone } from './panel/index.js'
 
 /**
  * NewEnrollmentModal — alta manual de inscripciones (Cursos/Workshop) desde
@@ -10,29 +9,28 @@ import { cleanPhone } from '../data.js'
  * Props: { open, onClose, onCreate(draft) }
  */
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const EMPTY = { name: '', phone: '', email: '', source: 'workshop', edition: '', level: '', message: '' }
 
 export default function NewEnrollmentModal({ open, onClose, onCreate = () => {} }) {
-  const [form, setForm] = useState({ name: '', phone: '', email: '', source: 'workshop', edition: '', level: '', message: '' })
+  const [form, setForm] = useState(EMPTY)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
+  const isPhone = useIsPhone()
+  const nameRef = useRef(null)
 
   useEffect(() => {
-    if (open) { setForm({ name: '', phone: '', email: '', source: 'workshop', edition: '', level: '', message: '' }); setError(''); setSaving(false) }
+    if (open) { setForm(EMPTY); setError(''); setSaving(false) }
   }, [open])
 
-  useEffect(() => {
-    if (!open) return
-    const onKey = (e) => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [open, onClose])
-
-  if (!open) return null
-
-  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
+  const set = (k) => (e) => {
+    const v = e.target.value
+    setForm((f) => ({ ...f, [k]: v }))
+    if (error) setError('')
+  }
   const isWorkshop = form.source === 'workshop'
 
   const submit = async () => {
+    if (saving) return
     const name = form.name.trim()
     const phone = cleanPhone(form.phone)
     const email = form.email.trim().toLowerCase()
@@ -54,40 +52,51 @@ export default function NewEnrollmentModal({ open, onClose, onCreate = () => {} 
       setSaving(false)
     }
   }
+  const onEnter = (e) => { if (e.key === 'Enter') { e.preventDefault(); submit() } }
 
-  return createPortal((
-    <div className="psn-modal" role="dialog" aria-modal="true">
-      <button className="psn-scrim" aria-label="Cerrar" onClick={onClose} />
-      <div className="psn-modal-card psn-newbk">
-        <button className="psn-close" onClick={onClose} aria-label="Cerrar"><Icon name="close" size={17} /></button>
-        <h3><Icon name="user" size={20} /> Nueva inscripción</h3>
-        <p className="psn-role">Se guarda igual que si viniera de la página pública — el inscrito también queda como cliente.</p>
-
-        <div className="psn-client-edit">
-          <div className="field"><label>Origen</label>
-            <select className="input" value={form.source} onChange={set('source')}>
-              <option value="workshop">Workshop</option>
-              <option value="cursos">Cursos</option>
-            </select>
-          </div>
-          <div className="field"><label>Nombre</label><input className="input" value={form.name} onChange={set('name')} placeholder="Nombre y apellido" autoFocus /></div>
-          <div className="field"><label>Teléfono</label><input className="input" value={form.phone} onChange={set('phone')} inputMode="tel" placeholder="9 1234 5678" /></div>
-          <div className="field"><label>Correo</label><input className="input" value={form.email} onChange={set('email')} inputMode="email" placeholder="correo@ejemplo.com" /></div>
-          {isWorkshop
-            ? <div className="field"><label>Edición</label><input className="input" value={form.edition} onChange={set('edition')} placeholder="30 de agosto" /></div>
-            : <div className="field"><label>Nivel</label><input className="input" value={form.level} onChange={set('level')} placeholder="Estoy empezando" /></div>}
-          <div className="field"><label>Mensaje <span style={{ color: 'var(--muted-2)' }}>(opcional)</span></label><textarea className="input" rows={2} value={form.message} onChange={set('message')} /></div>
-        </div>
-
-        {error && <p className="psn-newbk-err"><Icon name="close" size={13} /> {error}</p>}
-
-        <div className="psn-confirm-actions">
-          <button className="btn btn-ghost btn-block" onClick={onClose} disabled={saving}>Cancelar</button>
-          <button className="btn btn-gold btn-block" onClick={submit} disabled={saving}>
+  return (
+    <Sheet
+      open={open}
+      onClose={saving ? undefined : onClose}
+      title="Nueva inscripción"
+      subtitle="Se guarda igual que si viniera de la página pública — el inscrito también queda como cliente."
+      icon="sparkles"
+      size="sm"
+      initialFocusRef={isPhone ? undefined : nameRef}
+      footer={(
+        <>
+          <Button variant="secondary" onClick={onClose} disabled={saving}>Cancelar</Button>
+          <Button variant="primary" icon="check" onClick={submit} loading={saving}>
             {saving ? 'Guardando…' : 'Crear inscripción'}
-          </button>
-        </div>
+          </Button>
+        </>
+      )}
+    >
+      <div className="pn-stack">
+        <Field label="Origen">
+          <select className="input" value={form.source} onChange={set('source')}>
+            <option value="workshop">Workshop</option>
+            <option value="cursos">Cursos</option>
+          </select>
+        </Field>
+        <Field label="Nombre">
+          <input ref={nameRef} className="input" value={form.name} onChange={set('name')} onKeyDown={onEnter} placeholder="Nombre y apellido" autoComplete="off" />
+        </Field>
+        <Field label="Teléfono" hint="9 dígitos, sin +56">
+          <input className="input" value={form.phone} onChange={set('phone')} onKeyDown={onEnter} inputMode="tel" placeholder="9 1234 5678" autoComplete="off" />
+        </Field>
+        <Field label="Correo">
+          <input className="input" value={form.email} onChange={set('email')} onKeyDown={onEnter} inputMode="email" placeholder="correo@ejemplo.com" autoComplete="off" autoCapitalize="off" />
+        </Field>
+        {isWorkshop
+          ? <Field label="Edición"><input className="input" value={form.edition} onChange={set('edition')} onKeyDown={onEnter} placeholder="30 de agosto" /></Field>
+          : <Field label="Nivel"><input className="input" value={form.level} onChange={set('level')} onKeyDown={onEnter} placeholder="Estoy empezando" /></Field>}
+        <Field label="Mensaje" optional>
+          <textarea className="input" rows={2} value={form.message} onChange={set('message')} />
+        </Field>
+
+        {error && <InlineAlert tone="error">{error}</InlineAlert>}
       </div>
-    </div>
-  ), document.body)
+    </Sheet>
+  )
 }
