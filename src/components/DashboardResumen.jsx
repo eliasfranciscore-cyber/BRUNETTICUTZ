@@ -1,50 +1,41 @@
-import React, { useMemo } from 'react'
-import { Icon } from './IconsExtra.jsx'
-import { CLP, CLPk, barberById } from '../data.js'
-import { CountUp, KpiTile, Sparkline, Donut, AnimatedRing } from './DashKit.jsx'
+import React, { useEffect, useMemo, useState } from 'react'
+import { Icon } from './ui.jsx'
+import { CLP, CLPk, barberById, bookingUid, fmtDate, santiagoDateKey } from '../data.js'
+import { CountUp, Sparkline, Donut, AnimatedRing } from './DashKit.jsx'
+import { waLinkForBooking } from '../whatsapp.js'
+import { FEATURES } from '../features.js'
+import {
+  Card, List, ListRow, Time, Kpi, Segmented, Button, IconButton, Chip,
+  StatusBadge, Avatar, EmptyState, ProgressBar, useIsPhone,
+} from './panel/index.js'
+import { SinCerrarNotice } from '../pages/panel/SinCerrar.jsx'
+import '../styles/panel/resumen.css'
 
 /**
- * DashboardResumen — reemplaza el bloque `{tab === "resumen"}` del Dashboard.
+ * DashboardResumen — pantalla de inicio del panel de Brunetti.
  *
- * Rediseño DashKit: hero interactivo (ingresos con count-up, próxima cita,
- * anillo de ocupación, sparkline de 7 días y botón de reserva manual) + fila
- * de KPIs animados + bento re-skin. Todas las métricas se calculan en vivo
- * desde los datos reales del negocio (sin fallback a cifras de ejemplo).
+ * Un segmentado "Hoy | Tendencias" separa lo accionable de hoy (la próxima
+ * cita con su botón de Iniciar/Cobrar, los KPI del día y la lista de
+ * reservas) de las métricas de tendencia (ingresos, ventas de la semana,
+ * gastos, servicios, ocupación, horas pico y reseñas). En escritorio las dos
+ * vistas van lado a lado (`.pn-cols--2` de panel.css) y el segmentado se
+ * oculta; en el celular y la tablet alterna entre una y otra.
  *
- * Props:
- *  bookings:   reservas (para los totales del día, el ranking y el histórico)
- *  barbers:    lista de barberos (para ranking, equipo y "activos")
- *  expenses:   gastos (para el gráfico por categoría del mes en curso)
- *  clients:    clientes (para calcular retención/recurrencia)
- *  todaySlots: horarios de la agenda de hoy (booked/free/blocked) para la ocupación real
- *  onNewBooking: abre el modal de reserva manual
+ * Acá hay un solo barbero (Bruno), así que no hay línea de alcance ni
+ * rótulos de barbero en las filas: el margen es siempre el del local, y suma
+ * las ventas online (Cursos, Workshop y Essentials por Mercado Pago) y los
+ * ingresos manuales del mes.
+ *
+ * Todas las métricas se calculan en vivo desde los datos reales del negocio,
+ * sin cifras de ejemplo.
+ *
+ * Props: bookings, barbers, expenses, clients, todaySlots, walletStats,
+ * onNewBooking, onGoToPending, onGoToMarketing, y `ctx` (el objeto `dash` de
+ * Dashboard.jsx: la sesión y las acciones que abren las hojas compartidas —
+ * la hoja de cobro vía updateBookingStatus, el detalle vía setDetail).
  */
 
-const STATUS_DOT = { confirmada: 'var(--green, #6fbf86)', pendiente: 'var(--gold)', 'en curso': '#7ea8ff', completada: 'var(--muted-2)', cancelada: 'var(--red, #d99a8f)' }
-const CAT_COLORS = ['#c9a14e', '#9c7a32', '#e6cd90', '#8d8a84', '#5a5852']
-
-function Bars({ data }) {
-  const max = Math.max(1, ...data.map((d) => d.v))
-  return (
-    <div className="psn-bars">
-      {data.map((d, i) => (
-        <div key={d.d} className={`col ${i === data.length - 1 ? 'peak' : ''}`}>
-          <div className="track"><div className="fill" style={{ height: `${(d.v / max) * 100}%` }} title={CLP(d.v)} /></div>
-          <span className="v">{CLPk(d.v)}</span>
-          <span className="d">{d.d}</span>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function getSvcIconByName(name) {
-  const n = (name || '').toLowerCase()
-  if (n.includes('asesor') || n.includes('visag') || n.includes('imagen')) return 'user'
-  if (n.includes('quim') || n.includes('color') || n.includes('platin')) return 'spark'
-  if (n.includes('fade') || n.includes('degra')) return 'trend'
-  return 'scissors'
-}
+const cx = (...parts) => parts.filter(Boolean).join(' ')
 
 // Horas de atención fijas (ver ALL_SLOTS en data.js) — siempre se muestran
 // las 11, aunque alguna nunca haya tenido reservas, para que el gráfico
@@ -54,103 +45,32 @@ const BUSINESS_HOURS = ['9', '10', '11', '12', '13', '14', '15', '16', '17', '18
 // semana como la vive el negocio.
 const DOW_ORDER = [1, 2, 3, 4, 5, 6, 0]
 const DOW_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
+// Paleta de categorías de gasto: rampa dorada que sigue al tema (los tokens
+// --pn-* cambian solos entre claro y oscuro). La de antes era hex fijo
+// (#c9a14e, #e6cd90…), pensada para fondo negro: sobre el crema del modo
+// claro los dos dorados pálidos casi no se veían.
+const CAT_COLORS = [
+  'var(--pn-accent)',
+  'color-mix(in srgb, var(--pn-accent) 55%, var(--pn-card))',
+  'var(--pn-text)',
+  'var(--pn-text-3)',
+  'color-mix(in srgb, var(--pn-text) 30%, var(--pn-card))',
+]
 
-function PeakChart({ data, peakKey }) {
-  const max = Math.max(1, ...data.map((d) => d.v))
-  return (
-    <div className="psn-peak">
-      {data.map((d) => (
-        <div key={d.k} className="psn-peak-col">
-          <div className="psn-peak-track">
-            <div className="psn-peak-fill" style={{ height: `${(d.v / max) * 100}%`, background: d.k === peakKey ? 'var(--gold-grad)' : 'rgba(255,255,255,0.13)' }} title={`${d.v} reservas`} />
-          </div>
-          <span className="psn-peak-lbl">{d.lbl}</span>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-/* Antes agregaba TODAS las reservas del historial completo (sin ventana de
-   tiempo) y solo dibujaba las horas que alguna vez tuvieron una reserva —
-   el gráfico crecía para siempre sesgado hacia las horas más "viejas" y
-   podía mostrar solo 3-4 columnas salteadas en vez de la jornada completa.
-   Ahora recibe `bookings` ya acotado a una ventana reciente (ver
-   `recentBookings` en DashboardResumen) y siempre dibuja las 11 horas y los
-   7 días de la semana, con 0 donde no hay datos. */
-function PeakHours({ bookings = [], windowLabel = '' }) {
-  const valid = React.useMemo(() => bookings.filter((b) => b.status !== 'cancelada' && b.time && b.date), [bookings])
-
-  const hourData = React.useMemo(() => {
-    const map = {}
-    valid.forEach((b) => { const h = String(b.time).slice(0, 2).replace(/^0/, ''); map[h] = (map[h] || 0) + 1 })
-    return BUSINESS_HOURS.map((h) => ({ k: h, lbl: h, v: map[h] || 0 }))
-  }, [valid])
-  const peakHour = hourData.reduce((p, d) => d.v > (p?.v ?? 0) ? d : p, null)
-
-  const dowData = React.useMemo(() => {
-    const map = {}
-    valid.forEach((b) => { const dow = new Date(`${b.date}T00:00:00`).getDay(); map[dow] = (map[dow] || 0) + 1 })
-    return DOW_ORDER.map((dow) => ({ k: dow, lbl: DOW_SHORT[dow], v: map[dow] || 0 }))
-  }, [valid])
-  const peakDow = dowData.reduce((p, d) => d.v > (p?.v ?? 0) ? d : p, null)
-
-  if (!valid.length) {
-    return <div style={{ color: 'var(--muted)', fontSize: '.85rem' }}>Sin reservas {windowLabel} para analizar todavía.</div>
-  }
-
-  return (
-    <div className="psn-peak-split">
-      <div>
-        <PeakChart data={hourData} peakKey={peakHour?.k} />
-        {peakHour && <div style={{ fontSize: '.73rem', color: 'var(--muted)', marginTop: '.6rem', display: 'flex', alignItems: 'center', gap: '.35rem' }}>
-          <Icon name="trend" size={13} />
-          Hora pico: <strong style={{ color: 'var(--gold-lt)' }}>{peakHour.k}:00</strong> · {peakHour.v} reservas
-        </div>}
-      </div>
-      <div>
-        <PeakChart data={dowData} peakKey={peakDow?.k} />
-        {peakDow && <div style={{ fontSize: '.73rem', color: 'var(--muted)', marginTop: '.6rem', display: 'flex', alignItems: 'center', gap: '.35rem' }}>
-          <Icon name="calendar" size={13} />
-          Día pico: <strong style={{ color: 'var(--gold-lt)' }}>{peakDow.lbl}</strong> · {peakDow.v} reservas
-        </div>}
-      </div>
-    </div>
-  )
-}
-
-function TopSvc({ data = [], bookings = [] }) {
-  const live = React.useMemo(() => {
-    const valid = bookings.filter((b) => b.status !== 'cancelada')
-    if (!valid.length) return data
-    const map = {}
-    valid.forEach((b) => { const k = b.service || 'Servicio'; map[k] = map[k] || { name: k, count: 0, rev: 0 }; map[k].count++; map[k].rev += Number(b.price || 0) })
-    return Object.values(map).sort((a, b) => b.count - a.count).slice(0, 5)
-  }, [bookings, data])
-  const maxC = Math.max(1, ...live.map((s) => s.count))
-  return (
-    <div className="psn-top-svc">
-      {live.map((s) => (
-        <div key={s.name} className="psn-top-svc-row">
-          <div className="psn-top-svc-ic"><Icon name={getSvcIconByName(s.name)} size={14} /></div>
-          <div className="psn-top-svc-bar">
-            <div className="nm">{s.name}</div>
-            <div className="track"><div className="fill" style={{ width: `${(s.count / maxC) * 100}%` }} /></div>
-          </div>
-          <div className="cnt"><div>{s.count}</div><div style={{ color: 'var(--muted)', fontSize: '.68rem' }}>{CLPk(s.rev)}</div></div>
-        </div>
-      ))}
-      {!live.length && <div style={{ color: 'var(--muted)', fontSize: '.84rem' }}>Sin datos aún.</div>}
-    </div>
-  )
+function getSvcIconByName(name) {
+  const n = (name || '').toLowerCase()
+  if (n.includes('asesor') || n.includes('visag') || n.includes('imagen')) return 'user'
+  if (n.includes('quim') || n.includes('color') || n.includes('platin')) return 'spark'
+  if (n.includes('fade') || n.includes('degra')) return 'trend'
+  return 'scissors'
 }
 
 // Componentes locales, no UTC (ver Dashboard.jsx isoDate): en Chile
 // toISOString() adelanta la fecha durante la noche.
 function localDateKey(date) {
   const y = date.getFullYear()
-  const m = String(date.getMonth() + 1).padStart(2, "0")
-  const d = String(date.getDate()).padStart(2, "0")
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
   return `${y}-${m}-${d}`
 }
 
@@ -169,295 +89,555 @@ function mondayOf(date) {
   return d
 }
 
-export default function DashboardResumen({ bookings = [], barbers = [], expenses = [], clients = [], todaySlots = [], walletStats = null, onNewBooking, onGoToPending, onGoToMarketing }) {
+const minutesOf = (time) => {
+  const [h, m] = String(time || '').split(':').map(Number)
+  return Number.isFinite(h) ? h * 60 + (m || 0) : null
+}
+
+/* Barra vertical simple (ingresos por día, horas/días pico): un solo
+   componente reutilizado con `compact` para la versión chica de a par. La
+   barra más alta (`peak`) va con el degradado dorado; el resto, en un dorado
+   apagado que sigue al tema (ver resumen.css). */
+function BarChart({ data, compact, valueFmt = CLPk, unit }) {
+  const max = Math.max(1, ...data.map((d) => d.v))
+  return (
+    <div className={cx('pn-resumen-bars', compact && 'is-compact')}>
+      {data.map((d, i) => (
+        <div key={`${d.k ?? d.d}-${i}`} className={cx('pn-resumen-bars-col', d.peak && 'is-peak')}>
+          <div className="pn-resumen-bars-track">
+            <div
+              className="pn-resumen-bars-fill"
+              style={{ height: `${(d.v / max) * 100}%` }}
+              title={unit ? `${d.full ?? d.lbl ?? d.d}: ${d.v} ${d.v === 1 ? unit[0] : unit[1]}` : CLP(d.v)}
+            />
+          </div>
+          {/* Un día con atenciones a $0 (cortesía o canje) dice "$0", no
+              "$0k"; y el rótulo nunca queda vacío, que corría el riel. */}
+          {!compact && <span className="pn-resumen-bars-val">{d.v ? valueFmt(d.v) : '$0'}</span>}
+          <span className="pn-resumen-bars-lbl">{d.lbl ?? d.d}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function TopServiceBars({ bookings = [] }) {
+  const live = useMemo(() => {
+    const valid = bookings.filter((b) => b.status === 'completada')
+    if (!valid.length) return []
+    const map = {}
+    valid.forEach((b) => { const k = b.service || 'Servicio'; map[k] = map[k] || { name: k, count: 0, rev: 0 }; map[k].count++; map[k].rev += Number(b.paidAmount ?? b.price ?? 0) })
+    return Object.values(map).sort((a, b) => b.count - a.count).slice(0, 5)
+  }, [bookings])
+  if (!live.length) return <EmptyState compact icon="scissors" title="Sin servicios completados todavía" />
+  const maxC = Math.max(1, ...live.map((s) => s.count))
+  return (
+    <div className="pn-resumen-topsvc">
+      {live.map((s) => (
+        <div key={s.name} className="pn-resumen-topsvc-row">
+          <span className="pn-resumen-topsvc-icon"><Icon name={getSvcIconByName(s.name)} size={14} /></span>
+          <span className="pn-resumen-topsvc-bar">
+            <span className="pn-resumen-topsvc-name">{s.name}</span>
+            <span className="pn-resumen-topsvc-track"><span className="pn-resumen-topsvc-fill" style={{ width: `${(s.count / maxC) * 100}%` }} /></span>
+          </span>
+          <span className="pn-resumen-topsvc-count"><b>{s.count}</b><small>{CLPk(s.rev)}</small></span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/* Recibe `bookings` ya acotado a una ventana reciente (ver `recentBookings`)
+   y siempre dibuja las 11 horas y los 7 días de la semana, con 0 donde no hay
+   datos. */
+function PeakHours({ bookings = [] }) {
+  const valid = useMemo(() => bookings.filter((b) => b.status !== 'cancelada' && b.time && b.date), [bookings])
+  const hourData = useMemo(() => {
+    const map = {}
+    valid.forEach((b) => { const h = String(b.time).slice(0, 2).replace(/^0/, ''); map[h] = (map[h] || 0) + 1 })
+    // Las 11 barras siempre se dibujan (ver BUSINESS_HOURS), cada una con su
+    // hora. Para que "9h10h11h…" no se pise, los dos gráficos se apilan (uno
+    // debajo del otro, a lo ancho de la tarjeta) cuando la tarjeta es angosta:
+    // en el celular y en la media pantalla del escritorio (container query en
+    // resumen.css). Antes se rotulaba 1 hora de cada 2 y, lado a lado a
+    // 1280px, igual se cortaban "13h", "15h"…
+    return BUSINESS_HOURS.map((h) => ({ k: h, lbl: `${h}h`, full: `${h}:00`, v: map[h] || 0 }))
+  }, [valid])
+  const peakHour = hourData.reduce((p, d) => (d.v > (p?.v ?? 0) ? d : p), null)
+  const dowData = useMemo(() => {
+    const map = {}
+    valid.forEach((b) => { const dow = new Date(`${b.date}T00:00:00`).getDay(); map[dow] = (map[dow] || 0) + 1 })
+    return DOW_ORDER.map((dow) => ({ k: dow, lbl: DOW_SHORT[dow], v: map[dow] || 0 }))
+  }, [valid])
+  const peakDow = dowData.reduce((p, d) => (d.v > (p?.v ?? 0) ? d : p), null)
+
+  if (!valid.length) return <EmptyState compact icon="clock" title="Sin reservas para analizar todavía" text="Se necesitan reservas de los últimos 30 días." />
+
+  const unit = ['reserva', 'reservas']
+  return (
+    <div className="pn-resumen-peakwrap">
+      <div className="pn-resumen-peak-split">
+        <div>
+          <BarChart compact unit={unit} data={hourData.map((d) => ({ ...d, peak: d.k === peakHour?.k }))} />
+          {peakHour && (
+            <p className="pn-resumen-peak-note">
+              <Icon name="trend" size={12} />
+              <span>Hora pico: <b>{peakHour.k}:00</b> · {peakHour.v} reserva{peakHour.v === 1 ? '' : 's'}</span>
+            </p>
+          )}
+        </div>
+        <div>
+          <BarChart compact unit={unit} data={dowData.map((d) => ({ ...d, peak: d.k === peakDow?.k }))} />
+          {peakDow && (
+            <p className="pn-resumen-peak-note">
+              <Icon name="calendar" size={12} />
+              <span>Día pico: <b>{peakDow.lbl}</b> · {peakDow.v} reserva{peakDow.v === 1 ? '' : 's'}</span>
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/* Reseñas de clientes. Salen de GET /api/barbers?mode=reviews (ver
+   api/barbers.js), que llegan solas por correo después de cada visita (el
+   link lleva a /resena). Todo viene defendido: si la respuesta no trae
+   `summary` (una base sin la tabla, un modo que el servidor todavía no
+   conoce), la tarjeta no se dibuja en vez de reventar el Resumen. */
+function ReviewsCard({ data }) {
+  const summary = data?.summary || {}
+  const reviews = Array.isArray(data?.reviews) ? data.reviews : []
+  const count = Number(summary.count) || 0
+  const dist = [1, 2, 3, 4, 5].reduce((acc, n) => ({ ...acc, [n]: Number(summary.distribution?.[n]) || 0 }), {})
+  if (!count) {
+    return (
+      <Card title="Reseñas de clientes">
+        <EmptyState compact icon="star" title="Todavía no hay reseñas" text="Llegan solas por correo después de cada visita." />
+      </Card>
+    )
+  }
+  const distTotal = Object.values(dist).reduce((s, v) => s + v, 0)
+  const rated = reviews.map((r) => Number(r.rating)).filter((n) => n >= 1 && n <= 5)
+  const avg = Number.isFinite(Number(summary.avg)) && summary.avg != null
+    ? Number(summary.avg)
+    : distTotal
+      ? [1, 2, 3, 4, 5].reduce((s, n) => s + n * dist[n], 0) / distTotal
+      : (rated.length ? rated.reduce((s, n) => s + n, 0) / rated.length : 0)
+  const maxDist = Math.max(1, ...Object.values(dist))
+  const rounded = Math.round(avg)
+  return (
+    <Card title="Reseñas de clientes" subtitle={`${avg.toFixed(1)} de 5 · ${count} reseña${count === 1 ? '' : 's'}`}>
+      <div className="pn-resumen-reviews">
+        <div className="pn-resumen-reviews-summary">
+          <div className="pn-resumen-reviews-stars" role="img" aria-label={`${avg.toFixed(1)} de 5 estrellas`}>
+            {[1, 2, 3, 4, 5].map((n) => (
+              <Icon key={n} name="star" size={16} color={n <= rounded ? 'var(--pn-accent)' : 'var(--pn-text-3)'} style={n <= rounded ? { fill: 'var(--pn-accent)' } : undefined} />
+            ))}
+          </div>
+          <div className="pn-resumen-reviews-dist">
+            {[5, 4, 3, 2, 1].map((n) => (
+              <div key={n} className="pn-resumen-reviews-distrow">
+                <span>{n}<Icon name="star" size={10} /></span>
+                <ProgressBar value={dist[n]} max={maxDist} color="var(--pn-accent)" label={`${dist[n]} de ${n} estrella${n === 1 ? '' : 's'}`} />
+                <span className="pn-muted">{dist[n]}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        {reviews.length > 0 && (
+          <List className="pn-resumen-reviews-list">
+            {reviews.slice(0, 3).map((r, i) => (
+              <ListRow
+                key={r.id ?? i}
+                title={r.client || 'Cliente'}
+                subtitle={r.comment || (r.service ? `${r.service} · sin comentario` : 'Sin comentario')}
+                subtitleWrap
+                meta={(r.date || r.ratedAt) ? fmtDate(String(r.date || r.ratedAt).slice(0, 10), 'dm') : undefined}
+                trailing={<Chip tone="accent" icon="star">{r.rating}</Chip>}
+              />
+            ))}
+          </List>
+        )}
+      </div>
+    </Card>
+  )
+}
+
+export default function DashboardResumen({
+  bookings = [], barbers = [], expenses = [], clients = [], todaySlots = [], walletStats = null,
+  onNewBooking, onGoToPending, onGoToMarketing, ctx = {},
+}) {
+  const {
+    authHeaders, updateBookingStatus, setDetail, setTab, barber, myPhoto, canCharge,
+    admin, has, pushToast, goToDayInReservas, onlineMonthTotal, onlineOrders,
+  } = ctx
+  const isPhone = useIsPhone()
+  const [view, setView] = useState('hoy')
+  const [advancing, setAdvancing] = useState(false)
+  const [reviews, setReviews] = useState(null)
+  // "Ahora" y el "en 12m" dependen de la hora: sin este tic, con el panel
+  // abierto la próxima cita se quedaba pegada en la de hace media hora.
+  const [, setMinuteTick] = useState(0)
+  useEffect(() => {
+    const t = setInterval(() => setMinuteTick((n) => n + 1), 60_000)
+    return () => clearInterval(t)
+  }, [])
+
+  useEffect(() => {
+    if (!FEATURES.reviews) return undefined
+    let alive = true
+    fetch('/api/barbers?mode=reviews', { headers: authHeaders ? authHeaders() : {} })
+      .then((r) => (r.ok ? r.json() : Promise.reject(r)))
+      // Sin `summary` no hay nada que dibujar: la tarjeta queda fuera en vez
+      // de reventar al leer `summary.count` de undefined.
+      .then((data) => { if (alive) setReviews(data?.ok && data.summary ? data : null) })
+      .catch(() => { if (alive) setReviews(null) })
+    return () => { alive = false }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   const todayKey = localDateKey(new Date())
   const monthKey = todayKey.slice(0, 7)
   const today = useMemo(() => bookings.filter((b) => !b.date || b.date === todayKey).sort((a, b) => String(a.time).localeCompare(String(b.time))), [bookings, todayKey])
 
-  const dayValid = today.filter((b) => b.status !== 'cancelada')
-  const revenueDay = dayValid.reduce((s, b) => s + Number(b.price || 0), 0)
+  /* Ingreso = reserva COMPLETADA, por lo que realmente se cobró (`paidAmount`;
+     el precio cubre las completadas de antes del cobro con medio de pago).
+     Misma definición que Finanzas y Caja. */
+  const collectedOf = (b) => Number(b.paidAmount ?? b.price ?? 0)
+  const dayValid = today.filter((b) => b.status === 'completada')
+  const revenueDay = dayValid.reduce((s, b) => s + collectedOf(b), 0)
   const avgTicket = dayValid.length ? Math.round(revenueDay / dayValid.length) : 0
+  const activeTodayCount = today.filter((b) => b.status !== 'cancelada').length
 
-  // Ventana móvil de 30 días para métricas de "patrón" (tasa de cancelación,
-  // horas/días pico) — evita que se acumulen para siempre sesgadas hacia el
-  // historial más viejo y las mantiene relevantes al momento actual.
-  const last30Key = useMemo(() => localDateKey(addDays(new Date(), -30)), [todayKey])
+  // Ventana móvil de 30 días para métricas de "patrón" (cancelación, horas/
+  // días pico) — no se acumulan para siempre sesgadas al historial viejo.
+  const last30Key = useMemo(() => localDateKey(addDays(new Date(), -30)), [todayKey]) // eslint-disable-line react-hooks/exhaustive-deps
   const recentBookings = useMemo(() => bookings.filter((b) => b.date && b.date >= last30Key), [bookings, last30Key])
   const cancelRatePct = recentBookings.length
     ? Math.round((recentBookings.filter((b) => b.status === 'cancelada').length / recentBookings.length) * 100)
     : 0
 
-  // Semana actual (Lun→Dom) vs semana anterior, para el chip de ventas.
-  const weekStart = useMemo(() => mondayOf(new Date()), [todayKey])
+  // Semana actual (Lun→Dom) vs semana anterior, para el chip de tendencia.
+  const weekStart = useMemo(() => mondayOf(new Date()), [todayKey]) // eslint-disable-line react-hooks/exhaustive-deps
   const weekKeys = useMemo(() => Array.from({ length: 7 }, (_, i) => localDateKey(addDays(weekStart, i))), [weekStart])
   const lastWeekKeys = useMemo(() => Array.from({ length: 7 }, (_, i) => localDateKey(addDays(weekStart, i - 7))), [weekStart])
-  const weekBookings = useMemo(() => bookings.filter((b) => b.status !== 'cancelada' && weekKeys.includes(b.date)), [bookings, weekKeys])
-  const weekRevenue = weekBookings.reduce((s, b) => s + Number(b.price || 0), 0)
+  const weekBookings = useMemo(() => bookings.filter((b) => b.status === 'completada' && weekKeys.includes(b.date)), [bookings, weekKeys])
+  const weekRevenue = weekBookings.reduce((s, b) => s + collectedOf(b), 0)
   const weekCount = weekBookings.length
   const lastWeekRevenue = useMemo(() => bookings
-    .filter((b) => b.status !== 'cancelada' && lastWeekKeys.includes(b.date))
-    .reduce((s, b) => s + Number(b.price || 0), 0), [bookings, lastWeekKeys])
+    .filter((b) => b.status === 'completada' && lastWeekKeys.includes(b.date))
+    .reduce((s, b) => s + collectedOf(b), 0), [bookings, lastWeekKeys])
   const weekTrendPct = lastWeekRevenue ? Math.round(((weekRevenue - lastWeekRevenue) / lastWeekRevenue) * 100) : null
-  const weekDailyRevenue = useMemo(() => weekKeys.map((k) =>
-    weekBookings.filter((b) => b.date === k).reduce((s, b) => s + Number(b.price || 0), 0)), [weekKeys, weekBookings])
+  const weekDailyRevenue = useMemo(() => weekKeys.map((k) => weekBookings.filter((b) => b.date === k).reduce((s, b) => s + collectedOf(b), 0)), [weekKeys, weekBookings])
 
-  // Gastos del mes en curso, por categoría.
+  // Gastos del mes en curso, por categoría. `expenses` puede traer también los
+  // ingresos manuales (kind 'ingreso'); una fila sin kind es un gasto.
+  const monthMovements = useMemo(() => expenses.filter((e) => (e.date || '').startsWith(monthKey)), [expenses, monthKey])
   const expenseCats = useMemo(() => {
-    const monthExpenses = expenses.filter((e) => (e.date || '').startsWith(monthKey))
-    const grouped = Object.values(monthExpenses.reduce((acc, e) => {
+    const grouped = Object.values(monthMovements.filter((e) => (e.kind || 'gasto') === 'gasto').reduce((acc, e) => {
       const k = e.category || 'Otros'
       acc[k] = acc[k] || { name: k, amount: 0 }
       acc[k].amount += Number(e.amount || 0)
       return acc
     }, {})).sort((a, b) => b.amount - a.amount)
     return grouped.map((c, i) => ({ ...c, color: CAT_COLORS[i % CAT_COLORS.length] }))
-  }, [expenses, monthKey])
+  }, [monthMovements])
   const expTotal = expenseCats.reduce((s, c) => s + c.amount, 0)
+  const manualIncomeMonth = useMemo(() => monthMovements
+    .filter((e) => e.kind === 'ingreso')
+    .reduce((s, e) => s + Number(e.amount || 0), 0), [monthMovements])
 
-  // Ingresos y volumen de reservas de los últimos 7 días con datos (en vez de
-  // un gráfico fijo) — misma ventana de fechas para ambas series, así las dos
-  // sparklines del hero son comparables día a día.
-  const DOW = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
-  const { revByDay, countByDay } = useMemo(() => {
-    const valid = bookings.filter((b) => b.status !== 'cancelada' && b.date)
+  // Ingresos de los últimos 7 días con datos; el mejor día va en dorado.
+  const revByDay = useMemo(() => {
+    const valid = bookings.filter((b) => b.status === 'completada' && b.date)
     const byDate = valid.reduce((acc2, b) => {
-      const cur = acc2[b.date] || { rev: 0, count: 0 }
-      cur.rev += Number(b.price || 0)
-      cur.count += 1
-      acc2[b.date] = cur
+      acc2[b.date] = (acc2[b.date] || 0) + collectedOf(b)
       return acc2
     }, {})
     const dates = Object.keys(byDate).sort().slice(-7)
-    return {
-      revByDay: dates.map((date) => ({ d: DOW[new Date(`${date}T00:00:00`).getDay()], v: byDate[date].rev })),
-      countByDay: dates.map((date) => byDate[date].count),
-    }
+    const rows = dates.map((date) => ({ k: date, d: fmtDate(date, 'dm'), v: byDate[date] }))
+    const best = rows.reduce((p, r) => (r.v > (p?.v ?? 0) ? r : p), null)
+    return rows.map((r) => ({ ...r, peak: r === best }))
   }, [bookings])
 
-  // Reservas pendientes de confirmar (cualquier fecha) — acceso rápido a Reservas.
   const pendingCount = useMemo(() => bookings.filter((b) => b.status === 'pendiente').length, [bookings])
-
   const monthRevenue = useMemo(() => bookings
-    .filter((b) => b.status !== 'cancelada' && (b.date || '').startsWith(monthKey))
-    .reduce((s, b) => s + Number(b.price || 0), 0), [bookings, monthKey])
-  const netMarginPct = monthRevenue ? Math.round(((monthRevenue - expTotal) / monthRevenue) * 100) : 0
+    .filter((b) => b.status === 'completada' && (b.date || '').startsWith(monthKey))
+    .reduce((s, b) => s + collectedOf(b), 0), [bookings, monthKey])
 
-  // Ocupación real de hoy = horas reservadas / (reservadas + libres) según la
-  // agenda del día (excluye las horas bloqueadas, que no son capacidad).
+  /* Ventas online del mes (Cursos, Workshop y Essentials pagados por Mercado
+     Pago): las calcula Dashboard (`onlineMonthTotal`, del resumen del
+     servidor o de la lista de pedidos por fecha de Santiago). Entran al
+     margen igual que los ingresos manuales: es plata del local aunque no
+     pase por la silla. Solo el admin carga los pedidos, así que solo a él se
+     le muestra el KPI. */
+  const onlineMonth = Number(onlineMonthTotal) || 0
+  const showOnline = Boolean(admin) && Number.isFinite(Number(onlineMonthTotal))
+  const onlineMonthCount = useMemo(() => (Array.isArray(onlineOrders) ? onlineOrders : [])
+    .filter((o) => santiagoDateKey(o.created_at).startsWith(monthKey)).length, [onlineOrders, monthKey])
+  const incomeMonth = monthRevenue + onlineMonth + manualIncomeMonth
+  const netMarginPct = incomeMonth ? Math.round(((incomeMonth - expTotal) / incomeMonth) * 100) : 0
+
+  // Ocupación real de hoy = horas reservadas / (reservadas + libres), según
+  // la agenda del día (las bloqueadas no son capacidad).
   const bookedToday = todaySlots.filter((s) => s.state === 'booked').length
   const freeToday = todaySlots.filter((s) => s.state === 'free').length
   const occupancy = (bookedToday + freeToday) ? Math.round((bookedToday / (bookedToday + freeToday)) * 100) : 0
 
   const recurringClients = clients.filter((c) => Number(c.visits || 0) >= 2)
   const retention = clients.length ? Math.round((recurringClients.length / clients.length) * 100) : 0
-
-  // "Nuevo" = tuvo una reserva hoy pero ninguna reserva anterior en el historial cargado.
   const newClients = useMemo(() => {
     const seenBefore = new Set(bookings.filter((b) => b.date && b.date < todayKey).map((b) => b.phone))
     const todaysPhones = new Set(dayValid.map((b) => b.phone).filter(Boolean))
     return [...todaysPhones].filter((p) => !seenBefore.has(p)).length
   }, [bookings, dayValid, todayKey])
 
-  // Próxima cita de hoy: la primera activa cuya hora aún no pasa.
+  /* "Ahora": la atención que está EN CURSO (para cobrarla aunque su hora de
+     inicio ya haya pasado) y, si no hay ninguna, la primera activa de hoy
+     cuya hora todavía no llega. */
   const now = new Date()
   const nowMin = now.getHours() * 60 + now.getMinutes()
-  const nextAppt = useMemo(() => {
-    return today
+  const nextAppt = today.find((b) => b.status === 'en curso')
+    || today
       .filter((b) => b.status !== 'cancelada' && b.status !== 'completada')
-      .find((b) => {
-        const [h, m] = String(b.time).split(':').map(Number)
-        return (h * 60 + (m || 0)) >= nowMin
-      }) || null
-  }, [today, nowMin])
+      .find((b) => (minutesOf(b.time) ?? -1) >= nowMin)
+    || null
   const nextEta = (() => {
     if (!nextAppt) return ''
-    const [h, m] = String(nextAppt.time).split(':').map(Number)
-    const diff = (h * 60 + (m || 0)) - nowMin
+    if (nextAppt.status === 'en curso') return 'en curso'
+    const diff = (minutesOf(nextAppt.time) ?? nowMin) - nowMin
     if (diff <= 0) return 'ahora'
     return diff >= 60 ? `en ${Math.floor(diff / 60)}h ${diff % 60}m` : `en ${diff}m`
   })()
 
-  const dateLabel = new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })
+  // Solo para el saludo del WhatsApp ("con Bruno"): acá no se rotula barbero.
+  const barberShortOf = (bk) => {
+    const b = barbers.find((x) => Number(x.id) === Number(bk.barberId)) || barberById(Number(bk.barberId)) || {}
+    return b.short || String(b.name || '').split(/\s+/)[0] || ''
+  }
+  const firstName = (barber?.short || barber?.name || '').trim().split(/\s+/)[0] || ''
+
+  const canAdvanceNext = Boolean(nextAppt && updateBookingStatus && (nextAppt.status !== 'en curso' || canCharge !== false))
+  // Con la hoja de cobro, completar ES cobrar (pide el medio de pago); sin
+  // ella, es solo marcarla completada.
+  const finishLabel = FEATURES.charge ? 'Cobrar' : 'Completar'
+  const waUrlForNext = nextAppt ? waLinkForBooking(nextAppt, barberShortOf(nextAppt), nextAppt.status === 'pendiente' ? 'default' : nextAppt.status) : null
+
+  const handleAdvance = async () => {
+    if (!nextAppt || !updateBookingStatus || advancing) return
+    setAdvancing(true)
+    try {
+      const res = await updateBookingStatus(nextAppt, nextAppt.status === 'en curso' ? 'completada' : 'en curso')
+      if (res?.error) pushToast?.('⚠️', res.error, 6000)
+    } finally {
+      setAdvancing(false)
+    }
+  }
+
+  const goToPedidos = setTab && (!has || has('pedidos')) ? () => setTab('pedidos') : undefined
+  const tendenciasKpis = [
+    { id: 'ticket', icon: 'chart', label: 'Ticket promedio', value: avgTicket, format: CLP, hint: 'Hoy' },
+    showOnline && {
+      id: 'online', icon: 'box', label: 'Ventas online', value: onlineMonth, format: CLP,
+      hint: `Este mes · ${onlineMonthCount} pedido${onlineMonthCount === 1 ? '' : 's'}`,
+      title: 'Cursos, Workshop y Essentials pagados por Mercado Pago este mes',
+      onClick: goToPedidos,
+    },
+    { id: 'gastos', icon: 'wallet', label: 'Gastos del mes', value: expTotal, format: CLP },
+    {
+      id: 'margen', icon: 'trend', label: 'Margen neto', value: netMarginPct, suffix: '%',
+      hint: 'Del mes',
+      title: 'Servicios, ventas online e ingresos manuales del mes, menos los gastos',
+    },
+    // Rótulos cortos a propósito: a 375px cada KPI deja ~114px para el
+    // rótulo y "Tasa de cancelación" o "Clientes recurrentes" salían
+    // recortados; el detalle va en el `hint`.
+    { id: 'cancel', icon: 'close', label: 'Cancelaciones', value: cancelRatePct, suffix: '%', hint: 'Últimos 30 días', title: 'Tasa de cancelación de los últimos 30 días' },
+    { id: 'nuevos', icon: 'user', label: 'Clientes nuevos', value: newClients, hint: 'Hoy' },
+    { id: 'recurr', icon: 'spark', label: 'Recurrentes', value: retention, suffix: '%', hint: 'Con 2+ visitas', title: 'Clientes con 2 visitas o más' },
+    // Adopción de la tarjeta de fidelidad. Las cifras vienen del puente con
+    // PimpStudio (el programa es uno solo): mientras no lleguen, la tarjeta
+    // no se dibuja — un 0 acá se leería como "nadie la instaló" y es solo
+    // que todavía está cargando.
+    walletStats && { id: 'wallet', icon: 'wallet', label: 'Tarjetas en Wallet', value: Number(walletStats.installed) || 0, hint: `${walletStats.installRate ?? 0}% de ${walletStats.passesIssued ?? 0} emitidas`, onClick: onGoToMarketing },
+  ].filter(Boolean)
+
+  const newBookingAction = onNewBooking ? { label: 'Nueva reserva', icon: 'calendar', onClick: onNewBooking } : undefined
 
   return (
-    <div className="animate-in psn-dash">
-
-      {/* HERO */}
-      <div className="dk-hero">
-        <div className="dk-hero-grid dk-stagger">
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '.6rem', flexWrap: 'wrap' }}>
-              <h2 className="dk-hero-title" style={{ fontSize: '1.35rem' }}>Resumen del estudio</h2>
-              {pendingCount > 0 && (
-                <button type="button" className="chip chip-gold" onClick={onGoToPending}>
-                  <Icon name="bell" size={12} /> {pendingCount} pendiente{pendingCount === 1 ? '' : 's'} de confirmar
-                </button>
-              )}
-            </div>
-            <span className="dk-hero-sub" style={{ textTransform: 'capitalize' }}>{dateLabel}</span>
-            <div className="dk-hero-big" style={{ marginTop: '.55rem' }}>
-              <CountUp value={revenueDay} format={CLP} />
-              <small>hoy · <CountUp value={dayValid.length} /> reservas</small>
-            </div>
-            {revByDay.length > 1 && (
-              <div style={{ marginTop: '.4rem', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem' }}>
-                  <Sparkline data={revByDay.map((d) => d.v)} width={120} height={32} />
-                  <span className="dk-hero-sub">ingresos · 7 días</span>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '.5rem' }}>
-                  <Sparkline data={countByDay} width={70} height={32} stroke="#7ea8ff" />
-                  <span className="dk-hero-sub">reservas · 7 días</span>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div>
-            <span className="dk-kpi-lbl"><Icon name="clock" size={12} /> Próxima cita</span>
-            {nextAppt ? (
-              <div style={{ marginTop: '.3rem' }}>
-                <div style={{ fontFamily: 'var(--font-display)', fontSize: '1.5rem', color: 'var(--gold-lt)', display: 'flex', alignItems: 'baseline', gap: '.5rem' }}>
-                  {nextAppt.time}
-                  {nextEta && <em style={{ fontStyle: 'normal', fontSize: '.66rem', color: '#9fd7af', background: 'rgba(111,191,134,.14)', padding: '.14rem .5rem', borderRadius: 99 }}>{nextEta}</em>}
-                </div>
-                <div className="dk-hero-sub" style={{ marginTop: '.15rem' }}>{nextAppt.client} · {nextAppt.service}</div>
-              </div>
-            ) : (
-              <div className="dk-hero-sub" style={{ marginTop: '.4rem', fontSize: '.9rem' }}>Sin próximas citas hoy</div>
-            )}
-          </div>
-
-          <div className="dk-hero-lead">
-            <AnimatedRing pct={occupancy} size={84} />
-            <div>
-              <b style={{ fontFamily: 'var(--font-display)', fontSize: '1.05rem' }}>{bookedToday}/{bookedToday + freeToday}</b>
-              <div className="dk-hero-sub">horas de hoy</div>
-            </div>
-          </div>
-
-          {onNewBooking && (
-            <button className="btn btn-gold" style={{ display: 'inline-flex', alignItems: 'center', gap: '.5rem', justifySelf: 'end', alignSelf: 'center' }} onClick={onNewBooking}>
-              <Icon name="calendar" size={16} /> Nueva reserva
-            </button>
-          )}
+    <div className="pn-page pn-resumen">
+      <div className="pn-resumen-greet">
+        <Avatar src={myPhoto} name={barber?.name} size={44} accent />
+        <div className="pn-resumen-greet-text">
+          <h1>{firstName ? `Hola, ${firstName}` : 'Hola'}</h1>
+          <p>{fmtDate(todayKey, 'long')}</p>
         </div>
-      </div>
-
-      {/* KPIs */}
-      <div className="psn-kpis dk-stagger" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}>
-        <KpiTile icon="chart"  label="Ticket promedio"      value={avgTicket} format={CLP} />
-        <KpiTile icon="wallet" label="Gastos del mes"       value={expTotal} format={CLP} color="var(--red, #d99a8f)" />
-        <KpiTile icon="trend"  label="Margen neto"          value={netMarginPct} suffix="%" color="var(--green, #6fbf86)" />
-        <KpiTile icon="close"  label="Tasa de cancelación"  value={cancelRatePct} suffix="%" color="#e0897a" sub="últimos 30 días" />
-        <KpiTile icon="user"   label="Clientes nuevos"      value={newClients} />
-        <KpiTile icon="spark"  label="Clientes recurrentes" value={retention} suffix="%" color="var(--gold-lt)" />
-        {/* Adopción de la tarjeta de fidelidad. Las cifras vienen del puente
-            con PimpStudio (el programa es uno solo, ver CLAUDE.md): mientras
-            no lleguen, la tarjeta no se dibuja — un 0 acá se leería como
-            "nadie la instaló" y es solo que todavía está cargando. */}
-        {walletStats && (
-          <KpiTile icon="wallet" label="Tarjetas en Wallet" value={walletStats.installed}
-            sub={`${walletStats.installRate}% de ${walletStats.passesIssued} emitidas`}
-            onClick={onGoToMarketing} />
+        {onNewBooking && (
+          isPhone
+            ? <Button variant="primary" icon="plus" className="pn-resumen-greet-new" aria-label="Nueva reserva" title="Nueva reserva" onClick={onNewBooking} />
+            : <Button variant="primary" size="sm" icon="plus" className="pn-resumen-greet-new" onClick={onNewBooking}>Nueva reserva</Button>
         )}
       </div>
 
-      <div className="psn-bento">
-        <div className="card psn-panel span-7">
-          <div className="psn-panel-head"><h3 className="font-display">Ingresos por día</h3><span className="chip chip-gold">{CLP(revByDay.reduce((s, d) => s + d.v, 0))}</span></div>
-          <Bars data={revByDay} />
-        </div>
+      <Segmented
+        className="pn-resumen-seg"
+        ariaLabel="Vista del resumen"
+        full
+        value={view}
+        onChange={setView}
+        options={[{ value: 'hoy', label: 'Hoy' }, { value: 'tendencias', label: 'Tendencias' }]}
+      />
 
-        <div className="card psn-panel span-5">
-          <div className="psn-panel-head"><h3 className="font-display">Mis ventas de la semana</h3><span style={{ fontSize: '.74rem', color: 'var(--muted)' }}>Lun–Dom</span></div>
-          <div style={{ display: 'grid', gap: '.6rem' }}>
-            <div className="dk-hero-big"><CountUp value={weekRevenue} format={CLP} /></div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '.6rem', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '.82rem', color: 'var(--muted)' }}>{weekCount} corte{weekCount === 1 ? '' : 's'} esta semana</span>
-              {weekTrendPct != null && (
-                <span className="chip" style={{ color: weekTrendPct >= 0 ? 'var(--green, #6fbf86)' : 'var(--red, #d99a8f)', fontSize: '.72rem' }}>
-                  {weekTrendPct >= 0 ? '▲' : '▼'} {Math.abs(weekTrendPct)}% vs. semana pasada
-                </span>
-              )}
+      {/* pn-cols--2 (50/50) y no --side (280px/.8fr): con la columna angosta,
+          los 4 KPI de "Hoy" no entraban 4 en fila sin recortar el rótulo. */}
+      <div className="pn-cols pn-cols--2">
+        {/* ---- HOY ---- */}
+        <div className={cx('pn-resumen-col', view !== 'hoy' && 'is-hidden')}>
+          {FEATURES.unclosed && <SinCerrarNotice ctx={ctx} />}
+
+          <Card
+            title="Ahora"
+            flush
+            action={pendingCount > 0 ? (
+              <button type="button" className="pn-chip pn-chip--warn pn-resumen-pending" onClick={onGoToPending}>
+                <Icon name="bell" size={12} /> {pendingCount} {pendingCount === 1 ? 'pendiente' : 'pendientes'}
+              </button>
+            ) : null}
+          >
+            {nextAppt ? (
+              <List>
+                <ListRow
+                  className="pn-resumen-now-row"
+                  lead={<Time value={nextAppt.time} sub={nextEta} />}
+                  title={nextAppt.client}
+                  subtitleWrap
+                  subtitle={nextAppt.service}
+                  onClick={setDetail ? () => setDetail(nextAppt) : undefined}
+                  trailing={<StatusBadge status={nextAppt.status} />}
+                  actions={(
+                    <>
+                      {waUrlForNext && (
+                        <IconButton icon="whatsapp" label="Enviar WhatsApp" onClick={() => window.open(waUrlForNext, '_blank', 'noopener,noreferrer')} />
+                      )}
+                      {canAdvanceNext && (
+                        <Button size="sm" variant="primary" loading={advancing} onClick={handleAdvance}>
+                          {nextAppt.status === 'en curso' ? finishLabel : 'Iniciar'}
+                        </Button>
+                      )}
+                    </>
+                  )}
+                />
+              </List>
+            ) : (
+              <EmptyState compact icon="calendar" title="Sin próximas citas hoy" action={newBookingAction} />
+            )}
+          </Card>
+
+          {/* 2×2 o 4 en fila según el ancho de la COLUMNA, no de la
+              pantalla (container query en resumen.css): a 1280px la columna
+              mide ~475px y "$131.960" no entraba en un cuarto sin recortarse.
+              Sin ícono, para no restarle ese ancho al rótulo. */}
+          <div className="pn-resumen-kpiwrap">
+            <div className="pn-kpis cols-4">
+              <Kpi label="Cobrado" value={revenueDay} format={CLP} />
+              <Kpi label="Reservas" value={activeTodayCount} />
+              <Kpi label="Ocupación" value={occupancy} suffix="%" />
+              <Kpi label="Pendientes" value={pendingCount} onClick={pendingCount > 0 ? onGoToPending : undefined} />
             </div>
-            <Sparkline data={weekDailyRevenue} width={230} height={46} />
           </div>
+
+          <Card
+            title="Reservas del día"
+            flush
+            action={today.length > 0 && (goToDayInReservas || setTab) ? (
+              <Button variant="plain" size="sm" iconRight="chevronRight" onClick={() => (goToDayInReservas ? goToDayInReservas(todayKey) : setTab('reservas'))}>
+                {`Ver todas (${today.length})`}
+              </Button>
+            ) : null}
+          >
+            {today.length === 0 ? (
+              <EmptyState compact icon="calendar" title="Sin reservas para hoy" action={newBookingAction} />
+            ) : (
+              <List>
+                {today.slice(0, 5).map((bk) => (
+                  <ListRow
+                    key={bookingUid(bk)}
+                    lead={<Time value={bk.time} />}
+                    title={bk.client}
+                    subtitle={bk.service}
+                    trailing={<StatusBadge status={bk.status} />}
+                    onClick={setDetail ? () => setDetail(bk) : undefined}
+                  />
+                ))}
+              </List>
+            )}
+          </Card>
         </div>
 
-        <div className="card psn-panel span-7">
-          <div className="psn-panel-head"><h3 className="font-display">Reservas del día</h3><span className="chip">{today.length} citas</span></div>
-          <div className="psn-today">
-            {today.map((bk) => {
-              const b = barbers.find((x) => Number(x.id) === Number(bk.barberId)) || barberById(bk.barberId) || {}
-              return (
-                <div key={bk.id || bk.time} className="psn-today-row">
-                  <span className="t">{bk.time}</span>
-                  <div style={{ minWidth: 0 }}>
-                    <div className="c">{bk.client}</div>
-                    <div className="s">{bk.service} · {b.short || b.name}</div>
-                  </div>
-                  <span className="dot" style={{ background: STATUS_DOT[bk.status] || 'var(--muted-2)' }} title={bk.status} />
+        {/* ---- TENDENCIAS ---- */}
+        <div className={cx('pn-resumen-col', view !== 'tendencias' && 'is-hidden')}>
+          <div className="pn-resumen-kpiwrap">
+            <div className="pn-kpis pn-resumen-trend-kpis">
+              {tendenciasKpis.map(({ id, ...k }) => <Kpi key={id} {...k} />)}
+            </div>
+          </div>
+
+          {reviews && <ReviewsCard data={reviews} />}
+
+          <Card title="Ingresos por día" subtitle={revByDay.length ? CLP(revByDay.reduce((s, d) => s + d.v, 0)) : undefined} flush>
+            {revByDay.length ? <BarChart data={revByDay} /> : <EmptyState compact icon="chart" title="Sin ingresos registrados aún" />}
+          </Card>
+
+          <Card title="Mis ventas de la semana" subtitle="Lun–Dom" flush>
+            {weekCount === 0 ? <EmptyState compact icon="chart" title="Sin ventas esta semana" /> : (
+              <div className="pn-resumen-week">
+                <div className="pn-resumen-week-total"><CountUp value={weekRevenue} format={CLP} /></div>
+                <div className="pn-resumen-week-meta">
+                  <span className="pn-muted">{weekCount} corte{weekCount === 1 ? '' : 's'} esta semana</span>
+                  {weekTrendPct != null && (
+                    <Chip tone={weekTrendPct >= 0 ? 'ok' : 'bad'}>{weekTrendPct >= 0 ? '▲' : '▼'} {Math.abs(weekTrendPct)}% vs. semana pasada</Chip>
+                  )}
                 </div>
-              )
-            })}
-            {!today.length && (
-              <div style={{ display: 'grid', gap: '.6rem', justifyItems: 'center', padding: '1rem', textAlign: 'center' }}>
-                <span style={{ color: 'var(--muted)', fontSize: '.85rem' }}>Sin reservas para hoy.</span>
-                {onNewBooking && (
-                  <button type="button" className="btn btn-gold btn-sm" onClick={onNewBooking}>
-                    <Icon name="calendar" size={14} /> Nueva reserva
-                  </button>
-                )}
+                <Sparkline data={weekDailyRevenue} width={260} height={44} stroke="var(--pn-accent)" />
               </div>
             )}
-          </div>
-        </div>
+          </Card>
 
-        <div className="card psn-panel span-5">
-          <div className="psn-panel-head"><h3 className="font-display">Gastos del mes</h3><span className="chip">{CLP(expTotal)}</span></div>
-          <div className="psn-donut-wrap">
-            <Donut
-              items={expenseCats.map((c) => ({ label: c.name, value: c.amount, color: c.color }))}
-              size={120} thickness={14}
-              centerLabel={CLPk(expTotal)} centerSub="total"
-            />
-            <div className="psn-donut-legend">
-              {expenseCats.map((c) => (
-                <div key={c.name} className="row"><span className="dot" style={{ background: c.color }} />{c.name}<span>{CLP(c.amount)}</span></div>
-              ))}
-              {!expenseCats.length && <div style={{ color: 'var(--muted)', fontSize: '.8rem' }}>Sin gastos este mes.</div>}
-            </div>
-          </div>
-        </div>
-
-        <div className="card psn-panel span-7">
-          <div className="psn-panel-head"><h3 className="font-display">Servicios más pedidos</h3><span className="chip chip-gold"><Icon name="scissors" size={12} /> Top 5</span></div>
-          <TopSvc data={[]} bookings={bookings} />
-        </div>
-
-        <div className="card psn-panel span-5">
-          <div className="psn-panel-head"><h3 className="font-display">Ocupación</h3><span className="chip">{occupancy}% hoy</span></div>
-          <div className="psn-ring-wrap">
-            <AnimatedRing pct={occupancy} size={96} />
-            <div className="psn-ring-stats">
-              <div className="psn-ring-stat">
-                <div className="lbl">Retención</div>
-                <div className="val"><CountUp value={retention} />%</div>
+          <Card title="Gastos del mes" subtitle={expTotal ? CLP(expTotal) : undefined} flush>
+            {expenseCats.length === 0 ? <EmptyState compact icon="wallet" title="Sin gastos este mes" /> : (
+              <div className="pn-resumen-donut">
+                <Donut items={expenseCats.map((c) => ({ label: c.name, value: c.amount, color: c.color }))} size={isPhone ? 100 : 112} thickness={14} centerLabel={CLPk(expTotal)} centerSub="total" />
+                <div className="pn-legend pn-resumen-donut-legend">
+                  {expenseCats.map((c) => (
+                    <div key={c.name} className="pn-resumen-legend-row">
+                      <span className="pn-legend-dot" style={{ '--c': c.color }} />
+                      <span title={c.name}>{c.name}</span>
+                      <b>{CLP(c.amount)}</b>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="psn-ring-stat">
-                <div className="lbl">Margen neto</div>
-                <div className="val"><CountUp value={netMarginPct} />%</div>
+            )}
+          </Card>
+
+          <Card title="Servicios más pedidos" flush>
+            <TopServiceBars bookings={bookings} />
+          </Card>
+
+          <Card title="Ocupación" subtitle={`${occupancy}% hoy`} flush>
+            <div className="pn-resumen-ring">
+              <AnimatedRing pct={occupancy} size={92} label="ocupación" />
+              <div className="pn-resumen-ring-stats">
+                <div><b><CountUp value={retention} />%</b><span>Retención</span></div>
+                <div><b><CountUp value={netMarginPct} />%</b><span>Margen neto</span></div>
               </div>
             </div>
-          </div>
-        </div>
+          </Card>
 
-        <div className="card psn-panel span-12">
-          <div className="psn-panel-head"><h3 className="font-display">Horas y días pico</h3><span style={{ fontSize: '.73rem', color: 'var(--muted)' }}>Últimos 30 días</span></div>
-          <PeakHours bookings={recentBookings} windowLabel="en los últimos 30 días" />
+          <Card title="Horas y días pico" subtitle="Últimos 30 días" flush>
+            <PeakHours bookings={recentBookings} />
+          </Card>
         </div>
-
       </div>
     </div>
   )
