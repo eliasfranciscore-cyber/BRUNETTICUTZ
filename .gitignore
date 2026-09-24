@@ -7,6 +7,10 @@ dist
 .env
 .env*
 *.local
+# `vercel env pull <archivo>` no siempre escribe un nombre que empiece con
+# ".env" — con --cwd, por ejemplo, deja el archivo donde le pidas y con el
+# nombre que le pidas. Este patrón cubre dev.env / prod.env / cualquier.env.
+*.env
 
 # Sistema
 .DS_Store

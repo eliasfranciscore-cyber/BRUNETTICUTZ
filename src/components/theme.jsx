@@ -3,15 +3,20 @@ import { useLocation } from 'react-router-dom'
 
 /* ============================================================
    Tema claro/oscuro global.
-   - Por defecto sigue la HORA DE SANTIAGO DE CHILE: claro de día
-     (07:00–18:59) y oscuro de noche. Se re-evalúa cada 10 min.
-   - Si el usuario usa el toggle, su elección manual queda guardada
-     (ps_theme_manual) y manda sobre el automático.
+   - Por defecto es AUTOMÁTICO por la hora de Santiago de Chile: claro de
+     07:00 a 18:59 y oscuro el resto. Se re-evalúa cada 10 min y cada vez que
+     la app vuelve a primer plano (una PWA en iOS congela los timers mientras
+     está en segundo plano: sin esto, al abrirla a las 19:30 seguía clara).
+   - Tocar el botón de tema o elegir Claro/Oscuro en Ajustes deja una
+     elección manual (ps_theme_manual) que manda sobre el automático, hasta
+     que se vuelva a encender "Automático" en Ajustes → Apariencia. Las
+     elecciones manuales que ya existían se respetan: acá no hay un reinicio
+     de una sola vez que las borre (PimpStudio sí lo hizo).
    - Escribe data-theme en <html>, que activa los tokens
      [data-theme="light"] / [data-theme="dark"] del CSS.
    ============================================================ */
 
-const ThemeCtx = createContext({ theme: 'dark', toggle: () => {}, manual: false, useAuto: () => {} })
+const ThemeCtx = createContext({ theme: 'dark', toggle: () => {}, manual: false, auto: true, useAuto: () => {}, setAuto: () => {}, setTheme: () => {} })
 
 /* Hora actual en Santiago (maneja DST automáticamente vía Intl). */
 function santiagoHour() {
@@ -62,12 +67,23 @@ export function ThemeProvider({ children }) {
     try { localStorage.setItem('ps_theme', theme) } catch {}
   }, [theme])
 
-  // Modo automático: re-evalúa por hora de Santiago mientras no haya elección manual.
+  // Modo automático: re-evalúa por hora de Santiago mientras no haya elección
+  // manual — cada 10 min y al volver a primer plano.
   useEffect(() => {
-    if (manual) return
-    setTheme(autoTheme())
-    const id = setInterval(() => setTheme(autoTheme()), 10 * 60 * 1000)
-    return () => clearInterval(id)
+    if (manual) return undefined
+    const apply = () => setTheme(autoTheme())
+    apply()
+    const id = setInterval(apply, 10 * 60 * 1000)
+    const onVisible = () => { if (document.visibilityState === 'visible') apply() }
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('focus', apply)
+    window.addEventListener('pageshow', apply)
+    return () => {
+      clearInterval(id)
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('focus', apply)
+      window.removeEventListener('pageshow', apply)
+    }
   }, [manual])
 
   const toggle = useCallback(() => {
@@ -83,7 +99,27 @@ export function ThemeProvider({ children }) {
     setTheme(autoTheme())
   }, [])
 
-  return <ThemeCtx.Provider value={{ theme, toggle, manual, useAuto }}>{children}</ThemeCtx.Provider>
+  // Elegir un tema a mano (Ajustes → Apariencia): apaga el automático.
+  const chooseTheme = useCallback((t) => {
+    if (t !== 'light' && t !== 'dark') return
+    setManual(true)
+    try { localStorage.setItem('ps_theme_manual', '1') } catch {}
+    setTheme(t)
+  }, [])
+
+  // Interruptor "Automático" de Ajustes → Apariencia.
+  const setAuto = useCallback((on) => {
+    if (on) {
+      setManual(false)
+      try { localStorage.removeItem('ps_theme_manual') } catch {}
+      setTheme(autoTheme())
+    } else {
+      setManual(true)
+      try { localStorage.setItem('ps_theme_manual', '1') } catch {}
+    }
+  }, [])
+
+  return <ThemeCtx.Provider value={{ theme, toggle, manual, auto: !manual, useAuto, setAuto, setTheme: chooseTheme }}>{children}</ThemeCtx.Provider>
 }
 
 export function useTheme() { return useContext(ThemeCtx) }

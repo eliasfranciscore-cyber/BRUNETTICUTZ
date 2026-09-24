@@ -1,0 +1,80 @@
+/* ============================================================
+   Finanzas + Gastos + hoja de movimiento — clases con prefijo pn-fin-.
+   Tokens en src/styles/panel.css (--pn-*, solo lectura). Todo va bajo
+   body.dash-mode (el panel), así que no pisa el sitio público.
+   ============================================================ */
+
+/* ---------- Rango del período, junto al segmentado Semana/Mes/Año ---------- */
+body.dash-mode .pn-fin-range { font-size: var(--pn-fs-sm); color: var(--pn-text-3); white-space: nowrap; }
+
+/* ---------- Encabezados de columna ordenables (tabla de Movimientos) ---------- */
+body.dash-mode .pn-fin-sortth { display: inline-flex; align-items: center; gap: 3px; background: none; border: 0; padding: 0; margin: 0; font: inherit; color: inherit; cursor: pointer; }
+body.dash-mode .pn-fin-sortth:hover { color: var(--pn-text); }
+
+/* ---------- Tarjetas en grilla (p. ej. ventas online por origen): auto-fit, sin huecos ---------- */
+body.dash-mode .pn-fin-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  gap: 10px;
+  align-items: start;
+}
+
+body.dash-mode .pn-fin-bcard {
+  min-width: 0;
+  text-align: left;
+  display: grid;
+  gap: 5px;
+  padding: 14px;
+  border-radius: var(--pn-r);
+  border: 1px solid var(--pn-line);
+  background: var(--pn-card-2);
+  font: inherit;
+  color: inherit;
+}
+body.dash-mode button.pn-fin-bcard { cursor: pointer; transition: background .12s, border-color .12s; }
+body.dash-mode button.pn-fin-bcard:hover { background: var(--pn-card-3); }
+body.dash-mode .pn-fin-bcard.is-on { border-color: var(--pn-accent); background: var(--pn-accent-soft); }
+body.dash-mode .pn-fin-bcard-name { font-size: var(--pn-fs-xs); color: var(--pn-text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body.dash-mode .pn-fin-bcard-val { font-family: var(--font-display); font-size: 1.0625rem; font-weight: 700; color: var(--pn-text); font-variant-numeric: tabular-nums; }
+body.dash-mode .pn-fin-bcard-meta { font-size: var(--pn-fs-2xs); color: var(--pn-text-3); line-height: 1.3; }
+body.dash-mode .pn-fin-bcard-split { font-size: var(--pn-fs-2xs); color: var(--pn-text-3); }
+body.dash-mode .pn-fin-bcard .pn-bar { margin-top: 1px; }
+
+/* ---------- Ingresos por servicio: filas con % ---------- */
+body.dash-mode .pn-fin-svcrow { display: grid; gap: 5px; }
+body.dash-mode .pn-fin-svcrow-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: var(--pn-fs-sm); color: var(--pn-text-2); }
+body.dash-mode .pn-fin-svcrow-head b { color: var(--pn-text); font-weight: 650; font-variant-numeric: tabular-nums; }
+
+/* ---------- Avisos rápidos (pendientes / a un premio) ---------- */
+body.dash-mode .pn-fin-flags { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+body.dash-mode .pn-fin-flag {
+  display: flex; align-items: center; gap: 10px; min-width: 0;
+  padding: 12px 14px; border-radius: var(--pn-r); border: 1px solid var(--pn-line);
+  background: var(--pn-card-2); font-size: var(--pn-fs-sm); color: var(--pn-text-2); text-align: left;
+}
+body.dash-mode button.pn-fin-flag { cursor: pointer; }
+body.dash-mode button.pn-fin-flag:hover { background: var(--pn-card-3); }
+body.dash-mode .pn-fin-flag.is-warn { border-color: color-mix(in srgb, var(--pn-warn) 35%, transparent); background: var(--pn-warn-soft); }
+body.dash-mode .pn-fin-flag b { font: 700 1.25rem/1 var(--font-display); color: var(--pn-text); flex: 0 0 auto; }
+
+/* ---------- Movimientos manuales / lista de reservas: ícono acentuado ---------- */
+body.dash-mode .pn-fin-cat-ic {
+  width: 34px; height: 34px; border-radius: 10px; flex: 0 0 auto;
+  display: grid; place-items: center;
+  background: color-mix(in srgb, var(--c, var(--pn-accent)) 16%, var(--pn-card-2));
+  color: var(--c, var(--pn-accent));
+}
+
+/* ---------- Gastos: tarjeta hero (total + barra de presupuesto) ---------- */
+body.dash-mode .pn-fin-exp-total { padding: 2px 2px 14px; display: grid; gap: 4px; }
+body.dash-mode .pn-fin-exp-total-label { font-size: var(--pn-fs-sm); color: var(--pn-text-3); }
+body.dash-mode .pn-fin-exp-total-value { font-family: var(--font-display); font-size: 2rem; font-weight: 700; color: var(--pn-text); font-variant-numeric: tabular-nums; }
+body.dash-mode .pn-fin-exp-budget { display: grid; gap: 4px; margin-top: 6px; max-width: 340px; }
+body.dash-mode .pn-fin-exp-budget-note { font-size: var(--pn-fs-xs); color: var(--pn-text-3); }
+body.dash-mode .pn-kpis.pn-fin-exp-mini { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 0 2px; }
+
+/* ---------- Mini KPI dentro de la tarjeta hero (más chico que el Kpi normal) ---------- */
+body.dash-mode .pn-fin-mini-kpi { display: grid; gap: 2px; min-width: 0; }
+body.dash-mode .pn-fin-mini-kpi-label { display: flex; align-items: center; gap: 5px; font-size: var(--pn-fs-2xs); color: var(--pn-text-3); }
+body.dash-mode .pn-fin-mini-kpi-value { font-family: var(--font-display); font-size: var(--pn-fs-lg); font-weight: 650; color: var(--pn-text); font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body.dash-mode .pn-fin-mini-kpi-sub { font-size: var(--pn-fs-2xs); color: var(--pn-text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

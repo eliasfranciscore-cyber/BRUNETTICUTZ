@@ -1,9 +1,13 @@
-/* PIMP STUDIO — Service Worker
+/* BRUNETTI — Service Worker
    - Habilita Web Push para iOS (iOS 16.4+ requiere la app instalada en inicio).
    - Muestra notificaciones push (servidor) y notificaciones locales (en dispositivo).
-   - Al tocar la notificación abre/enfoca el panel interno. */
+   - Al tocar la notificación abre/enfoca el panel interno.
 
-const SW_VERSION = "ps-sw-v1";
+   NO cachea nada, a propósito: no hay handler de `fetch` ni uso de Cache
+   Storage. Si alguna vez estás depurando contenido viejo servido por el
+   sitio, este archivo no es el culpable — mira los headers HTTP (la regla
+   `Cache-Control: no-store` del HTML en vercel.json). Había una constante
+   SW_VERSION acá, resto de una versión que sí cacheaba; no la usaba nadie. */
 
 self.addEventListener("install", (event) => {
   // Activar de inmediato sin esperar pestañas previas.

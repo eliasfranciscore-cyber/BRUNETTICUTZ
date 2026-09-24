@@ -12,3 +12,10 @@ db
 README.md
 CHANGELOG_IMPLEMENTACION.md
 IMPLEMENTATION_PLAN.md
+
+# Este proyecto se instala con npm (package-lock.json). Vercel elige el gestor
+# por lockfile, así que un pnpm-lock.yaml suelto en el working tree cambiaría el
+# build a `pnpm install --frozen-lockfile` — que falla si el lockfile quedó
+# desincronizado con package.json. No se sube.
+pnpm-lock.yaml
+pnpm-workspace.yaml

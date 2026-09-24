@@ -1,0 +1,86 @@
+/* Servicios — src/pages/panel/ServiciosTab.jsx
+   Tokens y clases pn-* compartidas viven en src/styles/panel.css (solo
+   lectura). Acá solo lo propio de este módulo: la grilla de categorías y las
+   tarjetas de escritorio, que no tienen equivalente genérico en el kit. */
+
+/* ⚠️ Parche de un bug del kit compartido (src/styles/panel.css, no editable
+   desde acá): `.pn-list { display: grid; min-width: 0; }` no fija
+   `grid-template-columns`, así que su única columna implícita se auto-dimensiona
+   al `.pn-row` MÁS ANCHO de la lista según su contenido mínimo (imagen/ícono +
+   título + chip de cola sin achicar), y esa columna ancha se le aplica a TODAS
+   las filas por igual — el `min-width:0` de `.pn-list` protege cómo el grid se
+   comporta como hijo de su padre, no cómo dimensiona sus propias columnas
+   (el clásico "grid blowout"). Con nueve servicios y un chip de estado a la
+   derecha, algunas filas se salían por el borde derecho del celular.
+   Confirmado con Playwright: forzar `minmax(0,1fr)` en `.pn-list` lo arregla
+   (356px en vez de 434px). El arreglo de fondo es agregarle
+   `grid-template-columns: minmax(0, 1fr);` a esa regla en panel.css (afecta a
+   cualquier List del panel, no solo esta); acá se repite el mismo valor pero
+   acotado a esta pantalla, para no depender de ese cambio compartido. */
+.pn-svc-page .pn-list { grid-template-columns: minmax(0, 1fr); }
+
+.pn-svc-cats { display: grid; gap: 22px; }
+.pn-svc-cat { display: grid; gap: 10px; min-width: 0; }
+
+.pn-svc-ic {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--pn-r-xs);
+  display: grid;
+  place-items: center;
+  background: var(--pn-card-2);
+  color: var(--pn-accent);
+  border: 1px solid var(--pn-line);
+  flex: 0 0 auto;
+}
+
+/* Escritorio: tarjetas de alto parejo (Fase 11 del plan de rediseño). En el
+   celular, ServiciosTab usa List/ListRow en su lugar. align-items: start
+   evita que una tarjeta más alta (nombre largo, "solo el día X") estire a sus
+   vecinas de la misma fila y deje un hueco debajo de las demás. */
+.pn-svc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+.pn-svc-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 128px;
+  text-align: left;
+  padding: 14px;
+  border-radius: var(--pn-r);
+  border: 1px solid var(--pn-line);
+  background: var(--pn-card);
+  cursor: pointer;
+  transition: background .12s, border-color .12s;
+}
+.pn-svc-card:hover { background: var(--pn-card-2); border-color: var(--pn-line-2); }
+.pn-svc-card:active { transform: scale(.99); }
+.pn-svc-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pn-svc-card-name {
+  font: 650 var(--pn-fs-md)/1.3 var(--font-display);
+  color: var(--pn-text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.pn-svc-card-meta { font-size: var(--pn-fs-xs); color: var(--pn-text-3); margin-top: auto; }
+.pn-svc-card-price {
+  font-family: var(--font-display);
+  font-weight: 650;
+  color: var(--pn-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Stepper de "bloquea en agenda" dentro de ServiceSheet. */
+.pn-svc-blocks { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.pn-svc-blocks b { font: 650 var(--pn-fs-sm)/1 var(--font-body); color: var(--pn-text); white-space: nowrap; }
+
+/* Los Switch de Publicado/Destacado/Suma estrella van en una lista sin la
+   sombra ni el aire de una Card normal: viven dentro de la hoja, no son una
+   sección aparte. */
+.pn-svc-toggles { box-shadow: none; border: 1px solid var(--pn-line); }

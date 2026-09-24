@@ -1,4 +1,4 @@
-/* PIMP STUDIO — Módulo de notificaciones push (cliente)
+/* BRUNETTI — Módulo de notificaciones push (cliente)
    ------------------------------------------------------------------
    Diseñado para iOS instalado como app (Agregar a inicio desde Safari).
    En iOS 16.4+ el Web Push SOLO funciona si la web está instalada en la
@@ -134,6 +134,64 @@ export async function enablePush(barber) {
   return result
 }
 
+/* Re-registra en el servidor la suscripción de ESTE dispositivo. No pide
+   permiso ni muestra nada: se llama al abrir el panel.
+
+   Hace falta porque `enablePush` corre una sola vez —cuando el barbero toca
+   el interruptor— y deja una marca en localStorage, pero la suscripción del
+   navegador y su fila en el servidor se caen solas y por separado: iOS al
+   reinstalar la PWA, limpiar los datos del sitio, el navegador rotando el
+   endpoint, o el propio backend borrando la fila cuando el servicio de push
+   contesta 404/410 (ver notifyBarber en api/push.js). Cuando pasaba eso,
+   `pushEnabledFor` seguía leyendo la marca local y diciendo "activado",
+   nadie volvía a suscribir, y el barbero dejaba de recibir avisos para
+   siempre sin ninguna señal de que algo se había roto.
+
+   Guardar es idempotente (ON CONFLICT (endpoint) en api/push.js), así que
+   llamar a esto en cada apertura del panel no duplica filas.
+
+   Si no se puede re-registrar, se borra la marca local a propósito: más vale
+   que el interruptor se vea apagado —y el barbero lo vuelva a tocar— que
+   mienta diciendo que todo está bien. */
+export async function syncPush(barber) {
+  const flagKey = `ps_push_enabled_${barber?.id ?? "me"}`
+  const clearFlag = () => { try { localStorage.removeItem(flagKey) } catch {} }
+
+  if (!pushEnabledFor(barber)) return { ok: false, reason: "not-enabled" }
+
+  // El permiso se revoca desde los ajustes del sistema sin avisarle a la app,
+  // así que la marca local puede estar mintiendo desde antes de llegar acá.
+  if (!pushAvailableHere() || permissionState() !== "granted") {
+    clearFlag()
+    return { ok: false, reason: "no-permission" }
+  }
+
+  const reg = await registerServiceWorker()
+  if (!reg?.pushManager || !VAPID_PUBLIC_KEY) return { ok: false, reason: "unavailable" }
+
+  try {
+    // Con el permiso ya concedido, subscribe() no necesita gesto del usuario.
+    let sub = await reg.pushManager.getSubscription()
+    if (!sub) {
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+      })
+    }
+    const res = await fetch("/api/push", {
+      method: "POST",
+      headers: authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ subscription: sub, barberId: barber?.id }),
+    })
+    if (!res.ok) throw new Error(`save failed: ${res.status}`)
+    return { ok: true }
+  } catch (err) {
+    console.warn("syncPush failed:", err)
+    clearFlag()
+    return { ok: false, reason: "sync-failed" }
+  }
+}
+
 export async function disablePush(barber) {
   try { localStorage.removeItem(`ps_push_enabled_${barber?.id ?? "me"}`) } catch {}
   const reg = await registerServiceWorker()
@@ -149,6 +207,28 @@ export async function disablePush(barber) {
     }
   }
   return { ok: true }
+}
+
+/* Pide al servidor que mande un push REAL a este barbero y devuelve a
+   cuántos dispositivos llegó.
+
+   Sustituye a la prueba con notifyLocal(), que mostraba una notificación en
+   este mismo dispositivo sin tocar el servidor: se veía igual de bien con la
+   suscripción borrada, así que no probaba la cadena que falla —justo la que
+   dejó a barberos semanas sin avisos creyendo que todo estaba activado. */
+export async function sendTestPush() {
+  try {
+    const res = await fetch("/api/push", {
+      method: "POST",
+      headers: authHeaders({ "Content-Type": "application/json" }),
+      body: JSON.stringify({ action: "test" }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok || !data?.ok) return { ok: false, sent: 0, error: data?.error || `http ${res.status}` }
+    return { ok: true, sent: Number(data.sent) || 0 }
+  } catch {
+    return { ok: false, sent: 0, error: "network" }
+  }
 }
 
 export function pushEnabledFor(barber) {

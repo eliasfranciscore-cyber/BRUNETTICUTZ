@@ -1,0 +1,149 @@
+/* ============================================================
+   RESUMEN — CSS propio del módulo (rediseño 2026, Fase 5)
+   Solo tokens --pn-* y clases con prefijo pn-resumen-. Ver panel.css para
+   las primitivas compartidas (Card, List, Kpi, Segmented…) que este
+   archivo complementa, nunca reemplaza.
+   ============================================================ */
+
+/* ---- Saludo (arriba de todo, con la foto de quien tiene la sesión) ---- */
+.pn-resumen-greet { display: flex; align-items: center; gap: 12px; padding: 4px 2px 2px; }
+.pn-resumen-greet-text { min-width: 0; }
+.pn-resumen-greet-text h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--pn-fs-xl);
+  font-weight: 650;
+  color: var(--pn-text);
+  line-height: 1.2;
+}
+.pn-resumen-greet-text p { margin: 2px 0 0; font-size: var(--pn-fs-sm); color: var(--pn-text-3); }
+/* Solo la primera letra: text-transform:capitalize dejaba "23 De Septiembre". */
+.pn-resumen-greet-text p::first-letter { text-transform: uppercase; }
+
+/* El segmentado Hoy/Tendencias solo alterna algo en el celular y la tablet:
+   en escritorio las dos columnas ya van lado a lado (.pn-cols--side), así
+   que ahí el control no tiene nada que hacer y se oculta. */
+.pn-resumen-seg { width: 100%; }
+@media (min-width: 1025px) { .pn-seg.pn-resumen-seg { display: none; } }
+
+.pn-resumen-col { display: grid; gap: 16px; min-width: 0; align-content: start; }
+@media (max-width: 1024px) { .pn-resumen-col.is-hidden { display: none; } }
+
+/* ---- Alcance (a quién se está mirando) ----
+   El selector de barbero vive en la barra superior (fuera de este archivo);
+   sin este aviso, elegir uno ahí cambiaba los números de Tendencias pero no
+   había ninguna señal en pantalla de que el selector hubiera hecho algo. */
+.pn-resumen-scope {
+  margin: -6px 2px 0;
+  display: flex; align-items: center; gap: 6px;
+  font-size: var(--pn-fs-xs); color: var(--pn-text-3);
+}
+.pn-resumen-scope svg { flex: 0 0 auto; }
+.pn-resumen-scope b { color: var(--pn-text); font-weight: 650; }
+
+/* La fila de "Ahora" es la única del panel que junta trailing (el estado) Y
+   acciones (WhatsApp + Iniciar/Cobrar) en el mismo pn-row: a 375-390px eso le
+   dejaba a pn-row-main ~41px — el nombre del cliente salía "Vic…" partido a
+   media palabra. El estado ya se puede leer con un toque (abre el detalle),
+   así que en el celular se saca el chip duplicado y se le devuelve el
+   espacio al nombre; en desktop/tablet (≥641px) sobra ancho y se deja. */
+@media (max-width: 640px) { .pn-resumen-now-row .pn-row-trail { display: none; } }
+
+.pn-resumen-pending {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 0; cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+/* El chip mide 24px de alto por diseño (es un chip, no un botón grande) —
+   la zona de toque real se amplía con un pseudo-elemento, mismo patrón que
+   `.pn-icon-btn::after` en panel.css, para llegar a 44px sin agrandar el
+   chip visualmente. */
+.pn-resumen-pending::after {
+  content: ""; position: absolute; left: 50%; top: 50%;
+  width: max(100%, 44px); height: max(100%, 44px);
+  transform: translate(-50%, -50%);
+}
+
+/* ---- Barras verticales (ingresos por día, horas/días pico) ----
+   Estas tarjetas van `flush` (para que el estado vacío, un EmptyState, quede
+   con su propio margen correcto) — así que el contenido normal tiene que
+   traer su propio padding lateral (el mismo patrón de las otras tarjetas
+   `flush` del panel, no uno nuevo). `.pn-resumen-bars` también
+   se usa CHICO y anidado dentro de `.pn-resumen-peak-split`: ahí no lleva
+   padding propio porque ya lo trae el contenedor. */
+.pn-resumen-bars { display: flex; align-items: flex-end; gap: 8px; min-height: 128px; padding-top: 4px; }
+.pn-resumen-bars:not(.is-compact) { padding: 4px 16px 16px; }
+/* align-items: stretch (antes: center) — para que el rótulo de la hora
+   ("18h") ocupe el ANCHO de su propia columna y no el de su propio texto:
+   así el overflow:hidden de abajo recorta contra el borde de la columna, no
+   contra sus vecinas, que es justo lo que se pisaba a 375-390px con las 11
+   horas rotuladas. El track sigue centrado con margin:auto porque ya no lo
+   centra el align-items del padre. */
+.pn-resumen-bars-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: stretch; justify-content: flex-end; gap: 6px; height: 100%; }
+.pn-resumen-bars-track { width: 100%; max-width: 30px; height: 84px; margin: 0 auto; display: flex; align-items: flex-end; background: var(--pn-card-3); border-radius: 6px; overflow: hidden; }
+.pn-resumen-bars-fill { width: 100%; min-height: 3px; background: var(--pn-text-3); border-radius: 6px 6px 0 0; transition: height .5s var(--pn-ease); }
+.pn-resumen-bars-col.is-peak .pn-resumen-bars-fill { background: var(--gold-grad); }
+.pn-resumen-bars-val { font-size: var(--pn-fs-2xs); color: var(--pn-text-3); font-variant-numeric: tabular-nums; white-space: nowrap; text-align: center; overflow: hidden; }
+.pn-resumen-bars-lbl { font-size: var(--pn-fs-2xs); color: var(--pn-text-3); white-space: nowrap; text-align: center; overflow: hidden; }
+.pn-resumen-bars.is-compact { min-height: 76px; gap: 4px; }
+.pn-resumen-bars.is-compact .pn-resumen-bars-track { height: 52px; max-width: 20px; }
+
+/* Horas y días pico: dos mini-gráficos de a par. A 375-390px, 171px por
+   columna (mitad del ancho de tarjeta menos el gap) alcanzaba apenas para
+   las 11 barras de hora y sus rótulos se pisaban ("9h10h11h…"). Bajo
+   ~480px se apilan uno sobre el otro — cada uno se queda con el ancho
+   completo (~330px), de sobra para 11 columnas de ~26px con su rótulo. */
+.pn-resumen-peak-split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 4px 16px 16px; }
+@media (max-width: 640px) { .pn-resumen-peak-split { grid-template-columns: 1fr; gap: 20px; } }
+/* Antes "Hora pico: 18:00 · 5 reservas" salía directo como texto suelto
+   dentro del <p> flex: cada palabra entre el ícono y el resto quedaba como
+   un ítem flex separado, y a este ancho el navegador los partía en
+   cualquier parte en vez de cortar por palabra. Envolver el texto en un
+   <span> lo deja como UN solo ítem flex que ajusta línea (wrap) como texto
+   normal. */
+.pn-resumen-peak-note { margin: 8px 0 0; display: flex; align-items: flex-start; gap: 5px; font-size: var(--pn-fs-xs); color: var(--pn-text-3); }
+.pn-resumen-peak-note svg { flex: 0 0 auto; margin-top: 1px; }
+.pn-resumen-peak-note span { flex: 1 1 auto; min-width: 0; }
+.pn-resumen-peak-note b { color: var(--pn-text); font-weight: 650; }
+
+/* ---- Servicios más pedidos (barras horizontales) ---- */
+.pn-resumen-topsvc { display: grid; gap: 10px; padding: 4px 16px 16px; }
+.pn-resumen-topsvc-row { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.pn-resumen-topsvc-icon { flex: 0 0 auto; width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center; background: var(--pn-card-2); color: var(--pn-text-3); }
+.pn-resumen-topsvc-bar { flex: 1 1 auto; min-width: 0; display: grid; gap: 4px; }
+.pn-resumen-topsvc-name { font-size: var(--pn-fs-sm); color: var(--pn-text-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pn-resumen-topsvc-track { height: 6px; border-radius: 99px; background: var(--pn-card-3); overflow: hidden; }
+.pn-resumen-topsvc-fill { display: block; height: 100%; background: var(--pn-text-3); border-radius: inherit; }
+.pn-resumen-topsvc-count { flex: 0 0 auto; text-align: right; }
+.pn-resumen-topsvc-count b { display: block; font-family: var(--font-display); font-size: var(--pn-fs-sm); color: var(--pn-text); }
+.pn-resumen-topsvc-count small { font-size: var(--pn-fs-2xs); color: var(--pn-text-3); }
+
+/* ---- Mis ventas de la semana ---- */
+.pn-resumen-week { display: grid; gap: 8px; padding: 4px 16px 16px; }
+.pn-resumen-week-total { font-family: var(--font-display); font-size: 1.75rem; font-weight: 650; color: var(--pn-text); font-variant-numeric: tabular-nums; }
+.pn-resumen-week-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+/* ---- Gastos del mes (donut + leyenda) ---- */
+.pn-resumen-donut { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; padding: 4px 16px 16px; }
+.pn-resumen-donut-legend { flex: 1 1 160px; min-width: 0; gap: 8px; }
+.pn-resumen-legend-row { display: flex; align-items: center; gap: 8px; font-size: var(--pn-fs-sm); color: var(--pn-text-2); min-width: 0; }
+.pn-resumen-legend-row span { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pn-resumen-legend-row b { flex: 0 0 auto; color: var(--pn-text); font-weight: 650; }
+
+/* ---- Ocupación (anillo + retención/margen) ---- */
+.pn-resumen-ring { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; padding: 4px 16px 16px; }
+.pn-resumen-ring-stats { display: grid; gap: 10px; flex: 1 1 120px; }
+.pn-resumen-ring-stats > div { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.pn-resumen-ring-stats b { font-family: var(--font-display); font-size: var(--pn-fs-lg); color: var(--pn-text); }
+.pn-resumen-ring-stats span:last-child { font-size: var(--pn-fs-xs); color: var(--pn-text-3); }
+
+/* ---- Reseñas de clientes ---- */
+.pn-resumen-reviews { display: grid; gap: 14px; }
+@media (min-width: 641px) { .pn-resumen-reviews { grid-template-columns: minmax(160px, .8fr) minmax(0, 1.2fr); align-items: start; } }
+.pn-resumen-reviews-summary { display: grid; gap: 10px; align-content: start; }
+.pn-resumen-reviews-stars { display: flex; gap: 3px; }
+.pn-resumen-reviews-dist { display: grid; gap: 6px; }
+.pn-resumen-reviews-distrow { display: grid; grid-template-columns: 22px 1fr 20px; align-items: center; gap: 8px; font-size: var(--pn-fs-xs); color: var(--pn-text-3); }
+.pn-resumen-reviews-distrow > span:first-child { display: inline-flex; align-items: center; gap: 2px; }
+.pn-resumen-reviews-list { min-width: 0; }

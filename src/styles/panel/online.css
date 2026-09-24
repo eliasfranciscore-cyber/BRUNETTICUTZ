@@ -1,0 +1,20 @@
+/* ============================================================
+   VENTAS ONLINE — chips de origen (solo BrunettiCutz)
+   Inscripciones y Pedidos marcan de qué módulo pagado viene cada fila:
+   Cursos (azul), Workshop (morado) y Essentials (verde). Son los mismos
+   colores de cada módulo en el sitio público y los que ya usaba el panel
+   de antes (PEDIDOS_BADGE en Dashboard.jsx). Se usan con el Chip del kit:
+   <Chip tone="cursos|workshop|essentials">.
+   Van con `.pn-chip.` delante: así le ganan a la base `.pn-chip` de
+   panel.css sea cual sea el orden en que se carguen las dos hojas.
+   ============================================================ */
+
+.pn-chip.pn-chip--cursos { color: #6b74f0; background: rgba(107, 116, 240, .14); border-color: transparent; }
+.pn-chip.pn-chip--workshop { color: #b483f3; background: rgba(136, 56, 216, .16); border-color: transparent; }
+.pn-chip.pn-chip--essentials { color: #6fbf86; background: rgba(111, 191, 134, .14); border-color: transparent; }
+
+/* En claro los tonos de arriba quedan lavados sobre crema: se oscurecen para
+   que el rótulo se lea (mismo criterio que --pn-ok en claro). */
+[data-theme="light"] .pn-chip.pn-chip--cursos { color: #0b129e; background: rgba(11, 18, 158, .09); }
+[data-theme="light"] .pn-chip.pn-chip--workshop { color: #6b2fb3; background: rgba(107, 47, 179, .10); }
+[data-theme="light"] .pn-chip.pn-chip--essentials { color: #2b8750; background: rgba(43, 135, 80, .11); }

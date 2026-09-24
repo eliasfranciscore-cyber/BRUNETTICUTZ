@@ -1,0 +1,46 @@
+/* "Sin cerrar" (src/pages/panel/SinCerrar.jsx): atenciones pasadas por cobrar
+   o marcar como no asistidas. Solo tokens --pn-*. */
+
+/* Las dos acciones van bajo el nombre y el servicio: en el iPhone no caben al
+   lado del monto sin cortar el nombre del cliente. */
+.pn-sc-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.pn-sc-row { align-items: flex-start; }
+.pn-sc-row .pn-row-lead { align-self: flex-start; padding-top: 1px; }
+.pn-sc-row .pn-row-trail { align-self: flex-start; }
+
+.pn-sc-day { display: grid; }
+.pn-sc-day .pn-section-label { margin-top: 4px; }
+.pn-sc-group { box-shadow: none; }
+.pn-sc-filter { margin-top: 2px; }
+
+.pn-sc-more { padding: 4px 16px 16px; }
+.pn-sc-card-alert { padding: 8px 16px 0; }
+
+@media (min-width: 641px) {
+  /* En pantallas anchas las acciones vuelven a la derecha, en línea. */
+  .pn-sc-row { align-items: center; }
+  .pn-sc-row .pn-row-main { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 16px; align-items: center; }
+  .pn-sc-row .pn-row-main > .pn-row-title,
+  .pn-sc-row .pn-row-main > .pn-row-sub { grid-column: 1; }
+  .pn-sc-actions { grid-column: 2; grid-row: 1 / span 2; margin-top: 0; flex-wrap: nowrap; }
+  .pn-sc-row .pn-row-trail { align-self: center; }
+  .pn-sc-row .pn-row-lead { align-self: center; padding-top: 0; }
+}
+
+/* ---- Dos bloques en la hoja: "Pago por confirmar" y "Sin cerrar" ----
+   Cada bloque con su encabezado (título + cuántas + una línea de contexto).
+   El de "Sin cerrar" solo lleva encabezado cuando convive con el otro: sola, la
+   hoja ya se llama así. */
+.pn-sc-block { display: grid; gap: 10px; min-width: 0; }
+.pn-sc-block + .pn-sc-block { margin-top: 8px; }
+.pn-sc-block-head { display: grid; gap: 4px; }
+.pn-sc-block-title {
+  margin: 0; display: flex; align-items: center; gap: 8px;
+  font-family: var(--font-display); font-size: var(--pn-fs-md); font-weight: 650; color: var(--pn-text); line-height: 1.25;
+}
+.pn-sc-count {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 22px; height: 22px; padding: 0 7px;
+  border-radius: 999px; background: var(--pn-warn-soft); color: var(--pn-warn);
+  font-size: var(--pn-fs-xs); font-weight: 650; font-variant-numeric: tabular-nums;
+}
+.pn-sc-block-hint { margin: 0; font-size: var(--pn-fs-sm); color: var(--pn-text-2); line-height: 1.4; }

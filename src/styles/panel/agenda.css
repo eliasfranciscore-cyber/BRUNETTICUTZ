@@ -1,0 +1,163 @@
+/* ============================================================
+   AGENDA — CSS propio del módulo (rediseño 2026)
+   Solo tokens --pn-* y clases con prefijo pn-agenda-. Ver panel.css para
+   las primitivas compartidas (Card, List, Kpi, Sheet…) que este archivo
+   complementa, nunca reemplaza.
+   ============================================================ */
+
+/* ---- Semana: PeriodNav + Hoy en una fila, tira de días debajo ---- */
+.pn-agenda-week { display: flex; align-items: center; gap: 8px; }
+.pn-agenda-week .pn-period { flex: 1 1 auto; min-width: 0; }
+
+.pn-agenda-strip {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  touch-action: pan-y;
+}
+.pn-agenda-day {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  min-height: 56px;
+  padding: 8px 2px;
+  border-radius: var(--pn-r);
+  border: 1px solid var(--pn-line);
+  background: var(--pn-card);
+  color: var(--pn-text-2);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.pn-agenda-day:hover { background: var(--pn-hover); }
+.pn-agenda-day.is-today { border-color: var(--pn-line-2); color: var(--pn-text); }
+.pn-agenda-day.is-active { background: var(--pn-accent-soft); border-color: var(--gold-edge); color: var(--pn-text); }
+.pn-agenda-day-dow { font-size: var(--pn-fs-2xs); font-weight: 600; letter-spacing: .02em; text-transform: uppercase; }
+.pn-agenda-day-num { font-family: var(--font-display); font-size: var(--pn-fs-lg); font-weight: 650; line-height: 1.1; }
+.pn-agenda-day-dot { width: 4px; height: 4px; border-radius: 999px; background: var(--pn-accent); }
+.pn-agenda-day-dot.is-off { background: transparent; }
+
+/* ---- Resumen: una línea en el celular, KpiGrid completo en escritorio ---- */
+.pn-agenda-summary {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--pn-r);
+  background: var(--pn-card);
+  border: 1px solid var(--pn-line);
+  color: var(--pn-text-2);
+  font-size: var(--pn-fs-sm);
+}
+
+/* ---- Layout: grilla a la izquierda, reservas del día a la derecha ---- */
+.pn-agenda-layout { display: grid; gap: 16px; min-width: 0; align-items: stretch; }
+@media (min-width: 1025px) {
+  /* 400 y no 340: con la hora, el chip de estado y el chevron, a 340 px el
+     nombre del cliente quedaba en ~110 px y se partía en dos líneas. */
+  .pn-agenda-layout { grid-template-columns: minmax(0, 1fr) 400px; }
+}
+
+.pn-agenda-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.pn-agenda-headactions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.pn-agenda-legend { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; font-size: var(--pn-fs-xs); color: var(--pn-text-3); }
+.pn-agenda-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 999px; margin-right: 5px; vertical-align: middle; }
+.pn-agenda-legend i.is-free { background: var(--pn-ok); }
+.pn-agenda-legend i.is-blocked { background: var(--pn-bad); }
+.pn-agenda-legend i.is-booked { background: var(--pn-accent); }
+.pn-agenda-hint { margin: 0; font-size: var(--pn-fs-xs); color: var(--pn-text-3); }
+
+/* ---- Mañana / Tarde ---- */
+.pn-agenda-period + .pn-agenda-period { margin-top: 16px; }
+.pn-agenda-period-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.pn-agenda-period-title { margin: 0; font-size: var(--pn-fs-xs); font-weight: 650; letter-spacing: .06em; text-transform: uppercase; color: var(--pn-text-3); }
+
+/* ---- Grilla de horas ---- */
+.pn-agenda-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 8px; }
+.pn-agenda-tile {
+  position: relative;
+  min-height: 56px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  border-radius: var(--pn-r-sm);
+  border: 1px solid var(--pn-line);
+  background: var(--pn-card);
+  color: var(--pn-text-2);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .12s, border-color .12s, transform .1s;
+}
+.pn-agenda-tile:active:not(:disabled) { transform: scale(.97); }
+.pn-agenda-tile:disabled { cursor: default; }
+.pn-agenda-tile-h { font-family: var(--font-display); font-size: var(--pn-fs-md); font-weight: 650; color: var(--pn-text); font-variant-numeric: tabular-nums; }
+.pn-agenda-tile-tag { font-size: var(--pn-fs-2xs); color: var(--pn-text-3); }
+.pn-agenda-tile.is-free { background: var(--pn-ok-soft); border-color: transparent; }
+.pn-agenda-tile.is-free .pn-agenda-tile-tag { color: var(--pn-ok); }
+.pn-agenda-tile.is-blocked { background: var(--pn-bad-soft); border-color: transparent; }
+.pn-agenda-tile.is-blocked .pn-agenda-tile-tag { color: var(--pn-bad); }
+.pn-agenda-tile.is-booked { background: var(--pn-accent-soft); border-color: transparent; cursor: pointer; }
+.pn-agenda-tile.is-booked .pn-agenda-tile-h,
+.pn-agenda-tile.is-booked .pn-agenda-tile-tag { color: var(--pn-text); }
+.pn-agenda-tile.is-past { opacity: .45; }
+.pn-agenda-tile.is-busy { opacity: .6; }
+.pn-agenda-tile.is-selected { box-shadow: inset 0 0 0 2px var(--pn-accent); }
+.pn-agenda-tile.is-selected::after {
+  content: ""; position: absolute; top: 5px; right: 5px; width: 8px; height: 8px;
+  border-radius: 999px; background: var(--pn-accent);
+}
+
+/* ---- Vista Línea ---- */
+.pn-agenda-timeline { display: grid; gap: 2px; }
+.pn-agenda-tl-row { display: flex; align-items: stretch; gap: 10px; padding: 8px 2px; min-height: 44px; }
+.pn-agenda-tl-row[role="button"] { cursor: pointer; border-radius: var(--pn-r-xs); }
+.pn-agenda-tl-row[role="button"]:hover { background: var(--pn-hover); }
+.pn-agenda-tl-time { flex: 0 0 auto; width: 44px; padding-top: 2px; font-family: var(--font-display); font-size: var(--pn-fs-sm); font-weight: 650; color: var(--pn-text-2); font-variant-numeric: tabular-nums; }
+.pn-agenda-tl-rail { flex: 0 0 auto; width: 3px; border-radius: 999px; background: var(--pn-line-2); }
+.pn-agenda-tl-rail.is-booked { background: var(--pn-accent); }
+.pn-agenda-tl-rail.is-blocked { background: var(--pn-bad); }
+.pn-agenda-tl-card { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.pn-agenda-tl-info { display: grid; gap: 1px; min-width: 0; }
+.pn-agenda-tl-info strong { font-size: var(--pn-fs-sm); font-weight: 600; color: var(--pn-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pn-agenda-tl-info span { font-size: var(--pn-fs-xs); color: var(--pn-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pn-agenda-tl-empty { font-size: var(--pn-fs-sm); color: var(--pn-text-3); }
+.pn-agenda-tl-row.is-past .pn-agenda-tl-empty { opacity: .7; }
+
+/* ---- Modo Seleccionar: barra de acciones pegada abajo ---- */
+.pn-agenda-selectbar {
+  position: sticky;
+  bottom: 16px;
+  z-index: 6;
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 16px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  border: 1px solid var(--pn-line-2);
+  background: color-mix(in srgb, var(--pn-card) 92%, transparent);
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  box-shadow: var(--pn-shadow-pop);
+}
+.pn-agenda-selectbar-msg { flex: 1 1 auto; min-width: 0; font-size: var(--pn-fs-xs); color: var(--pn-text-3); }
+@media (max-width: 1024px) { .pn-agenda-selectbar { bottom: var(--pn-dock-space); } }
+@media (max-width: 640px) { .pn-agenda-selectbar-msg { display: none; } }
+
+/* ---- Zona de toque real de 44px sobre primitivas compartidas ----
+   `panel.css` (solo lectura) deja `.pn-btn--sm`, `.pn-seg-btn` y
+   `.pn-period-arrow`/`.pn-period-label` en 36px bajo `pointer: coarse`
+   (ver esas reglas ahí) — bajo el mínimo de 44px real que pide el propio
+   proyecto. Acá se amplía la zona de toque solo dentro de Agenda, con el
+   mismo truco que ya usa `.pn-icon-btn` en ese mismo archivo. Reportado
+   para corregir en el origen (afecta a todos los módulos que usan estas
+   primitivas, no solo a Agenda). */
+@media (pointer: coarse) {
+  .pn-agenda .pn-btn--sm,
+  .pn-agenda .pn-seg-btn,
+  .pn-agenda .pn-period-arrow,
+  .pn-agenda .pn-period-label {
+    position: relative;
+  }
+  .pn-agenda .pn-btn--sm::after,
+  .pn-agenda .pn-seg-btn::after,
+  .pn-agenda .pn-period-arrow::after,
+  .pn-agenda .pn-period-label::after {
+    content: "";
+    position: absolute; left: 50%; top: 50%;
+    width: max(100%, 44px); height: max(100%, 44px);
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* (La regla de overflow-wrap para .is-wrap ahora vive en panel.css.) */

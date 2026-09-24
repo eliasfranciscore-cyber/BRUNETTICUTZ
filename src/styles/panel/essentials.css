@@ -1,0 +1,78 @@
+/* Essentials — src/pages/panel/EssentialsTab.jsx y
+   src/components/InventoryModule.jsx.
+   Tokens y clases pn-* compartidas viven en src/styles/panel.css (solo
+   lectura): el thumbnail de producto (pn-thumb), la grilla de opciones
+   (pn-choices/pn-choice), el texto de aviso (pn-warn-text) y los toggles
+   (pn-svc-toggles, de servicios.css) ya cubren la mayoría de esta pantalla.
+   Acá solo lo propio: la ficha de producto (fotos, stock de solo lectura) y
+   el inventario (semáforo de stock, vista previa de un movimiento). */
+
+/* ⚠️ Mismo parche que en servicios.css (ver ese archivo para el detalle):
+   `.pn-list` en panel.css no fija `grid-template-columns`, así que su columna
+   implícita se auto-dimensiona a la fila más ancha (nombre de producto + chip
+   de estado sin achicar) y esa fila se sale del celular — arrastrando con
+   ella a las demás, porque comparten la misma columna. Pasa acá en el
+   Catálogo y en la lista de Existencias de InventoryModule (ambos usan
+   ListRow/DataTable dentro de esta misma pantalla). El arreglo de fondo es
+   agregar `grid-template-columns: minmax(0, 1fr);` a `.pn-list` en
+   panel.css. */
+.pn-ess-page .pn-list { grid-template-columns: minmax(0, 1fr); }
+
+/* ---------- ProductSheet: tres fotos (portada / hover / detalle) ---------- */
+.pn-ess-photos { display: flex; gap: 10px; margin-bottom: 2px; }
+.pn-ess-photo {
+  flex: 1 1 0;
+  aspect-ratio: 4 / 5;
+  border-radius: var(--pn-r-sm);
+  overflow: hidden;
+  position: relative;
+  display: block;
+  cursor: pointer;
+  border: 1px dashed var(--pn-line-2);
+  background: var(--pn-card-2);
+}
+.pn-ess-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pn-ess-photo-empty { width: 100%; height: 100%; display: grid; place-items: center; color: var(--pn-text-3); }
+.pn-ess-photo-label {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: 3px 4px;
+  text-align: center;
+  font-size: var(--pn-fs-2xs);
+  letter-spacing: .02em;
+  background: rgba(0, 0, 0, .55);
+  color: #e6cd90;
+}
+.pn-ess-photo input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+/* Stock de solo lectura (quien no es admin, dentro de ProductSheet). */
+.pn-ess-stock { display: flex; align-items: baseline; gap: 8px; }
+.pn-ess-stock b { font: 650 var(--pn-fs-lg)/1 var(--font-display); color: var(--pn-text); }
+
+/* Los Switch de Activo/Publicado dentro de ProductSheet van en una lista sin
+   la sombra de una Card normal: viven dentro de la hoja, no son una sección
+   aparte (mismo criterio que pn-svc-toggles en servicios.css). */
+.pn-ess-toggles { box-shadow: none; border: 1px solid var(--pn-line); }
+
+/* ---------- Inventario: semáforo de stock y marca dentro de una fila ---------- */
+.pn-ess-inv-bad { color: var(--pn-bad); font-weight: 650; }
+.pn-ess-inv-low { color: var(--pn-warn); font-weight: 650; }
+.pn-ess-inv-ok { color: var(--pn-ok); font-weight: 650; }
+.pn-ess-inv-brand { font-style: normal; color: var(--pn-text-3); }
+
+/* Vista previa "antes → después" al declarar un movimiento. */
+.pn-ess-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--pn-r-sm);
+  background: var(--pn-card-2);
+  font-size: var(--pn-fs-sm);
+  color: var(--pn-text-2);
+  font-variant-numeric: tabular-nums;
+}
+.pn-ess-preview b { color: var(--pn-text-3); font-weight: 500; }
+.pn-ess-preview em { font-style: normal; margin-left: auto; color: var(--pn-text-3); font-size: var(--pn-fs-xs); }
+.pn-ess-preview.is-up em { color: var(--pn-ok); }
+.pn-ess-preview.is-down em { color: var(--pn-bad); }
