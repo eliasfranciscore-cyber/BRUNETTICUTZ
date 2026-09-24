@@ -4,6 +4,7 @@ import Home from './pages/Home.jsx'
 import { ThemeProvider, FloatingThemeToggle } from './components/theme.jsx'
 import EditProvider from './components/edit/EditProvider.jsx'
 import OverridesProvider from './components/edit/OverridesProvider.jsx'
+import { FEATURES } from './features.js'
 
 // ── Ruteo de lanzamiento de la PWA instalada (iOS "Agregar a inicio") ──────
 // iOS Safari ignora con frecuencia el start_url del manifest y abre la PWA en
@@ -44,7 +45,10 @@ const Workshop = lazy(() => import('./pages/Workshop.jsx'))
 const Cursos = lazy(() => import('./pages/Cursos.jsx'))
 const EncuentraEstilo = lazy(() => import('./pages/EncuentraEstilo.jsx'))
 const Essentials = lazy(() => import('./pages/Essentials.jsx'))
+const EssentialsGracias = lazy(() => import('./pages/EssentialsGracias.jsx'))
 const CardShare = lazy(() => import('./pages/CardShare.jsx'))
+const Review = lazy(() => import('./pages/Review.jsx'))
+const ResetPassword = lazy(() => import('./pages/ResetPassword.jsx'))
 
 function RouteFallback() {
   return (
@@ -68,12 +72,15 @@ export default function App() {
               <Route path="/cursos"   element={<Cursos />} />
               <Route path="/style"    element={<EncuentraEstilo />} />
               <Route path="/essentials" element={<Essentials />} />
+              <Route path="/essentials/gracias" element={<EssentialsGracias />} />
               <Route path="/encuentra-tu-estilo" element={<Navigate to="/style" replace />} />
               <Route path="/login"    element={<Login />} />
               <Route path="/reservar" element={<Booking />} />
               <Route path="/cuenta"   element={<Account />} />
               <Route path="/tarjeta"  element={<CardShare />} />
+              {FEATURES.reviews && <Route path="/resena" element={<Review />} />}
               <Route path="/ingreso"  element={<BarberLogin />} />
+              {FEATURES.passwordReset && <Route path="/restablecer" element={<ResetPassword />} />}
               <Route path="/panel"    element={<Dashboard />} />
               <Route path="*"         element={<Navigate to="/" replace />} />
             </Routes>
