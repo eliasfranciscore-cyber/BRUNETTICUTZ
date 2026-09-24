@@ -1,131 +1,276 @@
-import React, { useState, useEffect } from 'react'
-import { createPortal } from 'react-dom'
+import React, { useEffect, useRef, useState } from 'react'
 import { Icon } from './ui.jsx'
-import { CLP, barberById, cleanPhone } from '../data.js'
+import { CLP, cleanPhone, fmtDate, santiagoDateKey } from '../data.js'
+import { FEATURES } from '../features.js'
+import { waHref as buildWaHref, waMessages } from '../whatsapp.js'
+import {
+  Sheet, ConfirmDialog, ActionMenu, Avatar, KpiGrid, List, ListRow, EmptyState,
+  Field, Button, IconButton, Chip, StatusBadge, ProgressBar, SectionLabel,
+} from './panel/index.js'
+import '../styles/panel/clientes.css'
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+/* "tiene hora hoy" / "tiene hora el 26 sep": `nextVisit` puede ser hoy
+   mismo (una hora de la tarde que todavía no llega). */
+const nextVisitLabel = (iso, today) => (String(iso).slice(0, 10) === today ? 'hoy' : `el ${fmtDate(iso, 'dm')}`)
+
+const STATUS_META = {
+  activo: { label: 'Activo', icon: 'checkCircle' },
+  nuevo: { label: 'Nuevo', icon: 'spark' },
+  inactivo: { label: 'Inactivo', icon: 'clock' },
+}
+
+const formOf = (c) => ({
+  name: c?.name || '',
+  phone: c?.phone || '',
+  email: c?.email || '',
+  status: c?.status || 'activo',
+  profession: c?.profession || '',
+})
 
 /**
- * ClientModal — detalle del cliente en modal (responsive).
- * Muestra historial, KPIs y gestión: editar datos, WhatsApp directo, agendar y
- * eliminar (con confirmación). Reemplaza el panel lateral que vivía debajo.
+ * ClientModal — ficha del cliente, en la hoja única del panel (`Sheet`).
+ * Muestra KPIs, fidelidad e historial; gestiona editar datos, WhatsApp
+ * directo, agendar, mandar la tarjeta y eliminar (admin, con confirmación).
  *
  * Props:
- *  client, history, barbers, startEditing
+ *  client, history, startEditing
  *  onClose, onSave(updated), onDelete(client), onSchedule(client)
+ *  ctx — el `dash` del panel: se usan `admin`, `sendWalletCard`,
+ *        `walletSendingId` y `clientKey` (todos opcionales).
  */
-export default function ClientModal({ client, history = [], barbers = [], startEditing = false, onClose, onSave, onDelete, onSchedule }) {
-  const [editing, setEditing] = useState(startEditing)
+export default function ClientModal({ client, history = [], startEditing = false, onClose, onSave, onDelete, onSchedule, ctx = {} }) {
+  const { sendWalletCard, walletSendingId, clientKey, admin } = ctx || {}
+  /* La hoja se sigue dibujando con el último cliente mientras se anima al
+     cerrar (Dashboard pone `selectedClient` en null de una): así "Agendar"
+     y la X cierran con su animación en vez de desaparecer de golpe. */
+  const lastRef = useRef(client)
+  if (client) lastRef.current = client
+  const c = client || lastRef.current
+  const keyOf = (x) => (x ? (clientKey ? clientKey(x) : (x.id ?? x.phone)) : null)
+  const key = keyOf(client)
+
+  const [editing, setEditing] = useState(Boolean(startEditing))
   const [confirmDel, setConfirmDel] = useState(false)
-  const [form, setForm] = useState({ name: '', phone: '', email: '', status: 'activo' })
+  const [form, setForm] = useState(() => formOf(client))
+  const [errors, setErrors] = useState({})
 
+  // Se reinicia al abrir OTRO cliente, no cada vez que la ficha abierta se
+  // refresca (guardar actualiza `selectedClient` y no debe volver a editar).
   useEffect(() => {
-    setForm({ name: client?.name || '', phone: client?.phone || '', email: client?.email || '', status: client?.status || 'activo' })
-    setEditing(startEditing)
+    if (!client) return
+    setForm(formOf(client))
+    setEditing(Boolean(startEditing))
     setConfirmDel(false)
-  }, [client, startEditing])
+    setErrors({})
+  }, [key, startEditing]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') (confirmDel ? setConfirmDel(false) : onClose()) }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [confirmDel, onClose])
+  if (!c) return null
 
-  if (!client) return null
+  const waHref = buildWaHref(c.phone, waMessages.saludo({ client: c.name }))
+  /* Respaldo con el historial solo si la lista no trajo la cifra (un backend
+     viejo o sin API). `??`, no `||`: un 0 que manda el servidor es un 0. El
+     historial trae horas futuras y canceladas, que no son visitas: se corta
+     en hoy (Santiago). */
+  const today = santiagoDateKey()
+  const pastHistory = (history || []).filter((h) => h.status !== 'cancelada' && String(h.date || '') <= today)
+  const visits = Number(c.visits ?? pastHistory.length) || 0
+  const totalSpent = c.totalSpent ?? pastHistory
+    .filter((h) => h.status === 'completada')
+    .reduce((s, h) => s + Number(h.paidAmount ?? h.price ?? 0), 0)
+  const lastVisitKey = 'lastVisit' in c ? (c.lastVisit || null) : (pastHistory[0]?.date || null)
+  const sendingWallet = walletSendingId != null && walletSendingId === keyOf(c)
+  const loyalty = c.loyalty || null
 
-  const first = (client.name || '').split(' ')[0] || 'Hola'
-  const phoneDigits = String(client.phone || '').replace(/\D/g, '')
-  const waHref = `https://wa.me/56${phoneDigits}?text=${encodeURIComponent(`Hola ${first}, te escribimos de Brunetti 💈`)}`
-  const totalSpent = client.totalSpent || history.reduce((s, h) => s + Number(h.price || 0), 0)
-  const visits = client.visits || history.length
-
-  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
+  const set = (k) => (e) => {
+    const v = e.target.value
+    setForm((f) => ({ ...f, [k]: v }))
+    if (errors[k]) setErrors((er) => ({ ...er, [k]: undefined }))
+  }
+  /* Misma regla que POST /api/clients (validateClient): nombre, 9 dígitos y
+     un correo válido. Sin esto el cambio se veía guardado acá y el servidor
+     lo rechazaba en silencio: al recargar volvía el dato viejo. */
   const save = () => {
-    if (!form.name.trim()) return
-    onSave({ ...client, name: form.name.trim(), phone: cleanPhone(form.phone), email: form.email.trim(), status: form.status })
+    const name = form.name.trim()
+    const phone = cleanPhone(form.phone)
+    const email = form.email.trim().toLowerCase()
+    const next = {}
+    if (!name) next.name = 'Escribe el nombre.'
+    if (phone.length !== 9) next.phone = 'Debe tener 9 dígitos.'
+    if (!EMAIL_RE.test(email)) next.email = email ? 'Ese correo no es válido.' : 'Hace falta un correo para guardar la ficha.'
+    if (Object.keys(next).length) { setErrors(next); return }
+    onSave?.({
+      ...c,
+      name,
+      phone,
+      email,
+      status: form.status,
+      // Ficha conocida → lo que quede en el campo es lo que se guarda,
+      // incluido vaciarlo a propósito ('' = borrar la profesión).
+      ...(FEATURES.profession ? { profession: form.profession.trim() } : {}),
+    })
     setEditing(false)
   }
+  const onEnter = (e) => { if (e.key === 'Enter') { e.preventDefault(); save() } }
 
-  return createPortal((
-    <div className="psn-modal" role="dialog" aria-modal="true">
-      <button className="psn-scrim" aria-label="Cerrar" onClick={onClose} />
-      <div className="psn-modal-card psn-client-modal">
-        <button className="psn-close" onClick={onClose} aria-label="Cerrar"><Icon name="close" size={17} /></button>
+  const noVisitsNote = [
+    'Sin visitas todavía',
+    c.nextVisit ? `tiene hora ${nextVisitLabel(c.nextVisit, today)}` : null,
+    c.walletHasPass ? 'ya tiene la tarjeta en Wallet' : null,
+    c.createdAt ? `se registró el ${fmtDate(c.createdAt, 'dmy')}` : null,
+  ].filter(Boolean).join(' · ')
 
-        <div className="psn-client-profile">
-          <div className="psn-client-avatar">{(client.name || 'C')[0]?.toUpperCase()}</div>
-          <div style={{ minWidth: 0 }}>
-            <h3 className="font-display">{client.name}</h3>
-            <span className="psn-client-sub">+56 {client.phone || '—'}</span>
-            <span className="psn-client-sub">{client.email || 'sin correo'}</span>
-          </div>
-        </div>
-
+  return (
+    <>
+      <Sheet
+        open={Boolean(client)}
+        onClose={onClose}
+        size="md"
+        lead={<Avatar name={c.name} size={44} accent />}
+        title={c.name || 'Cliente'}
+        subtitle={`+56 ${c.phone || '—'}${c.email ? ` · ${c.email}` : ''}`}
+        headActions={!editing && admin && onDelete ? (
+          <ActionMenu
+            title={c.name}
+            items={[{ label: 'Eliminar cliente', icon: 'trash', danger: true, onClick: () => setConfirmDel(true) }]}
+          />
+        ) : null}
+        footer={editing ? (
+          <>
+            <Button variant="secondary" onClick={() => { setEditing(false); setForm(formOf(c)); setErrors({}) }}>Cancelar</Button>
+            <Button variant="primary" icon="check" onClick={save}>Guardar</Button>
+          </>
+        ) : (
+          <>
+            {/* WhatsApp va como ícono: con los tres rótulos a la vez
+                ("WhatsApp"/"Editar"/"Agendar") no entran en una fila de 375 px
+                sin recortar texto, y es el más reconocible sin palabra. */}
+            <IconButton
+              icon="whatsapp"
+              label="Escribir por WhatsApp"
+              disabled={!waHref}
+              onClick={() => waHref && window.open(waHref, '_blank', 'noopener,noreferrer')}
+            />
+            <Button variant="secondary" icon="pencil" onClick={() => setEditing(true)}>Editar</Button>
+            <Button variant="primary" icon="calendar" onClick={() => onSchedule?.(c)}>Agendar</Button>
+          </>
+        )}
+      >
         {editing ? (
-          <div className="psn-client-edit">
-            <div className="field"><label>Nombre</label><input className="input" value={form.name} onChange={set('name')} placeholder="Nombre y apellido" /></div>
-            <div className="field"><label>Teléfono</label><input className="input" value={form.phone} onChange={set('phone')} inputMode="tel" placeholder="9 1234 5678" /></div>
-            <div className="field"><label>Correo</label><input className="input" value={form.email} onChange={set('email')} inputMode="email" placeholder="correo@ejemplo.com" /></div>
-            <div className="field"><label>Estado</label>
+          <div className="pn-clientes-form">
+            <Field label="Nombre" error={errors.name}>
+              <input className="input" value={form.name} onChange={set('name')} onKeyDown={onEnter} placeholder="Nombre y apellido" autoComplete="off" />
+            </Field>
+            <Field label="Teléfono" hint="9 dígitos, sin +56" error={errors.phone}>
+              <input className="input" value={form.phone} onChange={set('phone')} onKeyDown={onEnter} inputMode="tel" placeholder="9 1234 5678" autoComplete="off" />
+            </Field>
+            <Field label="Correo" error={errors.email}>
+              <input className="input" value={form.email} onChange={set('email')} onKeyDown={onEnter} inputMode="email" placeholder="correo@ejemplo.com" autoComplete="off" autoCapitalize="off" />
+            </Field>
+            {FEATURES.profession && (
+              <Field label="Profesión" optional>
+                <input className="input" value={form.profession} onChange={set('profession')} onKeyDown={onEnter} placeholder="Ej: Ingeniero, Estudiante" maxLength={80} />
+              </Field>
+            )}
+            <Field label="Estado" className="pn-field-full">
               <select className="input" value={form.status} onChange={set('status')}>
                 <option value="activo">Activo</option>
                 <option value="nuevo">Nuevo</option>
                 <option value="inactivo">Inactivo</option>
               </select>
-            </div>
-            <div className="psn-confirm-actions">
-              <button className="btn btn-ghost btn-block" onClick={() => setEditing(false)}>Cancelar</button>
-              <button className="btn btn-gold btn-block" onClick={save}><Icon name="check" size={15} /> Guardar</button>
-            </div>
+            </Field>
           </div>
         ) : (
-          <>
-            <div className="psn-client-kpis">
-              <div><strong>{visits}</strong><span>Cortes</span></div>
-              <div><strong>{CLP(totalSpent)}</strong><span>Total</span></div>
-              <div><strong>{client.lastVisit || history[0]?.date || '—'}</strong><span>Última visita</span></div>
-            </div>
-
-            <div className="psn-client-history">
-              {history.map((item) => {
-                const b = barbers.find((x) => Number(x.id) === Number(item.barberId)) || barberById(item.barberId) || {}
-                return (
-                  <div key={item.id || `${item.date}-${item.time}`} className="psn-client-hrow">
-                    <div style={{ minWidth: 0 }}>
-                      <div className="svc">{item.service}</div>
-                      <div className="meta">{item.date} · {item.time} · {b.short || b.name || 'Barbero'}</div>
-                    </div>
-                    <b className="gold-text">{CLP(item.price)}</b>
-                  </div>
-                )
-              })}
-              {!history.length && <div className="empty-state">Este cliente aún no tiene historial de reservas.</div>}
-            </div>
-
-            <div className="psn-actions">
-              <div className="psn-confirm-actions">
-                <button className="btn btn-dark btn-block" onClick={() => setEditing(true)}><Icon name="user" size={15} /> Editar</button>
-                <a className="btn btn-wa btn-block" href={waHref} target="_blank" rel="noopener noreferrer"><Icon name="whatsapp" size={15} /> WhatsApp</a>
+          <div className="pn-stack is-lg">
+            {(FEATURES.profession && c.profession) || (visits === 0) || c.nextVisit ? (
+              <div className="pn-clientes-facts">
+                {FEATURES.profession && c.profession && <p className="pn-clientes-profession">{c.profession}</p>}
+                {visits === 0
+                  ? <p className="pn-muted pn-clientes-fact">{noVisitsNote}</p>
+                  : c.nextVisit && <Chip tone="info" icon="calendar">Tiene hora {nextVisitLabel(c.nextVisit, today)}</Chip>}
               </div>
-              <button className="btn btn-gold btn-block" onClick={() => onSchedule && onSchedule(client)}><Icon name="calendar" size={15} /> Agendar para este cliente</button>
-              <button className="btn btn-danger btn-block" onClick={() => setConfirmDel(true)}><Icon name="close" size={15} /> Eliminar cliente</button>
-            </div>
-          </>
-        )}
-      </div>
+            ) : null}
 
-      {confirmDel && (
-        <div className="psn-modal psn-modal-top" role="alertdialog" aria-modal="true">
-          <button className="psn-scrim" aria-label="Cerrar" onClick={() => setConfirmDel(false)} />
-          <div className="psn-modal-card psn-confirm">
-            <span className="psn-confirm-ic"><Icon name="close" size={22} /></span>
-            <h3 className="font-display">¿Eliminar a {client.name}?</h3>
-            <p>Se quitará de tu lista de clientes. Esta acción no se puede deshacer.</p>
-            <div className="psn-confirm-actions">
-              <button className="btn btn-ghost btn-block" onClick={() => setConfirmDel(false)}>Volver</button>
-              <button className="btn btn-danger btn-block" onClick={() => { onDelete(client); setConfirmDel(false) }}>Sí, eliminar</button>
+            <KpiGrid items={[
+              { id: 'visits', icon: 'scissors', label: 'Visitas', value: visits },
+              { id: 'total', icon: 'wallet', label: 'Total gastado', value: Number(totalSpent) || 0, format: CLP },
+              { id: 'last', icon: 'clock', label: 'Última visita', value: lastVisitKey ? fmtDate(lastVisitKey, 'dm') : '—' },
+              // Cuarto KPI a propósito: en el celular la grilla es de 2
+              // columnas y 3 tarjetas dejan un hueco al lado de "Última visita".
+              { id: 'status', icon: (STATUS_META[c.status]?.icon || 'user'), label: 'Estado', value: STATUS_META[c.status]?.label || '—', animate: false },
+            ]}
+            />
+
+            {loyalty && (
+              <div className="pn-clientes-loyalty">
+                <div className="pn-between">
+                  <span className="pn-clientes-loyalty-label"><Icon name="star" size={13} /> Tarjeta de fidelidad</span>
+                  <span className="pn-num pn-clientes-loyalty-count">{loyalty.stars}/{loyalty.goal}</span>
+                </div>
+                <ProgressBar value={loyalty.stars} max={loyalty.goal} label="Estrellas de fidelidad" />
+                <div className="pn-hstack">
+                  {loyalty.freeCutReady ? (
+                    <Chip tone="ok" icon="gift">Corte gratis listo</Chip>
+                  ) : (
+                    <>
+                      {loyalty.productDiscountReady && <Chip tone="info" icon="percent">{loyalty.productDiscountPct}% en productos</Chip>}
+                      <span className="pn-clientes-loyalty-hint">
+                        Le {loyalty.cutsToFreeCut === 1 ? 'falta 1 corte' : `faltan ${loyalty.cutsToFreeCut} cortes`} para el corte gratis
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {!c.walletHasPass && sendWalletCard && (
+              <Button variant="secondary" icon="wallet" block loading={sendingWallet} onClick={() => sendWalletCard(c)}>
+                {sendingWallet ? 'Generando el link…' : 'Enviar tarjeta por WhatsApp'}
+              </Button>
+            )}
+
+            <div>
+              <SectionLabel>Historial de reservas</SectionLabel>
+              {(history || []).length === 0 ? (
+                <EmptyState
+                  compact
+                  icon="calendar"
+                  title="Sin historial todavía"
+                  text="Este cliente aún no tiene reservas registradas. Con Agendar le tomas una hora."
+                />
+              ) : (
+                <List>
+                  {history.map((item) => {
+                    const cancelled = item.status === 'cancelada'
+                    return (
+                      <ListRow
+                        key={item.id || `${item.date}-${item.time}`}
+                        title={item.service || 'Servicio'}
+                        subtitle={`${fmtDate(item.date, 'short')}${item.time ? ` · ${item.time}` : ''}`}
+                        value={CLP(item.paidAmount ?? item.price)}
+                        meta={item.status && item.status !== 'completada' ? <StatusBadge status={item.status} /> : null}
+                        dim={cancelled}
+                      />
+                    )
+                  })}
+                </List>
+              )}
             </div>
           </div>
-        </div>
-      )}
-    </div>
-  ), document.body)
+        )}
+      </Sheet>
+
+      <ConfirmDialog
+        open={confirmDel}
+        onCancel={() => setConfirmDel(false)}
+        onConfirm={() => { setConfirmDel(false); onDelete?.(c) }}
+        tone="danger"
+        icon="trash"
+        title={`¿Eliminar a ${c.name || 'este cliente'}?`}
+        message="Se quitará de tu lista de clientes junto con su historial de reservas. Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+      />
+    </>
+  )
 }

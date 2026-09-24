@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react'
-import { createPortal } from 'react-dom'
-import { Icon } from './ui.jsx'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { cleanPhone } from '../data.js'
+import { FEATURES } from '../features.js'
+import { Sheet, Button, Field, InlineAlert, useIsPhone } from './panel/index.js'
 
 /**
  * NewClientModal — alta manual de clientes desde el panel.
@@ -12,81 +12,103 @@ import { cleanPhone } from '../data.js'
  * existe entre los clientes cargados, avisamos que se actualizará (no se crea
  * duplicado).
  *
- * Props: { open, onClose, clients, onCreate(draft) }
+ * `onCreate(draft)` es `createClient` de Dashboard: LANZA un Error con el
+ * mensaje del servidor cuando la validación falla (Inscripciones depende de
+ * ese contrato), y acá ese mensaje se muestra sin cerrar la hoja.
+ *
+ * Props: { open, onClose, clients, onCreate(draft), ctx? } — de `ctx` solo se
+ * usa `pushToast` (opcional) para confirmar el alta.
  */
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const EMPTY = { name: '', phone: '', email: '', profession: '' }
 
-export default function NewClientModal({ open, onClose, clients = [], onCreate = () => {} }) {
-  const [form, setForm] = useState({ name: '', phone: '', email: '' })
+export default function NewClientModal({ open, onClose, clients = [], onCreate = () => {}, ctx }) {
+  const [form, setForm] = useState(EMPTY)
   const [error, setError] = useState('')
   const [saving, setSaving] = useState(false)
+  const isPhone = useIsPhone()
+  const nameRef = useRef(null)
 
   useEffect(() => {
-    if (open) { setForm({ name: '', phone: '', email: '' }); setError(''); setSaving(false) }
+    if (open) { setForm(EMPTY); setError(''); setSaving(false) }
   }, [open])
-
-  useEffect(() => {
-    if (!open) return
-    const onKey = (e) => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [open, onClose])
 
   const phone = cleanPhone(form.phone)
   const existing = useMemo(
-    () => clients.find((c) => cleanPhone(c.phone) === phone && phone.length === 9),
-    [clients, phone]
+    () => (phone.length === 9 ? (clients || []).find((c) => cleanPhone(c.phone) === phone) : null),
+    [clients, phone],
   )
 
-  if (!open) return null
-
-  const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }))
+  const set = (k) => (e) => {
+    const v = e.target.value
+    setForm((f) => ({ ...f, [k]: v }))
+    if (error) setError('')
+  }
 
   const submit = async () => {
+    if (saving) return
     const name = form.name.trim()
     const email = form.email.trim().toLowerCase()
+    const profession = form.profession.trim()
     if (!name) return setError('Nombre requerido.')
     if (phone.length !== 9) return setError('El teléfono debe tener 9 dígitos.')
     if (!EMAIL_RE.test(email)) return setError('Correo inválido.')
     setError('')
     setSaving(true)
     try {
-      await onCreate({ name, phone, email })
-      onClose()
+      // profession va omitido (no vacío) cuando no se escribió nada: si el
+      // teléfono ya pertenece a un cliente existente, el servidor conserva su
+      // profesión guardada en vez de borrarla con un valor en blanco — este
+      // formulario no conoce el dato previo de ese cliente para mostrarlo.
+      await onCreate({ name, phone, email, ...(FEATURES.profession && profession ? { profession } : {}) })
+      ctx?.pushToast?.('✓', existing ? `${name}: ficha actualizada` : `${name} quedó en tus clientes`)
+      onClose?.()
     } catch (err) {
       setError(err?.message || 'No se pudo guardar el cliente.')
       setSaving(false)
     }
   }
+  const onEnter = (e) => { if (e.key === 'Enter') { e.preventDefault(); submit() } }
 
-  return createPortal((
-    <div className="psn-modal" role="dialog" aria-modal="true">
-      <button className="psn-scrim" aria-label="Cerrar" onClick={onClose} />
-      <div className="psn-modal-card psn-newbk">
-        <button className="psn-close" onClick={onClose} aria-label="Cerrar"><Icon name="close" size={17} /></button>
-        <h3><Icon name="user" size={20} /> Nuevo cliente</h3>
-        <p className="psn-role">El teléfono funciona como identificador único.</p>
-
-        <div className="psn-client-edit">
-          <div className="field"><label>Nombre</label><input className="input" value={form.name} onChange={set('name')} placeholder="Nombre y apellido" autoFocus /></div>
-          <div className="field"><label>Teléfono</label><input className="input" value={form.phone} onChange={set('phone')} inputMode="tel" placeholder="9 1234 5678" /></div>
-          <div className="field"><label>Correo <span style={{ color: 'var(--muted-2)' }}>(obligatorio)</span></label><input className="input" value={form.email} onChange={set('email')} inputMode="email" placeholder="correo@ejemplo.com" /></div>
-        </div>
-
-        {existing && (
-          <p className="psn-newbk-err" style={{ color: 'var(--gold-lt)' }}>
-            <Icon name="user" size={13} /> Ya existe {existing.name || 'un cliente'} con ese teléfono: se actualizará.
-          </p>
+  return (
+    <Sheet
+      open={open}
+      onClose={saving ? undefined : onClose}
+      title="Nuevo cliente"
+      subtitle="El teléfono funciona como identificador único."
+      icon="user"
+      size="sm"
+      // En escritorio el cursor entra directo al nombre; en el celular no,
+      // para no levantar el teclado mientras la hoja todavía sube.
+      initialFocusRef={isPhone ? undefined : nameRef}
+      footer={(
+        <>
+          <Button variant="secondary" onClick={onClose} disabled={saving}>Cancelar</Button>
+          <Button variant="primary" icon="check" onClick={submit} loading={saving}>
+            {existing ? 'Actualizar' : 'Crear cliente'}
+          </Button>
+        </>
+      )}
+    >
+      <div className="pn-stack">
+        <Field label="Nombre">
+          <input ref={nameRef} className="input" value={form.name} onChange={set('name')} onKeyDown={onEnter} placeholder="Nombre y apellido" autoComplete="off" />
+        </Field>
+        <Field label="Teléfono" hint="9 dígitos, sin +56">
+          <input className="input" value={form.phone} onChange={set('phone')} onKeyDown={onEnter} inputMode="tel" placeholder="9 1234 5678" autoComplete="off" />
+        </Field>
+        <Field label="Correo">
+          <input className="input" value={form.email} onChange={set('email')} onKeyDown={onEnter} inputMode="email" placeholder="correo@ejemplo.com" autoComplete="off" autoCapitalize="off" />
+        </Field>
+        {FEATURES.profession && (
+          <Field label="Profesión" optional>
+            <input className="input" value={form.profession} onChange={set('profession')} onKeyDown={onEnter} placeholder="Ej: Ingeniero, Estudiante" maxLength={80} />
+          </Field>
         )}
-        {error && <p className="psn-newbk-err"><Icon name="close" size={13} /> {error}</p>}
 
-        <div className="psn-confirm-actions">
-          <button className="btn btn-ghost btn-block" onClick={onClose} disabled={saving}>Cancelar</button>
-          <button className="btn btn-gold btn-block" onClick={submit} disabled={saving}>
-            {saving ? 'Guardando…' : existing ? 'Actualizar' : 'Crear cliente'}
-          </button>
-        </div>
+        {existing && <InlineAlert tone="info">Ya existe {existing.name || 'un cliente'} con ese teléfono: se actualizará.</InlineAlert>}
+        {error && <InlineAlert tone="error">{error}</InlineAlert>}
       </div>
-    </div>
-  ), document.body)
+    </Sheet>
+  )
 }

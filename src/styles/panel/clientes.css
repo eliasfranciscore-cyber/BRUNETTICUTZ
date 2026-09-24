@@ -11,13 +11,56 @@
 .pn-clientes-cell-text strong { font-size: var(--pn-fs-sm); font-weight: 600; color: var(--pn-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .pn-clientes-cell-text span { font-size: var(--pn-fs-xs); color: var(--pn-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
+/* ---- Encabezados que ordenan (escritorio) ---- */
+.pn-clientes-sort {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin: -4px -6px; padding: 4px 6px;
+  border: 0; border-radius: var(--pn-r-xs);
+  background: transparent;
+  font: inherit; color: inherit; letter-spacing: inherit;
+  cursor: pointer;
+  transition: color .15s var(--pn-ease), background-color .15s var(--pn-ease);
+}
+.pn-clientes-sort svg { opacity: 0; transition: opacity .15s var(--pn-ease); }
+.pn-clientes-sort:hover { color: var(--pn-text); background: var(--pn-hover); }
+.pn-clientes-sort:hover svg { opacity: .6; }
+.pn-clientes-sort.is-on { color: var(--pn-accent); }
+.pn-clientes-sort.is-on svg { opacity: 1; }
+.pn-clientes-sort:focus-visible { outline: 2px solid var(--pn-accent); outline-offset: 1px; }
+/* En las columnas numéricas el encabezado va a la derecha, como la cifra. */
+.pn-table th.is-num .pn-clientes-sort { flex-direction: row-reverse; }
+
+/* ---- Columna de acción ("Tarjeta"): angosta y a la derecha ---- */
+.pn-table td.pn-clientes-actions { width: 1%; white-space: nowrap; text-align: right; padding-left: 8px; }
+.pn-clientes-actions-in { display: inline-flex; justify-content: flex-end; min-height: 1px; }
+.pn-clientes-card-btn { white-space: nowrap; }
+.pn-clientes-sr {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
 /* ---- Fila de la lista (celular): tercera línea con las cifras ---- */
 .pn-clientes-stats { display: block; margin-top: 2px; font-size: var(--pn-fs-xs); color: var(--pn-text-3); }
+/* "Tarjeta" en el celular: solo el ícono en pantallas muy angostas, para que
+   el nombre del cliente no se corte. El aria-label sigue diciendo qué hace. */
+@media (max-width: 380px) {
+  .pn-clientes-card-btn.is-compact .pn-btn-label { display: none; }
+  .pn-clientes-card-btn.is-compact { padding-inline: 10px; }
+}
+
+/* ---- "Ver más" bajo la lista ---- */
+.pn-clientes-more {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  flex-wrap: wrap;
+  padding: 4px 4px 0;
+  font-size: var(--pn-fs-xs);
+  color: var(--pn-text-3);
+}
 
 /* ---- Ficha del cliente ---- */
-.pn-clientes-profession { margin: 0; font-size: var(--pn-fs-sm); color: var(--pn-text-2); }
-
-.pn-clientes-barbers { display: flex; flex-wrap: wrap; gap: 6px; }
+.pn-clientes-facts { display: grid; gap: 6px; justify-items: start; }
+.pn-clientes-profession { margin: 0; font-size: var(--pn-fs-sm); font-weight: 600; color: var(--pn-text-2); }
+.pn-clientes-fact { margin: 0; font-size: var(--pn-fs-sm); line-height: 1.45; }
 
 .pn-clientes-loyalty {
   display: grid; gap: 8px;
@@ -27,10 +70,15 @@
   background: var(--pn-card-2);
 }
 .pn-clientes-loyalty-label { display: inline-flex; align-items: center; gap: 6px; font-size: var(--pn-fs-sm); font-weight: 600; color: var(--pn-text-2); }
+.pn-clientes-loyalty-label svg { color: var(--pn-accent); }
+.pn-clientes-loyalty-count { font-family: var(--font-display); font-weight: 650; color: var(--pn-text); }
 .pn-clientes-loyalty-hint { font-size: var(--pn-fs-xs); color: var(--pn-text-3); }
 
-/* ---- Formulario de edición: 2 columnas en tablet/escritorio ---- */
-.pn-clientes-form { display: grid; gap: 12px; }
+/* ---- Formulario de edición: 2 columnas en tablet/escritorio ----
+   align-items:start: un campo con ayuda debajo ("9 dígitos…") es más alto que
+   su vecino, y estirado el vecino repartía el sobrante entre rótulo e input:
+   los dos inputs de la fila quedaban a distinta altura. */
+.pn-clientes-form { display: grid; gap: 12px; align-items: start; }
 @media (min-width: 641px) {
   .pn-clientes-form { grid-template-columns: 1fr 1fr; gap: 12px 16px; }
   .pn-clientes-form .pn-field-full { grid-column: 1 / -1; }
