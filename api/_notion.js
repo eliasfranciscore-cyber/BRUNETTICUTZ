@@ -123,3 +123,36 @@ export async function updateNotionBookingStatus(pageId, status) {
     return { ok: false }
   }
 }
+
+/* Reagendar: mueve la fecha/hora de la página (y de paso actualiza servicio,
+   barbero y precio si cambiaron). Sin esto, una reserva movida desde el panel
+   seguiría apareciendo en el horario viejo en Notion Calendar. */
+export async function updateNotionBookingSchedule(pageId, { date, time, durationMin, service, barber, price, client }) {
+  const apiKey = process.env.NOTION_API_KEY
+  if (!apiKey || !pageId || !date || !time) return { ok: false }
+  const properties = {
+    Fecha: { date: buildDateRange(date, time, durationMin) },
+    ...(service ? {
+      servicio: { rich_text: [{ text: { content: service } }] },
+      Nombre: { title: [{ text: { content: `${service} — ${client || "Cliente"}` } }] },
+    } : {}),
+    ...(barber ? { Barbero: { rich_text: [{ text: { content: barber } }] } } : {}),
+    ...(price != null ? { Precio: { rich_text: [{ text: { content: formatCLP(price) } }] } } : {}),
+  }
+  try {
+    const response = await fetch(`${NOTION_API_URL}/pages/${pageId}`, {
+      method: "PATCH",
+      headers: notionHeaders(),
+      body: JSON.stringify({ properties }),
+    })
+    if (!response.ok) {
+      const errText = await response.text().catch(() => "")
+      console.error("updateNotionBookingSchedule: Notion respondió", response.status, errText)
+      return { ok: false }
+    }
+    return { ok: true }
+  } catch (err) {
+    console.error("updateNotionBookingSchedule error:", err?.message)
+    return { ok: false }
+  }
+}

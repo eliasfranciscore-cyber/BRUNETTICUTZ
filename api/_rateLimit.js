@@ -50,3 +50,110 @@ export async function rateLimit(sql, key, { max = 20, windowSeconds = 60 } = {})
     return true
   }
 }
+
+/* ── Bloqueo de login por intentos fallidos ────────────────────────────────
+   Distinto del rateLimit de arriba: ahí se cuentan REQUESTS, acá se cuentan
+   FALLOS. Un barbero que entra bien diez veces seguidas no debe acercarse a
+   ningún límite; uno que falla tres veces sí.
+
+   Reemplaza el bloqueo que vivía en localStorage (BarberLogin.jsx), que no
+   protegía nada: bastaba borrar el storage, abrir una pestaña de incógnito o
+   pegarle al endpoint con curl para saltárselo. Este vive en la base, así que
+   aplica igual venga de donde venga.
+
+   Se cuenta por usuario Y por IP a la vez:
+     - por usuario, para que no se pueda tantear la clave de alguien desde
+       muchas IPs (una botnet chica basta para eso);
+     - por IP, para que una sola máquina no pueda barrer usuario por usuario.
+
+   A diferencia del rateLimit genérico, este FALLA CERRADO en la lectura: si
+   no se puede consultar el contador, se rechaza el login. Un atacante que
+   pudiera tumbar la base tendría, si no, vía libre para probar claves.
+
+   Portado tal cual de PimpStudio. Todavía no lo llama nadie: lo conecta el
+   endurecimiento del login en api/auth-barber.js. */
+
+const MAX_FAILED_ATTEMPTS = 3
+const LOCKOUT_SECONDS = 5 * 60
+
+async function ensureAttemptsTable(sql) {
+  await sql`
+    CREATE TABLE IF NOT EXISTS login_attempts (
+      key           TEXT PRIMARY KEY,
+      failures      INTEGER NOT NULL DEFAULT 0,
+      locked_until  TIMESTAMPTZ,
+      last_failure  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `
+}
+
+/* ¿Está bloqueado? Devuelve { locked, retryAfterSeconds }. */
+export async function checkLoginLock(sql, keys) {
+  try {
+    await ensureAttemptsTable(sql)
+    const [row] = await sql`
+      SELECT MAX(EXTRACT(EPOCH FROM (locked_until - NOW()))) as remaining
+      FROM login_attempts
+      WHERE key = ANY(${keys}) AND locked_until > NOW()
+    `
+    const remaining = Math.ceil(Number(row?.remaining || 0))
+    return remaining > 0
+      ? { locked: true, retryAfterSeconds: remaining }
+      : { locked: false, retryAfterSeconds: 0 }
+  } catch (err) {
+    console.error("checkLoginLock error (fail-closed):", err?.message || err)
+    return { locked: true, retryAfterSeconds: 60, unavailable: true }
+  }
+}
+
+/* Registra un fallo en cada clave y bloquea la que llegue al tope.
+   Devuelve { locked, remainingAttempts, retryAfterSeconds }. */
+export async function registerLoginFailure(sql, keys) {
+  try {
+    await ensureAttemptsTable(sql)
+    const rows = await sql`
+      INSERT INTO login_attempts (key, failures, last_failure)
+      SELECT unnest(${keys}::text[]), 1, NOW()
+      ON CONFLICT (key) DO UPDATE SET
+        -- Un fallo pasada la ventana de bloqueo reinicia la cuenta: si no, el
+        -- contador nunca bajaría y una persona distraída quedaría bloqueada
+        -- para siempre por errores repartidos en meses.
+        failures = CASE
+          WHEN login_attempts.last_failure < NOW() - (${LOCKOUT_SECONDS} || ' seconds')::interval THEN 1
+          ELSE login_attempts.failures + 1
+        END,
+        locked_until = CASE
+          WHEN (CASE
+                  WHEN login_attempts.last_failure < NOW() - (${LOCKOUT_SECONDS} || ' seconds')::interval THEN 1
+                  ELSE login_attempts.failures + 1
+                END) >= ${MAX_FAILED_ATTEMPTS}
+          THEN NOW() + (${LOCKOUT_SECONDS} || ' seconds')::interval
+          ELSE NULL
+        END,
+        last_failure = NOW()
+      RETURNING failures, EXTRACT(EPOCH FROM (locked_until - NOW())) as remaining
+    `
+    const worst = rows.reduce((acc, r) => (r.failures > (acc?.failures || 0) ? r : acc), null)
+    const failures = Number(worst?.failures || 1)
+    const remaining = Math.ceil(Number(worst?.remaining || 0))
+    return {
+      locked: failures >= MAX_FAILED_ATTEMPTS,
+      remainingAttempts: Math.max(0, MAX_FAILED_ATTEMPTS - failures),
+      retryAfterSeconds: remaining > 0 ? remaining : LOCKOUT_SECONDS,
+    }
+  } catch (err) {
+    console.error("registerLoginFailure error:", err?.message || err)
+    return { locked: false, remainingAttempts: 0, retryAfterSeconds: LOCKOUT_SECONDS }
+  }
+}
+
+/* Login correcto: se borra el historial de fallos de esas claves. */
+export async function clearLoginFailures(sql, keys) {
+  try {
+    await sql`DELETE FROM login_attempts WHERE key = ANY(${keys})`
+  } catch (err) {
+    console.error("clearLoginFailures error:", err?.message || err)
+  }
+}
+
+export const LOGIN_LOCK = { MAX_FAILED_ATTEMPTS, LOCKOUT_SECONDS }

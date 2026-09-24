@@ -19,12 +19,18 @@ export function slotsForBooking(startSlot, blocks) {
 
 // Set de horarios ocupados (por reservas activas, según la duración de su
 // servicio, + bloqueos manuales) para un barbero en una fecha.
-export async function busySlotsForBarberDate(sql, barberId, date) {
+//
+// `excludeBookingId` es para reagendar: al mover una reserva hay que ignorarla
+// a sí misma, o cambiarle el servicio dejándola en su misma hora choca consigo
+// misma y devuelve un 409 imposible de resolver.
+export async function busySlotsForBarberDate(sql, barberId, date, excludeBookingId = null) {
+  const exclude = excludeBookingId != null ? Number(excludeBookingId) : null
   const booked = await sql`
     SELECT b.booking_time::text as slot, COALESCE(s.duration_min, 60) as "durationMin"
     FROM bookings b
     LEFT JOIN services s ON b.service_id = s.id
     WHERE b.barber_id = ${barberId} AND b.booking_date = ${date} AND b.status NOT IN ('cancelada')
+      AND (${exclude}::int IS NULL OR b.id <> ${exclude}::int)
   `
   const blocked = await sql`
     SELECT slot_time::text as slot FROM availability_blocks

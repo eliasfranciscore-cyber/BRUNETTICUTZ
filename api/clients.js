@@ -8,6 +8,7 @@ import {
   loyaltyFor, loyaltyForPhones, walletStats, walletCampaigns, sendWalletCampaign,
 } from "./_loyaltyBridge.js"
 import { isBridgeRequest, normalizePhone, EMAIL_RE } from "./_bridge.js"
+import { purgeLoyaltyForClient } from "./_bookingLife.js"
 
 const DEMO_CLIENTS = [
   { id: 1, name: "Carlos Rodriguez", phone: "987654321", email: "carlos@ejemplo.com", visits: 4, totalSpent: 68960, lastVisit: "2026-05-22", status: "activo" },
@@ -480,6 +481,14 @@ export default async function handler(req, res) {
       if (phone.length !== 9) return res.status(400).json({ ok: false, error: "Telefono invalido" })
       const [user] = await sql`SELECT id FROM users WHERE phone = ${phone}`
       if (!user) return res.status(404).json({ ok: false, error: "Cliente no encontrado" })
+      // Sus reservas se van con él, y con ellas lo que proyectaban en
+      // PimpStudio: la estrella de cada completada y las 10 de un corte gratis
+      // canjeado que ya no se va a dar. Pasa por el escritor único ANTES de
+      // borrar (después no queda qué leer). Best-effort: si PimpStudio no
+      // responde, el borrado sigue igual.
+      await purgeLoyaltyForClient(sql, user.id, { ip: clientIp(req) }).catch((err) => {
+        console.error("client purge loyalty error:", err?.message || err)
+      })
       // bookings.client_id no tiene ON DELETE: borrar primero sus reservas.
       await sql`DELETE FROM bookings WHERE client_id = ${user.id}`
       await sql`DELETE FROM users WHERE id = ${user.id}`
