@@ -46,3 +46,41 @@
 .pn-caja-row .pn-row-lead { align-self: flex-start; padding-top: 1px; }
 .pn-caja-row .pn-row-trail { align-self: flex-start; }
 .pn-caja-row-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+/* ---- Dos colores propios de Caja ----
+   Mercado Pago del mesón y la línea "Online (web)". En Pimp Studio Mercado
+   Pago iba en --pn-warn, pero acá la transferencia es dorada (--pn-accent) y
+   el ámbar del aviso se confundía con ella en la barra; y lo online necesitaba
+   su propio color para no mezclarse con el Mercado Pago del mesón. Viven en
+   .pn-caja (no en :root): solo la barra, la leyenda y los chips de esta
+   pestaña los usan. En claro se oscurecen para que el rótulo del chip se lea
+   sobre crema (mismo criterio que --pn-ok en claro). */
+.pn-caja {
+  --pn-caja-mp: #5cc6d6;     --pn-caja-mp-soft: rgba(92, 198, 214, .14);
+  --pn-caja-online: #8f7cf0; --pn-caja-online-soft: rgba(143, 124, 240, .15);
+}
+[data-theme="light"] .pn-caja {
+  --pn-caja-mp: #13808f;     --pn-caja-mp-soft: rgba(19, 128, 143, .10);
+  --pn-caja-online: #5a45c8; --pn-caja-online-soft: rgba(90, 69, 200, .10);
+}
+.pn-chip.pn-chip--mp { color: var(--pn-caja-mp); background: var(--pn-caja-mp-soft); border-color: transparent; }
+
+/* ---- Fila de KPIs según cuántos hay (2 a 5) ----
+   Productos y Por cobrar siempre; Servicios, Online (web) y Por confirmar solo
+   cuando hay. Con 2 van a medias siempre (3 columnas dejaban un hueco); con 5,
+   3 + 2 a lo ancho en pantallas medianas y los 5 en fila en las anchas. */
+@media (min-width: 480px) { .pn-caja-summary-row.is-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 480px) {
+  .pn-caja-summary-row.is-5 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .pn-caja-summary-row.is-5 > * { grid-column: span 2; }
+  .pn-caja-summary-row.is-5 > :nth-child(n + 4) { grid-column: span 3; }
+}
+@media (min-width: 1100px) {
+  .pn-caja-summary-row.is-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+  .pn-caja-summary-row.is-5 > *,
+  .pn-caja-summary-row.is-5 > :nth-child(n + 4) { grid-column: auto; }
+}
+
+/* Anular una venta: el botón va en la celda del monto, como "Cobrar". */
+.pn-caja-amount-cell .pn-btn--plain { color: var(--pn-text-3); }
+.pn-caja-amount-cell .pn-btn--plain:hover { color: var(--pn-bad); }
