@@ -91,6 +91,43 @@ async function sendDueReminders(sql, { column, label, fromMin, toMin }) {
   return rows.length
 }
 
+// Reporte de violaciones de la CSP en Report-Only (Q19). vercel.json reescribe
+// /api/csp-report a esta ruta (?job=csp-report) antes del catch-all
+// /api/(.*): sin sesión, sin CRON_SECRET y sin tocar la base — solo
+// console.warn para verlo en los logs de Vercel. No hay endpoint propio por
+// el tope de 12 funciones del plan Hobby (ver notas del puente arriba).
+//
+// El navegador manda 'application/csp-report' (report-uri, formato viejo: un
+// objeto {"csp-report": {...}}) o 'application/reports+json' (Reporting API
+// nueva: un arreglo de reportes). Ninguno de los dos es 'application/json',
+// así que el parseo automático de Vercel deja req.body como Buffer/string
+// crudo; se decodifica y se parsea acá, con un tope de tamaño para no
+// procesar (ni loguear) un payload gigante o malformado.
+const CSP_REPORT_MAX_BYTES = 50_000
+
+function normalizeCspReports(raw) {
+  if (!raw) return []
+  if (Buffer.isBuffer(raw)) {
+    if (raw.length > CSP_REPORT_MAX_BYTES) return []
+    raw = raw.toString("utf8")
+  }
+  if (typeof raw === "object") {
+    if (Array.isArray(raw)) return raw
+    return raw["csp-report"] ? [raw["csp-report"]] : [raw]
+  }
+  if (typeof raw !== "string" || !raw.trim()) return []
+  if (raw.length > CSP_REPORT_MAX_BYTES) return []
+  let parsed
+  try {
+    parsed = JSON.parse(raw)
+  } catch {
+    return []
+  }
+  if (Array.isArray(parsed)) return parsed
+  if (parsed && parsed["csp-report"]) return [parsed["csp-report"]]
+  return parsed ? [parsed] : []
+}
+
 let webpushModule = null
 async function getWebPush() {
   if (webpushModule) return webpushModule
@@ -239,6 +276,20 @@ async function runAutoComplete(sql) {
 }
 
 export default async function handler(req, res) {
+  // Reporte de CSP (Q19): sin sesión, sin CRON_SECRET, sin neon(). Va primero
+  // porque el navegador la llama sola (report-uri) y no manda ningún header
+  // de auth. 204 siempre, para no invitar reintentos del navegador.
+  if (req.method === "POST" && req.query?.job === "csp-report") {
+    try {
+      for (const report of normalizeCspReports(req.body)) {
+        console.warn("[csp-report]", JSON.stringify(report).slice(0, 500))
+      }
+    } catch (err) {
+      console.error("csp-report error:", err?.message)
+    }
+    return res.status(204).end()
+  }
+
   // Ruta del cron de recordatorios: no usa sesión de barbero, sino
   // CRON_SECRET. Se resuelve antes que requireInternal porque el llamador
   // (cron-job.org u otro pinger) no tiene un token de sesión.
