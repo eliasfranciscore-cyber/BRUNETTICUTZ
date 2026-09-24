@@ -1,6 +1,6 @@
 import { neon } from "@neondatabase/serverless"
 import { put } from "@vercel/blob"
-import { requireInternal } from "./_auth.js"
+import { requireInternal, readSession } from "./_auth.js"
 import { rateLimit, clientIp } from "./_rateLimit.js"
 import { sendLoyaltyCardEmail } from "./_email.js"
 import {
@@ -175,8 +175,13 @@ async function handleRegisterBackup(req, res) {
   if (req.method === "OPTIONS") return res.status(204).end()
   if (req.method !== "POST") return res.status(405).json({ ok: false, error: "Method Not Allowed" })
 
+  // Declarado afuera del try: lo necesita también el upsert con sesión, más
+  // abajo. Si neon() o el rate limit fallan (p. ej. DATABASE_URL ausente),
+  // `sql` queda en null y ese upsert simplemente se salta — el respaldo en
+  // Blob (lo de siempre) no debe caerse por esto.
+  let sql = null
   try {
-    const sql = neon(process.env.DATABASE_URL)
+    sql = neon(process.env.DATABASE_URL)
     const allowed = await rateLimit(sql, `register-client:${clientIp(req)}`, { max: 10, windowSeconds: 300 })
     if (!allowed) return res.status(429).json({ ok: false, error: "Demasiadas solicitudes. Intenta más tarde." })
   } catch (err) {
@@ -195,6 +200,29 @@ async function handleRegisterBackup(req, res) {
     const phone = normalizePhone(body.phone)
     if (!name || phone.length !== 9 || !EMAIL_RE.test(email)) {
       return res.status(400).json({ ok: false, error: "Datos incompletos o inválidos" })
+    }
+
+    // Con sesión de barbero (la app de iOS manda el mismo Bearer que usa para
+    // el resto del panel), este registro deja de ser solo un respaldo en Blob:
+    // también deja el nombre guardado en `users`, con las mismas reglas que el
+    // upsert de POST /api/clients (no pisa un nombre guardado con uno vacío;
+    // el correo, ya validado arriba, siempre se escribe). Así createManualBooking()
+    // encuentra el nombre cuando la reserva llega sin `client`. Sin sesión, el
+    // comportamiento público de siempre no cambia en nada.
+    const session = readSession(req)
+    if (session && sql) {
+      try {
+        await sql`
+          INSERT INTO users (name, phone, email, updated_at)
+          VALUES (${name}, ${phone}, ${email}, NOW())
+          ON CONFLICT (phone) DO UPDATE SET
+            name = COALESCE(NULLIF(EXCLUDED.name, ''), users.name),
+            email = COALESCE(EXCLUDED.email, users.email),
+            updated_at = NOW()
+        `
+      } catch (err) {
+        console.error("register-client upsert (con sesión) error:", err?.message || err)
+      }
     }
 
     const record = { name, email, phone, source: "brunetticutz-web", updatedAt: new Date().toISOString() }

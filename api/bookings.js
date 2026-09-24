@@ -164,8 +164,19 @@ async function createManualBooking(sql, body, { bridge = false, ip = null, charg
   const requested = BOOKING_STATUSES.has(status) ? status : "confirmada"
   const charging = !bridge && body?.chargeOnCreate === true && requested === "completada"
   const st = charging ? "en curso" : requested
-  const clientName = String(client || "").trim()
+  let clientName = String(client || "").trim()
   const customService = String(service || "").trim()
+  // La app de iOS crea la reserva con {phone, barberId, serviceId, date, time}
+  // y sin `client`: antes registra al cliente aparte con POST
+  // /api/register-client (→ clients.js?mode=register), que ahora, con sesión,
+  // deja el nombre en `users`. Solo para el panel (sesión, no puente): si no
+  // vino nombre, se busca el que ya está guardado para ese teléfono en vez de
+  // rechazar la reserva. Si tampoco hay uno guardado, sigue fallando como
+  // antes.
+  if (!bridge && !clientName && cleanPhone.length === 9) {
+    const [existing] = await sql`SELECT name FROM users WHERE phone = ${cleanPhone}`
+    if (existing?.name) clientName = existing.name
+  }
   if (!clientName) return fail(400, "Nombre del cliente requerido")
   if (cleanPhone.length !== 9) return fail(400, "El teléfono debe tener 9 dígitos")
   if (!barberId || !/^\d{4}-\d{2}-\d{2}$/.test(String(date || "")) || !/^\d{2}:\d{2}/.test(String(time || ""))) {
@@ -1340,11 +1351,20 @@ export default async function handler(req, res) {
       const allowed = await rateLimit(sql, `bookings-get:${clientIp(req)}`, { max: 30, windowSeconds: 60 })
       if (!allowed) return res.status(429).json({ ok: false, error: "Demasiadas solicitudes. Intenta de nuevo en un momento." })
       // El precio de una completada es el que se congeló al completarla
-      // (price_snapshot, leído sin depender de la migración).
+      // (price_snapshot, leído sin depender de la migración). `client`/`phone`
+      // siempre se leen (el driver de Neon no acepta fragmentos de SQL
+      // condicionales) pero solo viajan en la respuesta con sesión de barbero
+      // válida: la app de iOS usa esta misma ruta para el historial de un
+      // cliente (loadBookingHistory) y su Booking.client no es opcional; sin
+      // sesión, la respuesta pública sigue exactamente igual que siempre —
+      // nunca se expone el nombre de otra persona a quien solo prueba
+      // teléfonos al azar.
+      const session = readSession(req)
       const bookings = await sql`
         SELECT b.id, b.booking_date::text as date, b.booking_time::text as time,
                b.barber_id as "barberId", COALESCE(b.custom_service, s.name) as service, b.status,
                COALESCE(b.custom_price, (to_jsonb(b)->>'price_snapshot')::int, s.price)::int as price,
+               COALESCE(u.name, '') as client, u.phone,
                CASE WHEN b.booking_date > CURRENT_DATE THEN 'next'
                     WHEN b.booking_date = CURRENT_DATE THEN 'next'
                     ELSE 'past' END as "when"
@@ -1355,7 +1375,12 @@ export default async function handler(req, res) {
         ORDER BY b.booking_date DESC, b.booking_time DESC
         LIMIT 20
       `
-      return res.json({ ok: true, bookings: bookings.map((item) => ({ ...item, time: item.time?.slice(0, 5) })) })
+      return res.json({
+        ok: true,
+        bookings: bookings.map(({ client, phone: itemPhone, ...item }) => (
+          session ? { ...item, client, phone: itemPhone, time: item.time?.slice(0, 5) } : { ...item, time: item.time?.slice(0, 5) }
+        )),
+      })
     }
 
     if (req.method === "POST" && mode === "sale") return handleSaleCreate(req, res, sql)
