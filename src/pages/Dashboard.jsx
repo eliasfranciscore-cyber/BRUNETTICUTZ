@@ -906,6 +906,10 @@ export default function Dashboard() {
       const json = await res.json().catch(() => ({}))
       if (!res.ok) return { ok: false, error: json.error || "No se pudo crear la reserva" }
       addLocalBooking({ ...draft, id: json.booking?.id })
+      // Lo que no salió aunque la reserva sí (p. ej. la estrella de una
+      // atención que nace completada): el repaso de PimpStudio la repone, pero
+      // quien la cargó tiene que saberlo.
+      if (json.notice) pushToast("⚠️", json.notice)
     } else {
       addLocalBooking(draft)
     }

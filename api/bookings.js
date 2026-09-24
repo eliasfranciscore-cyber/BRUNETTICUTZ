@@ -44,8 +44,10 @@ const DEMO_BOOKINGS = [
    acredita y salir de ahí la devuelve. Es el ÚNICO camino que escribe
    estrellas para las reservas de esta base ("un solo escritor", ver
    CLAUDE.md): lo usan el PATCH —que ejecutan los dos paneles, el de acá
-   directo y el de PimpStudio por el puente— y el alta manual del puente
-   cuando la reserva ya nace completada. creditStar() es idempotente en
+   directo y el de PimpStudio por el puente— y el alta manual (panel de acá
+   o puente) cuando la reserva ya nace completada. La única escritura de
+   afuera es la reposición del cron de PimpStudio (?mode=bridge-completed),
+   con la misma llave y solo para sumar. creditStar() es idempotente en
    PimpStudio por bridge_ref = "brunetti:<id>": un reintento no suma dos.
 
    Best-effort: si PimpStudio no responde, el cambio de estado (lo
@@ -87,8 +89,9 @@ function isRealDate(value) {
 
    Con `bridge: false` hace EXACTAMENTE lo que hacía la rama del panel antes
    de extraerla a esta función: mismas validaciones, mismos mensajes, mismo
-   orden de escrituras (el cliente se guarda antes del chequeo de horario) y
-   sin estrella. Todo lo extra va bajo `bridge`:
+   orden de escrituras (el cliente se guarda antes del chequeo de horario).
+   Desde 2026-09-24 también acredita la estrella si nace 'completada' (antes
+   no, y esas atenciones quedaban sin estrella). Todo lo extra va bajo `bridge`:
      - teléfono normalizado como en PimpStudio (últimos 9 dígitos)
      - validación de fecha real, hora, largos, precio y existencia del servicio
      - barbero activo, y además Bruno: el secreto nunca agenda a otra persona
@@ -97,10 +100,7 @@ function isRealDate(value) {
      - no escribe NADA si la reserva no se puede crear: cliente y reserva
        entran en un solo statement, después del chequeo de horario
      - email opcional, que solo se escribe si viene y es válido
-     - 409 también si otro alta gana la carrera por el índice único del horario
-     - si nace 'completada', la estrella se acredita por loyaltyForTransition(),
-       el mismo camino del PATCH: queda igual que crearla y completarla desde
-       el panel. */
+     - 409 también si otro alta gana la carrera por el índice único del horario */
 async function createManualBooking(sql, body, { bridge = false, ip = null } = {}) {
   const { client, phone, barberId, serviceId, service, price, date, time, status } = body || {}
   const fail = (code, error) => ({ status: code, body: { ok: false, error } })
@@ -234,18 +234,18 @@ async function createManualBooking(sql, body, { bridge = false, ip = null } = {}
   }
 
   const out = { ok: true, booking: { ...booking, time: booking.time?.slice(0, 5) } }
-  if (bridge) {
-    if (st === "completada") {
-      // El nombre no viene vacío (se validó arriba), así que el upsert dejó
-      // guardados exactamente clientName y cleanPhone: lo mismo que el PATCH
-      // leería de la base al completarla.
-      // La respuesta es la del contrato ({ ok, booking, notice? }): el saldo
-      // no viaja, PimpStudio es la fuente de verdad de las estrellas.
-      const star = await loyaltyForTransition({ bookingId: booking.id, from: null, to: st, phone: cleanPhone, name: clientName, ip })
-      if (!star.ok) notices.push("La reserva quedó completada, pero la estrella de fidelidad no se pudo acreditar.")
-    }
-    if (notices.length) out.notice = notices.join(" ")
+  if (st === "completada") {
+    // Nace completada → estrella, igual que crearla y completarla con el
+    // PATCH. Vale para el panel de acá y para el puente: antes el panel no la
+    // acreditaba nunca (el mismo bug que PimpStudio tuvo con su "Nueva
+    // reserva" hasta 2026-09-23). El nombre no viene vacío (se validó arriba),
+    // así que el upsert dejó guardados exactamente clientName y cleanPhone: lo
+    // mismo que el PATCH leería de la base al completarla. El saldo no viaja
+    // en la respuesta: PimpStudio es la fuente de verdad de las estrellas.
+    const star = await loyaltyForTransition({ bookingId: booking.id, from: null, to: st, phone: cleanPhone, name: clientName, ip })
+    if (!star.ok) notices.push("La reserva quedó completada, pero la estrella de fidelidad no se pudo acreditar.")
   }
+  if (notices.length) out.notice = notices.join(" ")
   return { status: 200, body: out }
 }
 
@@ -255,6 +255,44 @@ async function createManualBooking(sql, body, { bridge = false, ip = null } = {}
    ni a la alerta push del POST público. */
 async function handleBridgeMode(req, res, mode) {
   if (!isBridgeRequest(req)) return res.status(404).json({ ok: false, error: "No encontrado" })
+
+  /* GET ?mode=bridge-completed&days=N — las reservas COMPLETADAS cuya última
+     escritura cae en los últimos N días (1–14, por defecto 3) y que llevan al
+     menos 10 minutos quietas. Es la lista con que el cron horario de
+     PimpStudio (healBrunettiStars) repone las estrellas que no llegaron: la
+     que se pide al completar es best-effort y, si falla, nadie la reintenta.
+     Solo lectura. La estrella la sigue acreditando PimpStudio por la misma
+     llave (brunetti:<id>), así que no puede sumarse dos veces. */
+  if (mode === "bridge-completed") {
+    if (req.method !== "GET") return res.status(405).json({ ok: false, error: "Method not allowed" })
+    res.setHeader("Cache-Control", "no-store")
+    const days = Math.min(14, Math.max(1, parseInt(String(req.query?.days || "3"), 10) || 3))
+    try {
+      const sql = neon(process.env.DATABASE_URL)
+      const rows = await sql`
+        SELECT b.id, u.phone, COALESCE(u.name, '') AS name
+        FROM bookings b
+        JOIN users u ON u.id = b.client_id
+        WHERE b.status = 'completada'
+          AND b.updated_at >= NOW() - make_interval(days => ${days}::int)
+          AND b.updated_at <= NOW() - INTERVAL '10 minutes'
+        ORDER BY b.id
+        LIMIT 500
+      `
+      const bookings = []
+      let skipped = 0
+      for (const row of rows) {
+        const phone = normalizePhone(row.phone)
+        if (phone.length !== 9) { skipped++; continue }
+        bookings.push({ id: row.id, phone, name: row.name })
+      }
+      return res.json({ ok: true, bookings, skipped })
+    } catch (err) {
+      console.error("bookings bridge-completed error:", err)
+      return res.status(500).json({ ok: false, error: "No se pudo leer las reservas completadas" })
+    }
+  }
+
   if (mode !== "bridge-manual") return res.status(404).json({ ok: false, error: "Modo no reconocido" })
   if (req.method !== "POST") return res.status(405).json({ ok: false, error: "Method not allowed" })
   try {
@@ -364,7 +402,7 @@ export default async function handler(req, res) {
       // manual que PimpStudio hace por el puente (?mode=bridge-manual).
       const session = readSession(req)
       if (session) {
-        const result = await createManualBooking(sql, req.body || {})
+        const result = await createManualBooking(sql, req.body || {}, { ip: clientIp(req) })
         return res.status(result.status).json(result.body)
       }
 
@@ -534,8 +572,8 @@ export default async function handler(req, res) {
        Las estrellas las escribe SOLO este backend, aunque el programa viva en
        PimpStudio: la reserva de Bruno se puede completar desde los dos
        paneles, y el de PimpStudio lo hace llamando justo acá (con el secreto
-       del puente). Los dos caminos que acreditan —este PATCH y el alta del
-       puente que ya nace completada (?mode=bridge-manual)— pasan por
+       del puente). Los caminos que acreditan —este PATCH y el alta manual
+       (panel o puente) que ya nace completada— pasan por
        loyaltyForTransition(). Un solo escritor = una estrella por corte. Ver
        api/_loyaltyBridge.js. */
     if (req.method === "PATCH") {
