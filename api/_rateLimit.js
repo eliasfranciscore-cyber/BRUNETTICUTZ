@@ -70,21 +70,34 @@ export async function rateLimit(sql, key, { max = 20, windowSeconds = 60 } = {})
    no se puede consultar el contador, se rechaza el login. Un atacante que
    pudiera tumbar la base tendría, si no, vía libre para probar claves.
 
-   Portado tal cual de PimpStudio. Todavía no lo llama nadie: lo conecta el
-   endurecimiento del login en api/auth-barber.js. */
+   Portado de PimpStudio. Lo usa el login de api/auth-barber.js (y el
+   restablecimiento por correo, que limpia las claves del barbero al fijar la
+   contraseña nueva). Única diferencia con allá: el CREATE TABLE se recuerda
+   por instancia (ver ensureAttemptsTable) en vez de repetirse en cada
+   consulta. */
 
 const MAX_FAILED_ATTEMPTS = 3
 const LOCKOUT_SECONDS = 5 * 60
 
-async function ensureAttemptsTable(sql) {
-  await sql`
-    CREATE TABLE IF NOT EXISTS login_attempts (
-      key           TEXT PRIMARY KEY,
-      failures      INTEGER NOT NULL DEFAULT 0,
-      locked_until  TIMESTAMPTZ,
-      last_failure  TIMESTAMPTZ NOT NULL DEFAULT NOW()
-    )
-  `
+/* Un solo CREATE TABLE por instancia tibia: cada login pasa por acá dos veces
+   (chequeo + fallo o limpieza) y con Neon por HTTP cada sentencia es un viaje.
+   Si falla se olvida la promesa, así el próximo request lo reintenta en vez
+   de quedar roto hasta el redeploy (mismo patrón que once() en _schema.js). */
+let attemptsTableReady = null
+function ensureAttemptsTable(sql) {
+  if (!attemptsTableReady) {
+    attemptsTableReady = (async () => {
+      await sql`
+        CREATE TABLE IF NOT EXISTS login_attempts (
+          key           TEXT PRIMARY KEY,
+          failures      INTEGER NOT NULL DEFAULT 0,
+          locked_until  TIMESTAMPTZ,
+          last_failure  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        )
+      `
+    })().catch((err) => { attemptsTableReady = null; throw err })
+  }
+  return attemptsTableReady
 }
 
 /* ¿Está bloqueado? Devuelve { locked, retryAfterSeconds }. */
