@@ -445,3 +445,134 @@
 @media (max-width: 899px) {
   .essentials-page .mfooter { padding-bottom: 5rem; }
 }
+
+/* ---------- ERROR DE PAGO (drawer) ---------- */
+.essentials-pay-error {
+  margin: 0 0 0.6rem;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  color: #e07a64;
+}
+[data-theme="light"] .essentials-pay-error { color: #a8412c; }
+.essentials-checkout-btn svg { flex: none; }
+
+/* ============================================================
+   /essentials/gracias — vuelta desde Mercado Pago
+   ============================================================ */
+.brunetti-site .essentials-gracias-hero {
+  padding-bottom: clamp(1.2rem, 3vw, 1.8rem);
+}
+.essentials-gracias-mark {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 1.1rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--gold-line);
+  background: var(--g-tint-strong, rgba(201, 161, 78, 0.08));
+  color: var(--gold-lt);
+}
+.essentials-gracias-mark.is-paid {
+  background: var(--gold-grad);
+  border-color: transparent;
+  color: var(--on-gold);
+  box-shadow: var(--shadow-gold, 0 14px 40px -18px rgba(201, 161, 78, 0.7));
+}
+.essentials-gracias-mark.is-failed,
+.essentials-gracias-mark.is-unknown {
+  border-color: rgba(224, 122, 100, 0.45);
+  color: #e07a64;
+  background: rgba(224, 122, 100, 0.08);
+}
+[data-theme="light"] .essentials-gracias-mark.is-failed,
+[data-theme="light"] .essentials-gracias-mark.is-unknown { color: #a8412c; }
+.essentials-gracias-spinner {
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: 2px solid var(--gold-line);
+  border-top-color: var(--gold-lt);
+  animation: essentialsSpin 0.9s linear infinite;
+}
+@keyframes essentialsSpin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .essentials-gracias-spinner { animation-duration: 2.4s; }
+}
+.essentials-gracias-progress {
+  margin: 0.8rem 0 0;
+  font-size: 0.74rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  font-variant-numeric: tabular-nums;
+}
+.brunetti-site .essentials-gracias-body { padding-top: 0; }
+
+.essentials-receipt {
+  max-width: 28rem;
+  margin: 0 auto;
+  text-align: left;
+  padding: 1.1rem 1.3rem 1.2rem;
+  border-radius: var(--g-radius, 16px);
+  background: linear-gradient(150deg, var(--g-tint-strong, rgba(255, 255, 255, 0.04)), var(--g-tint-soft, rgba(255, 255, 255, 0.02)));
+  border: 1px solid var(--gold-line);
+  box-shadow: var(--g-spec, none), var(--g-drop-sm, none);
+}
+.essentials-receipt-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.6rem;
+  margin-bottom: 0.2rem;
+  border-bottom: 1px solid var(--hair);
+}
+.essentials-receipt-h {
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+.essentials-receipt-ref {
+  font-size: 0.72rem;
+  color: var(--muted-2);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+.essentials-receipt-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.45rem 0;
+  font-size: 0.88rem;
+  color: var(--ink);
+}
+.essentials-receipt-row span { min-width: 0; overflow-wrap: anywhere; }
+.essentials-receipt-row b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.essentials-receipt-row.is-total {
+  border-top: 1px solid var(--hair-2);
+  margin-top: 0.35rem;
+  padding-top: 0.7rem;
+  font-size: 1rem;
+}
+.essentials-receipt-row.is-total b { color: var(--gold-lt); font-family: var(--font-display); font-size: 1.15rem; }
+.essentials-receipt-who {
+  margin: 0.7rem 0 0;
+  font-size: 0.76rem;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.essentials-gracias-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.7rem;
+  margin-top: 1.5rem;
+}
+@media (max-width: 480px) {
+  .essentials-gracias-actions { flex-direction: column; align-items: stretch; }
+  .essentials-gracias-actions .btn { justify-content: center; }
+}
