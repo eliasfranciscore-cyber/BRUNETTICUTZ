@@ -74,8 +74,12 @@
   .home-nav {
     align-items: center;
     justify-content: center;
-    /* padding uniforme arriba/abajo; left/right se anulan porque la brand va absoluta */
-    padding: 0.9rem clamp(1rem, 4vw, 1.4rem);
+    /* padding uniforme arriba/abajo; left/right se anulan porque la brand va absoluta.
+       El top suma safe-area-inset-top: en Safari normal es 0px (sin cambio visual),
+       pero como app instalada en iOS (PWA a pantalla completa) empuja la barra
+       fuera del notch/Dynamic Island para que el logo y la hamburguesa queden
+       accesibles. */
+    padding: calc(0.9rem + env(safe-area-inset-top, 0px)) clamp(1rem, 4vw, 1.4rem) 0.9rem;
     min-height: 76px;
   }
   /* Brand centrada con absolute → 100% simétrica dentro de la pill.
@@ -203,7 +207,10 @@
   right: 0;
   bottom: 0;
   z-index: 65;
-  padding: 0.85rem clamp(1rem, 4vw, 1.4rem) 0.9rem;
+  /* El inset inferior evita que el botón quede bajo el home indicator del
+     iPhone. Lo que se alinee a esta fila (el toggle de tema flotante) tiene
+     que sumar el mismo env() para subir junto con el botón. */
+  padding: 0.85rem clamp(1rem, 4vw, 1.4rem) calc(0.9rem + env(safe-area-inset-bottom, 0px));
   background: none;
   border-top: 0;
   pointer-events: none;
