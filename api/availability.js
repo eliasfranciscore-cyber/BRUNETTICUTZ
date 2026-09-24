@@ -30,6 +30,24 @@ function slotMinutes(slot) {
   return h * 60 + m
 }
 
+/* La app iOS decodifica el estado de un horario con un enum Swift estricto
+   (SlotState: free/blocked/booked, ver Models.swift) que no tiene un caso
+   "past". Aunque el campo es Optional, el inicializador sintetizado para un
+   enum respaldado por String falla (lanza, no devuelve nil) apenas el valor
+   no calza con ningún caso conocido — y eso tira TODA la respuesta de
+   /api/availability, así que la app se queda sin la agenda real del día. El
+   panel web y el puente de PimpStudio sí entienden "past" (lo usan para
+   pintar/filtrar las horas ya pasadas), así que el aplanado es solo para el
+   cliente nativo: se detecta por su User-Agent, ya que APIClient.swift no
+   manda ningún header propio. URLSession de iOS/macOS arma un User-Agent con
+   "CFNetwork"/"Darwin" y nunca con "Mozilla" (todo navegador sí lo trae), así
+   que esa combinación basta para distinguirlo sin depender de que la app
+   mande algo nuevo. */
+function isNativeAppleClient(req) {
+  const ua = String(req.headers?.["user-agent"] || req.headers?.["User-Agent"] || "")
+  return /(CFNetwork|Darwin)/i.test(ua) && !/Mozilla/i.test(ua)
+}
+
 /* Con sesión, cada barbero bloquea y abre SOLO su propia agenda; el admin
    (Bruno), cualquiera. Antes bastaba una sesión cualquiera para tocar la de
    otro. Responde el 403 y devuelve false si no corresponde. */
@@ -107,11 +125,18 @@ export default async function handler(req, res) {
     const unavailable = new Set([...bookedSet, ...blockedSet])
     const isToday = date === businessDateKey(new Date())
     const minMinutes = isToday ? businessNowMinutes(new Date()) + MIN_LEAD_MINUTES : -1
-    const slots = ALL_SLOTS.map(s => ({
-      slot: s,
-      available: !unavailable.has(s) && slotMinutes(s) >= minMinutes,
-      state: bookedSet.has(s) ? "booked" : blockedSet.has(s) ? "blocked" : slotMinutes(s) < minMinutes ? "past" : "free",
-    }))
+    // El puente (X-Bridge-Secret) siempre entiende "past"; la app nativa, no
+    // (ver isNativeAppleClient arriba). `available` no cambia: una hora
+    // pasada ya era `available:false`.
+    const flattenPast = !isBridgeRequest(req) && isNativeAppleClient(req)
+    const slots = ALL_SLOTS.map(s => {
+      const state = bookedSet.has(s) ? "booked" : blockedSet.has(s) ? "blocked" : slotMinutes(s) < minMinutes ? "past" : "free"
+      return {
+        slot: s,
+        available: !unavailable.has(s) && slotMinutes(s) >= minMinutes,
+        state: state === "past" && flattenPast ? "blocked" : state,
+      }
+    })
     return res.json({ ok: true, slots })
   } catch (err) {
     console.error("availability error:", err)
