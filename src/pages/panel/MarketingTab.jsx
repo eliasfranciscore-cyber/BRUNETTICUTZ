@@ -31,6 +31,7 @@ export default function MarketingTab({ ctx }) {
   const {
     activeClients,
     audienceCount,
+    authHeaders,
     campaignAudience,
     campaignConfirming,
     campaignError,
@@ -54,10 +55,27 @@ export default function MarketingTab({ ctx }) {
     setCampaignSentNote,
     setCardTestEmail,
     setCardTestPhone,
+    setWalletStats,
     topClients,
     walletCampaigns,
     walletStats,
   } = ctx
+
+  // Las cifras de audiencia (walletStats) solo se piden una vez, al entrar
+  // a Resumen o Marketing por primera vez (ver Dashboard.jsx): si en el medio
+  // se acreditaron estrellas (por ejemplo al cobrar reservas), el chip y la
+  // confirmación quedan mostrando un número viejo. Se refrescan al montar
+  // esta pestaña y otra vez justo antes de confirmar el envío, para que lo
+  // que se confirma sea lo mismo que de verdad se va a mandar.
+  const reloadWalletStats = () => {
+    if (typeof authHeaders !== 'function' || typeof setWalletStats !== 'function') return
+    fetch('/api/clients?mode=wallet-stats', { headers: authHeaders() })
+      .then((r) => r.json())
+      .then((data) => { if (data?.stats) setWalletStats(data.stats) })
+      .catch(() => {})
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { reloadWalletStats() }, [])
 
   // Confirmación del envío masivo de la tarjeta por correo (antes un
   // window.confirm en Dashboard). Estado de la pestaña: no lo usa nadie más.
@@ -75,7 +93,7 @@ export default function MarketingTab({ ctx }) {
   // Cualquier cambio de mensaje o audiencia cierra la confirmación: nunca se
   // confirma algo distinto a lo que se leyó.
   const resetFeedback = () => { setCampaignConfirming(false); setCampaignSentNote('') }
-  const openCampaignConfirm = () => { setCampaignError?.(''); setCampaignConfirming(true) }
+  const openCampaignConfirm = () => { setCampaignError?.(''); reloadWalletStats(); setCampaignConfirming(true) }
 
   const byStars = Array.isArray(walletStats?.byStars) ? walletStats.byStars : []
   const maxStars = Math.max(1, ...byStars)

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Icon } from './ui.jsx'
 import { CAT_LABEL, CLP, cleanPhone, fmtDate } from '../data.js'
 import { Sheet, Field, SectionLabel, List, ListRow, ChoiceGrid, Button, InlineAlert, Skeleton, Note } from './panel/index.js'
+import { FEATURES } from '../features.js'
 import '../styles/panel/booking-sheets.css'
 
 /**
@@ -192,6 +193,10 @@ export default function NewBookingModal({ open, onClose, clients = [], services 
     setCustomSvc(false)
     setSvcName('')
     setPrice(String(svc.price || ''))
+    // Un servicio de "Día único" solo existe esa fecha: el paso 2 parte ahí
+    // en vez de en hoy, para no dejar agendar (y ofrecer horas libres) un día
+    // en el que el servicio ni siquiera está disponible.
+    if (FEATURES.singleDay && svc.onlyOnDate) { setDate(svc.onlyOnDate); setTime('') }
     setError('')
   }
   const pickCustom = () => { setServiceId(null); setCustomSvc(true); setPrice(''); setError('') }
@@ -335,7 +340,10 @@ export default function NewBookingModal({ open, onClose, clients = [], services 
                         <span className="pn-booking-svc-ic"><Icon name={svcIcon(svc)} size={16} /></span>
                         <span className="pn-booking-svc-text">
                           <strong>{svc.name}</strong>
-                          <small>{svc.min ? `${svc.min} min · ` : ''}{CLP(svc.price)}</small>
+                          <small>
+                            {svc.min ? `${svc.min} min · ` : ''}{CLP(svc.price)}
+                            {FEATURES.singleDay && svc.onlyOnDate ? ` · solo el ${fmtDate(svc.onlyOnDate, 'dm')}` : ''}
+                          </small>
                         </span>
                         {serviceId === svc.id && <span className="pn-booking-svc-check"><Icon name="check" size={16} /></span>}
                       </button>

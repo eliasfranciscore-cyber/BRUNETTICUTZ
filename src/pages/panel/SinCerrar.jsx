@@ -87,7 +87,6 @@ function useUnclosed(ctx, { summary = false, enabled = true } = {}) {
 }
 
 const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`
-const firstName = (name) => String(name || '').trim().split(' ')[0] || 'Cliente'
 
 /* "3 sin cerrar · 2 pagos por confirmar" (o solo la parte que exista). La
    forma larga nombra las sin cerrar como "atenciones de días anteriores". */
@@ -248,7 +247,7 @@ function useClosing(ctx, remove, onConfirmed) {
     // Si esa reserva está cargada en el panel (Reservas, Agenda), que se vea cancelada.
     ctx.setBookings?.((items) => items.map((it) => (String(it.id) === String(booking.id) ? { ...it, status: 'cancelada', ...noShow } : it)))
     if (data.loyalty) ctx.applyClientLoyalty?.(booking.phone, data.loyalty)
-    ctx.pushToast?.('✕', `${firstName(booking.client)}: marcada como no vino`)
+    ctx.pushToast?.('✓', `Reserva de ${booking.client} marcada como «No vino»`)
   }
 
   const busyFor = (booking) => (busyId && String(busyId.id) === String(booking.id) ? busyId.kind : null)
@@ -256,10 +255,12 @@ function useClosing(ctx, remove, onConfirmed) {
   const confirmDialog = (
     <ConfirmDialog
       open={Boolean(confirm)}
+      tone="danger"
       title="¿No vino?"
       message={confirm ? `${confirm.client || 'Cliente'} · ${fmtDate(confirm.date, 'short')} a las ${confirm.time}. Queda cancelada como inasistencia: no suma estrella ni entra en la caja.` : ''}
-      confirmLabel="Marcar no vino"
-      icon="close"
+      confirmLabel="Sí, no vino"
+      cancelLabel="Volver"
+      icon="user"
       busy={Boolean(busyId)}
       onConfirm={markNoShow}
       onCancel={() => setConfirm(null)}
