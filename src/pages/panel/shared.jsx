@@ -196,3 +196,7 @@ export const CAMPAIGN_TEMPLATES = [
 // Módulos que la preferencia "Módulos visibles" (Config → Navegación) no
 // puede ocultar: Resumen y Config siempre están disponibles.
 export const ALWAYS_NAV = ["resumen", "config"]
+
+// La regla de contraseña vive en src/passwordRules.js (una sola, la misma que
+// valida api/auth-barber.js); se reexporta con el nombre que usan las pestañas.
+export { isStrongPassword } from '../../passwordRules.js'

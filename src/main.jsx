@@ -8,6 +8,9 @@ import './styles/modules.css'
 import './styles/brunetti.css'
 // Tailwind (solo utilidades, preflight OFF) — alimenta el componente de lámpara.
 import './styles/tailwind.css'
+// Sistema visual del panel interno: va AL FINAL a propósito, para ganar por
+// orden sobre pimp/modules/brunetti sin !important (ver el encabezado del archivo).
+import './styles/panel.css'
 import App from './App.jsx'
 import { Analytics } from '@vercel/analytics/react'
 // Sólo por el efecto de importarlo: engancha `beforeinstallprompt` antes de

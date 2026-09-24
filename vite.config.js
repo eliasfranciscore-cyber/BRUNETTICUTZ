@@ -1,7 +1,12 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+// Mock de toda la API para desarrollo: solo con VITE_DEV_MOCKS=1 y solo en
+// `vite` (serve). Sin la variable no registra nada. Ver scripts/dev-mock.
+import devMockPlugin from './scripts/dev-mock/index.mjs'
 
-const SOURCE_PATHS = { cursos: '/cursos', workshop: '/workshop', essentials: '/essentials' }
+// A dónde vuelve el navegador después de pagar. Essentials tiene su propia
+// página de gracias (igual que los back_urls de api/mp-payments.js).
+const SOURCE_PATHS = { cursos: '/cursos', workshop: '/workshop', essentials: '/essentials/gracias' }
 
 const mockMpPlugin = {
   name: 'mock-mercadopago',
@@ -48,7 +53,10 @@ const mockMpPlugin = {
 }
 
 export default defineConfig({
-  plugins: [react(), mockMpPlugin],
+  // El mock de API va ANTES que el de Mercado Pago: con VITE_DEV_MOCKS=1
+  // contesta él (también el checkout); sin la variable pasa todo de largo y
+  // el mock de Mercado Pago sigue funcionando como siempre.
+  plugins: [react(), devMockPlugin({ returnPaths: SOURCE_PATHS }), mockMpPlugin],
   server: {
     port: parseInt(process.env.PORT) || 5173,
     strictPort: false,
