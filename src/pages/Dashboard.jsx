@@ -384,6 +384,14 @@ export default function Dashboard() {
     acc[key].total += collectedOf(item)
     return acc
   }, {})).sort((a, b) => b.total - a.total)
+  // Los últimos 7 días con ingresos, en orden. completedBookings viene de
+  // más nuevo a más viejo: sin ordenar, el slice tomaba los 7 más viejos al
+  // revés. (FinanzasTab arma su propio gráfico; esto queda en el ctx.)
+  const revenueByDate = Object.entries(completedBookings.reduce((acc, item) => {
+    const key = item.date || "Sin fecha"
+    acc[key] = (acc[key] || 0) + collectedOf(item)
+    return acc
+  }, {})).sort((a, b) => a[0].localeCompare(b[0])).slice(-7).map(([key, v]) => ({ d: key.slice(5).replace("-", "/"), v }))
   // Inactivo = sin visitas hace 30 dias o mas (o nunca visito). Mas activos = 3+ visitas.
   const clientActivityOf = (client) => {
     if (!client.lastVisit) return "inactive"
@@ -1432,14 +1440,6 @@ export default function Dashboard() {
     }
   }
 
-  // Versión de la pestaña Marketing vieja: mismo envío, con avisos del navegador.
-  const sendCampaign = async () => {
-    if (!campaignMessage.trim()) return
-    const result = await sendWalletCampaign()
-    if (result?.ok) window.alert("Campaña enviada.")
-    else if (result?.error) window.alert("No se pudo enviar la campaña.")
-  }
-
   /* Envío masivo del link de la tarjeta. El backend manda de a pocos por
      llamada (una función serverless no aguanta 167 correos seguidos con el
      límite de 2/s de Resend), así que el bucle vive acá: se ve el avance en
@@ -1819,8 +1819,6 @@ export default function Dashboard() {
     toasts,
     updateBarberLocal,
     visibleNav,
-    apiError,
-    setApiError,
     // Reservas
     applyClientLoyalty,
     askForCharge,
@@ -1834,10 +1832,8 @@ export default function Dashboard() {
     goToDayInReservas,
     goToPendingInReservas,
     inboxFocus,
-    loadBookings,
     loyaltyForBooking,
     newBookingOpen,
-    newBookingPrefill,
     pastRangeEpoch,
     redeemFreeCut,
     rescheduleBooking,
@@ -1847,7 +1843,6 @@ export default function Dashboard() {
     setDetail,
     setInboxFocus,
     setNewBookingOpen,
-    setNewBookingPrefill,
     setPastRangeEpoch,
     settleCharge,
     updateBookingStatus,
@@ -1932,10 +1927,10 @@ export default function Dashboard() {
     productSales,
     ranking,
     registerSale,
+    revenueByDate,
     revenueByService,
     revenuePerHour,
     revenueTotal,
-    saveFinanceMovement,
     scopedManualMovements,
     sellProductsFor,
     sellable,
@@ -1975,7 +1970,6 @@ export default function Dashboard() {
     recurringPct,
     saveClient,
     selectedClient,
-    sendLoyaltyCard: sendWalletCard,
     setClientEditing,
     setClientFilter,
     setClientHistory,
@@ -1996,14 +1990,12 @@ export default function Dashboard() {
     campaignMessage,
     campaignSending,
     campaignSentNote,
-    campaigns: walletCampaigns,
     cardProgress,
     cardSending,
     cardStopRef,
     cardTestEmail,
     cardTestPhone,
     loadWalletCampaigns,
-    sendCampaign,
     sendLoyaltyCards,
     sendWalletCampaign,
     setCampaignAudience,
@@ -2012,9 +2004,6 @@ export default function Dashboard() {
     setCampaignMessage,
     setCampaignSending,
     setCampaignSentNote,
-    setCampaigns: setWalletCampaigns,
-    setCardProgress,
-    setCardSending,
     setCardTestEmail,
     setCardTestPhone,
     setWalletCampaigns,
