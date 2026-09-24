@@ -1,11 +1,13 @@
-/* Essentials — src/pages/panel/EssentialsTab.jsx y
+/* Essentials — src/pages/panel/EssentialsTab.jsx, EssentialsSell.jsx y
    src/components/InventoryModule.jsx.
    Tokens y clases pn-* compartidas viven en src/styles/panel.css (solo
    lectura): el thumbnail de producto (pn-thumb), la grilla de opciones
    (pn-choices/pn-choice), el texto de aviso (pn-warn-text) y los toggles
    (pn-svc-toggles, de servicios.css) ya cubren la mayoría de esta pantalla.
-   Acá solo lo propio: la ficha de producto (fotos, stock de solo lectura) y
-   el inventario (semáforo de stock, vista previa de un movimiento). */
+   Acá solo lo propio: la ficha de producto (fotos), la venta en el mesón
+   (cliente, total con descuento) y el inventario (semáforo de stock,
+   desfase, vista previa de un movimiento). Sin grises neutros ni tokens de
+   oro propios: todo sale de los --pn-* dorados de panel.css. */
 
 /* ⚠️ Mismo parche que en servicios.css (ver ese archivo para el detalle):
    `.pn-list` en panel.css no fija `grid-template-columns`, así que su columna
@@ -43,22 +45,49 @@
   background: rgba(0, 0, 0, .55);
   color: #e6cd90;
 }
-.pn-ess-photo input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.pn-ess-photo input[type="file"] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+.pn-ess-photo:focus-within { outline: 2px solid var(--pn-accent); outline-offset: 2px; }
+.pn-ess-photo.is-busy { cursor: progress; }
+.pn-ess-photo.is-busy img { opacity: .55; }
+/* En el diálogo de escritorio (560 px) el 4:5 deja tres fotos de casi
+   230 px de alto que empujan el formulario fuera de la vista. */
+@media (min-width: 641px) { .pn-ess-photo { aspect-ratio: 1 / 1; } }
+
+/* Fila de dos campos donde solo uno lleva ayuda debajo: sin esto el de al
+   lado se estira al alto de la fila y su input queda más alto y desalineado. */
+.pn-form-row.pn-ess-row-top { align-items: start; }
 
 /* Stock de solo lectura (quien no es admin, dentro de ProductSheet). */
 .pn-ess-stock { display: flex; align-items: baseline; gap: 8px; }
 .pn-ess-stock b { font: 650 var(--pn-fs-lg)/1 var(--font-display); color: var(--pn-text); }
 
-/* Los Switch de Activo/Publicado dentro de ProductSheet van en una lista sin
-   la sombra de una Card normal: viven dentro de la hoja, no son una sección
-   aparte (mismo criterio que pn-svc-toggles en servicios.css). */
-.pn-ess-toggles { box-shadow: none; border: 1px solid var(--pn-line); }
+/* El Switch de Publicado dentro de ProductSheet, y las listas dentro de la
+   hoja de venta (carrito, cliente, descuento), van sin la sombra de una Card
+   normal: viven dentro de la hoja, no son una sección aparte (mismo criterio
+   que pn-svc-toggles en servicios.css). */
+.pn-ess-toggles,
+.pn-ess-inset { box-shadow: none; border: 1px solid var(--pn-line); }
+
+/* Precio anterior (catálogo) y precio de lista con el 30% (venta). */
+.pn-ess-old { color: var(--pn-text-3); text-decoration: line-through; font-weight: 500; }
+
+/* Total de la venta: el de lista tachado a la izquierda del cobrado. */
+.pn-ess-total { display: inline-flex; align-items: baseline; gap: 8px; min-width: 0; }
+.pn-ess-total .pn-ess-old { font-size: var(--pn-fs-sm); }
 
 /* ---------- Inventario: semáforo de stock y marca dentro de una fila ---------- */
 .pn-ess-inv-bad { color: var(--pn-bad); font-weight: 650; }
 .pn-ess-inv-low { color: var(--pn-warn); font-weight: 650; }
 .pn-ess-inv-ok { color: var(--pn-ok); font-weight: 650; }
 .pn-ess-inv-brand { font-style: normal; color: var(--pn-text-3); }
+.pn-ess-inv-sku {
+  display: block;
+  margin-top: 2px;
+  font-size: var(--pn-fs-xs);
+  color: var(--pn-text-3);
+  letter-spacing: .02em;
+  font-variant-numeric: tabular-nums;
+}
 
 /* Vista previa "antes → después" al declarar un movimiento. */
 .pn-ess-preview {
