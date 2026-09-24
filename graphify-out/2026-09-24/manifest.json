@@ -40,8 +40,8 @@
     "semantic_hash": ""
   },
   "api/bookings.js": {
-    "mtime": 1790226995.6027954,
-    "ast_hash": "7ffe738fd15450be34f183d6667f3ad5",
+    "mtime": 1790232240.6434207,
+    "ast_hash": "fa0d4e524e6ed23f39d7c1b02d2984b0",
     "semantic_hash": ""
   },
   "api/clients.js": {
@@ -315,8 +315,8 @@
     "semantic_hash": ""
   },
   "src/pages/Dashboard.jsx": {
-    "mtime": 1788968700.33265,
-    "ast_hash": "85553564a32b8287d140e127546e9539",
+    "mtime": 1790232240.645102,
+    "ast_hash": "7c4ee54e2fb8be72371a86fd4791ae1a",
     "semantic_hash": ""
   },
   "src/pages/EncuentraEstilo.jsx": {
@@ -365,8 +365,8 @@
     "semantic_hash": "8821dc65ef6d88a32b3d71aa793563c1"
   },
   "CLAUDE.md": {
-    "mtime": 1790227267.5892367,
-    "ast_hash": "2fc429bd99518dbca499a3cfaa9b0e65",
+    "mtime": 1790232240.6461067,
+    "ast_hash": "92d492cd0190b8f80823fce3476f5293",
     "semantic_hash": ""
   },
   "IMPLEMENTATION_PLAN.md": {
