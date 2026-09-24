@@ -618,6 +618,29 @@ a.home-footer-access { display: inline-flex; align-items: center; gap: .4rem; te
 [data-theme="light"] .psn-ring-bg { stroke: rgba(0,0,0,.1); }
 [data-theme="light"] .psn-donut::after { background: #fff; }
 [data-theme="light"] .psn-res-status { background: #fff; border-color: #d8d3ca; }
+/* Modales en MODO CLARO — base para todos, no solo los de la lista de abajo.
+   .psn-modal-card se pinta con un "glass" blanco al 13% pensado para fondo
+   oscuro; en claro la tarjeta quedaba prácticamente transparente y su texto
+   (--ink, casi negro) caía sobre el scrim oscuro: se leía la página entera a
+   través del modal. Las variantes de abajo (fondo #fff, dos clases) siguen
+   ganando por especificidad. */
+[data-theme="light"] .psn-modal-card {
+  background: var(--panel);
+  border-color: var(--hair-2);
+  box-shadow: 0 30px 80px rgba(60, 40, 8, .26), 0 0 0 1px rgba(40, 33, 18, .05);
+}
+/* Scrim: en claro basta con oscurecer lo justo para separar del fondo. */
+[data-theme="light"] .psn-scrim { background: rgba(33, 27, 15, .42); }
+/* Píldoras flotantes sobre la tarjeta (volver / cerrar): eran rgba(8,8,7,.5)
+   —fondo oscuro— con color:var(--ink); en claro el ícono quedaba negro sobre
+   negro. */
+[data-theme="light"] .psn-back,
+[data-theme="light"] .psn-close {
+  background: rgba(40, 33, 18, .06);
+  border-color: var(--hair-2);
+  color: var(--ink);
+}
+[data-theme="light"] .psn-back { color: var(--ink-soft); }
 [data-theme="light"] .psn-modal-card.psn-confirm,
 [data-theme="light"] .psn-modal-card.psn-res-modal,
 [data-theme="light"] .psn-modal-card.psn-client-modal,

@@ -7,6 +7,7 @@ import { Lamp } from '../components/ui/lamp.jsx'
 import { ContainerScroll } from '../components/ui/container-scroll-animation.jsx'
 import { InteractiveSelector } from '../components/ui/interactive-selector.jsx'
 import { Sparkles } from '../components/ui/sparkles.jsx'
+import { useTheme } from '../components/theme.jsx'
 import { CLP } from '../data.js'
 import { EditableText, EditContext } from '../components/edit/EditableText.jsx'
 import { Editable } from '../components/edit/Editable.jsx'
@@ -59,10 +60,45 @@ const FALLBACK_SERVICES = [
 
 const CAT_TAG = { premium: 'Premium', quimico: 'Color', general: 'Corte' }
 
-// Solo UN servicio lleva la insignia de destacado: el primer premium, o si no
-// hay ninguno, el primero de la lista.
+// Orden de las categorías en la vitrina, después de los destacados. Una
+// categoría que no esté acá va al final, en el orden en que llega.
+const HOME_CAT_ORDER = ['premium', 'general', 'quimico']
+// Tope de tarjetas en el carril: la landing es una vitrina, no el catálogo
+// completo (ese se ve entero en /reservar).
+const HOME_SERVICES_MAX = 9
+
+// Criterio de respaldo para la insignia cuando ningún servicio viene marcado
+// como destacado desde el panel: el primer premium, o si no hay ninguno, el
+// primero de la lista.
 function pickFeaturedId(list) {
   return (list.find((s) => s.cat === 'premium') || list[0])?.id
+}
+
+// Vitrina del Home a partir de /api/services (solo activos, sin los de día
+// único). Primero los que el barbero marcó "Destacado" en el panel
+// (svc.featured), en el orden en que llegan; si no marcó ninguno, el de
+// pickFeaturedId. Después el resto agrupado por categoría (HOME_CAT_ORDER),
+// manteniendo el orden de la API dentro de cada una. Máximo
+// HOME_SERVICES_MAX. La insignia es UNA sola tarjeta —la primera—, aunque
+// haya varios destacados: el resto va igual adelante, pero sin el badge.
+function curateHomeServices(list) {
+  const active = list.filter((s) => s && s.active !== false)
+  if (!active.length) return []
+  const flagged = active.filter((s) => s.featured === true)
+  const leadIds = new Set(flagged.length ? flagged.map((s) => s.id) : [pickFeaturedId(active)])
+  const lead = active.filter((s) => leadIds.has(s.id))
+  const rank = (s) => {
+    const i = HOME_CAT_ORDER.indexOf(s.cat)
+    return i === -1 ? HOME_CAT_ORDER.length : i
+  }
+  const rest = active
+    .filter((s) => !leadIds.has(s.id))
+    .map((s, i) => ({ s, i }))
+    .sort((a, b) => rank(a.s) - rank(b.s) || a.i - b.i)
+    .map(({ s }) => s)
+  const curated = [...lead, ...rest].slice(0, HOME_SERVICES_MAX)
+  const badgeId = curated[0]?.id
+  return curated.map((svc) => toDisplayService(svc, badgeId))
 }
 
 function toDisplayService(svc, featuredId) {
@@ -103,8 +139,14 @@ export default function Home() {
   const [tmIdx, setTmIdx] = useState(0)
   const [tmReveal, setTmReveal] = useState(0) // contador para re-disparar animación de palabras
   const trackRef = useRef(null)
+  const servTrackRef = useRef(null)
   const [services, setServices] = useState(FALLBACK_SERVICES)
   const { editing } = useContext(EditContext)
+  const { theme } = useTheme()
+  /* Las partículas son un efecto de fondo OSCURO: sobre la crema del modo
+     claro se leían como suciedad encima del texto. En claro no se montan (ni
+     canvas ni requestAnimationFrame). */
+  const showSparkles = theme !== 'light'
 
   useBrunettiFx(rootRef)
 
@@ -117,6 +159,11 @@ export default function Home() {
   // de depender del observer genérico.
   useEffect(() => {
     if (services === FALLBACK_SERVICES) return
+    // El carril tiene scroll-snap obligatorio y, al cambiar el contenido, el
+    // navegador vuelve a encajar en la tarjeta que tenía encajada (la 1ª del
+    // respaldo), que en la lista real puede quedar 3ª o más atrás: el carril
+    // aparecía corrido hacia la derecha. Se vuelve al inicio a mano.
+    servTrackRef.current?.scrollTo({ left: 0 })
     const t = setTimeout(() => {
       document.querySelectorAll('.bserv-grid [data-reveal]').forEach((n) => n.classList.add('is-in'))
     }, 30)
@@ -124,20 +171,15 @@ export default function Home() {
   }, [services])
 
   // Servicios reales configurados en el panel interno: precio, visibilidad
-  // (oculto/publicado) y textos vienen todos de acá, no de una lista fija.
+  // (oculto/publicado), "Destacado" y textos vienen todos de acá, no de una
+  // lista fija. La curaduría (orden y tope) está en curateHomeServices.
   useEffect(() => {
     fetch('/api/services')
       .then((r) => r.json())
       .then((data) => {
-        if (data.services?.length) {
-          const featuredId = pickFeaturedId(data.services)
-          const mapped = data.services.map((svc) => toDisplayService(svc, featuredId))
-          // La landing es una vitrina, no el catálogo completo: destacado
-          // primero (si hay) y hasta 2 más, igual que la curaduría original.
-          const featured = mapped.find((s) => s.featured)
-          const rest = mapped.filter((s) => !s.featured)
-          setServices(featured ? [featured, ...rest.slice(0, 2)] : mapped.slice(0, 3))
-        }
+        if (!Array.isArray(data?.services) || !data.services.length) return
+        const curated = curateHomeServices(data.services)
+        if (curated.length) setServices(curated)
       })
       .catch(() => {})
   }, [])
@@ -216,10 +258,12 @@ export default function Home() {
     return () => { document.body.style.overflow = ''; document.removeEventListener('keydown', onKey) }
   }, [modal])
 
-  const scrollTrack = (dir) => {
-    const track = trackRef.current
+  // Un paso = una tarjeta + el gap (1rem). Sirve para los dos carriles:
+  // Experiencias (.ac-card, por defecto) y Servicios (.bserv).
+  const scrollTrack = (dir, ref = trackRef, cardSelector = '.ac-card') => {
+    const track = ref.current
     if (!track) return
-    const card = track.querySelector('.ac-card')
+    const card = track.querySelector(cardSelector)
     const step = card ? card.offsetWidth + 16 : 300
     track.scrollBy({ left: dir * step, behavior: 'smooth' })
   }
@@ -292,7 +336,7 @@ export default function Home() {
         </section>
 
         <div className="bru-sparkles-zone">
-          <Sparkles className="bru-sparkles--bg" />
+          {showSparkles && <Sparkles className="bru-sparkles--bg" />}
 
         {/* ============ MARQUEE ============ */}
         <div className="bmarquee" aria-hidden="true">
@@ -377,7 +421,19 @@ export default function Home() {
               <h2><EditableText file="home-servicios" path="h2" as="span">{SERVICIOS_INTRO.h2}</EditableText></h2>
               <p><EditableText file="home-servicios" path="body" as="span">{SERVICIOS_INTRO.body}</EditableText></p>
             </div>
-            <div className="bserv-grid">
+            {/* Con 3 o menos las tarjetas llenan el ancho y no hay nada que
+                scrollear: las flechas solo aparecen desde la 4ª. */}
+            {services.length > 3 && (
+              <div className="ac-arrows">
+                <button className="ac-arrow" type="button" aria-label="Servicio anterior" onClick={() => scrollTrack(-1, servTrackRef, '.bserv')}>
+                  <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                </button>
+                <button className="ac-arrow" type="button" aria-label="Servicio siguiente" onClick={() => scrollTrack(1, servTrackRef, '.bserv')}>
+                  <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                </button>
+              </div>
+            )}
+            <div className="bserv-grid" ref={servTrackRef}>
               {services.map((s, i) => (
                 <article className={`bserv${s.featured ? ' featured' : ''}`} data-reveal style={{ '--i': i }} key={s.id ?? s.title}>
                   {s.featured && <span className="badge">Insignia</span>}
