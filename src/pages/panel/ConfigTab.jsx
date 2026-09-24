@@ -18,6 +18,11 @@ import {
 } from '../../components/panel/index.js'
 import '../../styles/panel/ajustes.css'
 
+// El navegador expone el permiso de notificaciones en inglés
+// (Notification.permission: 'granted' | 'denied' | 'default'); acá se
+// traduce para la nota al pie de Notificaciones.
+const PERM_LABEL = { granted: 'permitido', denied: 'bloqueado', default: 'sin decidir' }
+
 /* ============================================================
    Ajustes — lista agrupada estilo Ajustes de iOS (portado de PimpStudio,
    con lo de Brunetti: sin Equipo ni Comisiones, un solo barbero).
@@ -240,7 +245,7 @@ export function PushCard({ barber }) {
         </InlineAlert>
       )}
 
-      <p className="pn-ajustes-footnote">Solo tú recibes estos avisos en tu cuenta. Permiso del navegador: <b>{perm}</b>.</p>
+      <p className="pn-ajustes-footnote">Solo tú recibes estos avisos en tu cuenta. Permiso del navegador: <b>{PERM_LABEL[perm] || perm}</b>.</p>
     </Card>
   )
 }
