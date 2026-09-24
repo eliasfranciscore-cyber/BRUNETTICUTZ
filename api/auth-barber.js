@@ -18,7 +18,8 @@ import { sendPasswordResetEmail } from "./_email.js"
    POST                 login con { username, password }
    POST ?reset=request  pide el correo de restablecimiento  { email }
    POST ?reset=confirm  fija la contraseña nueva            { token, password }
-   GET  ?me=1           perfil fresco del barbero de la sesión (+ token nuevo)
+   GET  ?me=1           perfil fresco del barbero de la sesión (+ token nuevo),
+                        con su correo de recuperación (email: string | null)
    PATCH                cambia la contraseña y/o el correo propios:
                         { currentPassword, newPassword?, email? }. La
                         contraseña actual es obligatoria SIEMPRE, también para
@@ -300,7 +301,9 @@ async function handleMe(req, res) {
   if (!id) return res.status(401).json({ ok: false, error: "Sesión sin barbero asociado" })
   try {
     const sql = neon(process.env.DATABASE_URL)
-    const [row] = await sql`SELECT id, name, code, role, tier, active FROM barbers WHERE id = ${id}`
+    // El correo de recuperación va por to_jsonb: si la columna todavía no
+    // existe sale null en vez de romper el SELECT.
+    const [row] = await sql`SELECT b.id, b.name, b.code, b.role, b.tier, b.active, to_jsonb(b)->>'email' AS email FROM barbers b WHERE b.id = ${id}`
     // Barbero desactivado (o borrado): se le corta el acceso acá, sin esperar
     // a que expire su token. El panel cierra la sesión con un 401.
     if (!row || row.active === false) return res.status(401).json({ ok: false, error: "Cuenta desactivada" })
@@ -308,7 +311,9 @@ async function handleMe(req, res) {
     const token = createSession(barber)
     if (!token) return res.json({ ok: false, error: "Autenticación no configurada en el servidor (PS_SESSION_SECRET)." })
     res.setHeader("Cache-Control", "no-store")
-    return res.json({ ok: true, barber, token })
+    // El token se firma sin el correo; la respuesta lo suma para que Ajustes
+    // muestre el guardado (string) o sepa que no hay (null).
+    return res.json({ ok: true, barber: { ...barber, email: row.email || null }, token })
   } catch (err) {
     console.error("auth-barber ?me=1 error:", err?.message || err)
     // Sin base no se puede refrescar: el panel sigue con lo que ya tenía en

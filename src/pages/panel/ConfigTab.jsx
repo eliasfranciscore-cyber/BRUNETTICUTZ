@@ -379,10 +379,10 @@ export function ConfigPanel({
     }
   }
 
-  /* Correo para recuperar la contraseña (FEATURES.passwordReset). Hoy la
-     sesión (?me=1) no lo trae, así que el campo arranca con el que se guardó
-     desde este dispositivo: barber.email string = ese, null = se sabe que no
-     hay, undefined = no se sabe (y se avisa). Guardar pide la contraseña
+  /* Correo para recuperar la contraseña (FEATURES.passwordReset). Lo trae
+     el refresco de sesión del panel (?me=1) o el último guardado desde este
+     dispositivo: barber.email string = ese, null = se sabe que no hay,
+     undefined = no se sabe todavía (y se avisa). Guardar pide la contraseña
      actual, igual que cambiarla: con un correo ajeno se podría restablecer. */
   const savedEmail = barber?.email || ''
   const emailKnown = barber?.email !== undefined

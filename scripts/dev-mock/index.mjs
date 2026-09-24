@@ -178,7 +178,8 @@ function authBarber(c) {
   const publicBarber = { id: barber.id, name: barber.name, code: barber.code, role: barber.role, tier: barber.tier, admin: true }
   const token = () => `mock.${barber.id}.${Date.now().toString(36)}`
   if (method === 'GET' && q.me === '1') {
-    return c.session ? OK({ barber: publicBarber, token: token() }) : E(401, 'Sesión inválida')
+    // Como el real: el correo de recuperación va en la respuesta (no en el token).
+    return c.session ? OK({ barber: { ...publicBarber, email: barber.email || null }, token: token() }) : E(401, 'Sesión inválida')
   }
   if (method === 'POST' && q.reset === 'request') {
     if (body.email && !EMAIL_RE.test(String(body.email))) return E(400, 'Ese correo no parece válido.')
@@ -707,10 +708,10 @@ function shopApi(c) {
   if (method === 'DELETE') {
     const p = st.products.find((x) => x.id === Number(q.id))
     if (!p) return E(400, 'id requerido')
-    if (hasHistory(p.id)) { p.archivedAt = iso(); p.active = false; return OK({ archived: true }) }
+    if (hasHistory(p.id)) { p.archivedAt = iso(); p.active = false; return OK({ archived: true, deleted: false }) }
     st.products = st.products.filter((x) => x !== p)
     st.moves = st.moves.filter((m) => m.productId !== p.id)
-    return OK({ archived: false })
+    return OK({ archived: false, deleted: true })
   }
   return [405, { error: 'Method not allowed' }]
 }
@@ -723,7 +724,8 @@ function inventoryApi(c) {
     const own = st.moves.filter((m) => m.productId === p.id)
     const ledgerStock = ledger(p.id)
     return {
-      id: p.id, name: p.name, sku: p.sku || null, stock: p.stock, ledgerStock, drift: p.stock - ledgerStock,
+      id: p.id, name: p.name, brand: p.brand || '', price: p.price, imgFront: p.imgFront || null,
+      sku: p.sku || null, stock: p.stock, ledgerStock, drift: p.stock - ledgerStock,
       cost: p.cost ?? null, value: p.cost ? p.cost * Math.max(0, p.stock) : 0, active: p.active, archived: Boolean(p.archivedAt),
       lastMoveAt: own.map((m) => m.createdAt).sort().pop() || null, oversold: p.stock < 0,
     }
@@ -764,7 +766,8 @@ function inventoryApi(c) {
     if (!Number.isInteger(qty) || qty === 0 || (body.kind !== 'ajuste' && qty < 0)) return E(400, 'Cantidad inválida.')
     if (!String(body.reason || '').trim() && body.kind !== 'compra') return E(400, 'Escribe el motivo.')
     const delta = kinds[body.kind] * qty
-    if (p.stock + delta < 0) return E(409, `El stock quedaría negativo (hay ${p.stock}).`)
+    // `stock` como el real (api/_products.js): la hoja rehace su vista previa con él.
+    if (p.stock + delta < 0) return E(409, `El stock quedaría negativo (hay ${p.stock}).`, { stock: p.stock })
     const unitCost = body.unitCost === undefined || body.unitCost === null || body.unitCost === '' ? null : int(body.unitCost)
     if (unitCost !== null && !isMoney(unitCost)) return E(400, 'Costo inválido.')
     p.stock += delta

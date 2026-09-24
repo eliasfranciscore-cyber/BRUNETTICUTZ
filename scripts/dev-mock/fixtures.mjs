@@ -260,7 +260,7 @@ export function createState(now = new Date()) {
       [BRUNO_ID]: {
         notif: { reserva: true, cancelacion: true, recordatorio: true, marketing: false },
         whatsapp: { activo: true, recordatorio24h: true, recordatorio2h: false, confirmacion: true },
-        horario: { apertura: '09:00', cierre: '20:00', anticipacion: '1', ventana: '10', domingo: 'cerrado', cancelacion: '2' },
+        horario: { apertura: '09:00', cierre: '20:00', anticipacion: '120', ventana: '30', domingo: 'closed', cancelacion: '24h' },
       },
     },
     business: { name: 'Brunetticutz', address: 'Av. Providencia 1234, Providencia', phone: '+56 9 8765 4321' },
