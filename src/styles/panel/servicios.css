@@ -84,3 +84,15 @@
    sombra ni el aire de una Card normal: viven dentro de la hoja, no son una
    sección aparte. */
 .pn-svc-toggles { box-shadow: none; border: 1px solid var(--pn-line); }
+
+/* Oculto (Publicado apagado): la tarjeta de escritorio se atenúa igual que
+   la fila del celular (ListRow `dim`), para distinguirlo sin leer el chip. */
+.pn-svc-card.is-off .pn-svc-card-name,
+.pn-svc-card.is-off .pn-svc-card-price { color: var(--pn-text-3); }
+.pn-svc-card.is-off .pn-svc-ic { color: var(--pn-text-3); }
+
+/* "Día único": el campo de fecha + "Quitar" en la misma línea. Sin el botón,
+   borrar la fecha de un <input type="date"> en iOS no es obvio. */
+.pn-svc-date { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.pn-svc-date .input { flex: 1 1 auto; min-width: 0; }
+.pn-svc-date .pn-btn { flex: 0 0 auto; }
