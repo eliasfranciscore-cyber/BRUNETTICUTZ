@@ -4,12 +4,17 @@ import { requireInternal } from "./_auth.js"
 /* PIMP STUDIO — Suscripciones Web Push (por barbero)
    ------------------------------------------------------------------
    POST   (sesión interna): guarda la suscripción del barbero autenticado.
+   POST {action:'test'} (sesión interna): push de prueba REAL al barbero de
+     la sesión, por el servidor → { ok:true, sent } (ver más abajo).
    DELETE (sesión interna): elimina una suscripción por endpoint.
    GET ?job=reminders (CRON_SECRET, no sesión de barbero): dispara el
-     recordatorio de 1 hora antes de cada reserva. Vive acá (en vez de
-     en su propio archivo api/) porque el plan Hobby de Vercel tope a 12
-     funciones serverless por deployment — sumar un archivo más lo pasaba.
-   notifyBarber(barberId, payload): envía un push SOLO al barbero indicado.
+     recordatorio de 1 hora antes de cada reserva y, después, el
+     autocompletar de las atenciones "en curso" que ya terminaron. Vive acá
+     (en vez de en su propio archivo api/) porque el plan Hobby de Vercel
+     topa a 12 funciones serverless por deployment — no se agrega un cron
+     ni un endpoint nuevo para eso.
+   notifyBarber(barberId, payload, { log }): envía un push SOLO al barbero
+     indicado; con log:false no lo deja en la campana del panel.
 
    Requiere claves VAPID en variables de entorno para enviar:
      VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT (mailto:...)
@@ -132,9 +137,12 @@ async function logNotification(barberId, payload) {
   }
 }
 
-export async function notifyBarber(barberId, payload) {
+// `log: false` es solo para la notificación de prueba del panel: la campana
+// muestra las últimas 5, así que probar tres veces seguidas desalojaría los
+// avisos de reservas reales. Todo lo demás se registra, como siempre.
+export async function notifyBarber(barberId, payload, { log = true } = {}) {
   if (!barberId) return { ok: false, sent: 0 }
-  await logNotification(Number(barberId), payload)
+  if (log) await logNotification(Number(barberId), payload)
   const webpush = await getWebPush()
   if (!webpush) return { ok: false, sent: 0, reason: "push-not-configured" }
   try {
@@ -197,6 +205,39 @@ export async function notifyAll(payload) {
   }
 }
 
+/* Atenciones "en curso" que ya terminaron → completadas, con el pago por
+   confirmar (autoCompleteStarted en api/_bookingLife.js). También corre al
+   abrir el panel; acá cubre las horas en que nadie lo abre, montado sobre el
+   despertar de la base que el recordatorio ya pagó — por eso no hay un cron
+   aparte. Decide solo si corre: nada fuera de producción y nada con el
+   interruptor "Completar solas" apagado (arranca apagado, ver settings
+   `panel:auto_complete`); la estrella la acredita el escritor único de allá.
+
+   Best-effort y nunca lanza: el cron existe para los recordatorios, y un 500
+   por esta tanda accesoria haría que cron-job.org marque el job como caído
+   (y termine desactivándolo) aunque los avisos hayan salido bien.
+
+   Import dinámico, y notifyBarber se le pasa como argumento: _bookingLife.js
+   no importa push.js (bookings.js, que lo usa, ya importa push.js, y así no
+   se cierra ningún ciclo), y los que no son el cron no cargan sus
+   dependencias (Notion, correo, puente) en frío.
+
+   El typeof cubre una base de código donde autoCompleteStarted todavía no
+   existe: el job sigue respondiendo igual, con `autoCompleteSkipped`. */
+async function runAutoComplete(sql) {
+  try {
+    const { autoCompleteStarted } = await import("./_bookingLife.js")
+    if (typeof autoCompleteStarted !== "function") return { autoCompleted: 0, autoCompleteSkipped: "unavailable" }
+    const result = await autoCompleteStarted(sql, { force: true, limit: 25, notifyBarber })
+    const out = { autoCompleted: Number(result?.completed) || 0 }
+    if (result?.skipped) out.autoCompleteSkipped = result.skipped
+    return out
+  } catch (err) {
+    console.error("push reminders job (autocompletar) error:", err)
+    return { autoCompleted: 0, autoCompleteError: true }
+  }
+}
+
 export default async function handler(req, res) {
   // Ruta del cron de recordatorios: no usa sesión de barbero, sino
   // CRON_SECRET. Se resuelve antes que requireInternal porque el llamador
@@ -207,18 +248,62 @@ export default async function handler(req, res) {
       const auth = req.headers.authorization || ""
       if (auth !== `Bearer ${secret}`) return res.status(401).json({ ok: false, error: "unauthorized" })
     }
+    // Primero el recordatorio (lo que el cron existe para hacer, y lo que
+    // vence a la hora), después el autocompletar. Las dos tandas se aíslan:
+    // si falla el recordatorio, la respuesta sigue siendo el 500 de siempre
+    // (con los campos del autocompletar de más), y si falla el
+    // autocompletar, el recordatorio responde 200 igual.
+    let sql = null
+    let sent60 = null
+    let reminderError = null
     try {
-      const sql = neon(process.env.DATABASE_URL)
-      const sent60 = await sendDueReminders(sql, { column: "reminder_60_sent", label: "1 hora", fromMin: 45, toMin: 105 })
-      return res.json({ ok: true, sent60 })
+      sql = neon(process.env.DATABASE_URL)
+      sent60 = await sendDueReminders(sql, { column: "reminder_60_sent", label: "1 hora", fromMin: 45, toMin: 105 })
     } catch (err) {
       console.error("push reminders job error:", err)
-      return res.status(500).json({ ok: false, error: "reminder job failed" })
+      reminderError = err
     }
+    const autoComplete = sql ? await runAutoComplete(sql) : {}
+    if (reminderError) return res.status(500).json({ ok: false, error: "reminder job failed", ...autoComplete })
+    return res.json({ ok: true, sent60, ...autoComplete })
   }
 
   const session = requireInternal(req, res)
   if (!session) return
+
+  // Prueba de punta a punta desde el panel (Ajustes → Notificaciones): manda
+  // el push por el canal REAL y responde a cuántos dispositivos llegó.
+  //
+  // Antes el botón "probar" mostraba una notificación LOCAL en el propio
+  // dispositivo, que sale igual aunque la fila de push_subscriptions ya no
+  // exista: no probaba justo la cadena que se rompe (suscripción caída en el
+  // servidor mientras el interruptor sigue diciendo "activado").
+  //
+  // `sent: 0` es la respuesta útil: este barbero no tiene ningún dispositivo
+  // vivo, y el panel lo traduce a "vuelve a activar el interruptor" (antes
+  // reintenta una vez re-registrando la suscripción, ver syncPush en
+  // src/push.js). Sin claves VAPID también es sent:0, con `reason`. Si la
+  // base no responde es un 500: decir "0 dispositivos" mandaría al barbero a
+  // reactivar algo que no está roto.
+  //
+  // Va antes de la rama de suscripción del POST, que sin `subscription`
+  // respondería 400. No usa `sql`: notifyBarber abre su propia conexión.
+  if (req.method === "POST" && req.body?.action === "test") {
+    let result = { ok: false, sent: 0 }
+    try {
+      result = await notifyBarber(Number(session.id), {
+        title: "Prueba de notificación",
+        body: "Si ves esto, tus avisos de reservas están llegando bien.",
+        url: "/panel",
+        tag: "ps-prueba",
+      }, { log: false })
+    } catch (err) {
+      console.error("push test error:", err)
+    }
+    if (result?.reason === "push-not-configured") return res.json({ ok: true, sent: 0, reason: result.reason })
+    if (!result?.ok) return res.status(500).json({ ok: false, error: "No se pudo enviar la notificación de prueba" })
+    return res.json({ ok: true, sent: Number(result.sent) || 0 })
+  }
 
   try {
     const sql = neon(process.env.DATABASE_URL)
