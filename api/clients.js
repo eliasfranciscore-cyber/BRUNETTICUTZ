@@ -9,6 +9,7 @@ import {
 } from "./_loyaltyBridge.js"
 import { isBridgeRequest, normalizePhone, EMAIL_RE } from "./_bridge.js"
 import { purgeLoyaltyForClient } from "./_bookingLife.js"
+import { ensureClientColumns } from "./_schema.js"
 
 const DEMO_CLIENTS = [
   { id: 1, name: "Carlos Rodriguez", phone: "987654321", email: "carlos@ejemplo.com", visits: 4, totalSpent: 68960, lastVisit: "2026-05-22", status: "activo" },
@@ -29,7 +30,13 @@ function validateClient(body = {}) {
   if (!name) return { error: "Nombre requerido" }
   if (phone.length !== 9) return { error: "El telefono debe tener 9 digitos" }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: "Correo invalido" }
-  return { name, phone, email }
+  // Profesión: texto libre y opcional, la completa el barbero desde la ficha
+  // del cliente en el panel. `undefined` = el campo no vino en el body (la
+  // app de iOS no lo manda) → no se toca lo ya guardado. String vacío =
+  // borrarla (NULL). Cualquier otro valor se recorta a 80 caracteres.
+  const hasProfession = body.profession !== undefined
+  const profession = hasProfession ? (String(body.profession ?? "").trim().slice(0, 80) || null) : null
+  return { name, phone, email, hasProfession, profession }
 }
 
 /* ---------------------------------------------------------------------------
@@ -427,21 +434,58 @@ export default async function handler(req, res) {
 
       const session = requireInternal(req, res)
       if (!session) return
+      /* Lista del panel (y de la app de iOS). Mismos criterios que el panel de
+         PimpStudio, para que "Inactivos 30+", "Más activos" y las fichas
+         digan lo mismo en los dos lados:
+           visits     = reservas NO canceladas ya ocurridas (hoy o antes, en
+                        hora de Santiago). Antes contaban todas: una hora
+                        cancelada sumaba una visita y una futura aparecía
+                        como "última visita".
+           totalSpent = lo cobrado de las completadas: lo que entró en caja
+                        (paid_amount) y, si no se registró el cobro, el precio
+                        congelado (custom_price, price_snapshot) o el de
+                        catálogo. Un canje o una cortesía suman 0.
+           lastVisit  = 'YYYY-MM-DD' de la última no cancelada hasta hoy.
+           nextVisit  = 'YYYY-MM-DD' de la próxima hora abierta (pendiente,
+                        confirmada o en curso) desde hoy, o null.
+           createdAt  = 'YYYY-MM-DD' del registro, en hora de Santiago.
+         Las columnas nuevas (profession, paid_amount, price_snapshot) se leen
+         con to_jsonb(fila)->>'col': dan NULL si la migración todavía no
+         corrió, así la lista nunca depende de ella (ver api/_schema.js).
+         COALESCE(name, ''): la app de iOS decodifica `name` como String
+         obligatorio y un solo NULL le rompería la lista entera.
+         Sin el tope de 100 (dejaba afuera a los clientes viejos): 1500,
+         ordenados por la última actividad, así que si algún día el tope
+         corta, corta a los más antiguos. */
       const clients = await sql`
-        SELECT u.id, u.name, u.phone, u.email,
-               COUNT(b.id)::int as visits,
-               COALESCE(SUM(CASE WHEN b.status = 'completada' THEN COALESCE(b.custom_price, s.price) ELSE 0 END), 0)::int as "totalSpent",
-               MAX(b.booking_date)::text as "lastVisit",
-               CASE WHEN COUNT(b.id) > 0 THEN 'activo' ELSE 'nuevo' END as status
+        WITH bk AS (
+          SELECT b.client_id,
+                 COUNT(b.id) FILTER (WHERE b.status <> 'cancelada' AND b.booking_date <= (NOW() AT TIME ZONE 'America/Santiago')::date)::int AS visits,
+                 COALESCE(SUM(COALESCE((to_jsonb(b)->>'paid_amount')::int, b.custom_price, (to_jsonb(b)->>'price_snapshot')::int, s.price)) FILTER (WHERE b.status = 'completada'), 0)::int AS total_spent,
+                 MAX(b.booking_date) FILTER (WHERE b.status <> 'cancelada' AND b.booking_date <= (NOW() AT TIME ZONE 'America/Santiago')::date) AS last_visit,
+                 MIN(b.booking_date) FILTER (WHERE b.status IN ('pendiente', 'confirmada', 'en curso') AND b.booking_date >= (NOW() AT TIME ZONE 'America/Santiago')::date) AS next_visit
+          FROM bookings b
+          LEFT JOIN services s ON s.id = b.service_id
+          WHERE b.client_id IS NOT NULL
+          GROUP BY b.client_id
+        )
+        SELECT u.id, COALESCE(u.name, '') AS name, u.phone, u.email,
+               NULLIF(btrim(COALESCE(to_jsonb(u)->>'profession', '')), '') AS profession,
+               to_char(u.created_at::timestamptz AT TIME ZONE 'America/Santiago', 'YYYY-MM-DD') AS "createdAt",
+               COALESCE(bk.visits, 0)::int AS visits,
+               COALESCE(bk.total_spent, 0)::int AS "totalSpent",
+               bk.last_visit::text AS "lastVisit",
+               bk.next_visit::text AS "nextVisit",
+               CASE WHEN COALESCE(bk.visits, 0) > 0 THEN 'activo' ELSE 'nuevo' END AS status
         FROM users u
-        LEFT JOIN bookings b ON b.client_id = u.id
-        LEFT JOIN services s ON s.id = b.service_id
-        GROUP BY u.id
-        ORDER BY MAX(u.updated_at) DESC NULLS LAST, u.id DESC
-        LIMIT 100
+        LEFT JOIN bk ON bk.client_id = u.id
+        ORDER BY GREATEST(bk.last_visit, u.updated_at::date) DESC NULLS LAST, u.id DESC
+        LIMIT 1500
       `
-      // Saldos de toda la lista en UNA llamada al puente (no una por cliente:
-      // serían 100 round-trips entre dos deployments por cada carga del panel).
+      // Saldos de toda la lista en pocas llamadas al puente (tandas de 200,
+      // el tope de PimpStudio por llamada; ver loyaltyForPhones), no una por
+      // cliente: serían cientos de round-trips entre dos deployments por cada
+      // carga del panel.
       const byPhone = await loyaltyForPhones(clients.map((c) => c.phone), clientIp(req)).catch(() => ({}))
       return res.json({
         ok: true,
@@ -461,14 +505,31 @@ export default async function handler(req, res) {
       if (!session) return
       const payload = validateClient(req.body)
       if (payload.error) return res.status(400).json({ ok: false, error: payload.error })
+      // Sin `profession` en el body (la app de iOS, clientes viejos) la
+      // escritura es exactamente la de siempre: ni la migración corre ni la
+      // columna se toca. Con el campo, se asegura la columna ANTES de escribir.
+      if (!payload.hasProfession) {
+        const [client] = await sql`
+          INSERT INTO users (name, phone, email, updated_at)
+          VALUES (${payload.name}, ${payload.phone}, ${payload.email}, NOW())
+          ON CONFLICT (phone) DO UPDATE SET
+            name = EXCLUDED.name,
+            email = EXCLUDED.email,
+            updated_at = NOW()
+          RETURNING id, name, phone, email
+        `
+        return res.json({ ok: true, client: { ...client, visits: 0, totalSpent: 0, status: "nuevo" } })
+      }
+      await ensureClientColumns(sql)
       const [client] = await sql`
-        INSERT INTO users (name, phone, email, updated_at)
-        VALUES (${payload.name}, ${payload.phone}, ${payload.email}, NOW())
+        INSERT INTO users (name, phone, email, profession, updated_at)
+        VALUES (${payload.name}, ${payload.phone}, ${payload.email}, ${payload.profession}, NOW())
         ON CONFLICT (phone) DO UPDATE SET
           name = EXCLUDED.name,
           email = EXCLUDED.email,
+          profession = EXCLUDED.profession,
           updated_at = NOW()
-        RETURNING id, name, phone, email
+        RETURNING id, name, phone, email, profession
       `
       return res.json({ ok: true, client: { ...client, visits: 0, totalSpent: 0, status: "nuevo" } })
     }
@@ -519,7 +580,11 @@ export default async function handler(req, res) {
       if (!session) return
       const payload = validateClient(req.body)
       if (payload.error) return res.status(400).json({ ok: false, error: payload.error })
-      return res.json({ ok: true, client: { id: Date.now(), ...payload, visits: 0, totalSpent: 0, status: "nuevo" } })
+      // hasProfession es un detalle interno de validateClient (decide qué
+      // escritura corre): no es parte de la forma del cliente que ve el front.
+      // Sin el campo en el body, la respuesta tampoco lo trae (como la real).
+      const { hasProfession, profession, ...client } = payload
+      return res.json({ ok: true, client: { id: Date.now(), ...client, ...(hasProfession ? { profession } : {}), visits: 0, totalSpent: 0, status: "nuevo" } })
     }
     if (req.method === "DELETE") {
       const session = requireInternal(req, res, { admin: true })
