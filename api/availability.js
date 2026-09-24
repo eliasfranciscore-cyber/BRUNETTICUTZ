@@ -30,6 +30,16 @@ function slotMinutes(slot) {
   return h * 60 + m
 }
 
+/* Con sesión, cada barbero bloquea y abre SOLO su propia agenda; el admin
+   (Bruno), cualquiera. Antes bastaba una sesión cualquiera para tocar la de
+   otro. Responde el 403 y devuelve false si no corresponde. */
+function canTouchAgenda(session, barberId, res) {
+  if (session.admin) return true
+  if (session.id && Number(session.id) === Number(barberId)) return true
+  res.status(403).json({ ok: false, error: "Solo puedes modificar tu propia agenda." })
+  return false
+}
+
 export default async function handler(req, res) {
   const source = req.method === "GET" ? req.query : (req.body || {})
   const { barberId, date, slot, reason } = source
@@ -44,6 +54,7 @@ export default async function handler(req, res) {
       } else {
         const session = requireInternal(req, res)
         if (!session) return
+        if (!canTouchAgenda(session, barberId, res)) return
       }
       if (!slot) return res.status(400).json({ ok: false, error: "slot requerido" })
       const [block] = await sql`
@@ -62,6 +73,7 @@ export default async function handler(req, res) {
       } else {
         const session = requireInternal(req, res)
         if (!session) return
+        if (!canTouchAgenda(session, barberId, res)) return
       }
       if (!slot) return res.status(400).json({ ok: false, error: "slot requerido" })
       await sql`

@@ -1,9 +1,11 @@
 /* PIMP STUDIO — Correos transaccionales vía Resend (API REST directa, sin SDK)
    ------------------------------------------------------------------
    sendBookingConfirmationEmail(...): avisa al cliente que su reserva quedó
-   confirmada. Requiere RESEND_API_KEY; si falta o el cliente no dejó email,
-   degrada sin romper el flujo de reserva (mismo patrón que notifyBarber en
-   push.js). */
+   confirmada (o, con kind "reschedule", que su hora cambió). Requiere
+   RESEND_API_KEY; si falta o el cliente no dejó email, degrada sin romper el
+   flujo de reserva (mismo patrón que notifyBarber en push.js).
+   También: sendPasswordResetEmail (panel), sendVisitThanksEmail (gracias +
+   reseña + estrellas), sendLoyaltyCardEmail y los del Workshop. */
 
 const RESEND_API_URL = "https://api.resend.com/emails"
 const SITE_URL = process.env.SITE_URL || "https://brunetticutz.cl"
@@ -80,10 +82,24 @@ function formatDate(dateStr) {
   }
 }
 
-export async function sendBookingConfirmationEmail({ to, name, service, barber, date, time, price }) {
+/* `kind: "reschedule"` reutiliza la misma plantilla cambiando solo asunto y
+   encabezado — el cuerpo (servicio/barbero/fecha/hora/precio) es idéntico, así
+   que un segundo export casi calcado solo sería otra plantilla que mantener.
+   Lo manda el PATCH de reservas cuando el panel mueve una hora. */
+export async function sendBookingConfirmationEmail({ to, name, service, barber, date, time, price, kind = "confirmation" }) {
   const prettyDate = formatDate(date)
   const prettyTime = String(time || "").slice(0, 5)
   const prettyPrice = formatCLP(price)
+  const isReschedule = kind === "reschedule"
+  const heading = isReschedule
+    ? `¡Tu hora cambió${name ? `, ${esc(name)}` : ""}!`
+    : `¡Reserva confirmada${name ? `, ${esc(name)}` : ""}!`
+  const intro = isReschedule
+    ? "Movimos tu hora en Brunetticutz. Estos son los datos nuevos:"
+    : "Te esperamos en Brunetticutz. Estos son los detalles de tu hora:"
+  const subject = isReschedule
+    ? "Tu hora en Brunetticutz cambió"
+    : "Tu reserva en Brunetticutz está confirmada"
 
   const html = `
     <div style="font-family: Georgia, 'Times New Roman', serif; background: #f7f3ea; padding: 32px 16px;">
@@ -92,14 +108,14 @@ export async function sendBookingConfirmationEmail({ to, name, service, barber, 
           <img src="${LOGO_URL}" alt="Brunetticutz" width="220" style="width: 220px; max-width: 70%; height: auto; display: inline-block;" />
         </div>
         <div style="padding: 28px 24px;">
-          <h1 style="margin: 0 0 4px; font-size: 20px; color: #1c1a17;">¡Reserva confirmada${name ? `, ${name}` : ""}!</h1>
-          <p style="margin: 0 0 20px; color: #4a453d; font-size: 14px;">Te esperamos en Brunetticutz. Estos son los detalles de tu hora:</p>
+          <h1 style="margin: 0 0 4px; font-size: 20px; color: #1c1a17;">${heading}</h1>
+          <p style="margin: 0 0 20px; color: #4a453d; font-size: 14px;">${intro}</p>
           <table style="width: 100%; border-collapse: collapse; font-size: 14px; color: #1c1a17;">
-            <tr><td style="padding: 6px 0; color: #8a847d;">Servicio</td><td style="padding: 6px 0; text-align: right; font-weight: 600;">${service || "-"}</td></tr>
-            <tr><td style="padding: 6px 0; color: #8a847d;">Barbero</td><td style="padding: 6px 0; text-align: right; font-weight: 600;">${barber || "-"}</td></tr>
-            <tr><td style="padding: 6px 0; color: #8a847d;">Fecha</td><td style="padding: 6px 0; text-align: right; font-weight: 600; text-transform: capitalize;">${prettyDate}</td></tr>
-            <tr><td style="padding: 6px 0; color: #8a847d;">Hora</td><td style="padding: 6px 0; text-align: right; font-weight: 600;">${prettyTime}</td></tr>
-            ${prettyPrice ? `<tr><td style="padding: 6px 0; color: #8a847d;">Precio</td><td style="padding: 6px 0; text-align: right; font-weight: 600;">${prettyPrice}</td></tr>` : ""}
+            <tr><td style="padding: 6px 0; color: #8a847d;">Servicio</td><td style="padding: 6px 0; text-align: right; font-weight: 600;">${esc(service || "-")}</td></tr>
+            <tr><td style="padding: 6px 0; color: #8a847d;">Barbero</td><td style="padding: 6px 0; text-align: right; font-weight: 600;">${esc(barber || "-")}</td></tr>
+            <tr><td style="padding: 6px 0; color: #8a847d;">Fecha</td><td style="padding: 6px 0; text-align: right; font-weight: 600; text-transform: capitalize;">${esc(prettyDate)}</td></tr>
+            <tr><td style="padding: 6px 0; color: #8a847d;">Hora</td><td style="padding: 6px 0; text-align: right; font-weight: 600;">${esc(prettyTime)}</td></tr>
+            ${prettyPrice ? `<tr><td style="padding: 6px 0; color: #8a847d;">Precio</td><td style="padding: 6px 0; text-align: right; font-weight: 600;">${esc(prettyPrice)}</td></tr>` : ""}
           </table>
           <div style="text-align: center; margin: 26px 0 6px;">
             <a href="${SITE_URL}/cuenta" style="display: inline-block; background: #d9b158; color: #1c1a17; text-decoration: none; font-weight: 600; font-size: 14px; padding: 12px 28px; border-radius: 999px;">Ver o gestionar mi reserva</a>
@@ -110,7 +126,142 @@ export async function sendBookingConfirmationEmail({ to, name, service, barber, 
     </div>
   `.trim()
 
-  return sendViaResend({ to, subject: "Tu reserva en Brunetticutz está confirmada", html })
+  return sendViaResend({ to, subject, html })
+}
+
+/* Enlace para restablecer la contraseña del panel interno.
+   `resetUrl` es el enlace completo; si no viene, se arma con `token` como
+   ${SITE_URL}/restablecer?t=<token>.
+
+   Dos decisiones deliberadas:
+   - El enlace lleva el token en la URL: quien tenga el correo, entra. Por eso
+     sirve una sola vez y dura poco (30 min por defecto).
+   - Si la persona no pidió el cambio, el texto le dice explícitamente que no
+     haga nada y que avise. Un correo de este tipo sin esa línea es justo lo
+     que usa el phishing para que la gente actúe por reflejo. */
+export async function sendPasswordResetEmail({ to, name, resetUrl, token, minutes = 30 }) {
+  const url = resetUrl || `${SITE_URL}/restablecer?t=${encodeURIComponent(String(token || ""))}`
+  const first = firstName(name)
+  const html = `
+    <div style="font-family: Georgia, 'Times New Roman', serif; background: #f7f3ea; padding: 32px 16px;">
+      <div style="max-width: 480px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e7e0d1;">
+        <div style="background: #16130f; padding: 24px; text-align: center;">
+          <img src="${LOGO_URL}" alt="Brunetticutz" width="220" style="width: 220px; max-width: 70%; height: auto; display: inline-block;" />
+        </div>
+        <div style="padding: 28px 24px;">
+          <h1 style="margin: 0 0 4px; font-size: 20px; color: #1c1a17;">Restablece tu contraseña${first ? `, ${esc(first)}` : ""}</h1>
+          <p style="margin: 0 0 20px; color: #4a453d; font-size: 14px; line-height: 1.6;">
+            Pediste volver a entrar al panel de Brunetticutz. Este enlace sirve una sola vez y vence en ${esc(minutes)} minutos.
+          </p>
+          <div style="text-align: center; margin: 26px 0 6px;">
+            <a href="${esc(url)}" style="display: inline-block; background: #d9b158; color: #1c1a17; text-decoration: none; font-weight: 600; font-size: 14px; padding: 12px 28px; border-radius: 999px;">Crear una contraseña nueva</a>
+          </div>
+          <p style="margin: 18px 0 0; color: #8a847d; font-size: 12px; word-break: break-all;">
+            Si el botón no funciona, copia este enlace:<br />${esc(url)}
+          </p>
+          <p style="margin: 18px 0 0; color: #8a847d; font-size: 12px; line-height: 1.6;">
+            <strong>¿No fuiste tú?</strong> No abras el enlace y avísale a la administración. Tu contraseña actual sigue funcionando mientras no uses este correo.
+          </p>
+        </div>
+      </div>
+    </div>
+  `.trim()
+
+  return sendViaResend({ to, subject: "Restablece tu contraseña de Brunetticutz", html })
+}
+
+/* Correo de agradecimiento post-visita: pide la reseña (cuando hay token) y
+   muestra el estado de la tarjeta de fidelidad. Lo dispara el cierre de una
+   atención (afterCompletion en api/_bookingLife.js), una sola vez por visita.
+   El pedido de reseña y el bloque de estrellas son independientes: el primero
+   depende de `reviewToken` (uno por reserva, ver el índice único de
+   barber_reviews.booking_id), el segundo de que haya datos de fidelidad. El
+   saldo viene del puente con PimpStudio (su loyaltySummary: stars, goal,
+   cutsToFreeCut, freeCutReady, productDiscountReady, productDiscountPct): la
+   tarjeta es una sola para los dos locales. Todo valor pasa por esc(). */
+export async function sendVisitThanksEmail({ to, name, service, barber, date, reviewToken, earned, stars, goal, cutsToFreeCut, freeCutReady, productDiscountReady, productDiscountPct }) {
+  const first = firstName(name)
+  const prettyDate = formatDate(date)
+  const total = Math.max(1, Number(goal || 10))
+  const filled = Math.min(Math.max(0, Number(stars || 0)), total)
+  const missing = Number.isFinite(Number(cutsToFreeCut)) ? Math.max(0, Number(cutsToFreeCut)) : Math.max(0, total - filled)
+  // Fila de estrellas en texto: los clientes de correo la renderizan sin
+  // problemas y evita depender de imágenes remotas (que muchos bloquean).
+  const punchCard = `${"★".repeat(filled)}${"☆".repeat(Math.max(0, total - filled))}`
+  // El token es hex; se limpia igual antes de ponerlo en un href.
+  const token = /^[a-f0-9]{16,64}$/i.test(String(reviewToken || "")) ? String(reviewToken) : null
+
+  const rewardLine = freeCutReady
+    ? `<p style="margin: 0 0 6px; font-size: 15px; color: #1c1a17;"><strong>¡Tu próximo corte va por nuestra cuenta!</strong> Muéstranos este correo en tu próxima visita.</p>`
+    : `<p style="margin: 0 0 6px; font-size: 15px; color: #1c1a17;">Te ${missing === 1 ? "falta" : "faltan"} <strong>${esc(missing)}</strong> ${missing === 1 ? "corte" : "cortes"} para tu <strong>corte gratis</strong>.</p>`
+
+  const discountLine = productDiscountReady
+    ? `<p style="margin: 10px 0 0; font-size: 13px; color: #4a453d;">Además, tienes <strong>${esc(productDiscountPct || 30)}% de descuento</strong> en productos en tu próxima visita.</p>`
+    : ""
+
+  /* Pedido de reseña: 5 estrellas, cada una un link que YA lleva la
+     calificación (?s=1..5): un toque desde el correo basta. Carácter Unicode,
+     no imagen: sin imágenes remotas nuevas ni JS. */
+  const reviewBlock = token ? `
+    <div style="margin: 22px 0 0; padding: 18px; background: #faf6ec; border: 1px solid #e7dcc2; border-radius: 12px; text-align: center;">
+      <p style="margin: 0 0 12px; font-size: 15px; color: #1c1a17; font-weight: 600;">¿Cómo te atendió ${esc(barber || "tu barbero")}?</p>
+      <table role="presentation" cellpadding="0" cellspacing="0" style="margin: 0 auto 10px; border-collapse: collapse;">
+        <tr>
+          ${[1, 2, 3, 4, 5].map((n) => `<td style="padding: 0 3px;"><a href="${SITE_URL}/resena?t=${token}&amp;s=${n}" style="display: inline-block; text-decoration: none; font-size: 32px; line-height: 1; color: #b8912f;">★</a></td>`).join("")}
+        </tr>
+      </table>
+      <p style="margin: 0; font-size: 12px; color: #8a847d;">Toca una estrella para calificar</p>
+    </div>
+  ` : ""
+
+  /* Bloque de fidelidad: "Sumaste 1 estrella" si esta visita ganó una,
+     "Tu tarjeta de fidelidad" si hay saldo pero no subió hoy, y nada si no
+     hay dato (una tarjeta en blanco no dice nada). `hasStars` mira el valor
+     crudo: "0 estrellas de verdad" no es lo mismo que "sin dato". */
+  const hasStars = stars !== undefined && stars !== null && Number.isFinite(Number(stars))
+  const loyaltyBlock = earned || hasStars ? `
+    <div style="margin: 22px 0 0; padding: 18px; background: #faf6ec; border: 1px solid #e7dcc2; border-radius: 12px; text-align: center;">
+      <p style="margin: 0 0 8px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #8a847d;">${earned ? "Sumaste 1 estrella" : "Tu tarjeta de fidelidad"}</p>
+      <p style="margin: 0 0 10px; font-size: 22px; letter-spacing: 4px; color: #b8912f;">${punchCard}</p>
+      <p style="margin: 0 0 12px; font-size: 13px; color: #8a847d;">Llevas <strong style="color: #1c1a17;">${esc(filled)} de ${esc(total)}</strong></p>
+      ${rewardLine}
+      ${discountLine}
+      <p style="margin: 12px 0 0; font-size: 11px; color: #a49c90;">La tarjeta la compartimos con Pimp Studio: tus estrellas suman en los dos locales.</p>
+    </div>
+  ` : ""
+
+  const html = `
+    <div style="font-family: Georgia, 'Times New Roman', serif; background: #f7f3ea; padding: 32px 16px;">
+      <div style="max-width: 480px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e7e0d1;">
+        <div style="background: #16130f; padding: 24px; text-align: center;">
+          <img src="${LOGO_URL}" alt="Brunetticutz" width="220" style="width: 220px; max-width: 70%; height: auto; display: inline-block;" />
+        </div>
+        <div style="padding: 28px 24px;">
+          <h1 style="margin: 0 0 4px; font-size: 20px; color: #1c1a17;">Gracias por tu visita${first ? `, ${esc(first)}` : ""}</h1>
+          <p style="margin: 0 0 20px; color: #4a453d; font-size: 14px;">Esperamos que te haya gustado el resultado. Esto fue lo de hoy:</p>
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px; color: #1c1a17;">
+            <tr><td style="padding: 6px 0; color: #8a847d;">Servicio</td><td style="padding: 6px 0; text-align: right; font-weight: 600;">${esc(service || "-")}</td></tr>
+            <tr><td style="padding: 6px 0; color: #8a847d;">Barbero</td><td style="padding: 6px 0; text-align: right; font-weight: 600;">${esc(barber || "-")}</td></tr>
+            <tr><td style="padding: 6px 0; color: #8a847d;">Fecha</td><td style="padding: 6px 0; text-align: right; font-weight: 600; text-transform: capitalize;">${esc(prettyDate)}</td></tr>
+          </table>
+
+          ${reviewBlock}
+          ${loyaltyBlock}
+
+          <div style="text-align: center; margin: 26px 0 6px;">
+            <a href="${SITE_URL}/cuenta" style="display: inline-block; background: #d9b158; color: #1c1a17; text-decoration: none; font-weight: 600; font-size: 14px; padding: 12px 28px; border-radius: 999px;">Ver mis estrellas</a>
+          </div>
+          <p style="margin: 14px 0 0; color: #8a847d; font-size: 12px; text-align: center;">Te esperamos pronto en Brunetticutz.</p>
+        </div>
+      </div>
+    </div>
+  `.trim()
+
+  return sendViaResend({
+    to,
+    subject: freeCutReady ? "¡Gracias por tu visita! Tu próximo corte va gratis" : "Gracias por tu visita en Brunetticutz",
+    html,
+  })
 }
 
 /* Tarjeta de fidelidad: le manda al cliente su link personal /tarjeta?t=…

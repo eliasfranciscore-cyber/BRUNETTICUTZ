@@ -71,8 +71,14 @@ export function bookingRef(bookingId) {
   return `brunetti:${Number(bookingId)}`
 }
 
-/* +1 estrella al completar un servicio. Todas las reservas de brunetticutz.cl
-   suman, sin importar el barbero. */
+/* ⚠️ Las cuatro escrituras de fidelidad (creditStar, revertStar,
+   redeemFreeCut y cancelRedeem) las importa UN SOLO archivo: api/_bookingLife.js
+   ("un solo escritor", ver CLAUDE.md). Llamarlas desde otro lado es la forma
+   de volver a sumar dos estrellas por un corte, o de perder las de un canje.
+
+   +1 estrella al completar un servicio. Todas las reservas de brunetticutz.cl
+   suman, sin importar el barbero — salvo los servicios que no "Suman
+   estrella", que filtra loyaltyForTransition() antes de llamar acá. */
 export async function creditStar({ bookingId, phone, name, ip }) {
   const { status, data } = await bridgeFetch("/api/clients?mode=bridge-loyalty-earn", {
     method: "POST", ip, body: { ref: bookingRef(bookingId), phone, name },
@@ -117,13 +123,23 @@ export async function loyaltyFor(phone, ip) {
   return { loyalty: data?.loyalty || null, hasPass: Boolean(data?.hasPass) }
 }
 
-/* Saldos de toda la lista de clientes del panel en una sola llamada. */
+/* Saldos de toda la lista de clientes del panel. PimpStudio atiende hasta
+   200 teléfonos por llamada (bridge-loyalty-bulk), así que una lista más
+   larga va en tandas de 200, en paralelo, y se juntan. Una tanda que falla
+   deja a esos clientes sin saldo (no a todos). */
+const BULK_MAX = 200
 export async function loyaltyForPhones(phones, ip) {
-  const { status, data } = await bridgeFetch("/api/clients?mode=bridge-loyalty-bulk", {
-    method: "POST", ip, body: { phones },
-  })
-  if (status >= 400) return {}
-  return data?.byPhone || {}
+  const list = Array.isArray(phones) ? phones : []
+  if (!list.length) return {}
+  const chunks = []
+  for (let i = 0; i < list.length; i += BULK_MAX) chunks.push(list.slice(i, i + BULK_MAX))
+  const results = await Promise.all(chunks.map(async (chunk) => {
+    const { status, data } = await bridgeFetch("/api/clients?mode=bridge-loyalty-bulk", {
+      method: "POST", ip, body: { phones: chunk },
+    })
+    return status >= 400 ? {} : (data?.byPhone || {})
+  }))
+  return Object.assign({}, ...results)
 }
 
 /* Token del link personal /tarjeta?t=… Con él se pide el pase sin que el

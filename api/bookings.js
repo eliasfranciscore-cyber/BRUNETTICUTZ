@@ -6,7 +6,9 @@ import { syncBookingToNotion, updateNotionBookingStatus } from "./_notion.js"
 import { rateLimit, clientIp } from "./_rateLimit.js"
 import { logBookingAttempt } from "./_bookingAudit.js"
 import { blocksForDuration, slotsForBooking, busySlotsForBarberDate } from "./_slots.js"
-import { creditStar, revertStar, redeemFreeCut, cancelRedeem } from "./_loyaltyBridge.js"
+// Estrellas y canje del corte gratis: el único escritor es api/_bookingLife.js
+// (ver ahí y CLAUDE.md). Este archivo no llama al puente de fidelidad directo.
+import { loyaltyForTransition, redeemForBooking, afterCompletion, loyaltySnapshot } from "./_bookingLife.js"
 // Puente de servicio para PimpStudio: Bruno tiene una sola agenda, pero se
 // reserva/gestiona desde dos sitios con bases de datos separadas. PimpStudio
 // llama estos endpoints servidor-a-servidor (nunca desde el navegador del
@@ -39,35 +41,6 @@ const DEMO_BOOKINGS = [
   { id: 2, time: "10:00", date: "2026-06-12", client: "Diego Salinas", phone: "934567890", service: "Corte de cabello", barberId: 4, price: 15990, status: "en curso" },
   { id: 3, time: "12:00", date: "2026-06-12", client: "Joaquin Reyes", phone: "912300000", service: "Solo fade", barberId: 6, price: 9990, status: "pendiente" },
 ]
-
-/* La estrella sigue al estado de la reserva: entrar a 'completada' la
-   acredita y salir de ahí la devuelve. Es el ÚNICO camino que escribe
-   estrellas para las reservas de esta base ("un solo escritor", ver
-   CLAUDE.md): lo usan el PATCH —que ejecutan los dos paneles, el de acá
-   directo y el de PimpStudio por el puente— y el alta manual (panel de acá
-   o puente) cuando la reserva ya nace completada. La única escritura de
-   afuera es la reposición del cron de PimpStudio (?mode=bridge-completed),
-   con la misma llave y solo para sumar. creditStar() es idempotente en
-   PimpStudio por bridge_ref = "brunetti:<id>": un reintento no suma dos.
-
-   Best-effort: si PimpStudio no responde, el cambio de estado (lo
-   importante, ya guardado) no se revierte ni falla la respuesta. */
-async function loyaltyForTransition({ bookingId, from, to, phone, name, ip }) {
-  try {
-    if (from !== "completada" && to === "completada") {
-      const result = await creditStar({ bookingId, phone, name, ip })
-      return { attempted: true, ok: Boolean(result?.ok), loyalty: result?.loyalty }
-    }
-    if (from === "completada" && to !== "completada") {
-      const result = await revertStar({ bookingId, ip })
-      return { attempted: true, ok: Boolean(result?.ok), loyalty: result?.loyalty }
-    }
-    return { attempted: false, ok: true, loyalty: null }
-  } catch (err) {
-    console.error("loyalty bridge error:", err?.message || err)
-    return { attempted: true, ok: false, loyalty: null }
-  }
-}
 
 const isDbId = (n) => Number.isInteger(n) && n > 0 && n <= 2147483647
 
@@ -242,8 +215,14 @@ async function createManualBooking(sql, body, { bridge = false, ip = null } = {}
     // así que el upsert dejó guardados exactamente clientName y cleanPhone: lo
     // mismo que el PATCH leería de la base al completarla. El saldo no viaja
     // en la respuesta: PimpStudio es la fuente de verdad de las estrellas.
-    const star = await loyaltyForTransition({ bookingId: booking.id, from: null, to: st, phone: cleanPhone, name: clientName, ip })
+    // Un servicio que no "Suma estrella" no pide nada (ok, sin aviso).
+    const star = await loyaltyForTransition(sql, { bookingId: booking.id, from: null, to: st, phone: cleanPhone, name: clientName, ip })
     if (!star.ok) notices.push("La reserva quedó completada, pero la estrella de fidelidad no se pudo acreditar.")
+    await afterCompletion(sql, {
+      bookingId: booking.id,
+      before: { status: null, barberId: Number(barberId), client: clientName, phone: cleanPhone, email, service: serviceId ? svcRow?.name : customService, date, time },
+      loyalty: star.loyalty,
+    })
   }
   if (notices.length) out.notice = notices.join(" ")
   return { status: 200, body: out }
@@ -262,7 +241,11 @@ async function handleBridgeMode(req, res, mode) {
      PimpStudio (healBrunettiStars) repone las estrellas que no llegaron: la
      que se pide al completar es best-effort y, si falla, nadie la reintenta.
      Solo lectura. La estrella la sigue acreditando PimpStudio por la misma
-     llave (brunetti:<id>), así que no puede sumarse dos veces. */
+     llave (brunetti:<id>), así que no puede sumarse dos veces.
+     Las de servicios que no "Suman estrella" (services.loyalty_eligible =
+     false) NO salen: si salieran, el repaso de allá las acreditaría igual y
+     se saltaría la regla que loyaltyForTransition aplica acá. Se lee con
+     to_jsonb, así que funciona aunque la columna todavía no exista. */
   if (mode === "bridge-completed") {
     if (req.method !== "GET") return res.status(405).json({ ok: false, error: "Method not allowed" })
     res.setHeader("Cache-Control", "no-store")
@@ -273,7 +256,9 @@ async function handleBridgeMode(req, res, mode) {
         SELECT b.id, u.phone, COALESCE(u.name, '') AS name
         FROM bookings b
         JOIN users u ON u.id = b.client_id
+        LEFT JOIN services s ON s.id = b.service_id
         WHERE b.status = 'completada'
+          AND COALESCE((to_jsonb(s)->>'loyalty_eligible')::boolean, true)
           AND b.updated_at >= NOW() - make_interval(days => ${days}::int)
           AND b.updated_at <= NOW() - INTERVAL '10 minutes'
         ORDER BY b.id
@@ -572,10 +557,10 @@ export default async function handler(req, res) {
        Las estrellas las escribe SOLO este backend, aunque el programa viva en
        PimpStudio: la reserva de Bruno se puede completar desde los dos
        paneles, y el de PimpStudio lo hace llamando justo acá (con el secreto
-       del puente). Los caminos que acreditan —este PATCH y el alta manual
-       (panel o puente) que ya nace completada— pasan por
-       loyaltyForTransition(). Un solo escritor = una estrella por corte. Ver
-       api/_loyaltyBridge.js. */
+       del puente). Todos los caminos que tocan estrellas o el canje —este
+       PATCH, el alta manual que ya nace completada, la cancelación pública y
+       el borrado— pasan por api/_bookingLife.js, el único escritor. Un solo
+       escritor = una estrella por corte. */
     if (req.method === "PATCH") {
       const bridge = isBridgeRequest(req)
       if (!bridge) {
@@ -588,9 +573,19 @@ export default async function handler(req, res) {
       // Estado previo + datos del cliente: hacen falta para el control del
       // puente, para decidir si la transición otorga o quita la estrella, y
       // para identificar al cliente en PimpStudio (se cruzan por teléfono).
+      // Servicio y precio van también porque la respuesta los devuelve (ver
+      // abajo): la app de iOS decodifica `booking` completo.
+      // clientId, email, date y barber son para afterCompletion().
       const [before] = await sql`
-        SELECT b.id, b.status, b.barber_id as "barberId", u.name as client, u.phone
-        FROM bookings b LEFT JOIN users u ON u.id = b.client_id
+        SELECT b.id, b.status, b.barber_id as "barberId", b.client_id as "clientId",
+               u.name as client, u.phone, u.email,
+               COALESCE(b.custom_service, s.name) as service,
+               COALESCE(b.custom_price, s.price)::int as price, s.price::int as "listPrice",
+               b.booking_date::text as date, b.booking_time::text as time, br.name as barber
+        FROM bookings b
+        LEFT JOIN users u ON u.id = b.client_id
+        LEFT JOIN services s ON s.id = b.service_id
+        LEFT JOIN barbers br ON br.id = b.barber_id
         WHERE b.id = ${Number(id)}
       `
       // LEFT JOIN, no JOIN: una reserva cuyo cliente ya no existe igual tiene
@@ -603,24 +598,15 @@ export default async function handler(req, res) {
         return res.status(403).json({ ok: false, error: "No autorizado" })
       }
 
+      const ip = clientIp(req)
+
       // --- Canje del corte gratis -------------------------------------------
-      // Orden a propósito: primero se debitan las estrellas en PimpStudio (la
-      // fuente de verdad, con su propio índice de idempotencia) y recién
-      // después se deja la reserva en $0 acá. Si el segundo paso falla, se
-      // devuelven las estrellas: el cliente nunca queda debitado sin premio.
+      // Primero se debitan las estrellas en PimpStudio y recién después se
+      // deja la reserva en $0 acá (con redeem_state = 'redeemed'); si eso
+      // falla, se devuelven. Ver redeemForBooking() en api/_bookingLife.js.
       if (redeem === "free_cut") {
-        const ip = clientIp(req)
-        const result = await redeemFreeCut({ bookingId: id, phone: before.phone, name: before.client, ip })
-        if (!result.ok) {
-          return res.status(result.status >= 400 ? result.status : 502).json({ ok: false, error: result.error || "No se pudo canjear el corte gratis" })
-        }
-        try {
-          await sql`UPDATE bookings SET custom_price = 0, updated_at = NOW() WHERE id = ${Number(id)}`
-        } catch (err) {
-          console.error("redeem local update error:", err)
-          await cancelRedeem({ bookingId: id, ip }).catch(() => {})
-          return res.status(500).json({ ok: false, error: "No se pudo aplicar el corte gratis. Intenta de nuevo." })
-        }
+        const result = await redeemForBooking(sql, { bookingId: id, phone: before.phone, name: before.client, ip })
+        if (!result.ok) return res.status(result.status).json({ ok: false, error: result.error })
         return res.json({ ok: true, price: 0, loyalty: result.loyalty })
       }
 
@@ -636,14 +622,41 @@ export default async function handler(req, res) {
         updateNotionBookingStatus(booking.notionPageId, status).catch((err) => console.error("notion status update error:", err))
       }
 
-      // Fidelidad: la estrella sigue al estado de la reserva. Best-effort —
-      // ver loyaltyForTransition(), el mismo camino que usa el alta manual del
-      // puente cuando la reserva ya nace completada.
-      const { loyalty } = await loyaltyForTransition({
-        bookingId: id, from: before.status, to: status, phone: before.phone, name: before.client, ip: clientIp(req),
+      // Fidelidad: la estrella (y el canje del corte gratis) siguen al estado
+      // de la reserva. Best-effort — ver loyaltyForTransition() en
+      // api/_bookingLife.js, el mismo camino del alta manual que ya nace
+      // completada. Cancelar una reserva con el corte gratis canjeado le
+      // devuelve las 10 estrellas al cliente; deshacer la cancelación lo
+      // vuelve a canjear o, si ya no se puede, la deja a precio normal.
+      const life = await loyaltyForTransition(sql, {
+        bookingId: id, from: before.status, to: status, phone: before.phone, name: before.client, ip,
       })
+      if (before.status !== "completada" && status === "completada") {
+        await afterCompletion(sql, { bookingId: id, before, loyalty: life.loyalty })
+      }
+      // Si el canje no se pudo volver a aplicar, la reserva quedó a precio de
+      // lista (un servicio personalizado conserva el suyo).
+      const price = life.redeem === "dropped" ? (before.listPrice ?? before.price ?? 0) : (before.price ?? 0)
 
-      return res.json({ ok: true, booking: { ...booking, time: booking.time?.slice(0, 5) }, loyalty })
+      // client/phone/service/price se suman a la respuesta (superconjunto): la
+      // app de iOS decodifica `booking` como un Booking completo —client,
+      // service y price obligatorios— y sin ellos fallaba al decodificar,
+      // revertía el cambio en pantalla y mostraba "No se pudo actualizar la
+      // reserva" aunque el estado sí se hubiera guardado. Nunca null: iOS
+      // los exige.
+      return res.json({
+        ok: true,
+        booking: {
+          ...booking,
+          time: booking.time?.slice(0, 5),
+          client: before.client || "",
+          phone: before.phone || null,
+          service: before.service || "",
+          price,
+        },
+        loyalty: life.loyalty,
+        ...(life.notice ? { notice: life.notice } : {}),
+      })
     }
 
     if (req.method === "DELETE") {
@@ -654,24 +667,54 @@ export default async function handler(req, res) {
       if (purge) {
         const session = requireInternal(req, res)
         if (!session) return
+        // La foto va ANTES del DELETE: después ya no hay reserva que leer.
+        const snapshot = await loyaltySnapshot(sql, id).catch((err) => {
+          console.error("purge snapshot error:", err?.message || err)
+          return null
+        })
         const [deleted] = await sql`DELETE FROM bookings WHERE id = ${Number(id)} RETURNING status`
-        // Si la reserva borrada estaba completada, su estrella era una
-        // proyección de ese estado: sin reserva, no hay estrella.
-        if (deleted?.status === "completada") {
-          revertStar({ bookingId: id, ip: clientIp(req) }).catch((err) => console.error("loyalty revert error:", err?.message || err))
+        // La estrella de una completada era una proyección de ese estado: sin
+        // reserva, no hay estrella. Y un corte gratis canjeado que no se va a
+        // dar devuelve sus 10 estrellas.
+        if (deleted) {
+          const life = await loyaltyForTransition(sql, {
+            bookingId: id, from: deleted.status, to: null, purged: true, row: snapshot, ip: clientIp(req),
+          })
+          if (life.notice) return res.json({ ok: true, notice: life.notice })
         }
         return res.json({ ok: true })
       }
 
       // Cancelación del cliente (público, sin sesión): exige aviso minimo y
       // marca la reserva como cancelada en vez de borrarla.
+      //
+      // El teléfono es OBLIGATORIO. Antes bastaba el id, y como los ids son
+      // un SERIAL correlativo, un bucle de tres líneas cancelaba la agenda
+      // completa sin ninguna credencial. El teléfono no es una contraseña,
+      // pero es la misma prueba de identidad que el resto del flujo del
+      // cliente (/cuenta entra con él) y corta el barrido por id. Va en el
+      // body JSON para que no quede escrito en URLs ni en los logs; ?phone=
+      // se acepta igual por si llega así.
+      const bodyPhone = req.body && typeof req.body === "object" ? req.body.phone : null
+      const claimedPhone = normalizePhone(bodyPhone || req.query.phone)
+      if (claimedPhone.length !== 9) {
+        return res.status(400).json({ error: "Falta el teléfono de la reserva. Recarga la página e intenta de nuevo." })
+      }
+      const canCancel = await rateLimit(sql, `bookings-cancel:${clientIp(req)}`, { max: 10, windowSeconds: 300 })
+      if (!canCancel) return res.status(429).json({ error: "Demasiados intentos. Espera unos minutos e intenta de nuevo." })
+
       const [existing] = await sql`
         SELECT b.id, b.booking_date::text as date, b.booking_time::text as time,
-               b.barber_id as "barberId", b.status, u.name as client, b.notion_page_id as "notionPageId"
+               b.barber_id as "barberId", b.status, u.name as client, u.phone,
+               b.notion_page_id as "notionPageId"
         FROM bookings b JOIN users u ON b.client_id = u.id
         WHERE b.id = ${Number(id)}
       `
-      if (!existing) return res.status(404).json({ error: "Reserva no encontrada" })
+      // Mismo 404 para "no existe" y "no es tuya": distinguirlos permitiría
+      // barrer ids para averiguar cuáles son de un teléfono dado.
+      if (!existing || normalizePhone(existing.phone) !== claimedPhone) {
+        return res.status(404).json({ error: "Reserva no encontrada" })
+      }
       const apptAt = new Date(`${existing.date}T${existing.time}`)
       const hoursLeft = (apptAt.getTime() - Date.now()) / 3_600_000
       if (hoursLeft < MIN_CANCEL_NOTICE_HOURS) {
@@ -696,9 +739,12 @@ export default async function handler(req, res) {
       } catch (notifyErr) {
         console.error("notify cancel error:", notifyErr)
       }
-      if (existing.status === "completada") {
-        revertStar({ bookingId: id, ip: clientIp(req) }).catch((err) => console.error("loyalty revert error:", err?.message || err))
-      }
+      // Si estaba completada se devuelve la estrella, y si tenía el corte
+      // gratis canjeado, el cliente recupera sus 10 estrellas: no recibió el
+      // corte. Mismo escritor único que el PATCH.
+      await loyaltyForTransition(sql, {
+        bookingId: id, from: existing.status, to: "cancelada", phone: existing.phone, name: existing.client, ip: clientIp(req),
+      })
       return res.json({ ok: true, booking })
     }
 
@@ -744,6 +790,11 @@ export default async function handler(req, res) {
     }
     if (req.method === "DELETE") {
       return res.status(500).json({ error: "No se pudo cancelar la reserva. Intenta de nuevo." })
+    }
+    // El puente nunca recibe datos de demo: PimpStudio mostraría esas filas
+    // inventadas como si fueran la agenda real de Bruno.
+    if (isBridgeRequest(req)) {
+      return res.status(500).json({ ok: false, error: "No se pudo leer la agenda en BrunettiCutz" })
     }
     return res.json({ ok: true, bookings: req.query?.phone ? [] : DEMO_BOOKINGS })
   }

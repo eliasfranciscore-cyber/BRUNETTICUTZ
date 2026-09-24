@@ -1,6 +1,9 @@
 import { neon } from "@neondatabase/serverless"
 import crypto from "crypto"
 import { requireInternal } from "./_auth.js"
+// Misma regla de contraseña que el login y el cambio de contraseña: una sola
+// definición (igual que bookings.js importa notifyBarber de push.js).
+import { isValidPassword } from "./auth-barber.js"
 
 const STATIC_BARBERS = [
   { id: 4,  name: "Juan Carlos",         short: "Juan Carlos", code: "juan-carlos",         role: "Barbero Senior",      exp: "8 años",  rating: 4.9, tier: "general" },
@@ -14,10 +17,21 @@ const STATIC_BARBERS = [
 ]
 
 export default async function handler(req, res) {
+  // Un ?mode desconocido es un 404, no la lista de barberos: el panel nuevo
+  // pide modos (reseñas, ajustes) que un deploy viejo no conoce, y recibir la
+  // lista en su lugar le rompía la pantalla en vez de mostrar "no disponible".
+  if (req.method === "GET" && req.query.mode) {
+    return res.status(404).json({ ok: false, error: "Modo no reconocido" })
+  }
+  // La lista completa (inactivos + permisos de cada uno) es solo para el
+  // panel: antes cualquiera que agregara ?includeInactive=true a la URL la
+  // veía. Se exige la sesión ANTES de tocar la base. iOS ya manda el token.
+  const includeInactive = req.method === "GET" && req.query.includeInactive === "true"
+  if (includeInactive && !requireInternal(req, res)) return
+
   try {
     const sql = neon(process.env.DATABASE_URL)
     if (req.method === "GET") {
-      const includeInactive = req.query.includeInactive === "true"
       const barbers = includeInactive
         ? await sql`SELECT b.id, b.name, b.short_name as short, b.code, b.role, b.tier, b.exp_years as exp, b.rating, b.active,
                            COALESCE(p.can_view_finance, false) as "canViewFinance",
@@ -35,12 +49,19 @@ export default async function handler(req, res) {
     if (!session) return
 
     if (req.method === "POST") {
-      const { name, code, role, tier = "general", pin = "1234", canViewFinance = false, canManageTeam = false, canEditServices = false, canManageBlocks = true } = req.body || {}
+      const { name, code, role, tier = "general", password, canViewFinance = false, canManageTeam = false, canEditServices = false, canManageBlocks = true } = req.body || {}
       if (!String(name || "").trim() || !String(code || "").trim()) return res.status(400).json({ ok: false, error: "Nombre y usuario requeridos" })
-      const pinHash = crypto.createHash("sha256").update(String(pin)).digest("hex")
+      // Sin PIN "1234" por defecto: una cuenta nueva nacía con una clave que
+      // cualquiera podía adivinar. Ahora trae su contraseña, con la misma regla
+      // del cambio de contraseña, y se guarda en password_hash (la que lee el
+      // login). pin_hash quedó obsoleto: nadie lo lee ni lo escribe.
+      if (!isValidPassword(password)) {
+        return res.status(400).json({ ok: false, error: "Define una contraseña de 8 caracteres alfanuméricos, con al menos 1 mayúscula y 1 número." })
+      }
+      const passwordHash = crypto.createHash("sha256").update(String(password)).digest("hex")
       const [barber] = await sql`
-        INSERT INTO barbers (id, name, short_name, code, role, tier, exp_years, rating, active, pin_hash)
-        VALUES ((SELECT COALESCE(MAX(id), 3) + 1 FROM barbers), ${String(name).trim()}, ${String(name).trim().split(" ")[0]}, ${String(code).trim().toLowerCase()}, ${String(role || "Barbero").trim()}, ${tier}, 0, 5.0, true, ${pinHash})
+        INSERT INTO barbers (id, name, short_name, code, role, tier, exp_years, rating, active, password_hash)
+        VALUES ((SELECT COALESCE(MAX(id), 3) + 1 FROM barbers), ${String(name).trim()}, ${String(name).trim().split(" ")[0]}, ${String(code).trim().toLowerCase()}, ${String(role || "Barbero").trim()}, ${tier}, 0, 5.0, true, ${passwordHash})
         RETURNING id, name, short_name as short, code, role, tier, exp_years as exp, rating, active
       `
       await sql`

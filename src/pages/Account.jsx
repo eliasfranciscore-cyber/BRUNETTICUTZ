@@ -104,8 +104,14 @@ export default function Account() {
     if (!window.confirm("¿Cancelar esta cita? Esta acción no se puede deshacer.")) return
     // Mejor esfuerzo contra el backend (marca cancelada + avisa al barbero);
     // el estado local es la fuente inmediata para la UI.
+    // El backend exige el teléfono de la reserva para cancelarla (el id solo
+    // no basta). Va en el body y no en la URL, para que no quede en los logs.
     if (appt.id) {
-      const res = await fetch(`/api/bookings?id=${appt.id}`, { method: "DELETE" }).catch(() => null)
+      const res = await fetch(`/api/bookings?id=${appt.id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: user?.phone || appt.phone || "" }),
+      }).catch(() => null)
       if (res && !res.ok) {
         const data = await res.json().catch(() => null)
         window.alert(data?.error || "No se pudo cancelar la cita. Intenta de nuevo.")
