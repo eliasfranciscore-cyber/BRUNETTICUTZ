@@ -1,0 +1,263 @@
+/* BRUNETTI — /resena, la página pública para calificar una visita.
+   ------------------------------------------------------------------
+   Se abre desde el link de estrellas del correo "Gracias por tu visita"
+   (api/_email.js), casi siempre en el celular del cliente: celular primero.
+   Solo tokens globales de pimp.css/brunetti.css (--ink, --muted*, --gold*,
+   --hair*, --panel*, --bg, --fill-*, --red) y sus clases .btn/.font-display/
+   .animate-up, así que claro y oscuro salen solos del [data-theme] de <html>.
+   Acá va solo lo propio de esta pantalla, con prefijo `rv-` para no chocar
+   con nada existente. Port de review.css de PimpStudio con el dorado de
+   Brunetti. */
+
+.rv-screen {
+  min-height: 100vh;   /* respaldo para navegadores sin dvh */
+  min-height: 100dvh;
+  display: flex;
+  justify-content: center;
+  background: var(--bg);
+  color: var(--ink);
+  padding:
+    max(1.3rem, env(safe-area-inset-top))
+    max(1rem, env(safe-area-inset-right))
+    max(1.6rem, env(safe-area-inset-bottom))
+    max(1rem, env(safe-area-inset-left));
+}
+
+.rv-wrap {
+  width: 100%;
+  max-width: 460px;
+  display: grid;
+  align-content: start;
+  gap: 1.1rem;
+  margin: auto 0;
+}
+
+.rv-back {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: .4rem;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  font-size: .8rem;
+  padding: .3rem 0;
+  cursor: pointer;
+}
+.rv-back:hover { color: var(--ink); }
+
+.rv-brand { display: flex; justify-content: center; padding: .2rem 0 .1rem; }
+
+.rv-card {
+  position: relative;
+  background:
+    radial-gradient(320px 160px at 50% 0%, var(--gold-glow), transparent 70%),
+    linear-gradient(165deg, var(--panel-2), var(--panel));
+  border: 1px solid var(--hair);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow);
+  padding: 1.8rem 1.5rem;
+  display: grid;
+  justify-items: center;
+  gap: .7rem;
+  text-align: center;
+  margin: 0;
+}
+[data-theme="light"] .rv-card {
+  background:
+    radial-gradient(320px 160px at 50% 0%, var(--gold-glow), transparent 70%),
+    var(--panel);
+}
+
+.rv-avatar {
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  margin-bottom: .2rem;
+}
+.rv-avatar-photo {
+  object-fit: cover;
+  border: 1px solid var(--gold-line);
+  box-shadow: 0 0 0 4px var(--gold-glow);
+}
+.rv-avatar-initials {
+  background: var(--gold-grad);
+  color: var(--on-gold);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.4rem;
+}
+
+.rv-eyebrow {
+  font-size: .68rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--gold-lt);
+}
+
+.rv-title { margin: 0; font-size: 1.25rem; font-weight: 600; color: var(--ink); }
+
+.rv-question {
+  margin: 0;
+  color: var(--muted);
+  font-size: .92rem;
+  line-height: 1.5;
+  max-width: 34ch;
+}
+.rv-question strong { color: var(--ink); font-weight: 600; }
+
+/* ---- Estrellas: grupo radio nativo, escondido bajo el ícono grande ---- */
+.rv-stars {
+  display: flex;
+  gap: .3rem;
+  margin: .3rem 0 .1rem;
+}
+.rv-star {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  color: var(--muted-2);
+  transition: color .15s, transform .15s;
+  cursor: pointer;
+}
+.rv-star.is-on { color: var(--gold); transform: scale(1.06); }
+/* El ícono estrella de ui.jsx dibuja fill="none" en el <svg>: una regla de
+   hoja de estilos sobre el <path> gana a esa presentación heredada y lo
+   rellena de dorado cuando está activa — con solo el trazo, a este tamaño se
+   ve como un contorno vacío en vez de una estrella marcada. */
+.rv-star.is-on svg path { fill: var(--gold); }
+.rv-star input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.rv-star input:disabled { cursor: default; }
+.rv-star:has(input:focus-visible) { outline: 2px solid var(--gold-line); outline-offset: 2px; }
+@media (hover: hover) {
+  .rv-star:not(.is-on):hover { color: var(--gold-lt); }
+}
+
+/* Estrellas de la pantalla de gracias: solo lectura, más chicas. */
+.rv-stars-static { margin: 0; }
+.rv-star-sm { width: 30px; height: 30px; cursor: default; transform: none; }
+.rv-star-sm.is-on { transform: none; }
+
+.rv-rating-word {
+  margin: -.2rem 0 .1rem;
+  min-height: 1.1em;
+  font-size: .78rem;
+  letter-spacing: .06em;
+  color: var(--muted);
+}
+
+.rv-textarea {
+  width: 100%;
+  background: var(--fill-card);
+  border: 1px solid var(--hair-2);
+  border-radius: var(--r-sm);
+  color: var(--ink);
+  padding: .8rem .9rem;
+  font-size: 16px; /* fijo, no rem: evita que iOS haga zoom al enfocar */
+  font-family: var(--font-body);
+  resize: vertical;
+  min-height: 4.2rem;
+}
+.rv-textarea::placeholder { color: var(--muted-2); }
+.rv-textarea:focus {
+  outline: none;
+  border-color: var(--gold-line);
+  box-shadow: 0 0 0 3px var(--gold-glow);
+}
+.rv-textarea:disabled { opacity: .6; }
+
+.rv-submit { margin-top: .2rem; width: 100%; }
+.rv-submit:disabled { opacity: .45; cursor: default; }
+
+.rv-error {
+  margin: 0;
+  color: var(--red);
+  font-size: .8rem;
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  text-align: left;
+}
+
+.rv-hint {
+  margin: 0;
+  color: var(--muted-2);
+  font-size: .72rem;
+}
+
+/* ---- Estados: inválido/vencido, error de red, gracias ---- */
+.rv-state { padding: 2.2rem 1.6rem; }
+.rv-state-msg {
+  margin: 0;
+  color: var(--muted);
+  font-size: .88rem;
+  line-height: 1.5;
+  max-width: 32ch;
+}
+
+.rv-done-mark {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--gold-grad);
+  color: var(--on-gold);
+  box-shadow: 0 0 0 6px var(--gold-glow);
+  margin-bottom: .2rem;
+}
+
+.rv-done-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .6rem;
+  width: 100%;
+  margin-top: .4rem;
+}
+.rv-done-actions .btn { font-size: .7rem; padding: .75rem .5rem; justify-content: center; }
+
+/* ---- Esqueleto de carga: simple, se ve bien sin red ---- */
+.rv-skeleton { gap: .9rem; }
+.rv-skel {
+  background: linear-gradient(90deg, var(--hair) 25%, var(--hair-2) 37%, var(--hair) 63%);
+  background-size: 400% 100%;
+  border-radius: 8px;
+  animation: rvPulse 1.4s ease infinite;
+}
+.rv-skel-avatar { width: 76px; height: 76px; border-radius: 50%; }
+.rv-skel-line { height: 14px; }
+.rv-skel-stars { height: 48px; width: 220px; max-width: 100%; border-radius: 12px; margin-top: .3rem; }
+@keyframes rvPulse {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rv-skel { animation: none; }
+  .rv-star, .rv-star.is-on { transition: none; transform: none; }
+}
+
+/* En celular el interruptor de tema flotante (FloatingThemeToggle) queda a
+   6.4rem del borde de abajo (brunetti.css): se deja ese aire bajo la tarjeta
+   para que el botón de enviar no quede tapado. */
+@media (max-width: 900px) {
+  .rv-screen { padding-bottom: calc(8.8rem + env(safe-area-inset-bottom, 0px)); }
+}
+
+@media (max-width: 380px) {
+  .rv-card { padding: 1.5rem 1.1rem; }
+  .rv-star { width: 44px; height: 44px; }
+  .rv-star-sm { width: 28px; height: 28px; }
+}
