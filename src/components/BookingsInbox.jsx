@@ -362,6 +362,10 @@ export default function BookingsInbox({
     // Deep-link a una reserva puntual: idOf devuelve un String, así que el
     // id de la URL (que llega como número) se compara como String.
     if (focus.bookingId != null) setDetailId(String(focus.bookingId))
+    // Se consume una sola vez: si no se limpia acá, un remonte de esta
+    // pestaña (se desmonta al salir de "Reservas") vuelve a leer el mismo
+    // foco viejo y el día elegido por búsqueda queda pegado para siempre.
+    ctx?.setInboxFocus?.(null)
   }, [focus?.day, focus?.ts]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // --- Deslizar (celular): cambia de día, en tarjetas y en lista por igual ---
@@ -531,7 +535,11 @@ export default function BookingsInbox({
             <Segmented
               ariaLabel="Rango de fechas"
               options={SCOPES.map(([v, l]) => ({ value: v, label: l }))}
-              value={dateScope}
+              // "Hoy" es el rótulo de dateScope 'dia', pero acá también se
+              // llega al enfocar un día puntual desde la búsqueda (no
+              // necesariamente hoy): sin esto el segmentado marcaba "Hoy"
+              // mientras la nota de abajo decía "Mostrando el 23 de septiembre".
+              value={dateScope === 'dia' && !isToday ? null : dateScope}
               onChange={(v) => (v === 'dia' ? goHoy() : setDateScope(v))}
             />
             <div className="pn-toolbar-spacer" />

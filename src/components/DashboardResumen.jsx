@@ -298,6 +298,21 @@ export default function DashboardResumen({
 
   const todayKey = localDateKey(new Date())
   const monthKey = todayKey.slice(0, 7)
+
+  /* Ventas de producto en el mesón, del mes calendario (no del período que
+     tenga elegido Finanzas): así el margen de acá cuenta lo mismo que el de
+     Finanzas sin depender de qué pestaña se abrió antes. */
+  const [productSalesMonth, setProductSalesMonth] = useState(null)
+  useEffect(() => {
+    if (!FEATURES.sales) return undefined
+    let alive = true
+    fetch(`/api/bookings?mode=sales&from=${monthKey}-01&to=${todayKey}`, { headers: authHeaders ? authHeaders() : {} })
+      .then((r) => (r.ok ? r.json() : Promise.reject(r)))
+      .then((data) => { if (alive) setProductSalesMonth(data?.ok ? data : null) })
+      .catch(() => { if (alive) setProductSalesMonth(null) })
+    return () => { alive = false }
+  }, [monthKey]) // eslint-disable-line react-hooks/exhaustive-deps
+  const productMonthRevenue = FEATURES.sales ? Number(productSalesMonth?.totals?.collected || 0) : 0
   const today = useMemo(() => bookings.filter((b) => !b.date || b.date === todayKey).sort((a, b) => String(a.time).localeCompare(String(b.time))), [bookings, todayKey])
 
   /* Ingreso = reserva COMPLETADA, por lo que realmente se cobró (`paidAmount`;
@@ -375,7 +390,9 @@ export default function DashboardResumen({
   const showOnline = Boolean(admin) && Number.isFinite(Number(onlineMonthTotal))
   const onlineMonthCount = useMemo(() => (Array.isArray(onlineOrders) ? onlineOrders : [])
     .filter((o) => santiagoDateKey(o.created_at).startsWith(monthKey)).length, [onlineOrders, monthKey])
-  const incomeMonth = monthRevenue + onlineMonth + manualIncomeMonth
+  // Misma fórmula que Finanzas: servicios + mesón + ventas online + ingresos
+  // manuales, menos gastos.
+  const incomeMonth = monthRevenue + productMonthRevenue + onlineMonth + manualIncomeMonth
   const netMarginPct = incomeMonth ? Math.round(((incomeMonth - expTotal) / incomeMonth) * 100) : 0
 
   // Ocupación real de hoy = horas reservadas / (reservadas + libres), según
@@ -447,7 +464,7 @@ export default function DashboardResumen({
     {
       id: 'margen', icon: 'trend', label: 'Margen neto', value: netMarginPct, suffix: '%',
       hint: 'Del mes',
-      title: 'Servicios, ventas online e ingresos manuales del mes, menos los gastos',
+      title: 'Servicios, ventas de mesón, ventas online e ingresos manuales del mes, menos los gastos',
     },
     // Rótulos cortos a propósito: a 375px cada KPI deja ~114px para el
     // rótulo y "Tasa de cancelación" o "Clientes recurrentes" salían
@@ -539,7 +556,7 @@ export default function DashboardResumen({
               Sin ícono, para no restarle ese ancho al rótulo. */}
           <div className="pn-resumen-kpiwrap">
             <div className="pn-kpis cols-4">
-              <Kpi label="Cobrado" value={revenueDay} format={CLP} />
+              <Kpi label="Servicios cobrados" value={revenueDay} format={CLP} title="Solo servicios de hoy; no incluye ventas de mesón ni online (Caja las suma todas)" />
               <Kpi label="Reservas" value={activeTodayCount} />
               <Kpi label="Ocupación" value={occupancy} suffix="%" />
               <Kpi label="Pendientes" value={pendingCount} onClick={pendingCount > 0 ? onGoToPending : undefined} />

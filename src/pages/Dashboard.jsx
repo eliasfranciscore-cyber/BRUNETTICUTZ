@@ -1088,6 +1088,7 @@ export default function Dashboard() {
     const data = res ? await res.json().catch(() => ({})) : {}
     if (!res || !res.ok) return { ok: false, error: data.error || "No se pudo registrar la venta de productos." }
     loadSellable() // el stock bajó: no ofrecer lo que ya no hay
+    loadProducts() // que el Catálogo (Inventario) muestre el stock nuevo
     if (canViewFinance) loadProductSales(periodStartKey, todayKeyNow)
     return { ok: true, sale: data.sale }
   }
@@ -1104,6 +1105,7 @@ export default function Dashboard() {
     pushToast("✓", "Venta anulada, stock devuelto")
     if (tab === "caja") loadCash(cashDay)
     loadSellable()
+    loadProducts() // que el Catálogo (Inventario) muestre el stock devuelto
     if (canViewFinance) loadProductSales(periodStartKey, todayKeyNow)
     return { ok: true }
   }
@@ -1269,9 +1271,9 @@ export default function Dashboard() {
   /* Canje del corte gratis: descuenta 10 estrellas en Pimp Studio y deja esta
      reserva en $0. El servidor hace las dos cosas en orden y devuelve las
      estrellas si la segunda falla, así que acá basta con reflejar el
-     resultado. */
+     resultado. La confirmación la muestra el ConfirmDialog 'redeem' de
+     BookingDetailSheet antes de llamar acá. */
   const redeemFreeCut = async (booking) => {
-    if (!window.confirm(`¿Canjear el corte gratis de ${booking.client}? Se descuentan 10 estrellas y esta reserva queda en $0.`)) return
     try {
       const res = await fetch("/api/bookings", {
         method: "PATCH",
@@ -1359,7 +1361,15 @@ export default function Dashboard() {
     const data = await fetch(`/api/bookings?phone=${client.phone}`)
       .then((r) => isJson(r) ? r.json() : Promise.reject(new Error("api unavailable")))
       .catch(() => ({ bookings: local }))
-    setClientHistory(data.bookings?.length ? data.bookings : local)
+    // El endpoint público (?phone=, lo usa Account.jsx del lado del cliente)
+    // no trae `noShow`: se completa por id con lo que ya está en memoria
+    // (panelRows sí lo trae), para que "No vino" no vuelva a verse como
+    // "Cancelada" en la ficha.
+    const localById = new Map(local.map((item) => [item.id, item]))
+    const merged = data.bookings?.length
+      ? data.bookings.map((item) => ({ ...item, noShow: item.noShow ?? localById.get(item.id)?.noShow ?? false }))
+      : local
+    setClientHistory(merged)
   }
 
   /* "Agendar" desde la ficha: abre la reserva manual del panel con el cliente

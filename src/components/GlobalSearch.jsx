@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react'
 import { CLP, bookingUid, fmtDate } from '../data.js'
-import { Sheet, SearchField, ListRow, List, StatusBadge, Avatar, EmptyState, SectionLabel, IconButton } from './panel/index.js'
+import { Sheet, SearchField, ListRow, List, Avatar, EmptyState, SectionLabel, IconButton } from './panel/index.js'
+import { StatusChip } from '../pages/panel/BookingDetailSheet.jsx'
 
 /**
  * GlobalSearch — buscador global del panel.
@@ -75,13 +76,15 @@ function Results({ raw, clientHits, bookingHits, onClient, onBooking, active }) 
       {bookingHits.length > 0 && (
         <List>
           {bookingHits.map((b, i) => (
+            // Ancho fijo en el lead: sin esto "10:00" y "9:00" (o fechas de
+            // largo distinto) hacen partir el nombre en una x distinta por fila.
             <ListRow
               key={bookingUid(b)}
               className={active === clientHits.length + i ? 'is-active' : undefined}
-              lead={<span className="pn-time">{b.time}<small>{prettyDay(b.date)}</small></span>}
+              lead={<span className="pn-time" style={{ minWidth: 68, width: 68, flex: '0 0 68px' }}>{b.time}<small>{prettyDay(b.date)}</small></span>}
               title={b.client || 'Reserva'}
               subtitle={b.service || '—'}
-              trailing={<StatusBadge status={b.status} />}
+              trailing={<StatusChip bk={b} />}
               meta={b.price ? CLP(b.price) : null}
               onClick={() => onBooking(b)}
             />
@@ -163,7 +166,15 @@ export default function GlobalSearch({ clients = [], bookings = [], onPickClient
         ariaLabel="Búsqueda global"
       />
       {showPanel && (
-        <div className="pn-menu pn-gsearch-pop" role="listbox" onFocus={() => setOpen(true)}>
+        // .pn-menu limita max-width a 320px, más angosto que el min-width
+        // que necesita esta fila (hora + cliente + servicio + precio + chip);
+        // se pisa acá en vez de tocar la regla compartida.
+        <div
+          className="pn-menu pn-gsearch-pop"
+          role="listbox"
+          onFocus={() => setOpen(true)}
+          style={{ minWidth: 360, maxWidth: 'min(460px, calc(100vw - 32px))' }}
+        >
           <Results
             raw={raw}
             clientHits={clientHits}
