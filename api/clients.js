@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless"
+import { put } from "@vercel/blob"
 import { requireInternal } from "./_auth.js"
 import { rateLimit, clientIp } from "./_rateLimit.js"
 import { sendLoyaltyCardEmail } from "./_email.js"
@@ -145,9 +146,66 @@ async function handleBridgeClients(req, res, mode) {
   }
 }
 
+/* ---------------------------------------------------------------------------
+   POST ?mode=register — respaldo del registro de cliente en Vercel Blob.
+   Antes era su propia función (api/register-client.js); se plegó acá para
+   liberar uno de los 12 slots de función del plan Hobby. vercel.json reescribe
+   /api/register-client → /api/clients?mode=register, así que la app de iOS
+   (su único llamador: APIClient.registerClient) sigue llamando la ruta vieja
+   y recibe la misma respuesta { ok, saved, pathname }. Es un respaldo, no la
+   fuente de verdad: el cliente real lo guarda el POST normal de más abajo.
+
+   Público (sin sesión), por eso endurecido — guarda nombre, correo y teléfono
+   de gente real:
+     1. Rate limit por IP (10 cada 5 min): antes cada POST creaba un blob
+        nuevo sin límite, y un bucle bastaba para llenar el almacenamiento.
+     2. Blob PRIVADO y sin respaldo público: la versión anterior, si el privado
+        fallaba, reintentaba con access:"public" y publicaba los datos en una
+        URL abierta. Un respaldo que falla tiene que fallar, no desnudarse.
+     3. Errores genéricos: el detalle interno va al log, no a la respuesta. */
+async function handleRegisterBackup(req, res) {
+  if (req.method === "OPTIONS") return res.status(204).end()
+  if (req.method !== "POST") return res.status(405).json({ ok: false, error: "Method Not Allowed" })
+
+  try {
+    const sql = neon(process.env.DATABASE_URL)
+    const allowed = await rateLimit(sql, `register-client:${clientIp(req)}`, { max: 10, windowSeconds: 300 })
+    if (!allowed) return res.status(429).json({ ok: false, error: "Demasiadas solicitudes. Intenta más tarde." })
+  } catch (err) {
+    // Sin base (DATABASE_URL ausente) el limitador no corre: un respaldo real
+    // no debe caerse por el mecanismo de protección.
+    console.error("register-client rate limit no disponible:", err?.message || err)
+  }
+
+  try {
+    let body = req.body || {}
+    if (typeof body === "string") {
+      try { body = JSON.parse(body) } catch { body = {} }
+    }
+    const name = String(body.name || "").trim().slice(0, 200)
+    const email = String(body.email || "").trim().slice(0, 300)
+    const phone = normalizePhone(body.phone)
+    if (!name || phone.length !== 9 || !EMAIL_RE.test(email)) {
+      return res.status(400).json({ ok: false, error: "Datos incompletos o inválidos" })
+    }
+
+    const record = { name, email, phone, source: "brunetticutz-web", updatedAt: new Date().toISOString() }
+    const blob = await put(`clientes/${phone}-${Date.now()}.json`, JSON.stringify(record, null, 2), {
+      addRandomSuffix: true,
+      contentType: "application/json; charset=utf-8",
+      access: "private",
+    })
+    return res.json({ ok: true, saved: true, pathname: blob.pathname })
+  } catch (err) {
+    console.error("register-client error:", err?.message || err)
+    return res.status(500).json({ ok: false, error: "No se pudo guardar el registro" })
+  }
+}
+
 export default async function handler(req, res) {
   const bridgeMode = String(req.query?.mode || "")
   if (bridgeMode.startsWith("bridge-")) return handleBridgeClients(req, res, bridgeMode)
+  if (bridgeMode === "register") return handleRegisterBackup(req, res)
 
   try {
     const sql = neon(process.env.DATABASE_URL)
@@ -395,6 +453,11 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "POST") {
+      // Alta/edición de cliente: solo el panel (web o iOS, los dos mandan el
+      // token). Antes era público y cualquiera podía reescribir el nombre y el
+      // correo de un cliente sabiendo su teléfono (es un upsert).
+      const session = requireInternal(req, res)
+      if (!session) return
       const payload = validateClient(req.body)
       if (payload.error) return res.status(400).json({ ok: false, error: payload.error })
       const [client] = await sql`
@@ -410,7 +473,8 @@ export default async function handler(req, res) {
     }
 
     if (req.method === "DELETE") {
-      const session = requireInternal(req, res)
+      // Borra al cliente y TODAS sus reservas: solo el admin.
+      const session = requireInternal(req, res, { admin: true })
       if (!session) return
       const phone = cleanPhone(req.query.phone)
       if (phone.length !== 9) return res.status(400).json({ ok: false, error: "Telefono invalido" })
@@ -442,12 +506,14 @@ export default async function handler(req, res) {
       return res.json({ ok: true, clients: DEMO_CLIENTS })
     }
     if (req.method === "POST") {
+      const session = requireInternal(req, res)
+      if (!session) return
       const payload = validateClient(req.body)
       if (payload.error) return res.status(400).json({ ok: false, error: payload.error })
       return res.json({ ok: true, client: { id: Date.now(), ...payload, visits: 0, totalSpent: 0, status: "nuevo" } })
     }
     if (req.method === "DELETE") {
-      const session = requireInternal(req, res)
+      const session = requireInternal(req, res, { admin: true })
       if (!session) return
       return res.json({ ok: true })
     }

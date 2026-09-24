@@ -588,9 +588,15 @@ export default async function handler(req, res) {
       // Estado previo + datos del cliente: hacen falta para el control del
       // puente, para decidir si la transición otorga o quita la estrella, y
       // para identificar al cliente en PimpStudio (se cruzan por teléfono).
+      // Servicio y precio van también porque la respuesta los devuelve (ver
+      // abajo): la app de iOS decodifica `booking` completo.
       const [before] = await sql`
-        SELECT b.id, b.status, b.barber_id as "barberId", u.name as client, u.phone
-        FROM bookings b LEFT JOIN users u ON u.id = b.client_id
+        SELECT b.id, b.status, b.barber_id as "barberId", u.name as client, u.phone,
+               COALESCE(b.custom_service, s.name) as service,
+               COALESCE(b.custom_price, s.price)::int as price
+        FROM bookings b
+        LEFT JOIN users u ON u.id = b.client_id
+        LEFT JOIN services s ON s.id = b.service_id
         WHERE b.id = ${Number(id)}
       `
       // LEFT JOIN, no JOIN: una reserva cuyo cliente ya no existe igual tiene
@@ -643,7 +649,24 @@ export default async function handler(req, res) {
         bookingId: id, from: before.status, to: status, phone: before.phone, name: before.client, ip: clientIp(req),
       })
 
-      return res.json({ ok: true, booking: { ...booking, time: booking.time?.slice(0, 5) }, loyalty })
+      // client/phone/service/price se suman a la respuesta (superconjunto): la
+      // app de iOS decodifica `booking` como un Booking completo —client,
+      // service y price obligatorios— y sin ellos fallaba al decodificar,
+      // revertía el cambio en pantalla y mostraba "No se pudo actualizar la
+      // reserva" aunque el estado sí se hubiera guardado. Nunca null: iOS
+      // los exige.
+      return res.json({
+        ok: true,
+        booking: {
+          ...booking,
+          time: booking.time?.slice(0, 5),
+          client: before.client || "",
+          phone: before.phone || null,
+          service: before.service || "",
+          price: before.price ?? 0,
+        },
+        loyalty,
+      })
     }
 
     if (req.method === "DELETE") {
@@ -665,13 +688,34 @@ export default async function handler(req, res) {
 
       // Cancelación del cliente (público, sin sesión): exige aviso minimo y
       // marca la reserva como cancelada en vez de borrarla.
+      //
+      // El teléfono es OBLIGATORIO. Antes bastaba el id, y como los ids son
+      // un SERIAL correlativo, un bucle de tres líneas cancelaba la agenda
+      // completa sin ninguna credencial. El teléfono no es una contraseña,
+      // pero es la misma prueba de identidad que el resto del flujo del
+      // cliente (/cuenta entra con él) y corta el barrido por id. Va en el
+      // body JSON para que no quede escrito en URLs ni en los logs; ?phone=
+      // se acepta igual por si llega así.
+      const bodyPhone = req.body && typeof req.body === "object" ? req.body.phone : null
+      const claimedPhone = normalizePhone(bodyPhone || req.query.phone)
+      if (claimedPhone.length !== 9) {
+        return res.status(400).json({ error: "Falta el teléfono de la reserva. Recarga la página e intenta de nuevo." })
+      }
+      const canCancel = await rateLimit(sql, `bookings-cancel:${clientIp(req)}`, { max: 10, windowSeconds: 300 })
+      if (!canCancel) return res.status(429).json({ error: "Demasiados intentos. Espera unos minutos e intenta de nuevo." })
+
       const [existing] = await sql`
         SELECT b.id, b.booking_date::text as date, b.booking_time::text as time,
-               b.barber_id as "barberId", b.status, u.name as client, b.notion_page_id as "notionPageId"
+               b.barber_id as "barberId", b.status, u.name as client, u.phone,
+               b.notion_page_id as "notionPageId"
         FROM bookings b JOIN users u ON b.client_id = u.id
         WHERE b.id = ${Number(id)}
       `
-      if (!existing) return res.status(404).json({ error: "Reserva no encontrada" })
+      // Mismo 404 para "no existe" y "no es tuya": distinguirlos permitiría
+      // barrer ids para averiguar cuáles son de un teléfono dado.
+      if (!existing || normalizePhone(existing.phone) !== claimedPhone) {
+        return res.status(404).json({ error: "Reserva no encontrada" })
+      }
       const apptAt = new Date(`${existing.date}T${existing.time}`)
       const hoursLeft = (apptAt.getTime() - Date.now()) / 3_600_000
       if (hoursLeft < MIN_CANCEL_NOTICE_HOURS) {
@@ -744,6 +788,11 @@ export default async function handler(req, res) {
     }
     if (req.method === "DELETE") {
       return res.status(500).json({ error: "No se pudo cancelar la reserva. Intenta de nuevo." })
+    }
+    // El puente nunca recibe datos de demo: PimpStudio mostraría esas filas
+    // inventadas como si fueran la agenda real de Bruno.
+    if (isBridgeRequest(req)) {
+      return res.status(500).json({ ok: false, error: "No se pudo leer la agenda en BrunettiCutz" })
     }
     return res.json({ ok: true, bookings: req.query?.phone ? [] : DEMO_BOOKINGS })
   }

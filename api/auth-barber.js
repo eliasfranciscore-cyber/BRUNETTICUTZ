@@ -5,7 +5,8 @@ import { createSession, requireInternal } from "./_auth.js"
 /* PIMP STUDIO — Autenticación de barberos (usuario + contraseña)
    ------------------------------------------------------------------
    POST  : login con { username, password }.
-   PATCH : cambio de contraseña del barbero autenticado (sesión interna).
+   PATCH : cambio de contraseña del barbero autenticado (sesión interna +
+           { currentPassword, newPassword }; la actual es obligatoria).
 
    Contraseña: 8 caracteres alfanuméricos, al menos 1 mayúscula y 1 número.
    Hash: SHA-256 (consistente con el esquema existente del proyecto).
@@ -58,9 +59,14 @@ async function handleLogin(req, res) {
   try {
     const sql = neon(process.env.DATABASE_URL)
     const hash = sha256(secret)
+    // Coincidencia EXACTA (sin mayúsculas ni espacios de los bordes). Antes el
+    // nombre se comparaba con ILIKE, donde `%` y `_` son comodines: un usuario
+    // "%" calzaba con cualquier barbero activo cuya contraseña fuera la que se
+    // tecleó — y el seed deja a varios con la misma contraseña por defecto.
+    const user = String(username).toLowerCase().trim()
     const [barber] = await sql`
       SELECT id, name, code, role, tier FROM barbers
-      WHERE (code = ${String(username).toLowerCase()} OR name ILIKE ${username})
+      WHERE (code = ${user} OR lower(name) = ${user})
         AND password_hash = ${hash} AND active = true
     `
     if (!barber) {
@@ -91,11 +97,16 @@ async function handleChangePassword(req, res) {
   if (!isValidPassword(newPassword)) {
     return res.status(400).json({ ok: false, error: "La contraseña debe tener 8 caracteres alfanuméricos, con al menos 1 mayúscula y 1 número." })
   }
+  // Antes la contraseña actual era opcional: si no venía, el cambio pasaba
+  // igual, y cualquier token robado se convertía en una toma de cuenta
+  // permanente. Ahora es obligatoria siempre.
+  if (!currentPassword) return res.status(400).json({ ok: false, error: "Ingresa tu contraseña actual." })
+  if (!session.id) return res.status(403).json({ ok: false, error: "Sesión sin barbero asociado" })
   try {
     const sql = neon(process.env.DATABASE_URL)
-    // Verifica la contraseña actual (si se entregó) contra la almacenada.
-    const [current] = await sql`SELECT password_hash FROM barbers WHERE id = ${Number(session.id)}`
-    if (current?.password_hash && currentPassword && sha256(currentPassword) !== current.password_hash) {
+    const [current] = await sql`SELECT password_hash FROM barbers WHERE id = ${Number(session.id)} AND active = true`
+    if (!current) return res.status(401).json({ ok: false, error: "Cuenta no disponible" })
+    if (current.password_hash && sha256(currentPassword) !== current.password_hash) {
       return res.status(403).json({ ok: false, error: "La contraseña actual no es correcta." })
     }
     await sql`UPDATE barbers SET password_hash = ${sha256(newPassword)} WHERE id = ${Number(session.id)}`
