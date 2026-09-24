@@ -1,14 +1,10 @@
 /* ============================================================
-   AJUSTES — ConfigPanel (src/pages/panel/ConfigTab.jsx)
-   y el formulario de barbero (src/components/BarberModal.jsx).
-   Prefijo pn-ajustes- (ConfigPanel) y pn-bm- (BarberModal). Solo tokens
-   --pn-* de src/styles/panel.css (solo lectura).
-   Sin scope de .dashboard-shell a propósito: el Sheet compartido (usado por
-   BarberModal) hace createPortal a document.body, fuera del árbol de
-   .dashboard-shell — un selector `.dashboard-shell .pn-bm-…` ahí nunca
-   calzaría. body.dash-mode sí envuelve los portales (está en <body>), pero
-   como el sitio público no usa el prefijo pn-ajustes-/pn-bm-, ninguna capa
-   de scope hace falta.
+   AJUSTES — ConfigPanel (src/pages/panel/ConfigTab.jsx).
+   Prefijo pn-ajustes-. Solo tokens --pn-* de src/styles/panel.css (solo
+   lectura; el dorado sale de --pn-accent, acá no se define ningún --gold).
+   Sin scope de .dashboard-shell: el sitio público no usa el prefijo.
+   Lo de PimpStudio para Equipo y el formulario de barbero (pn-bm-, pn-ajustes-
+   team-) no se trajo: en Brunetti hay un solo barbero y esa sección no existe.
    ============================================================ */
 
 /* ---------- ConfigPanel: lista + detalle ---------- */
@@ -26,8 +22,29 @@
 }
 
 .pn-ajustes-list-screen { display: grid; gap: var(--pn-sp-5); align-content: start; min-width: 0; }
-.pn-ajustes-group { display: grid; gap: var(--pn-sp-2); min-width: 0; }
+.pn-ajustes-group { display: grid; gap: 0; min-width: 0; }
+.pn-ajustes-group > .pn-section-label { margin-top: 0; }
 .pn-ajustes-empty { padding: var(--pn-sp-2) 0; }
+
+/* Cada grupo en su propia tarjeta, como las listas agrupadas de iOS. */
+.pn-ajustes-list-card {
+  background: var(--pn-card);
+  border: 1px solid var(--pn-line);
+  border-radius: var(--pn-r-lg);
+  box-shadow: var(--pn-shadow-1);
+  overflow: hidden;
+  min-width: 0;
+}
+.pn-ajustes-list-card .pn-row { min-height: 52px; }
+.pn-ajustes-list-card .pn-row.has-lead { --pn-row-inset: 58px; }
+.pn-ajustes-lead {
+  width: 30px; height: 30px; border-radius: 9px;
+  display: grid; place-items: center;
+  background: var(--pn-accent-soft); color: var(--pn-accent);
+}
+/* La sección abierta en escritorio: fondo y el título en dorado suave. */
+.pn-ajustes-list-card .pn-row.is-active { background: var(--pn-accent-soft); }
+.pn-ajustes-list-card .pn-row.is-active .pn-ajustes-lead { background: var(--pn-accent); color: var(--on-gold); }
 
 /* Escritorio (≥1025px, panel con sidebar): antes el encabezado "Ajustes" y la
    lista de secciones vivían en el flujo normal de .dashboard-main —el único
@@ -69,6 +86,14 @@
     overflow-y: auto;
     padding-right: 2px;
   }
+  /* Cada panel scrollea solo: barra fina y del color de las líneas, no la
+     barra gruesa del sistema (en claro se veía como una franja negra). */
+  .pn-ajustes-left .pn-ajustes-list-screen,
+  .pn-ajustes-detail-screen {
+    scrollbar-width: thin;
+    scrollbar-color: var(--pn-line-2) transparent;
+    overscroll-behavior: contain;
+  }
 }
 
 .pn-ajustes-detail-screen { display: grid; gap: var(--pn-sp-5); align-content: start; min-width: 0; }
@@ -92,6 +117,31 @@
 
 .pn-ajustes-section { display: grid; gap: var(--pn-sp-5); min-width: 0; padding-bottom: var(--pn-sp-8); }
 
+/* Las filas (ToggleRow/ListRow) traen su propio padding de 16px: dentro del
+   cuerpo de la tarjeta (que ya tiene 16px) quedaban corridas al doble. Con el
+   margen negativo el texto de cada fila calza con el título de la tarjeta y
+   el separador llega al borde, como en iOS. */
+.pn-ajustes-section .pn-card-body > .pn-list { margin-inline: calc(-1 * var(--pn-sp-4)); }
+.pn-ajustes-section .pn-card-body > .pn-list:first-child { margin-top: calc(-1 * var(--pn-sp-2)); }
+.pn-ajustes-section .pn-card-body > * + * { margin-top: var(--pn-sp-3); }
+.pn-ajustes-section .pn-card-body > .pn-list + * { margin-top: var(--pn-sp-2); }
+/* Un campo con ayuda y otro sin ella en la misma fila: sin esto el segundo
+   se estiraba y su input quedaba más alto que el del lado. */
+.pn-ajustes-section .pn-form-row { align-items: start; }
+.pn-ajustes-alert { margin-top: var(--pn-sp-3); }
+
+/* Texto explicativo largo (Cierre automático). */
+.pn-ajustes-explain { display: grid; gap: var(--pn-sp-2); font-size: var(--pn-fs-sm); color: var(--pn-text-2); line-height: 1.5; }
+.pn-ajustes-explain p { margin: 0; }
+.pn-ajustes-explain ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 6px; }
+.pn-ajustes-explain li::marker { color: var(--pn-accent); }
+.pn-ajustes-explain b { color: var(--pn-text); font-weight: 600; }
+
+/* Horario: tres selects por fila cuando hay ancho. */
+@media (min-width: 1100px) {
+  .pn-ajustes-selects { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
 /* El SaveBar de kit.jsx es `position:sticky; bottom: var(--pn-dock-space)`.
    Adentro de .dashboard-main (que YA reserva ese mismo alto como
    padding-bottom para el dock) el offset se cuenta dos veces: en una
@@ -109,142 +159,61 @@
    despegarse de su posición normal en el flujo, y se pinta debajo de los
    campos, como cualquier otro elemento del formulario. */
 .pn-ajustes-savebar-wrap { overflow: hidden; }
+/* Sin cambios pendientes el SaveBar no se pinta: el envoltorio vacío no
+   tiene que sumar el espacio entre bloques de la tarjeta. */
+.pn-ajustes-savebar-wrap:empty { display: none; }
 
-/* Fila con acción/aviso inline (ej. botón de prueba de push). */
-.pn-ajustes-inline-action { padding: 0 var(--pn-sp-4) var(--pn-sp-2); }
-.pn-card > .pn-ajustes-inline-action:first-child { padding-top: var(--pn-sp-2); }
+/* Fila con acción/aviso inline (ej. botón de prueba de push). El cuerpo de
+   la tarjeta ya pone los 16px de los lados. */
+.pn-ajustes-inline-action { padding: 0; }
 .pn-ajustes-footnote {
-  margin: 0; padding: 0 var(--pn-sp-4) var(--pn-sp-4);
+  margin: 0; padding: 0;
   font-size: var(--pn-fs-xs); color: var(--pn-text-3); line-height: 1.5;
 }
 
 /* ---------- Perfil (Mi cuenta) ---------- */
 .pn-ajustes-profile {
   display: flex; align-items: center; gap: var(--pn-sp-4);
-  padding: var(--pn-sp-2) var(--pn-sp-4) var(--pn-sp-4);
+  padding: var(--pn-sp-1) 0 var(--pn-sp-4);
 }
 .pn-ajustes-profile-text { min-width: 0; display: grid; gap: 2px; }
 .pn-ajustes-profile-text strong { font-family: var(--font-display); font-size: var(--pn-fs-lg); color: var(--pn-text); }
 .pn-ajustes-profile-text span { font-size: var(--pn-fs-sm); color: var(--pn-text-3); }
 
 /* ---------- Apariencia ---------- */
-.pn-ajustes-theme-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--pn-sp-3); padding: var(--pn-sp-2) var(--pn-sp-4) var(--pn-sp-4); }
+.pn-ajustes-theme-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--pn-sp-3); padding: var(--pn-sp-1) 0 0; }
+/* Son <button>: se les quita el estilo del navegador. */
 .pn-ajustes-theme-tile {
   display: grid; gap: var(--pn-sp-2); justify-items: center; padding: var(--pn-sp-3);
   border-radius: var(--pn-r); border: 2px solid var(--pn-line-2); cursor: pointer;
-  background: var(--pn-card-2); transition: border-color .15s;
+  background: var(--pn-card-2); transition: border-color .15s, box-shadow .15s;
+  font: inherit; color: inherit; width: 100%; min-width: 0;
+  -webkit-tap-highlight-color: transparent;
 }
+.pn-ajustes-theme-tile:hover { border-color: var(--pn-text-3); }
+.pn-ajustes-theme-tile:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--pn-accent-soft); }
 .pn-ajustes-theme-tile.is-active { border-color: var(--pn-accent); }
 .pn-ajustes-theme-tile span { font-size: var(--pn-fs-sm); color: var(--pn-text-2); font-weight: 550; }
 .pn-ajustes-theme-thumb { width: 100%; height: 52px; border-radius: var(--pn-r-sm); border: 1px solid var(--pn-line-2); }
 .pn-ajustes-theme-thumb.dark { background: linear-gradient(160deg, #171715 0%, #080807 100%); }
 .pn-ajustes-theme-thumb.light { background: linear-gradient(160deg, #fffdf8 0%, #f1ebdd 100%); }
 
-/* ---------- Equipo ---------- */
-.pn-ajustes-team-chips { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
-
 /* Fila de botones bajo un formulario inline (ej. cambiar contraseña). */
 .pn-ajustes-actions { display: flex; align-items: center; gap: var(--pn-sp-2); }
 
 /* ---------- Presupuestos ---------- */
-.pn-ajustes-budget-row { display: flex; align-items: center; gap: var(--pn-sp-3); padding: 6px var(--pn-sp-4); }
-.pn-ajustes-budget-row .dk-badge { min-width: 128px; flex: 0 0 auto; }
+.pn-ajustes-budgets { display: grid; gap: var(--pn-sp-2); }
+.pn-ajustes-budget-row { display: flex; align-items: center; gap: var(--pn-sp-3); }
+.pn-ajustes-budget-row .pn-chip { min-width: 128px; flex: 0 0 auto; }
 .pn-ajustes-budget-row .input { flex: 1 1 auto; min-width: 0; }
 
 /* ---------- Acerca de ---------- */
-.pn-ajustes-about-hero { text-align: center; padding: var(--pn-sp-7) var(--pn-sp-5); display: grid; gap: var(--pn-sp-2); justify-items: center; }
-.pn-ajustes-about-hero h3 { margin: var(--pn-sp-2) 0 0; font-size: var(--pn-fs-xl); }
+.pn-ajustes-about-hero { text-align: center; padding: var(--pn-sp-6) 0 var(--pn-sp-4); display: grid; gap: var(--pn-sp-2); justify-items: center; }
+.pn-ajustes-about-hero h3 { margin: var(--pn-sp-2) 0 0; font-size: var(--pn-fs-xl); letter-spacing: .12em; color: var(--pn-text); }
 .pn-ajustes-about-hero p { margin: 0; color: var(--pn-text-3); font-size: var(--pn-fs-sm); }
 
 /* Filas clave/valor genéricas (Datos y respaldos, Acerca de). */
-.pn-ajustes-kv { display: grid; gap: var(--pn-sp-3); padding: var(--pn-sp-2) var(--pn-sp-4) var(--pn-sp-4); }
+.pn-ajustes-kv { display: grid; gap: var(--pn-sp-3); padding: 0; }
 .pn-ajustes-kv > div { display: grid; gap: 2px; }
 .pn-ajustes-kv strong { font-size: var(--pn-fs-sm); color: var(--pn-text); }
 .pn-ajustes-kv span { font-size: var(--pn-fs-xs); color: var(--pn-text-3); line-height: 1.45; }
-
-/* ============================================================
-   BarberModal — Sheet lg, secciones a la izquierda en escritorio
-   ============================================================ */
-.pn-bm-photo {
-  /* display:block (no el inline por defecto de <label>): si no, width/height
-     y el position:relative que ancla el input de archivo no surten efecto y
-     el input absoluto termina midiendo el ancho de la línea de texto en vez
-     de los 76×76 del avatar — el "botón" para cambiar la foto quedaba
-     invisible pero clicable en una franja angosta del contenido de al lado. */
-  display: block; position: relative; width: 76px; height: 76px; border-radius: 999px;
-  overflow: hidden; cursor: default; flex: 0 0 auto;
-}
-.pn-bm-photo.can-edit { cursor: pointer; }
-.pn-bm-photo input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-.pn-bm-photo-badge {
-  position: absolute; right: 0; bottom: 0; width: 26px; height: 26px; border-radius: 999px;
-  background: var(--pn-accent); color: var(--on-gold); display: grid; place-items: center;
-  border: 2px solid var(--pn-card);
-}
-
-/* Contraseña con el "Ver/Ocultar" como ícono superpuesto (patrón estándar de
-   campo de contraseña), en vez de un botón de texto aparte compitiendo por
-   ancho en la misma fila. */
-.pn-bm-password-field { position: relative; }
-.pn-bm-password-field .input { padding-right: 44px; }
-.pn-bm-password-field .pn-icon-btn { position: absolute; right: 2px; top: 50%; transform: translateY(-50%); }
-
-.pn-bm-body { display: grid; gap: var(--pn-sp-6); min-width: 0; }
-@media (min-width: 641px) {
-  .pn-bm-body { grid-template-columns: 184px minmax(0, 1fr); align-items: start; }
-}
-
-.pn-bm-nav { display: none; }
-@media (min-width: 641px) {
-  .pn-bm-nav {
-    display: grid; gap: 2px; position: sticky; top: 0;
-  }
-  .pn-bm-nav-item {
-    display: flex; align-items: center; gap: 10px; height: 40px; padding: 0 var(--pn-sp-3);
-    border: 0; border-radius: var(--pn-r-sm); background: transparent; color: var(--pn-text-2);
-    font-size: var(--pn-fs-sm); font-weight: 550; cursor: pointer; text-align: left;
-  }
-  .pn-bm-nav-item svg { color: var(--pn-text-3); flex: 0 0 auto; }
-  .pn-bm-nav-item:hover { background: var(--pn-hover); color: var(--pn-text); }
-  .pn-bm-nav-item.is-active { background: var(--pn-accent-soft); color: var(--pn-text); }
-  .pn-bm-nav-item.is-active svg { color: var(--pn-accent); }
-}
-
-.pn-bm-sections { display: grid; gap: var(--pn-sp-7); min-width: 0; }
-.pn-bm-section { display: grid; gap: var(--pn-sp-4); min-width: 0; }
-@media (min-width: 641px) {
-  /* En escritorio solo se pinta la sección activa: la nav de la izquierda reemplaza al scroll continuo. */
-  .pn-bm-section:not(.is-active) { display: none; }
-}
-.pn-bm-section-label {
-  margin: 0; font-size: var(--pn-fs-xs); font-weight: 650; letter-spacing: .02em;
-  color: var(--pn-text-3); text-transform: uppercase;
-}
-@media (min-width: 641px) { .pn-bm-section-label { display: none; } }
-
-.pn-bm-error { margin: 0 0 var(--pn-sp-2); }
-
-/* Resumen "Acceso total" cuando Administrador está activo. */
-.pn-bm-admin-summary { padding: var(--pn-sp-2) 0; }
-
-/* Permisos: acceso rápido a servicios. */
-.pn-bm-services-toggle { width: 100%; justify-content: space-between; }
-.pn-bm-services-list { display: grid; }
-.pn-bm-service-row {
-  display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 4px var(--pn-sp-3);
-  padding: 10px var(--pn-sp-4); border-top: 1px solid var(--pn-line);
-}
-.pn-bm-service-row:first-child { border-top: 0; }
-.pn-bm-service-main { display: flex; align-items: center; gap: var(--pn-sp-3); min-width: 0; }
-.pn-bm-service-name { display: grid; gap: 1px; min-width: 0; flex: 1 1 auto; }
-.pn-bm-service-name b { font-size: var(--pn-fs-sm); font-weight: 550; color: var(--pn-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.pn-bm-service-name small { font-size: var(--pn-fs-xs); color: var(--pn-text-3); }
-.pn-bm-service-exc {
-  grid-column: 2; display: flex; align-items: center; gap: var(--pn-sp-2); padding-left: 48px;
-  font-size: var(--pn-fs-xs); color: var(--pn-text-3);
-}
-.pn-bm-service-exc .input { width: 4.5rem; min-height: 34px; padding: 4px 8px; text-align: center; flex: 0 0 auto; }
-@media (min-width: 641px) {
-  .pn-bm-service-row { grid-template-columns: 1fr auto; gap: var(--pn-sp-3); }
-  .pn-bm-service-exc { grid-column: 2; padding-left: 0; }
-}
