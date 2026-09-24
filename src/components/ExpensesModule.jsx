@@ -99,8 +99,12 @@ export default function ExpensesModule({ expenses = [], budgets = {}, onCreate =
     return [...list].sort((a, b) => (b.date || '').localeCompare(a.date || '') || Number(b.id || 0) - Number(a.id || 0))
   }, [monthExpenses, activeFilter])
   const topCat = Object.entries(byCategory).sort((a, b) => b[1] - a[1])[0]
-  const budgetTotal = EXPENSE_CATEGORIES.reduce((s, c) => s + (Number(budgets?.[c]) || 0), 0)
-  const budgetPct = budgetTotal ? (monthTotal / budgetTotal) * 100 : 0
+  // La barra de presupuesto solo tiene sentido para las categorías con tope:
+  // una como Arriendo, sin presupuesto, no debe empujar el % hacia arriba.
+  const budgetedCategories = EXPENSE_CATEGORIES.filter((c) => Number(budgets?.[c]) > 0)
+  const budgetTotal = budgetedCategories.reduce((s, c) => s + Number(budgets[c]), 0)
+  const budgetedSpend = budgetedCategories.reduce((s, c) => s + (byCategory[c] || 0), 0)
+  const budgetPct = budgetTotal ? (budgetedSpend / budgetTotal) * 100 : 0
   const statusColor = (pct) => (pct >= 100 ? 'var(--pn-bad)' : pct >= 85 ? 'var(--pn-warn)' : 'var(--pn-ok)')
 
   // Las categorías conocidas primero (en su orden) y después cualquier otra
@@ -158,7 +162,7 @@ export default function ExpensesModule({ expenses = [], budgets = {}, onCreate =
           <span className="pn-fin-exp-total-value"><CountUp value={monthTotal} format={CLP} /></span>
           {budgetTotal > 0 && (
             <div className="pn-fin-exp-budget">
-              <ProgressBar value={monthTotal} max={budgetTotal} color={statusColor(budgetPct)} label="Presupuesto del mes" />
+              <ProgressBar value={budgetedSpend} max={budgetTotal} color={statusColor(budgetPct)} label="Presupuesto del mes" />
               <span className="pn-fin-exp-budget-note">{Math.round(budgetPct)}% de {CLP(budgetTotal)} presupuestado</span>
             </div>
           )}
