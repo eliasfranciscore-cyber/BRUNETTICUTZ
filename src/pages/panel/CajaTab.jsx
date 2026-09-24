@@ -375,7 +375,7 @@ export default function CajaTab({ ctx }) {
           {view.confirmRows.length > 0 && (
             <Card
               title="Por confirmar"
-              subtitle={`${view.confirmRows.length} · completadas sin medio de pago`}
+              subtitle={`${view.confirmRows.length} ${view.confirmRows.length === 1 ? 'completada' : 'completadas'} sin medio de pago`}
               flush
               className="pn-caja-confirm"
             >
@@ -396,18 +396,22 @@ export default function CajaTab({ ctx }) {
               rows={view.pendingRows}
               mobile={mobileBookingRow({ action: chargeAction })}
               onRowClick={chargeAction ? chargeRow : undefined}
-              empty={<EmptyState compact icon="checkCircle" title="Por ahora todo está cobrado" />}
+              empty={<EmptyState compact icon="checkCircle" title={isToday ? 'Por ahora todo está cobrado' : 'No quedó nada pendiente ese día'} />}
               ariaLabel="Por cobrar"
             />
           </Card>
 
-          <Card title="Cobradas" subtitle={view.paidRows.length ? `${view.paidRows.length}` : undefined} flush>
+          <Card
+            title="Cobradas"
+            subtitle={view.paidRows.length ? `${view.paidRows.length} ${view.paidRows.length === 1 ? 'atención cobrada' : 'atenciones cobradas'}` : undefined}
+            flush
+          >
             <DataTable
               columns={bookingColumns()}
               rows={view.paidRows}
               mobile={mobileBookingRow()}
               onRowClick={chargeAction ? chargeRow : undefined}
-              empty={<EmptyState compact icon="wallet" title="Todavía no hay cobros este día" />}
+              empty={<EmptyState compact icon="wallet" title={isToday ? 'Todavía no hay cobros este día' : 'No hubo cobros este día'} />}
               ariaLabel="Cobradas"
             />
           </Card>
@@ -444,7 +448,7 @@ export default function CajaTab({ ctx }) {
           {view.onlineRows.length > 0 && (
             <Card
               title="Ventas online"
-              subtitle={`${view.onlineRows.length} · pagadas por la web con Mercado Pago`}
+              subtitle={`${view.onlineRows.length} ${view.onlineRows.length === 1 ? 'pagada' : 'pagadas'} por la web con Mercado Pago`}
               action={setTab && (!has || has('pedidos'))
                 ? <Button variant="plain" size="sm" iconRight="chevronRight" onClick={() => setTab('pedidos')}>Ver pedidos</Button>
                 : null}
