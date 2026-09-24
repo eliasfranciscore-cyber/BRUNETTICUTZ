@@ -7,25 +7,19 @@ import { rateLimit, clientIp } from "./_rateLimit.js"
 import { logBookingAttempt } from "./_bookingAudit.js"
 import { blocksForDuration, slotsForBooking, busySlotsForBarberDate } from "./_slots.js"
 import { creditStar, revertStar, redeemFreeCut, cancelRedeem } from "./_loyaltyBridge.js"
+// Puente de servicio para PimpStudio: Bruno tiene una sola agenda, pero se
+// reserva/gestiona desde dos sitios con bases de datos separadas. PimpStudio
+// llama estos endpoints servidor-a-servidor (nunca desde el navegador del
+// cliente) con un secreto compartido, acotado siempre a su propio barbero
+// (BRIDGE_BARBER_ID). La comprobación del secreto vive en api/_bridge.js.
+import { isBridgeRequest, BRIDGE_BARBER_ID, normalizePhone, EMAIL_RE } from "./_bridge.js"
 
 const MIN_CANCEL_NOTICE_HOURS = 10
 const MAX_LEAD_DAYS = 10  // debe coincidir con el del calendario en src/pages/Booking.jsx
 const MIN_BOOKING_LEAD_MINUTES = 55
 const MAX_BOOKINGS_PER_DAY = 2
 const BUSINESS_TZ = "America/Santiago"
-
-// Puente de servicio para PimpStudio: Bruno tiene una sola agenda, pero se
-// reserva/gestiona desde dos sitios con bases de datos separadas. PimpStudio
-// llama estos endpoints servidor-a-servidor (nunca desde el navegador del
-// cliente) con este secreto compartido, acotado siempre a su propio barbero.
-const BRIDGE_SECRET = process.env.PIMPSTUDIO_BRIDGE_SECRET || ""
-const BRIDGE_BARBER_ID = 6
-
-function isBridgeRequest(req) {
-  if (!BRIDGE_SECRET) return false
-  const key = req.headers["x-bridge-secret"]
-  return typeof key === "string" && key === BRIDGE_SECRET
-}
+const BOOKING_STATUSES = new Set(["pendiente", "confirmada", "en curso", "completada", "cancelada"])
 
 // Vercel ejecuta las funciones en UTC: calcular "hoy" con new Date() ahí
 // corre la fecha un día durante la noche/madrugada en Chile. Formateamos en
@@ -46,7 +40,237 @@ const DEMO_BOOKINGS = [
   { id: 3, time: "12:00", date: "2026-06-12", client: "Joaquin Reyes", phone: "912300000", service: "Solo fade", barberId: 6, price: 9990, status: "pendiente" },
 ]
 
+/* La estrella sigue al estado de la reserva: entrar a 'completada' la
+   acredita y salir de ahí la devuelve. Es el ÚNICO camino que escribe
+   estrellas para las reservas de esta base ("un solo escritor", ver
+   CLAUDE.md): lo usan el PATCH —que ejecutan los dos paneles, el de acá
+   directo y el de PimpStudio por el puente— y el alta manual del puente
+   cuando la reserva ya nace completada. creditStar() es idempotente en
+   PimpStudio por bridge_ref = "brunetti:<id>": un reintento no suma dos.
+
+   Best-effort: si PimpStudio no responde, el cambio de estado (lo
+   importante, ya guardado) no se revierte ni falla la respuesta. */
+async function loyaltyForTransition({ bookingId, from, to, phone, name, ip }) {
+  try {
+    if (from !== "completada" && to === "completada") {
+      const result = await creditStar({ bookingId, phone, name, ip })
+      return { attempted: true, ok: Boolean(result?.ok), loyalty: result?.loyalty }
+    }
+    if (from === "completada" && to !== "completada") {
+      const result = await revertStar({ bookingId, ip })
+      return { attempted: true, ok: Boolean(result?.ok), loyalty: result?.loyalty }
+    }
+    return { attempted: false, ok: true, loyalty: null }
+  } catch (err) {
+    console.error("loyalty bridge error:", err?.message || err)
+    return { attempted: true, ok: false, loyalty: null }
+  }
+}
+
+const isDbId = (n) => Number.isInteger(n) && n > 0 && n <= 2147483647
+
+function isRealDate(value) {
+  const [y, m, d] = String(value).split("-").map(Number)
+  const probe = new Date(Date.UTC(y, m - 1, d))
+  return probe.getUTCFullYear() === y && probe.getUTCMonth() === m - 1 && probe.getUTCDate() === d
+}
+
+/* Alta MANUAL de una reserva. La usan dos llamadores:
+     - el panel de acá (POST con sesión de barbero), con `bridge: false`
+     - PimpStudio por el puente (POST ?mode=bridge-manual), con `bridge: true`
+   Sin límite de fecha (sirve para cargar a alguien que llegó sin hora, o
+   para backfill), servicio del catálogo o personalizado, y precio editable
+   que se congela en custom_price al reservar.
+
+   Devuelve { status, body } en vez de responder, para que cada llamador
+   decida cómo contestar.
+
+   Con `bridge: false` hace EXACTAMENTE lo que hacía la rama del panel antes
+   de extraerla a esta función: mismas validaciones, mismos mensajes, mismo
+   orden de escrituras (el cliente se guarda antes del chequeo de horario) y
+   sin estrella. Todo lo extra va bajo `bridge`:
+     - teléfono normalizado como en PimpStudio (últimos 9 dígitos)
+     - validación de fecha real, hora, largos, precio y existencia del servicio
+     - barbero activo, y además Bruno: el secreto nunca agenda a otra persona
+       (422, no 403: PimpStudio lee un 401/403/404 como "el puente no aceptó
+       el secreto")
+     - no escribe NADA si la reserva no se puede crear: cliente y reserva
+       entran en un solo statement, después del chequeo de horario
+     - email opcional, que solo se escribe si viene y es válido
+     - 409 también si otro alta gana la carrera por el índice único del horario
+     - si nace 'completada', la estrella se acredita por loyaltyForTransition(),
+       el mismo camino del PATCH: queda igual que crearla y completarla desde
+       el panel. */
+async function createManualBooking(sql, body, { bridge = false, ip = null } = {}) {
+  const { client, phone, barberId, serviceId, service, price, date, time, status } = body || {}
+  const fail = (code, error) => ({ status: code, body: { ok: false, error } })
+  // Panel: el front ya manda los 9 dígitos limpios. Puente: puede venir con
+  // +56 o un 0 delante, y el teléfono es la llave del cruce entre negocios.
+  const cleanPhone = bridge ? normalizePhone(phone) : String(phone || "").replace(/\D/g, "")
+  const st = BOOKING_STATUSES.has(status) ? status : "confirmada"
+  const clientName = String(client || "").trim()
+  const customService = String(service || "").trim()
+  if (!clientName) return fail(400, "Nombre del cliente requerido")
+  if (cleanPhone.length !== 9) return fail(400, "El teléfono debe tener 9 dígitos")
+  if (!barberId || !/^\d{4}-\d{2}-\d{2}$/.test(String(date || "")) || !/^\d{2}:\d{2}/.test(String(time || ""))) {
+    return fail(400, "Datos incompletos")
+  }
+  if (!serviceId && !customService) return fail(400, "Elige un servicio o escribe uno personalizado")
+  const customPrice = price != null && price !== "" && Number.isFinite(Number(price)) ? Math.round(Number(price)) : null
+
+  let email = null
+  const notices = []
+  if (bridge) {
+    if (clientName.length > 200) return fail(400, "El nombre del cliente es demasiado largo")
+    if (!serviceId && customService.length > 200) return fail(400, "El nombre del servicio es demasiado largo")
+    if (!isRealDate(date)) return fail(400, "Fecha inválida")
+    // Rango real, no solo la forma: "10:00:75" pasaba el patrón y el ::time
+    // del INSERT lo rechazaba como un 500 en vez de un 400.
+    if (!/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/.test(String(time))) return fail(400, "Hora inválida")
+    if (price != null && price !== "" && (customPrice == null || customPrice < 0 || customPrice > 10_000_000)) {
+      return fail(400, "Precio inválido")
+    }
+    if (!serviceId && customPrice == null) return fail(400, "Ingresa el precio del servicio personalizado")
+    const rawEmail = String(body?.email || "").trim().toLowerCase()
+    if (rawEmail) {
+      if (rawEmail.length <= 300 && EMAIL_RE.test(rawEmail)) email = rawEmail
+      else notices.push("El correo no es válido y no se guardó.")
+    }
+    // Ids dentro del rango de INTEGER: uno fuera de rango (o "6e0") llegaba
+    // crudo a Postgres y era un 500 en vez de un rechazo.
+    const barberNum = Number(barberId)
+    const [barber] = isDbId(barberNum)
+      ? await sql`SELECT id FROM barbers WHERE id = ${barberNum} AND active IS NOT FALSE`
+      : []
+    if (!barber) return fail(422, "Barbero no válido")
+    if (barberNum !== BRIDGE_BARBER_ID) return fail(422, "El puente solo puede agendar en la agenda de Bruno")
+    if (serviceId && !isDbId(Number(serviceId))) return fail(422, "Servicio no encontrado")
+  }
+
+  // Panel: upsert del cliente por teléfono ANTES del chequeo de horario, sin
+  // pisar el nombre con vacío ni tocar el email guardado (así era y así
+  // sigue). El puente lo hace más abajo, en el mismo statement de la reserva.
+  const user = bridge ? null : (await sql`
+    INSERT INTO users (name, phone, updated_at)
+    VALUES (${clientName}, ${cleanPhone}, NOW())
+    ON CONFLICT (phone) DO UPDATE SET
+      name = COALESCE(NULLIF(EXCLUDED.name, ''), users.name),
+      updated_at = NOW()
+    RETURNING id
+  `)[0]
+
+  // Un servicio de más de 1h bloquea varios horarios consecutivos, no
+  // solo el que se eligió: hay que revisar que TODOS estén libres.
+  const [svcRow] = serviceId ? await sql`SELECT name, duration_min FROM services WHERE id = ${Number(serviceId)}` : [null]
+  if (bridge && serviceId && !svcRow) return fail(422, "Servicio no encontrado")
+  const blocks = blocksForDuration(svcRow?.duration_min)
+  const requiredSlots = slotsForBooking(String(time).slice(0, 5), blocks)
+  if (!requiredSlots) return fail(422, "Este servicio no cabe en el horario disponible. Elige una hora más temprana.")
+  // Puente: el id ya validado (un "6.0" pasa como 6 arriba pero Postgres no lo
+  // acepta como INTEGER). Panel: tal cual llega, como siempre.
+  const busy = await busySlotsForBarberDate(sql, bridge ? Number(barberId) : barberId, date)
+  if (requiredSlots.some((s) => busy.has(s))) return fail(409, "Ese horario ya está tomado")
+
+  let booking
+  if (bridge) {
+    // Cliente + reserva en UN statement, que es una transacción: si la
+    // reserva no entra, el cliente tampoco queda escrito. El upsert no pisa
+    // el nombre con vacío y el email solo se escribe si vino uno válido.
+    // Casts explícitos porque el driver manda todo como parámetro sin tipo.
+    try {
+      ;[booking] = await sql`
+        WITH u AS (
+          INSERT INTO users (name, phone, email, updated_at)
+          VALUES (${clientName}::text, ${cleanPhone}::text, ${email}::text, NOW())
+          ON CONFLICT (phone) DO UPDATE SET
+            name = COALESCE(NULLIF(EXCLUDED.name, ''), users.name),
+            email = COALESCE(EXCLUDED.email, users.email),
+            updated_at = NOW()
+          RETURNING id
+        )
+        INSERT INTO bookings (client_id, barber_id, service_id, booking_date, booking_time, status, custom_service, custom_price)
+        SELECT u.id, ${Number(barberId)}::int, ${serviceId ? Number(serviceId) : null}::int, ${date}::date, ${time}::time,
+               ${st}::text, ${serviceId ? null : customService}::text, ${customPrice}::int
+        FROM u
+        RETURNING id, booking_date::text as date, booking_time::text as time, status
+      `
+    } catch (err) {
+      // Otra reserva tomó el horario entre el chequeo y el INSERT: el índice
+      // único bookings_slot_unique la frenó. Es un 409, no una caída.
+      if (err?.code === "23505") return fail(409, "Ese horario ya está tomado")
+      throw err
+    }
+  } else {
+    ;[booking] = await sql`
+      INSERT INTO bookings (client_id, barber_id, service_id, booking_date, booking_time, status, custom_service, custom_price)
+      VALUES (${user.id}, ${Number(barberId)}, ${serviceId ? Number(serviceId) : null}, ${date}, ${time}, ${st},
+              ${serviceId ? null : customService}, ${customPrice})
+      RETURNING id, booking_date::text as date, booking_time::text as time, status
+    `
+  }
+
+  // Sincronizar con Notion Calendar. No bloquea la respuesta ni la
+  // reserva ya creada si Notion no está configurado o falla. Una reserva que
+  // nace completada entra directo en la etapa "Listo" (mapStatusToStage), que
+  // es donde la deja el PATCH al completarla.
+  try {
+    const [barberRow] = await sql`SELECT name FROM barbers WHERE id = ${Number(barberId)}`
+    const synced = await syncBookingToNotion({
+      client: clientName,
+      phone: cleanPhone,
+      service: serviceId ? svcRow?.name : customService,
+      barber: barberRow?.name,
+      date,
+      time,
+      price: customPrice,
+      status: st,
+      durationMin: svcRow?.duration_min,
+    })
+    if (synced.ok) {
+      await sql`UPDATE bookings SET notion_page_id = ${synced.pageId} WHERE id = ${booking.id}`
+    }
+  } catch (notionErr) {
+    console.error(`notion sync (${bridge ? "puente" : "panel"}) error:`, notionErr)
+  }
+
+  const out = { ok: true, booking: { ...booking, time: booking.time?.slice(0, 5) } }
+  if (bridge) {
+    if (st === "completada") {
+      // El nombre no viene vacío (se validó arriba), así que el upsert dejó
+      // guardados exactamente clientName y cleanPhone: lo mismo que el PATCH
+      // leería de la base al completarla.
+      // La respuesta es la del contrato ({ ok, booking, notice? }): el saldo
+      // no viaja, PimpStudio es la fuente de verdad de las estrellas.
+      const star = await loyaltyForTransition({ bookingId: booking.id, from: null, to: st, phone: cleanPhone, name: clientName, ip })
+      if (!star.ok) notices.push("La reserva quedó completada, pero la estrella de fidelidad no se pudo acreditar.")
+    }
+    if (notices.length) out.notice = notices.join(" ")
+  }
+  return { status: 200, body: out }
+}
+
+/* Modos del puente (?mode=bridge-*). Van ANTES del dispatch normal y con
+   su propio try/catch: sin el secreto correcto responden 404 —para
+   cualquier otro, estos modos no existen— y nunca caen al fallback de demo
+   ni a la alerta push del POST público. */
+async function handleBridgeMode(req, res, mode) {
+  if (!isBridgeRequest(req)) return res.status(404).json({ ok: false, error: "No encontrado" })
+  if (mode !== "bridge-manual") return res.status(404).json({ ok: false, error: "Modo no reconocido" })
+  if (req.method !== "POST") return res.status(405).json({ ok: false, error: "Method not allowed" })
+  try {
+    const sql = neon(process.env.DATABASE_URL)
+    const result = await createManualBooking(sql, req.body || {}, { bridge: true, ip: clientIp(req) })
+    return res.status(result.status).json(result.body)
+  } catch (err) {
+    console.error("bookings bridge-manual error:", err)
+    return res.status(500).json({ ok: false, error: "No se pudo crear la reserva en BrunettiCutz. Intenta de nuevo." })
+  }
+}
+
 export default async function handler(req, res) {
+  const bridgeMode = String(req.query?.mode || "")
+  if (bridgeMode.startsWith("bridge-")) return handleBridgeMode(req, res, bridgeMode)
+
   try {
     const sql = neon(process.env.DATABASE_URL)
 
@@ -136,66 +360,12 @@ export default async function handler(req, res) {
       // Modo interno (panel): reserva manual con sesión de barbero. Sin límite
       // de fecha (permite backfill), servicio existente o personalizado y
       // precio editable (se congela en custom_price al momento de reservar).
+      // La lógica vive en createManualBooking(), compartida con el alta
+      // manual que PimpStudio hace por el puente (?mode=bridge-manual).
       const session = readSession(req)
       if (session) {
-        const { client, phone, barberId, serviceId, service, price, date, time, status } = req.body || {}
-        const cleanPhone = String(phone || "").replace(/\D/g, "")
-        const allowed = new Set(["pendiente", "confirmada", "en curso", "completada", "cancelada"])
-        const st = allowed.has(status) ? status : "confirmada"
-        if (!String(client || "").trim()) return res.status(400).json({ ok: false, error: "Nombre del cliente requerido" })
-        if (cleanPhone.length !== 9) return res.status(400).json({ ok: false, error: "El teléfono debe tener 9 dígitos" })
-        if (!barberId || !/^\d{4}-\d{2}-\d{2}$/.test(String(date || "")) || !/^\d{2}:\d{2}/.test(String(time || ""))) {
-          return res.status(400).json({ ok: false, error: "Datos incompletos" })
-        }
-        if (!serviceId && !String(service || "").trim()) {
-          return res.status(400).json({ ok: false, error: "Elige un servicio o escribe uno personalizado" })
-        }
-        // Upsert del cliente por teléfono, sin pisar el email guardado.
-        const [user] = await sql`
-          INSERT INTO users (name, phone, updated_at)
-          VALUES (${String(client).trim()}, ${cleanPhone}, NOW())
-          ON CONFLICT (phone) DO UPDATE SET
-            name = COALESCE(NULLIF(EXCLUDED.name, ''), users.name),
-            updated_at = NOW()
-          RETURNING id
-        `
-        // Un servicio de más de 1h bloquea varios horarios consecutivos, no
-        // solo el que se eligió: hay que revisar que TODOS estén libres.
-        const [svcRow] = serviceId ? await sql`SELECT name, duration_min FROM services WHERE id = ${Number(serviceId)}` : [null]
-        const blocks = blocksForDuration(svcRow?.duration_min)
-        const requiredSlots = slotsForBooking(String(time).slice(0, 5), blocks)
-        if (!requiredSlots) return res.status(422).json({ ok: false, error: "Este servicio no cabe en el horario disponible. Elige una hora más temprana." })
-        const busy = await busySlotsForBarberDate(sql, barberId, date)
-        if (requiredSlots.some((s) => busy.has(s))) return res.status(409).json({ ok: false, error: "Ese horario ya está tomado" })
-        const customPrice = price != null && price !== "" && Number.isFinite(Number(price)) ? Math.round(Number(price)) : null
-        const [booking] = await sql`
-          INSERT INTO bookings (client_id, barber_id, service_id, booking_date, booking_time, status, custom_service, custom_price)
-          VALUES (${user.id}, ${Number(barberId)}, ${serviceId ? Number(serviceId) : null}, ${date}, ${time}, ${st},
-                  ${serviceId ? null : String(service).trim()}, ${customPrice})
-          RETURNING id, booking_date::text as date, booking_time::text as time, status
-        `
-        // Sincronizar con Notion Calendar. No bloquea la respuesta ni la
-        // reserva ya creada si Notion no está configurado o falla.
-        try {
-          const [barberRow] = await sql`SELECT name FROM barbers WHERE id = ${Number(barberId)}`
-          const synced = await syncBookingToNotion({
-            client: String(client).trim(),
-            phone: cleanPhone,
-            service: serviceId ? svcRow?.name : String(service).trim(),
-            barber: barberRow?.name,
-            date,
-            time,
-            price: customPrice,
-            status: st,
-            durationMin: svcRow?.duration_min,
-          })
-          if (synced.ok) {
-            await sql`UPDATE bookings SET notion_page_id = ${synced.pageId} WHERE id = ${booking.id}`
-          }
-        } catch (notionErr) {
-          console.error("notion sync (panel) error:", notionErr)
-        }
-        return res.json({ ok: true, booking: { ...booking, time: booking.time?.slice(0, 5) } })
+        const result = await createManualBooking(sql, req.body || {})
+        return res.status(result.status).json(result.body)
       }
 
       const { phone, barberId, serviceId, date, time, idempotencyKey } = req.body || {}
@@ -361,10 +531,12 @@ export default async function handler(req, res) {
          { id, status }                 → cambio de estado
          { id, redeem: "free_cut" }     → canjear el corte gratis de fidelidad
 
-       Este PATCH es el ÚNICO lugar que acredita estrellas, aunque el programa
-       viva en PimpStudio: la reserva de Bruno se puede completar desde los dos
+       Las estrellas las escribe SOLO este backend, aunque el programa viva en
+       PimpStudio: la reserva de Bruno se puede completar desde los dos
        paneles, y el de PimpStudio lo hace llamando justo acá (con el secreto
-       del puente). Un solo escritor = una estrella por corte. Ver
+       del puente). Los dos caminos que acreditan —este PATCH y el alta del
+       puente que ya nace completada (?mode=bridge-manual)— pasan por
+       loyaltyForTransition(). Un solo escritor = una estrella por corte. Ver
        api/_loyaltyBridge.js. */
     if (req.method === "PATCH") {
       const bridge = isBridgeRequest(req)
@@ -414,8 +586,7 @@ export default async function handler(req, res) {
         return res.json({ ok: true, price: 0, loyalty: result.loyalty })
       }
 
-      const allowed = new Set(["pendiente", "confirmada", "en curso", "completada", "cancelada"])
-      if (!allowed.has(status)) return res.status(400).json({ ok: false, error: "Estado invalido" })
+      if (!BOOKING_STATUSES.has(status)) return res.status(400).json({ ok: false, error: "Estado invalido" })
 
       const [booking] = await sql`
         UPDATE bookings
@@ -427,22 +598,12 @@ export default async function handler(req, res) {
         updateNotionBookingStatus(booking.notionPageId, status).catch((err) => console.error("notion status update error:", err))
       }
 
-      // Fidelidad: la estrella sigue al estado de la reserva. Best-effort en su
-      // propio try/catch — si PimpStudio no responde, el cambio de estado (lo
-      // importante, ya guardado arriba) no se revierte ni falla la respuesta.
-      let loyalty = null
-      try {
-        const ip = clientIp(req)
-        if (before.status !== "completada" && status === "completada") {
-          const result = await creditStar({ bookingId: id, phone: before.phone, name: before.client, ip })
-          loyalty = result.loyalty
-        } else if (before.status === "completada" && status !== "completada") {
-          const result = await revertStar({ bookingId: id, ip })
-          loyalty = result.loyalty
-        }
-      } catch (err) {
-        console.error("loyalty bridge error:", err?.message || err)
-      }
+      // Fidelidad: la estrella sigue al estado de la reserva. Best-effort —
+      // ver loyaltyForTransition(), el mismo camino que usa el alta manual del
+      // puente cuando la reserva ya nace completada.
+      const { loyalty } = await loyaltyForTransition({
+        bookingId: id, from: before.status, to: status, phone: before.phone, name: before.client, ip: clientIp(req),
+      })
 
       return res.json({ ok: true, booking: { ...booking, time: booking.time?.slice(0, 5) }, loyalty })
     }

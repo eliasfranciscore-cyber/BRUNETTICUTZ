@@ -1,6 +1,7 @@
 import { neon } from "@neondatabase/serverless"
 import { requireInternal } from "./_auth.js"
 import { ALL_SLOTS, blocksForDuration, slotsForBooking } from "./_slots.js"
+import { isBridgeRequest, BRIDGE_BARBER_ID } from "./_bridge.js"
 
 const BUSINESS_TZ = "America/Santiago"
 const MIN_LEAD_MINUTES = 55
@@ -10,14 +11,8 @@ const MIN_LEAD_MINUTES = 55
 // horarios desde el panel de PimpStudio. Acotado siempre a su propio
 // barbero (BRIDGE_BARBER_ID) — el secreto no debe poder tocar la
 // disponibilidad de nadie más.
-const BRIDGE_SECRET = process.env.PIMPSTUDIO_BRIDGE_SECRET || ""
-const BRIDGE_BARBER_ID = 6
-
-function isBridgeRequest(req) {
-  if (!BRIDGE_SECRET) return false
-  const key = req.headers["x-bridge-secret"]
-  return typeof key === "string" && key === BRIDGE_SECRET
-}
+// La comparación del secreto vive en _bridge.js (tiempo constante); la copia
+// que había acá comparaba con ===, y eso deja adivinarlo carácter a carácter.
 
 // Igual que en bookings.js: calculamos "hoy" y la hora actual en la zona
 // horaria del negocio, no en UTC (Vercel corre las funciones en UTC).

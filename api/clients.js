@@ -6,6 +6,7 @@ import {
   isLoyaltyBridgeConfigured, shareToken, applePassBytes, googleSaveURL, tarjetaInfo,
   loyaltyFor, loyaltyForPhones, walletStats, walletCampaigns, sendWalletCampaign,
 } from "./_loyaltyBridge.js"
+import { isBridgeRequest, normalizePhone, EMAIL_RE } from "./_bridge.js"
 
 const DEMO_CLIENTS = [
   { id: 1, name: "Carlos Rodriguez", phone: "987654321", email: "carlos@ejemplo.com", visits: 4, totalSpent: 68960, lastVisit: "2026-05-22", status: "activo" },
@@ -29,7 +30,125 @@ function validateClient(body = {}) {
   return { name, phone, email }
 }
 
+/* ---------------------------------------------------------------------------
+   Modos del puente (?mode=bridge-*): PimpStudio, servidor-a-servidor, con el
+   header X-Bridge-Secret (ver api/_bridge.js).
+
+     GET  ?mode=bridge-clients  TODOS los clientes de esta base, con su
+                                actividad, para la lista "todos" del admin de
+                                PimpStudio (allá se cruzan por teléfono).
+     POST ?mode=bridge-client   Registra (o actualiza) un cliente de Bruno
+                                desde el panel de PimpStudio.
+
+   Sin el secreto correcto responden 404: para cualquier otro, no existen.
+   Tienen su propio try/catch y NUNCA caen a los datos de demo del final de
+   handler(): una lista inventada o un `{ok:true}` falso le haría creer a
+   PimpStudio que estos son los clientes reales o que el alta quedó guardada.
+
+   El teléfono se limpia con normalizePhone() (últimos 9 dígitos, igual que
+   PimpStudio), no con cleanPhone() de arriba (primeros 9): es la llave del
+   cruce entre los dos negocios.
+   ------------------------------------------------------------------------- */
+
+/* Una fila por cliente (TODOS los users), con la actividad que PimpStudio
+   muestra al lado de la suya:
+     visits     = reservas completadas
+     bookings   = reservas no canceladas
+     lastVisit  = 'YYYY-MM-DD' de la última no cancelada (puede ser una hora
+                  futura ya agendada), o null
+     totalSpent = suma de COALESCE(custom_price, services.price) de las
+                  completadas (custom_price es el precio congelado al reservar)
+     createdAt  = ISO UTC. La columna es TIMESTAMP sin zona escrita con NOW()
+                  en la zona de la sesión, así que ::timestamptz la interpreta
+                  en esa misma zona.
+
+   El teléfono sale normalizado a 9 dígitos; el que no queda en 9 se omite y
+   se cuenta en `skipped` (clients.length + skipped = total de users). Dos
+   filas que normalizan al mismo teléfono salen las DOS: juntarlas es trabajo
+   de quien cruza, y PimpStudio ya las suma en sanitizeRemoteClients(). Una
+   sola lectura, sin escrituras. */
+async function bridgeClientList(sql) {
+  const rows = await sql`
+    SELECT u.phone, COALESCE(u.name, '') AS name,
+           NULLIF(btrim(COALESCE(u.email, '')), '') AS email,
+           COUNT(b.id) FILTER (WHERE b.status = 'completada')::int AS visits,
+           COUNT(b.id) FILTER (WHERE b.status IS DISTINCT FROM 'cancelada')::int AS bookings,
+           (MAX(b.booking_date) FILTER (WHERE b.status IS DISTINCT FROM 'cancelada'))::text AS "lastVisit",
+           COALESCE(SUM(COALESCE(b.custom_price, s.price)) FILTER (WHERE b.status = 'completada'), 0)::int AS "totalSpent",
+           to_char(u.created_at::timestamptz AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS "createdAt"
+    FROM users u
+    LEFT JOIN bookings b ON b.client_id = u.id
+    LEFT JOIN services s ON s.id = b.service_id
+    GROUP BY u.id
+    ORDER BY u.id
+  `
+  const clients = []
+  let skipped = 0
+  for (const row of rows) {
+    const phone = normalizePhone(row.phone)
+    if (phone.length !== 9) { skipped++; continue }
+    const { name, email, visits, bookings, lastVisit, totalSpent, createdAt } = row
+    clients.push({ phone, name, email, visits, bookings, lastVisit, totalSpent, createdAt })
+  }
+  return { clients, skipped }
+}
+
+async function handleBridgeClients(req, res, mode) {
+  if (!isBridgeRequest(req)) return res.status(404).json({ ok: false, error: "No encontrado" })
+  // Datos personales de toda la base: que ningún intermediario los guarde.
+  res.setHeader("Cache-Control", "no-store")
+  try {
+    if (mode === "bridge-clients") {
+      if (req.method !== "GET") return res.status(405).json({ ok: false, error: "Method not allowed" })
+      const sql = neon(process.env.DATABASE_URL)
+      const { clients, skipped } = await bridgeClientList(sql)
+      return res.json({ ok: true, clients, skipped })
+    }
+
+    if (mode === "bridge-client") {
+      if (req.method !== "POST") return res.status(405).json({ ok: false, error: "Method not allowed" })
+      const body = req.body || {}
+      const phone = normalizePhone(body.phone)
+      const name = String(body.name || "").trim()
+      const rawEmail = String(body.email || "").trim().toLowerCase()
+      if (phone.length !== 9) return res.status(400).json({ ok: false, error: "El teléfono debe tener 9 dígitos" })
+      if (name.length > 200) return res.status(400).json({ ok: false, error: "El nombre es demasiado largo" })
+      // El correo es opcional y solo se escribe si viene y es válido. Uno mal
+      // escrito no frena el alta (lo importante es el teléfono), pero se avisa.
+      const email = rawEmail && rawEmail.length <= 300 && EMAIL_RE.test(rawEmail) ? rawEmail : null
+      const notice = rawEmail && !email ? "El correo no es válido y no se guardó." : null
+
+      const sql = neon(process.env.DATABASE_URL)
+      // Upsert por teléfono en UN statement. El nombre vacío no pisa el que ya
+      // estaba — y para un cliente nuevo, sin nombre no se crea (el WHERE deja
+      // el INSERT sin filas y no hay conflicto que resolver). (xmax = 0) es
+      // true solo en la fila recién insertada: distingue alta de actualización.
+      const [client] = await sql`
+        INSERT INTO users (name, phone, email, updated_at)
+        SELECT ${name}::text, ${phone}::text, ${email}::text, NOW()
+        WHERE ${name}::text <> '' OR EXISTS (SELECT 1 FROM users WHERE phone = ${phone}::text)
+        ON CONFLICT (phone) DO UPDATE SET
+          name = COALESCE(NULLIF(EXCLUDED.name, ''), users.name),
+          email = COALESCE(EXCLUDED.email, users.email),
+          updated_at = NOW()
+        RETURNING id, phone, COALESCE(name, '') AS name,
+                  NULLIF(btrim(COALESCE(email, '')), '') AS email, (xmax = 0) AS created
+      `
+      if (!client) return res.status(400).json({ ok: false, error: "Nombre requerido" })
+      return res.json({ ok: true, client, ...(notice ? { notice } : {}) })
+    }
+
+    return res.status(404).json({ ok: false, error: "Modo no reconocido" })
+  } catch (err) {
+    console.error("clients bridge error:", mode, err)
+    return res.status(500).json({ ok: false, error: "No se pudo procesar el pedido en BrunettiCutz" })
+  }
+}
+
 export default async function handler(req, res) {
+  const bridgeMode = String(req.query?.mode || "")
+  if (bridgeMode.startsWith("bridge-")) return handleBridgeClients(req, res, bridgeMode)
+
   try {
     const sql = neon(process.env.DATABASE_URL)
 
