@@ -18,7 +18,7 @@ import '../../styles/panel/servicios.css'
    Ahora: un encabezado con UNA acción primaria, filas agrupadas por categoría
    en el celular / tarjetas de alto parejo en escritorio, una sola
    ServiceSheet para crear y editar, y el borrado con ConfirmDialog. Todo vive
-   acá: ServiciosDialogs quedó vacío (ver al final). */
+   acá, incluidos la hoja y el borrado que antes montaba Dashboard aparte. */
 
 /* Las categorías son las de la web pública (CAT_LABEL de data.js), para que
    el panel diga lo mismo que ve el cliente: "Brunetti Experience", no
@@ -371,12 +371,4 @@ export default function ServiciosTab({ ctx }) {
       />
     </div>
   )
-}
-
-/* Antes montaba, fuera del filtro de pestaña, la confirmación de borrado y el
-   modal "Nuevo servicio". Los dos viven ahora dentro de ServiciosTab (la hoja
-   y el ConfirmDialog de arriba), así que esto no dibuja nada: queda solo para
-   que el montaje en Dashboard.jsx siga compilando hasta que se quite. */
-export function ServiciosDialogs() {
-  return null
 }

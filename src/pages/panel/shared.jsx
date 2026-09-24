@@ -1,6 +1,5 @@
 import React from 'react'
 import { CLPk } from '../../data.js'
-import { Icon } from '../../components/ui.jsx'
 
 /* Ayudantes que comparten Dashboard.jsx y las pestañas del panel
    (src/pages/panel/*Tab.jsx), extraídos tal cual de Dashboard.jsx. */
@@ -9,7 +8,6 @@ export const AGENDA_SLOTS = ["09:00","10:00","11:00","12:00","13:00","14:00","15
 export const SESSION_TIMEOUT_MS = 30 * 60 * 1000 // 30 min sin actividad → cerrar sesión
 export const DAY_LABELS = ["Dom", "Lun", "Mar", "Mie", "Jue", "Vie", "Sab"]
 export const DOW_LONG = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"]
-export const MONTH_LONG = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
 
 // Duración de un servicio expresada en bloques de 1h (lo que realmente
 // bloquea en la agenda — ver api/_slots.js), redondeando hacia arriba: un
@@ -108,50 +106,6 @@ export function Panel({ title, action, children, style }) {
         {action}
       </div>
       {children}
-    </div>
-  )
-}
-
-// Popover de calendario propio de Agenda: sólo dentro de la ventana
-// administrable (semana actual + siguiente) los días son elegibles; el resto
-// se muestran deshabilitados para no sugerir una selección que igual va a
-// rebotar con el toast de "fuera de rango".
-export function AgendaDatePicker({ month, year, selectedKey, onPrevMonth, onNextMonth, onPick, maxKey }) {
-  const todayKey = isoDate(new Date())
-  const first = new Date(year, month, 1)
-  const startOffset = (first.getDay() + 6) % 7 // semana empieza lunes
-  const daysInMonth = new Date(year, month + 1, 0).getDate()
-  const cells = [...Array(startOffset).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)]
-  return (
-    <div className="agenda-cal" role="dialog" aria-label="Elegir fecha">
-      <div className="agenda-cal-head">
-        <button type="button" onClick={onPrevMonth} aria-label="Mes anterior"><Icon name="arrowLeft" size={13} /></button>
-        <span>{MONTH_LONG[month]} {year}</span>
-        <button type="button" onClick={onNextMonth} aria-label="Mes siguiente"><Icon name="arrowRight" size={13} /></button>
-      </div>
-      <div className="agenda-cal-grid">
-        {["L", "M", "M", "J", "V", "S", "D"].map((d, i) => <span key={i} className="agenda-cal-dow">{d}</span>)}
-        {cells.map((d, i) => {
-          if (!d) return <span key={`e${i}`} />
-          const key = isoDate(new Date(year, month, d))
-          const isSel = key === selectedKey
-          const isToday = key === todayKey
-          // El pasado siempre se puede revisar; solo se bloquea el futuro más
-          // allá de la semana siguiente (fuera del rango reservable).
-          const selectable = !maxKey || key <= maxKey
-          return (
-            <button
-              key={key}
-              type="button"
-              className={`agenda-cal-day ${isSel ? "is-sel" : ""} ${isToday && !isSel ? "is-today" : ""}`}
-              disabled={!selectable}
-              onClick={() => onPick(key)}
-            >
-              {d}
-            </button>
-          )
-        })}
-      </div>
     </div>
   )
 }

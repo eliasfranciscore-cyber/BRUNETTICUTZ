@@ -248,7 +248,7 @@ export function PushCard({ barber }) {
 export function ConfigPanel({
   barber, setBarber, myPhoto, admin, authHeaders, has,
   onExport, onLogout, nav = [], navSettings = {}, setNavSettings, dockShortcuts = [], setDockShortcuts,
-  expenseBudgets = {}, setExpenseBudgets = () => {}, scrollRef, initialSection,
+  expenseBudgets = {}, setExpenseBudgets = () => {}, scrollRef, initialSection, onSectionConsumed,
 }) {
   const isPhone = useIsPhone()
   const { theme, auto, setAuto, setTheme } = useTheme()
@@ -267,6 +267,15 @@ export function ConfigPanel({
   // Escritorio: la primera sección abre sola (dos paneles, nunca media
   // pantalla vacía). Celular: arranca en la lista, salvo un ?section= válido.
   const [section, setSection] = useState(() => (known(initialSection) ? initialSection : (isPhone ? null : firstId)))
+  // Deep link desde otra pestaña (Gastos → "Presupuestos"): se abre esa
+  // sección y se consume, para que la próxima visita a Ajustes vuelva a la
+  // lista en vez de repetir el salto.
+  useEffect(() => {
+    if (!initialSection) return
+    if (known(initialSection)) setSection(initialSection)
+    onSectionConsumed?.()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialSection])
   useEffect(() => {
     // Al pasar de celular a escritorio sin sección abierta, o si la abierta
     // dejó de existir, el panel derecho no puede quedar vacío.
@@ -1210,6 +1219,7 @@ export default function ConfigTab({ ctx }) {
     admin,
     authHeaders,
     barber,
+    configSection,
     dockShortcuts,
     expenseBudgets,
     exportCSV,
@@ -1221,6 +1231,7 @@ export default function ConfigTab({ ctx }) {
     navSettings,
     searchParams,
     setBarber,
+    setConfigSection,
     setDockShortcuts,
     setExpenseBudgets,
     setNavSettings,
@@ -1243,7 +1254,8 @@ export default function ConfigTab({ ctx }) {
       expenseBudgets={expenseBudgets}
       setExpenseBudgets={setExpenseBudgets}
       scrollRef={mainRef}
-      initialSection={searchParams?.get?.('section') || null}
+      initialSection={configSection || searchParams?.get?.('section') || null}
+      onSectionConsumed={setConfigSection ? () => setConfigSection(null) : undefined}
     />
   )
 }

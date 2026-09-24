@@ -24,8 +24,8 @@ import '../../styles/panel/essentials.css'
    y ventas se conservan (el servidor solo lo borra de verdad si nunca tuvo
    ninguno; DELETE devuelve { ok, archived, deleted }).
 
-   Las confirmaciones y la hoja de producto viven acá; EssentialsDialogs
-   quedó vacío (Dashboard todavía lo monta: ver requests del port). */
+   Las confirmaciones y la hoja de producto viven acá (antes las montaba
+   Dashboard aparte, fuera del filtro de pestaña). */
 
 const PHOTO_SLOTS = [['imgFront', 'front', 'Portada'], ['imgBack', 'back', 'Hover'], ['imgDetail', 'detail', 'Detalle']]
 
@@ -420,12 +420,4 @@ export default function EssentialsTab({ ctx }) {
       />
     </div>
   )
-}
-
-/* Antes: la confirmación de borrado y el modal "Nuevo producto", montados por
-   Dashboard fuera del filtro de pestaña. Ahora viven dentro de EssentialsTab
-   (ProductSheet y ConfirmDialog), así que esto no dibuja nada. Se deja
-   exportado mientras Dashboard lo siga montando. */
-export function EssentialsDialogs() {
-  return null
 }

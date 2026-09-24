@@ -26,8 +26,8 @@ import FinanzasTab from './panel/FinanzasTab.jsx'
 import ClientesTab from './panel/ClientesTab.jsx'
 import InscripcionesTab from './panel/InscripcionesTab.jsx'
 import PedidosTab from './panel/PedidosTab.jsx'
-import ServiciosTab, { ServiciosDialogs } from './panel/ServiciosTab.jsx'
-import EssentialsTab, { EssentialsDialogs } from './panel/EssentialsTab.jsx'
+import ServiciosTab from './panel/ServiciosTab.jsx'
+import EssentialsTab from './panel/EssentialsTab.jsx'
 import ConfigTab from './panel/ConfigTab.jsx'
 import MarketingTab from './panel/MarketingTab.jsx'
 import CajaTab from './panel/CajaTab.jsx'
@@ -58,13 +58,6 @@ function buildNav({ admin, canViewFinance, canEditServices }) {
   ]
 }
 
-/* Transición del rediseño: las pestañas que ya dibujan su propio ModuleHeader
-   (título grande que se colapsa a la barra al hacer scroll). Mientras una
-   pestaña siga con su cabecera vieja, la barra de arriba muestra el título
-   siempre (`scrolled`), o el celular se quedaría sin título. Crece a medida
-   que se portan las pestañas y se borra cuando estén todas. */
-const HEADER_TABS = new Set([])
-
 const DEMO_TODAY = () => TODAY_BOOKINGS.map((item, index) => ({ ...item, id: index + 1, date: isoDate(new Date()) }))
 const EMPTY_SALES = { items: [], totals: { units: 0, collected: 0 } }
 const isJson = (res) => Boolean(res?.headers?.get("content-type")?.includes("application/json"))
@@ -90,15 +83,10 @@ export default function Dashboard() {
   const [agendaView, setAgendaView] = useState("grid") // 'grid' | 'timeline'
   const [agendaQuery, setAgendaQuery] = useState("")
   const [calOpen, setCalOpen] = useState(false)
-  // Mes/año del date-picker viejo de la Agenda (AgendaDatePicker). El
-  // rediseño usa CalendarSheet, que lleva su propio mes; esto se va con él.
-  const [calMonth, setCalMonth] = useState(() => new Date().getMonth())
-  const [calYear, setCalYear] = useState(() => new Date().getFullYear())
   const [detail, setDetail] = useState(null)
   const [toasts, setToasts] = useState([])
   const [prevWeekStats, setPrevWeekStats] = useState(null)
   const dragRef = useRef({ active: false, mode: null })
-  const calRef = useRef(null)
   const [barber, setBarber] = useState(null)
   const [barbers, setBarbers] = useState(BARBERS.map((item) => ({ ...item, active: true })))
   const [bookings, setBookings] = useState(mergeBookings(DEMO_TODAY()))
@@ -121,7 +109,8 @@ export default function Dashboard() {
   const [clientEditing, setClientEditing] = useState(false)
   const [services, setServices] = useState(SERVICES.map((item) => ({ ...item, active: true })))
   const [expenses, setExpenses] = useState(EXPENSES)
-  const [serviceDraft, setServiceDraft] = useState({ name: "", price: "", min: 60, cat: "general", desc: "", tne: false })
+  // onlyOnDate: null (no "") = todos los días; el mock rechaza "" con un 400.
+  const [serviceDraft, setServiceDraft] = useState({ name: "", price: "", min: 60, cat: "general", desc: "", tne: false, onlyOnDate: null })
   const [products, setProducts] = useState([])
   const [productDraft, setProductDraft] = useState({ name: "", brand: "", price: "", stock: "0", description: "" })
   // El stock que tenía el producto al abrir la ficha: sin el valor original no
@@ -144,6 +133,8 @@ export default function Dashboard() {
   // null | { kind: 'gasto' | 'ingreso', initial? } — qué movimiento de
   // Finanzas/Gastos se está creando o editando (FinanceMovementSheet).
   const [financeMovementModal, setFinanceMovementModal] = useState(null)
+  // Sección de Ajustes que se abre al llegar desde otra pestaña (p. ej. Gastos → "Presupuestos"). null = la lista.
+  const [configSection, setConfigSection] = useState(null)
   // Fidelidad (pestaña Marketing): las cifras y las campañas viven en Pimp
   // Studio y llegan por el puente — ver api/_loyaltyBridge.js.
   const [walletStats, setWalletStats] = useState(null)
@@ -202,7 +193,8 @@ export default function Dashboard() {
 
   /* Caja del día (FEATURES.cash): el servidor manda el arqueo ya calculado,
      acá no se rehace ninguna cuenta. undefined = cargando, null = error. */
-  const [cashDay, setCashDay] = useState(() => isoDate(new Date()))
+  // El "hoy" de Santiago, el mismo del servidor y del botón "Hoy" de Caja.
+  const [cashDay, setCashDay] = useState(() => santiagoDateKey())
   const [cashData, setCashData] = useState(undefined)
   /* Catálogo VENDIBLE (FEATURES.sales), distinto del catálogo administrable
      de Essentials: solo lo activo y con stock, para la hoja de cobro y la
@@ -392,12 +384,6 @@ export default function Dashboard() {
     acc[key].total += collectedOf(item)
     return acc
   }, {})).sort((a, b) => b.total - a.total)
-  const revenueByDate = Object.values(completedBookings.reduce((acc, item) => {
-    const key = item.date || "Sin fecha"
-    acc[key] = acc[key] || { d: key.slice(5).replace("-", "/"), v: 0 }
-    acc[key].v += collectedOf(item)
-    return acc
-  }, {})).slice(-7)
   // Inactivo = sin visitas hace 30 dias o mas (o nunca visito). Mas activos = 3+ visitas.
   const clientActivityOf = (client) => {
     if (!client.lastVisit) return "inactive"
@@ -429,7 +415,8 @@ export default function Dashboard() {
   }
   const sortedFinanceRows = [...completedBookings].sort((a, b) => {
     const dir = financeSort.dir === "asc" ? 1 : -1
-    if (financeSort.key === "price") return ((a.price || 0) - (b.price || 0)) * dir
+    // La columna es "Cobrado" (lo que entró de verdad), no el precio de lista.
+    if (financeSort.key === "price") return (collectedOf(a) - collectedOf(b)) * dir
     if (financeSort.key === "client") return (a.client || "").localeCompare(b.client || "") * dir
     if (financeSort.key === "service") return (a.service || "").localeCompare(b.service || "") * dir
     if (financeSort.key === "barber") {
@@ -628,6 +615,15 @@ export default function Dashboard() {
     loadServices()
     loadExpenses()
     loadProducts()
+    /* Presupuestos del servidor desde el arranque, para que el semáforo de
+       Gastos los use en cualquier dispositivo sin pasar antes por Ajustes
+       (que los vuelve a leer al abrirse). Si falla, queda lo de este equipo. */
+    if (FEATURES.serverSettings && isAdminUser(parsed)) {
+      fetch("/api/barbers?mode=shop-settings", { headers })
+        .then((r) => r.json())
+        .then((d) => { const b = (d?.settings || d)?.budgets; if (d?.ok && b && Object.keys(b).length) setExpenseBudgets(b) })
+        .catch(() => {})
+    }
     if (isAdminUser(parsed)) loadOnlineOrders()
   }, [])
 
@@ -700,10 +696,19 @@ export default function Dashboard() {
      "past" solo reemplaza a "free" en el servidor (booked y blocked ganan
      antes), así que se normaliza a free + bandera: los totales la cuentan
      como la hora libre que es y la bandera solo sirve para atenuarla y no
-     dejar gestionar lo que ya pasó. */
-  const normalizeSlots = (slots) => slots.map((item) => (
-    item.state === "past" ? { ...item, state: "free", past: true } : item
-  ))
+     dejar gestionar lo que ya pasó.
+     api/availability.js marca "past" solo en las horas de HOY: en un día
+     anterior las devuelve "free". Con `dayKey` el día entero ya pasado queda
+     con la misma bandera, así bulkAgenda y los "libres" de la semana cuentan
+     lo mismo que muestra la grilla (el mock ya lo hacía así). */
+  const normalizeSlots = (slots, dayKey) => {
+    const dayPast = Boolean(dayKey) && dayKey < santiagoDateKey()
+    return slots.map((item) => {
+      if (item.state === "past") return { ...item, state: "free", past: true }
+      if (dayPast && item.state && item.state !== "booked") return { ...item, past: true }
+      return item
+    })
+  }
 
   // Descarta respuestas que llegan tarde: sin esto, la carga de una semana
   // anterior podía pisar la de la semana nueva si llegaba después.
@@ -728,7 +733,7 @@ export default function Dashboard() {
         degraded = true
         return [day.key, AGENDA_SLOTS.map((slot) => ({ slot }))]
       }
-      const apiSlots = normalizeSlots(data.slots)
+      const apiSlots = normalizeSlots(data.slots, day.key)
       const localBlocks = readLocalBlocks()
       const merged = apiSlots.map((item) => {
         const key = localBlockKey(agendaBarber, day.key, item.slot)
@@ -794,22 +799,6 @@ export default function Dashboard() {
     window.addEventListener("touchend", up)
     return () => { window.removeEventListener("mouseup", up); window.removeEventListener("touchend", up) }
   }, [])
-
-  // Cierra el date-picker viejo de Agenda al hacer click/tap fuera o con
-  // Escape. CalendarSheet (el nuevo) no usa calRef: ahí esto no hace nada.
-  useEffect(() => {
-    if (!calOpen) return
-    const onDown = (e) => { if (calRef.current && !calRef.current.contains(e.target)) setCalOpen(false) }
-    const onKey = (e) => { if (e.key === "Escape") setCalOpen(false) }
-    window.addEventListener("mousedown", onDown)
-    window.addEventListener("touchstart", onDown)
-    window.addEventListener("keydown", onKey)
-    return () => {
-      window.removeEventListener("mousedown", onDown)
-      window.removeEventListener("touchstart", onDown)
-      window.removeEventListener("keydown", onKey)
-    }
-  }, [calOpen])
 
   /* Catálogo vendible para la hoja de cobro y "Vender" (FEATURES.sales).
      authHeaders() es una declaración de función y lee el token en cada
@@ -932,7 +921,7 @@ export default function Dashboard() {
     const json = res ? await res.json().catch(() => ({})) : {}
     const saved = json.service || data
     setServices((items) => payload.id ? items.map((item) => item.id === saved.id ? { ...item, ...saved } : item) : [{ ...saved, id: saved.id || Date.now(), active: true }, ...items])
-    if (!payload.id) setServiceDraft({ name: "", price: "", min: 60, cat: "general", desc: "", tne: false })
+    if (!payload.id) setServiceDraft({ name: "", price: "", min: 60, cat: "general", desc: "", tne: false, onlyOnDate: null })
   }
 
   // Borra un servicio (optimista con revert). La API materializa nombre/precio
@@ -953,19 +942,26 @@ export default function Dashboard() {
     const json = res ? await res.json().catch(() => ({})) : {}
     if (res && !res.ok && isJson(res)) { pushToast("⚠️", json.error || "No se pudo guardar el producto", 6000); return }
     const saved = json.product || data
-    setProducts((items) => payload.id ? items.map((item) => item.id === saved.id ? { ...item, ...saved } : item) : [{ ...saved, id: saved.id || Date.now(), active: true }, ...items])
+    setProducts((items) => payload.id ? items.map((item) => item.id === saved.id ? { ...item, ...saved } : item) : [{ ...saved, id: saved.id || Date.now(), active: saved.active !== false }, ...items])
     if (!payload.id) setProductDraft({ name: "", brand: "", price: "", stock: "0", description: "" })
     loadSellable() // cambió el precio, el stock o la visibilidad
   }
 
-  // "Eliminar" un producto (optimista con revert). El servidor lo archiva si
-  // ya tiene historia (movimientos o ventas) y lo borra si no.
+  // "Eliminar" un producto (optimista con revert, también sin red). El
+  // servidor lo archiva si ya tiene historia (movimientos o ventas) y lo borra
+  // si no; se devuelve cuál de las dos, para que la pestaña lo avise.
   const removeProduct = async (product) => {
     setEditProductId(null)
     setProducts((items) => items.filter((item) => item.id !== product.id))
     const res = await fetch(`/api/services?scope=shop&id=${product.id}`, { method: "DELETE", headers: authHeaders() }).catch(() => null)
-    if (res && !res.ok) setProducts((items) => [product, ...items].sort((a, b) => a.id - b.id))
-    else loadSellable()
+    const json = res ? await res.json().catch(() => ({})) : {}
+    if (!res || !res.ok) {
+      setProducts((items) => [product, ...items].sort((a, b) => a.id - b.id))
+      pushToast("⚠️", json.error || "No se pudo eliminar el producto", 6000)
+      return { ok: false, error: json.error }
+    }
+    loadSellable()
+    return { ok: true, archived: Boolean(json.archived), deleted: Boolean(json.deleted) }
   }
 
   // Sube una foto (portada / hover / detalle) a Vercel Blob vía el endpoint
@@ -1044,9 +1040,10 @@ export default function Dashboard() {
     else if (type === "Reservas") { name = "reservas"; csv = toCSV(["Fecha", "Hora", "Cliente", "Telefono", "Servicio", "Barbero", "Precio", "Estado"], bookings.map((b) => { const bb = barberOf(b.barberId); return [b.date, b.time, b.client, b.phone, b.service, bb?.short || bb?.name || "", b.price, b.status] })) }
     else if (type === "Finanzas") {
       name = `finanzas-${financePeriod}`
-      // Con cobro con medio de pago, el CSV lleva lo cobrado y el medio.
-      const head = ["Fecha", "Hora", "Cliente", "Servicio", "Barbero", "Precio", "Estado", ...(FEATURES.charge ? ["Cobrado", "Medio de pago"] : [])]
-      csv = toCSV(head, sortedFinanceRows.map((b) => { const bb = barberOf(b.barberId); return [b.date, b.time, b.client, b.service, bb?.short || bb?.name || "", b.price, b.status, ...(FEATURES.charge ? [collectedOf(b), b.paymentMethod || ""] : [])] }))
+      // Con cobro con medio de pago, el CSV lleva lo cobrado y el medio. Sin
+      // columna Barbero: la tabla de Finanzas es de un solo barbero.
+      const head = ["Fecha", "Hora", "Cliente", "Servicio", "Precio", "Estado", ...(FEATURES.charge ? ["Cobrado", "Medio de pago"] : [])]
+      csv = toCSV(head, sortedFinanceRows.map((b) => [b.date, b.time, b.client, b.service, b.price, b.status, ...(FEATURES.charge ? [collectedOf(b), b.paymentMethod || ""] : [])]))
     }
     else if (type === "Gastos") { name = "gastos"; csv = toCSV(["Fecha", "Categoria", "Detalle", "Monto", "Responsable"], expenses.filter((e) => (e.kind || "gasto") === "gasto").map((e) => [e.date, e.category, e.detail, e.amount, e.owner])) }
     else if (type === "Servicios") { name = "servicios"; csv = toCSV(["Nombre", "Precio", "Minutos", "Categoria", "Estado"], services.map((s) => [s.name, s.price, s.min, s.cat, s.active === false ? "oculto" : "publicado"])) }
@@ -1508,10 +1505,28 @@ export default function Dashboard() {
   }
 
   const clientKey = (c) => c.id ?? c.phone
+  // Optimista, pero ya no a ciegas: si el servidor rechaza la ficha (400) se
+  // vuelve a la versión anterior y se avisa. Sin red queda el cambio local,
+  // como antes. ClientModal valida las mismas reglas primero: esto es la red
+  // de seguridad.
   const saveClient = async (updated) => {
-    setClients((list) => list.map((c) => clientKey(c) === clientKey(updated) ? { ...c, ...updated } : c))
-    setSelectedClient((c) => (c && clientKey(c) === clientKey(updated) ? { ...c, ...updated } : c))
-    fetch("/api/clients", { method: "POST", headers: authHeaders({ "Content-Type": "application/json" }), body: JSON.stringify(updated) }).catch(() => {})
+    const k = clientKey(updated)
+    const before = clients.find((c) => clientKey(c) === k)
+    setClients((list) => list.map((c) => clientKey(c) === k ? { ...c, ...updated } : c))
+    setSelectedClient((c) => (c && clientKey(c) === k ? { ...c, ...updated } : c))
+    try {
+      const res = await fetch("/api/clients", { method: "POST", headers: authHeaders({ "Content-Type": "application/json" }), body: JSON.stringify(updated) })
+      if (isJson(res)) {
+        const json = await res.json()
+        if (!res.ok || json.ok === false) {
+          if (before) {
+            setClients((list) => list.map((c) => clientKey(c) === k ? before : c))
+            setSelectedClient((c) => (c && clientKey(c) === k ? before : c))
+          }
+          pushToast("⚠️", json.error || "No se pudo guardar el cliente.", 6000)
+        }
+      }
+    } catch { /* sin red: queda el cambio local, como antes */ }
   }
   const deleteClient = async (client) => {
     setClients((list) => list.filter((c) => clientKey(c) !== clientKey(client)))
@@ -1545,20 +1560,21 @@ export default function Dashboard() {
   // Actualiza en el momento (optimista) y solo revierte si la API falla.
   // Antes recargaba TODA la semana (6 fetch en serie) después de cada click,
   // lo que hacía que activar/desactivar una hora se sintiera lento.
+  // Devuelve si el servidor aceptó el cambio (AgendaTab corta la selección
+  // múltiple en el primer false y recarga la grilla).
   const toggleSlot = async (dayKey, slot, state) => {
-    if (state === "booked" || !agendaReady) return
-    if (!canBlockAgenda) { setAgendaError("No tienes permiso para bloquear horas."); return }
+    if (state === "booked" || !agendaReady) return false
+    if (!canBlockAgenda) { setAgendaError("No tienes permiso para bloquear horas."); return false }
     // Una hora que ya pasó, o un día cuya disponibilidad no se pudo leer, no
     // se gestiona: bloquearla no cambia nada y habilitarla sería inventar.
     const current = slotsFor(dayKey).find((item) => item.slot === slot)
-    if (!current?.state) { setAgendaError("La disponibilidad de ese día no se pudo leer. Toca Actualizar e inténtalo de nuevo."); return }
-    if (current.past) { setAgendaError("Esa hora ya pasó: no se puede bloquear ni habilitar."); return }
+    if (!current?.state) { setAgendaError("La disponibilidad de ese día no se pudo leer. Toca Actualizar e inténtalo de nuevo."); return false }
+    if (current.past) { setAgendaError("Esa hora ya pasó: no se puede bloquear ni habilitar."); return false }
     const busyKey = `${dayKey}-${slot}`
     setAgendaBusy(busyKey)
     setAgendaError("")
     const method = state === "blocked" ? "DELETE" : "POST"
     const body = JSON.stringify({ barberId: agendaBarber, date: dayKey, slot, reason: "Bloqueado desde agenda interna" })
-    const previous = availability
     const key = localBlockKey(agendaBarber, dayKey, slot)
     const localBlocks = readLocalBlocks()
     if (state === "blocked") delete localBlocks[key]
@@ -1578,12 +1594,21 @@ export default function Dashboard() {
       if (state === "blocked") revertBlocks[key] = { barberId: agendaBarber, date: dayKey, slot }
       else delete revertBlocks[key]
       writeLocalBlocks(revertBlocks)
-      setAvailability(previous)
+      // Se revierte solo esta hora: en la selección múltiple (serie) la foto
+      // de `availability` del render ya quedó vieja y desharía en pantalla
+      // los cambios anteriores que sí se guardaron.
+      setAvailability((cur) => ({
+        ...cur,
+        [dayKey]: (cur[dayKey] || []).map((item) => item.slot === slot ? { ...item, available: state === "free", state } : item),
+      }))
       setAgendaError(res?.status === 401 || res?.status === 403
         ? "Tu sesión expiró. Vuelve a iniciar sesión para editar la agenda."
         : "No se pudo guardar el cambio en el servidor. Revisa tu conexión e inténtalo de nuevo.")
+      setAgendaBusy("")
+      return false
     }
     setAgendaBusy("")
+    return true
   }
 
   // Bloquea/habilita varios horarios de una sola vez (mañana, tarde, día completo
@@ -1727,8 +1752,6 @@ export default function Dashboard() {
   // Cubre siempre la ventana reservable del cliente (MAX_LEAD_DAYS): el tope
   // anterior era el domingo de la semana siguiente, que un viernes/sábado/domingo
   // cae a +9/+8/+7 y dejaba días reservables que el barbero no podía abrir acá.
-  const calPrevMonth = () => setCalMonth((m) => { if (m === 0) { setCalYear((y) => y - 1); return 11 } return m - 1 })
-  const calNextMonth = () => setCalMonth((m) => { if (m === 11) { setCalYear((y) => y + 1); return 0 } return m + 1 })
   const pickCalendarDay = (key) => {
     setCalOpen(false)
     if (key > AGENDA_MAX_KEY()) { pushToast("📅", `Fecha fuera del rango reservable (${MAX_LEAD_DAYS} días)`); return }
@@ -1762,6 +1785,7 @@ export default function Dashboard() {
     canEditServices,
     canManageTeam,
     canViewFinance,
+    configSection,
     dayLabel,
     deleteBarber,
     dockItems,
@@ -1785,6 +1809,7 @@ export default function Dashboard() {
     setBarber,
     setBarberDraft,
     setBarbers,
+    setConfigSection,
     setDockShortcuts,
     setNavSettings,
     setRefreshing,
@@ -1842,12 +1867,7 @@ export default function Dashboard() {
     availabilityOf,
     bookingForSlot,
     bulkAgenda,
-    calMonth,
-    calNextMonth,
     calOpen,
-    calPrevMonth,
-    calRef,
-    calYear,
     dragRef,
     goToWeek,
     handleAgendaDaySwipeEnd,
@@ -1862,9 +1882,7 @@ export default function Dashboard() {
     setAgendaQuery,
     setAgendaView,
     setAvailability,
-    setCalMonth,
     setCalOpen,
-    setCalYear,
     setPrevWeekStats,
     setWeekOffset,
     shiftAgendaDay,
@@ -1914,7 +1932,6 @@ export default function Dashboard() {
     productSales,
     ranking,
     registerSale,
-    revenueByDate,
     revenueByService,
     revenuePerHour,
     revenueTotal,
@@ -2040,7 +2057,6 @@ export default function Dashboard() {
 
   const pickClient = (c) => { setTab("clientes"); openClient(c) }
   const pickBooking = (b) => { setTab("reservas"); setInboxFocus({ day: b.date, ts: Date.now() }) }
-  const withHeader = HEADER_TABS.has(tab)
 
   return (
     <PanelShell
@@ -2053,8 +2069,10 @@ export default function Dashboard() {
       onLogout={logout}
       onNewBooking={() => setNewBookingOpen(true)}
     >
-      {/* Sin onScroll acá: la barra escucha el scroller por su cuenta y solo
-          se redibuja ella al cruzar el umbral (ver useScrolledPast en
+      {/* Cada pestaña dibuja su propio título grande (ModuleHeader; Resumen,
+          su saludo), así que la barra muestra el título solo al bajar. Sin
+          onScroll acá: la barra escucha el scroller por su cuenta y solo se
+          redibuja ella al cruzar el umbral (ver useScrolledPast en
           components/panel/Shell.jsx). */}
       <main ref={mainRef} className="dashboard-main">
         <PanelTopbar
@@ -2066,8 +2084,7 @@ export default function Dashboard() {
           navigate={navigate}
           onRefresh={refreshAll}
           refreshing={refreshing}
-          scrollRef={withHeader ? mainRef : undefined}
-          scrolled={!withHeader}
+          scrollRef={mainRef}
           search={<GlobalSearch clients={clients} bookings={bookingsView} onPickClient={pickClient} onPickBooking={pickBooking} />}
           searchButton={<GlobalSearch variant="button" clients={clients} bookings={bookingsView} onPickClient={pickClient} onPickBooking={pickBooking} />}
         />
@@ -2132,17 +2149,13 @@ export default function Dashboard() {
         {tab === "inscripciones" && <InscripcionesTab ctx={dash} />}
 
         {/* PEDIDOS */}
-        {tab === "pedidos" && <PedidosTab ctx={dash} />}
+        {tab === "pedidos" && admin && <PedidosTab ctx={dash} />}
 
         {/* SERVICIOS */}
         {tab === "servicios" && <ServiciosTab ctx={dash} />}
 
         {/* ESSENTIALS (tienda de clientes) */}
         {tab === "essentials" && <EssentialsTab ctx={dash} />}
-
-        {/* CONFIRMAR ELIMINAR PRODUCTO y MODAL NUEVO PRODUCTO (EssentialsTab.jsx):
-            fuera del filtro de pestaña, como siempre */}
-        <EssentialsDialogs ctx={dash} />
 
         {/* GASTOS — solo los gastos: los ingresos manuales comparten endpoint
             pero no entran en las categorías ni en los presupuestos. */}
@@ -2231,10 +2244,6 @@ export default function Dashboard() {
           onCreate={createClient}
           ctx={dash}
         />
-
-        {/* CONFIRMAR ELIMINAR SERVICIO y MODAL NUEVO SERVICIO (ServiciosTab.jsx):
-            fuera del filtro de pestaña, como siempre */}
-        <ServiciosDialogs ctx={dash} />
 
         {/* AJUSTES */}
         {tab === "config" && <ConfigTab ctx={dash} />}
