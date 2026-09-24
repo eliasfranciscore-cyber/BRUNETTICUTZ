@@ -1,5 +1,6 @@
 import { neon } from "@neondatabase/serverless"
 import { requireInternal } from "./_auth.js"
+import { clientIp } from "./_rateLimit.js"
 
 /* PIMP STUDIO — Suscripciones Web Push (por barbero)
    ------------------------------------------------------------------
@@ -104,6 +105,35 @@ async function sendDueReminders(sql, { column, label, fromMin, toMin }) {
 // crudo; se decodifica y se parsea acá, con un tope de tamaño para no
 // procesar (ni loguear) un payload gigante o malformado.
 const CSP_REPORT_MAX_BYTES = 50_000
+
+// Límite en memoria por IP (sin DB ni Neon): el endpoint es público y sin
+// sesión a propósito (lo llama el navegador solo, sin auth alguna), así que
+// nada más lo protegía de una ráfaga — un atacante (o una extensión de
+// navegador con un bug) podía mandar reportes sin tope y llenar los logs de
+// Vercel / gastar invocaciones. Es un token bucket simple por instancia tibia
+// de la lambda: se reinicia si la instancia se recicla, que alcanza para
+// cortar una ráfaga (no hace falta precisión entre instancias para esto).
+const CSP_REPORT_LIMIT = 20
+const CSP_REPORT_WINDOW_MS = 60_000
+const cspReportBuckets = new Map()
+
+function cspReportAllowed(ip) {
+  const now = Date.now()
+  // Poda oportunista: sin esto, muchas IPs distintas harían crecer el Map sin
+  // límite durante la vida de la instancia.
+  if (cspReportBuckets.size > 2000) {
+    for (const [key, entry] of cspReportBuckets) {
+      if (now - entry.windowStart >= CSP_REPORT_WINDOW_MS) cspReportBuckets.delete(key)
+    }
+  }
+  const entry = cspReportBuckets.get(ip)
+  if (!entry || now - entry.windowStart >= CSP_REPORT_WINDOW_MS) {
+    cspReportBuckets.set(ip, { windowStart: now, count: 1 })
+    return true
+  }
+  entry.count += 1
+  return entry.count <= CSP_REPORT_LIMIT
+}
 
 function normalizeCspReports(raw) {
   if (!raw) return []
@@ -280,12 +310,18 @@ export default async function handler(req, res) {
   // porque el navegador la llama sola (report-uri) y no manda ningún header
   // de auth. 204 siempre, para no invitar reintentos del navegador.
   if (req.method === "POST" && req.query?.job === "csp-report") {
-    try {
-      for (const report of normalizeCspReports(req.body)) {
-        console.warn("[csp-report]", JSON.stringify(report).slice(0, 500))
+    // Sin sesión y sin CRON_SECRET: el único freno posible acá es este cupo
+    // en memoria. El exceso responde 204 igual (no hay que invitar reintentos
+    // del navegador) pero sin loguear, para no llenar los logs con lo mismo
+    // que se está limitando.
+    if (cspReportAllowed(clientIp(req))) {
+      try {
+        for (const report of normalizeCspReports(req.body)) {
+          console.warn("[csp-report]", JSON.stringify(report).slice(0, 500))
+        }
+      } catch (err) {
+        console.error("csp-report error:", err?.message)
       }
-    } catch (err) {
-      console.error("csp-report error:", err?.message)
     }
     return res.status(204).end()
   }
