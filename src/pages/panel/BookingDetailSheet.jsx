@@ -217,6 +217,11 @@ export function BookingDetailModal(props) {
     onSellProducts, onConfirm,
   } = p
   const isOpen = Boolean(props.booking)
+  // Con la hoja de cobro abierta (Cobrar/Corregir cobro, ctx.chargeSheet) esta
+  // se oculta en vez de quedar apilada detrás: dos Sheet abiertas a la vez
+  // pintan dos scrims. Vuelve a mostrarse sola cuando el cobro se cierra,
+  // porque `booking` (y por lo tanto `isOpen`) no cambió.
+  const sheetOpen = isOpen && !ctx?.chargeSheet
 
   // Se re-resuelve contra ctx.bookings por id: si un cambio de estado lo
   // dispara esta misma hoja (p. ej. desde Agenda, donde `booking` es una
@@ -234,7 +239,8 @@ export function BookingDetailModal(props) {
   const [priceBusy, setPriceBusy] = useState(false)
   const [priceErr, setPriceErr] = useState('')
   const [rescheduling, setRescheduling] = useState(false)
-  const [confirmKind, setConfirmKind] = useState(null) // null | 'cancel' | 'noshow' | 'delete'
+  const [confirmKind, setConfirmKind] = useState(null) // null | 'cancel' | 'noshow' | 'delete' | 'redeem'
+  const [redeemBusy, setRedeemBusy] = useState(false)
   const [confirmBusy, setConfirmBusy] = useState(false)
   const [statusPickerOpen, setStatusPickerOpen] = useState(false)
   const [payBusy, setPayBusy] = useState(false)
@@ -303,11 +309,17 @@ export function BookingDetailModal(props) {
     })
   }
   const doDelete = () => (onDelete ? onDelete(bk) : ctx?.deleteBooking?.(bk))
-  // Canje: el de Brunetti (ctx.redeemFreeCut) pregunta antes con su propio
-  // confirm y deja la reserva en $0.
+  // Canje: la confirmación vive en el ConfirmDialog 'redeem' de esta hoja
+  // (antes cada `fn` preguntaba con window.confirm por su cuenta).
   const doRedeem = () => {
     const fn = onRedeem || onRedeemFreeCut || ctx?.redeemFreeCut
     return fn?.(bk)
+  }
+  const confirmRedeem = async () => {
+    setRedeemBusy(true)
+    await doRedeem()
+    setRedeemBusy(false)
+    setConfirmKind(null)
   }
   const doConfirmPayment = async () => {
     setPayBusy(true)
@@ -376,7 +388,7 @@ export function BookingDetailModal(props) {
   return (
     <>
       <Sheet
-        open={isOpen}
+        open={sheetOpen}
         onClose={requestClose}
         lead={<Avatar name={bk.client} size={40} accent />}
         title={bk.client}
@@ -425,10 +437,14 @@ export function BookingDetailModal(props) {
               title="Total"
               value={canEditPrice && editingPrice ? (
                 <span className="pn-reservas-priceedit">
+                  {/* Texto + inputMode numeric (como ConfigTab), no
+                      type="number": ahí la flecha nativa del spinner se
+                      montaba encima de los dígitos en un campo tan angosto. */}
                   <input
-                    className="input" type="number" min={0} inputMode="numeric" value={priceDraft}
+                    className="input" inputMode="numeric" value={priceDraft}
                     aria-label="Precio nuevo"
-                    onChange={(e) => setPriceDraft(e.target.value)}
+                    style={{ width: 120 }}
+                    onChange={(e) => setPriceDraft(e.target.value.replace(/\D/g, ''))}
                     onKeyDown={(e) => { if (e.key === 'Enter') savePrice() }}
                     autoFocus
                   />
@@ -478,7 +494,7 @@ export function BookingDetailModal(props) {
             <div className="pn-reservas-loyalty">
               <b>🎁 Corte #{loyalty.goal} — va gratis</b>
               <p>{String(bk.client || '').split(' ')[0]} completó sus {loyalty.goal} estrellas.</p>
-              <Button variant="primary" block icon="gift" onClick={doRedeem}>Canjear corte gratis</Button>
+              <Button variant="primary" block icon="gift" onClick={() => setConfirmKind('redeem')}>Canjear corte gratis</Button>
             </div>
           ) : !loyalty?.freeCutReady && loyalty?.productDiscountReady ? (
             <InlineAlert tone="info" icon="percent">
@@ -543,6 +559,17 @@ export function BookingDetailModal(props) {
         busy={confirmBusy}
         onCancel={() => setConfirmKind(null)}
         onConfirm={() => runConfirm(doDelete)}
+      />
+      <ConfirmDialog
+        open={confirmKind === 'redeem'}
+        icon="gift"
+        title="¿Canjear el corte gratis?"
+        message={`Se descuentan 10 estrellas y esta reserva de ${bk.client} queda en $0.`}
+        confirmLabel="Sí, canjear"
+        cancelLabel="Volver"
+        busy={redeemBusy}
+        onCancel={() => setConfirmKind(null)}
+        onConfirm={confirmRedeem}
       />
     </>
   )

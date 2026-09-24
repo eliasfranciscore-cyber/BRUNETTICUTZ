@@ -5,8 +5,9 @@ import { FEATURES } from '../features.js'
 import { waHref as buildWaHref, waMessages } from '../whatsapp.js'
 import {
   Sheet, ConfirmDialog, ActionMenu, Avatar, KpiGrid, List, ListRow, EmptyState,
-  Field, Button, IconButton, Chip, StatusBadge, ProgressBar, SectionLabel,
+  Field, Button, IconButton, Chip, ProgressBar, SectionLabel,
 } from './panel/index.js'
+import { StatusChip } from '../pages/panel/BookingDetailSheet.jsx'
 import '../styles/panel/clientes.css'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -249,7 +250,7 @@ export default function ClientModal({ client, history = [], startEditing = false
                         title={item.service || 'Servicio'}
                         subtitle={`${fmtDate(item.date, 'short')}${item.time ? ` · ${item.time}` : ''}`}
                         value={CLP(item.paidAmount ?? item.price)}
-                        meta={item.status && item.status !== 'completada' ? <StatusBadge status={item.status} /> : null}
+                        meta={item.status && item.status !== 'completada' ? <StatusChip bk={item} /> : null}
                         dim={cancelled}
                       />
                     )
