@@ -1626,6 +1626,20 @@ select.input { text-overflow: ellipsis; }
      título/textos heredados no queden con la tinta oscura del tema claro. */
   color: var(--ink);
 }
+/* [data-theme="dark"] (arriba, :root) sólo repone los neutros (ink, bg,
+   panel, hair) para un data-theme="dark" anidado; los tokens de dorado
+   (--gold, --gold-lt, --gold-bright, --gold-deep, --on-gold) no estaban en
+   esa lista, así que dentro del shell seguían resolviendo al :root o
+   [data-theme=light] del documento: el dorado profundo de modo claro
+   (#8a6a22) sobre el panel oscuro del acceso, ~3.6:1. Se repone acá,
+   scopeado al wrapper, sin tocar el gate de html ni el resto del sitio. */
+.barber-login-shell[data-theme="dark"] {
+  --gold: #c9a14e;
+  --gold-lt: #e6cd90;
+  --gold-bright: #e7c87e;
+  --gold-deep: #9a7b34;
+  --on-gold: #1c1606;
+}
 .barber-login-card {
   width: min(1120px, 100%);
   display: grid;

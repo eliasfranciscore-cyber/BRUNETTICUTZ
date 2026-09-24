@@ -1431,6 +1431,18 @@
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
 }
+/* Modal en MODO CLARO — misma base que .psn-modal-card (modules.css): el
+   "glass" blanco al 13% está pensado para el scrim oscuro; en claro la
+   tarjeta queda casi transparente y el texto (--ink/--ink-2, tinta oscura)
+   se lee directamente contra el scrim, prácticamente ilegible. .ac-close ya
+   usa un ícono blanco fijo sobre fondo oscuro fijo, así que no cambia con
+   el tema. */
+[data-theme="light"] .brunetti-site .ac-modal-card {
+  background: var(--panel);
+  border-color: var(--hair-2);
+  box-shadow: 0 30px 80px rgba(60, 40, 8, .26);
+}
+[data-theme="light"] .brunetti-site .ac-modal-scrim { background: rgba(33, 27, 15, .42); }
 
 /* testimonios */
 .brunetti-site .testimonials {
@@ -2554,7 +2566,11 @@ body.dash-mode .float-theme-toggle { display: none; }
 /* Acento del knob según el módulo actual: azul en /cursos, morado en /workshop. */
 .float-theme-toggle.ftt-cursos .ftt-knob { background: linear-gradient(135deg, #6b74f0, #0b129e); color: #fff; }
 .float-theme-toggle.ftt-workshop .ftt-knob { background: linear-gradient(135deg, #b483f3, #8838d8); color: #fff; }
-@media (max-width: 900px) {
+/* 899px, no 900: SiteNav.css oculta .site-nav-cta-bar recién desde
+   min-width:900px, así que a los 900px exactos ya no hay barra ni CTA que
+   cubrir. Con max-width:900px este bloque seguía aplicando ahí (el toggle
+   bajaba a la fila de un botón que ya no estaba, "flotando" solo). */
+@media (max-width: 899px) {
   .float-theme-toggle { bottom: 6.4rem; z-index: 66; }
   /* Espacio para que la barra fija de Reservar (móvil) no tape el contenido/footer */
   .brunetti-site { padding-bottom: 5.6rem; }
@@ -2571,6 +2587,15 @@ body.dash-mode .float-theme-toggle { display: none; }
   }
   body.has-cta-bar .site-nav-cta-bar {
     padding-left: calc(1rem + 66px + 0.55rem);
+  }
+  /* /resena (Review.jsx) no monta SiteNav (sin has-cta-bar) ni reserva aire
+     propio para el toggle elevado, a diferencia de /reservar, /cuenta o
+     /ingreso: a 6.4rem se monta sobre el textarea de comentario o el borde
+     de la tarjeta (review.css ya deja 8.8rem de padding-bottom pensados
+     para esto, pero el toggle sigue flotando encima del contenido en vez de
+     debajo). Sin barra CTA que cubrir acá, baja a la posición base. */
+  .rv-screen ~ .float-theme-toggle {
+    bottom: 1rem;
   }
 }
 
