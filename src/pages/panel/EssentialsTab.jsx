@@ -27,7 +27,7 @@ import '../../styles/panel/essentials.css'
    Las confirmaciones y la hoja de producto viven acá (antes las montaba
    Dashboard aparte, fuera del filtro de pestaña). */
 
-const PHOTO_SLOTS = [['imgFront', 'front', 'Portada'], ['imgBack', 'back', 'Hover'], ['imgDetail', 'detail', 'Detalle']]
+const PHOTO_SLOTS = [['imgFront', 'front', 'Portada'], ['imgBack', 'back', 'Segunda foto (al pasar el mouse)'], ['imgDetail', 'detail', 'Detalle']]
 
 const digits = (v, max = 8) => String(v ?? '').replace(/\D/g, '').slice(0, max)
 
@@ -205,7 +205,7 @@ function ProductSheet({
             </List>
           </div>
         ) : (
-          <Note icon="info">Nace publicado: con stock, aparece altiro en brunetticutz.cl/essentials. Las fotos se suben en su ficha, una vez creado.</Note>
+          <Note icon="info">Nace publicado: con stock, aparece de inmediato en brunetticutz.cl/essentials. Las fotos se suben en su ficha, una vez creado.</Note>
         )}
       </div>
     </Sheet>
