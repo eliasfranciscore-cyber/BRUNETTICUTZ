@@ -190,6 +190,7 @@ export const ensureExpenseColumns = once(async (sql) => {
    api/mp-payments.js (precios y fecha del Workshop, interruptor de pagos):
    es la misma tabla, y cualquiera de los dos puede crearla primero. */
 export const ensureSettingsTable = once(async (sql) => {
+  if ((await presentTables(sql, ["settings"])).has("settings")) return
   await sql`
     CREATE TABLE IF NOT EXISTS settings (
       key        TEXT PRIMARY KEY,
@@ -205,19 +206,22 @@ export const ensureSettingsTable = once(async (sql) => {
    "ya se le pidió reseña por esta visita": el UNIQUE(booking_id) es lo que
    evita mandar dos correos si la reserva se completa dos veces. */
 export const ensureReviewsTable = once(async (sql) => {
-  await sql`
-    CREATE TABLE IF NOT EXISTS barber_reviews (
-      id         SERIAL PRIMARY KEY,
-      booking_id INTEGER UNIQUE REFERENCES bookings(id) ON DELETE CASCADE,
-      barber_id  INTEGER NOT NULL REFERENCES barbers(id) ON DELETE CASCADE,
-      user_id    INTEGER REFERENCES users(id) ON DELETE SET NULL,
-      token      VARCHAR(40) NOT NULL UNIQUE,
-      rating     SMALLINT CHECK (rating BETWEEN 1 AND 5),
-      comment    TEXT,
-      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      rated_at   TIMESTAMPTZ
-    )
-  `
+  const tables = await presentTables(sql, ["barber_reviews"])
+  if (!tables.has("barber_reviews")) {
+    await sql`
+      CREATE TABLE IF NOT EXISTS barber_reviews (
+        id         SERIAL PRIMARY KEY,
+        booking_id INTEGER UNIQUE REFERENCES bookings(id) ON DELETE CASCADE,
+        barber_id  INTEGER NOT NULL REFERENCES barbers(id) ON DELETE CASCADE,
+        user_id    INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        token      VARCHAR(40) NOT NULL UNIQUE,
+        rating     SMALLINT CHECK (rating BETWEEN 1 AND 5),
+        comment    TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        rated_at   TIMESTAMPTZ
+      )
+    `
+  }
   await guarded("idx_barber_reviews_rated", async () => {
     if (!(await hasIndex(sql, "idx_barber_reviews_rated"))) {
       await sql`CREATE INDEX IF NOT EXISTS idx_barber_reviews_rated ON barber_reviews (barber_id, rated_at DESC) WHERE rating IS NOT NULL`

@@ -483,7 +483,31 @@ function waitAtMost(promise, ms) {
 }
 
 function claimDue(sql, limit) {
+  // Las candidatas se eligen en un CTE MATERIALIZED, que corre UNA vez. Como
+  // subconsulta de un `b.id IN (…)`, Postgres la re-ejecutaba por cada fila
+  // del UPDATE (nested loop semi join): cada re-ejecución saltaba las que el
+  // propio UPDATE ya había tomado y el LIMIT dejaba pasar la siguiente, así
+  // que un reclamo de `limit` filas completaba TODAS las vencidas de una vez.
   return sql`
+    WITH due AS MATERIALIZED (
+      SELECT c.id
+      FROM bookings c
+      JOIN users cu ON cu.id = c.client_id
+      JOIN barbers cb ON cb.id = c.barber_id
+      LEFT JOIN services cs ON cs.id = c.service_id
+      WHERE c.status = 'en curso'
+        AND c.booking_date <= (NOW() AT TIME ZONE 'America/Santiago')::date
+        AND c.booking_date >= (NOW() AT TIME ZONE 'America/Santiago')::date - ${AUTO_COMPLETE_FLOOR_DAYS}::int
+        AND COALESCE(c.started_at, c.updated_at AT TIME ZONE 'UTC', c.created_at AT TIME ZONE 'UTC')
+            + make_interval(mins => GREATEST(${AUTO_COMPLETE_MIN}::int, COALESCE(cs.duration_min, ${AUTO_COMPLETE_MIN}::int)))
+            <= NOW()
+        AND (c.booking_date + c.booking_time)
+            + make_interval(mins => GREATEST(${AUTO_COMPLETE_MIN}::int, COALESCE(cs.duration_min, ${AUTO_COMPLETE_MIN}::int)))
+            <= (NOW() AT TIME ZONE 'America/Santiago')
+      ORDER BY c.id
+      LIMIT ${limit}::int
+      FOR UPDATE OF c SKIP LOCKED
+    )
     UPDATE bookings b
     SET status = 'completada',
         updated_at = NOW(),
@@ -505,26 +529,8 @@ function claimDue(sql, limit) {
         paid_at = CASE WHEN b.paid_at IS NULL
                         AND COALESCE(b.custom_price, b.price_snapshot, (SELECT s.price FROM services s WHERE s.id = b.service_id), 0) = 0
                        THEN NOW() ELSE b.paid_at END
-    FROM users u, barbers br
-    WHERE b.id IN (
-        SELECT c.id
-        FROM bookings c
-        JOIN users cu ON cu.id = c.client_id
-        JOIN barbers cb ON cb.id = c.barber_id
-        LEFT JOIN services cs ON cs.id = c.service_id
-        WHERE c.status = 'en curso'
-          AND c.booking_date <= (NOW() AT TIME ZONE 'America/Santiago')::date
-          AND c.booking_date >= (NOW() AT TIME ZONE 'America/Santiago')::date - ${AUTO_COMPLETE_FLOOR_DAYS}::int
-          AND COALESCE(c.started_at, c.updated_at AT TIME ZONE 'UTC', c.created_at AT TIME ZONE 'UTC')
-              + make_interval(mins => GREATEST(${AUTO_COMPLETE_MIN}::int, COALESCE(cs.duration_min, ${AUTO_COMPLETE_MIN}::int)))
-              <= NOW()
-          AND (c.booking_date + c.booking_time)
-              + make_interval(mins => GREATEST(${AUTO_COMPLETE_MIN}::int, COALESCE(cs.duration_min, ${AUTO_COMPLETE_MIN}::int)))
-              <= (NOW() AT TIME ZONE 'America/Santiago')
-        ORDER BY c.id
-        LIMIT ${limit}::int
-        FOR UPDATE OF c SKIP LOCKED
-      )
+    FROM due, users u, barbers br
+    WHERE b.id = due.id
       AND b.status = 'en curso'
       AND u.id = b.client_id
       AND br.id = b.barber_id
