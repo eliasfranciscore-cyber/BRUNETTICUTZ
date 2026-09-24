@@ -1,330 +1,253 @@
 import React, { useState, useMemo, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { Icon } from './IconsExtra.jsx'
-import { CLP, barberById, isoDate, buildWeek } from '../data.js'
+import { motion } from 'framer-motion'
+import { Icon } from './ui.jsx'
+import { CLP, isoDate, buildWeek, cleanPhone, bookingUid, fmtDate, fmtRange } from '../data.js'
+import { waHref, waMessages, waRescheduledMessage } from '../whatsapp.js'
+import {
+  ModuleHeader, Toolbar, Segmented, FilterChips, SearchField, Sheet, ActionMenu, ChoiceGrid, Field,
+  Button, IconButton, Chip, Avatar, Time, List, ListRow, EmptyState, PeriodNav, CalendarSheet,
+  useIsPhone, useStoredFlag,
+} from './panel/index.js'
+import {
+  BookingDetailModal, RescheduleSheet, NEXT_STATUS, NEXT_LABEL, NEXT_SHORT, NEXT_ICON, barberShortOf, StatusChip,
+  canMarkNoShow, isPaymentPending,
+} from '../pages/panel/BookingDetailSheet.jsx'
+import { confirmAutoPayment } from '../pages/panel/SinCerrar.jsx'
+import '../styles/panel/reservas.css'
+
+const cx = (...parts) => parts.filter(Boolean).join(' ')
 
 /**
- * BookingsInbox — bandeja de reservas del Dashboard.
+ * BookingsInbox — Reservas del panel.
  *
- * Por fuera, cada tarjeta muestra sólo: resumen + acciones rápidas (hover) +
- * selector de estado + botón "Ver detalles". Al tocar la tarjeta se abre un
- * modal (responsive) con toda la gestión: acciones por estado, WhatsApp
- * (mensaje según estado), cancelar (con deshacer) y revertir la cancelación.
+ * Celular: tarjetas de partida (con la acción principal, WhatsApp y "···"
+ * afuera, sin entrar al detalle) o, si se prefiere, una lista compacta
+ * (hora · cliente/servicio · estado · acción rápida). Escritorio: tarjetas.
+ * Tocar una reserva abre la hoja de detalle única (BookingDetailModal, la
+ * misma que usa Agenda).
  *
- * Admin (Bruno) ve la agenda de TODOS y puede filtrar por barbero. Un barbero
- * normal ve sólo SU agenda del día.
- *
- * Props:
- *  bookings, barbers, barber, admin
- *  onStatus: (booking, nuevoEstado) => void   // persiste el cambio
- *  onReschedule?: (booking) => void           // abre la agenda para reagendar
+ * El admin (Bruno) ve todas las reservas; con un solo barbero no hay filtro
+ * por barbero (aparece solo si algún día hay más de uno).
  */
 
-const STATUS_LABEL = { pendiente: 'Pendiente', confirmada: 'Confirmada', 'en curso': 'En curso', completada: 'Completada', cancelada: 'Cancelada' }
-const STATUS_OPTIONS = ['pendiente', 'confirmada', 'en curso', 'completada', 'cancelada']
 const FILTERS = ['Todas', 'Pendientes', 'Confirmadas', 'En curso', 'Completadas', 'Canceladas']
 const FILTER_MAP = { Pendientes: 'pendiente', Confirmadas: 'confirmada', 'En curso': 'en curso', Completadas: 'completada', Canceladas: 'cancelada' }
-// Etiqueta de filtro ↔ estado, para sincronizar las tarjetas KPI clickables.
-const STATUS_TO_FILTER = { pendiente: 'Pendientes', confirmada: 'Confirmadas', 'en curso': 'En curso' }
-// Próximo estado natural al avanzar una reserva con un solo tap (acción rápida).
-const NEXT_STATUS = { pendiente: 'confirmada', confirmada: 'en curso', 'en curso': 'completada' }
 const SCOPES = [['dia', 'Hoy'], ['semana', 'Semana'], ['todas', 'Todas']]
 
-function waLink(bk, barberShort, status) {
-  const first = (bk.client || 'Hola').split(' ')[0]
-  const msgs = {
-    confirmada: `Hola ${first}, te confirmamos tu hora en Brunetti el ${bk.date} a las ${bk.time} con ${barberShort}. ¡Te esperamos! 💈`,
-    'en curso': `Hola ${first}, te esperamos en Brunetti, tu hora de las ${bk.time} con ${barberShort} está por comenzar.`,
-    completada: `Hola ${first}, ¡gracias por tu visita a Brunetti! Esperamos que te haya gustado el resultado. Te esperamos pronto. 💈`,
-    reagendar: `Hola ${first}, necesitamos reagendar tu hora del ${bk.date} (${bk.time}) en Brunetti. ¿Qué día te acomoda?`,
-    cancelada: `Hola ${first}, lamentamos avisarte que tu hora del ${bk.date} a las ${bk.time} fue cancelada. Escríbenos para reagendar.`,
-    default: `Hola ${first}, te escribimos de Brunetti por tu reserva del ${bk.date} a las ${bk.time}.`,
-  }
-  const phone = String(bk.phone || '').replace(/\D/g, '')
-  return `https://wa.me/56${phone}?text=${encodeURIComponent(msgs[status] || msgs.default)}`
+// Lunes (00:00 local) de la semana de una fecha "YYYY-MM-DD".
+const mondayOf = (iso) => {
+  const d = new Date(`${iso}T00:00:00`)
+  const dow = d.getDay() || 7
+  d.setDate(d.getDate() - dow + 1)
+  d.setHours(0, 0, 0, 0)
+  return d
+}
+const weekOffsetOf = (iso) => Math.round((mondayOf(iso) - mondayOf(isoDate())) / (7 * 86400000))
+
+/* La vista del celular recordada por navegador. Antes (vista vieja) se
+   guardaba en `ps_res_view` = 'cards' | 'lista': si alguien había elegido la
+   lista, se respeta la primera vez. */
+const initialCardsView = (() => {
+  try { return localStorage.getItem('ps_res_view') !== 'lista' } catch { return true }
+})()
+
+/* Acciones del "···" de una reserva, las mismas en la fila y en la tarjeta. */
+function rowMenuItems(bk, { withWhatsApp, reschedulable, walletSending, onWhatsApp, onSendWallet, onReschedule, onNoShow, onQuickCancel }) {
+  const cancelable = bk.status !== 'cancelada' && bk.status !== 'completada'
+  return [
+    withWhatsApp && { label: 'Enviar WhatsApp', icon: 'whatsapp', onClick: () => onWhatsApp(bk) },
+    { label: bk.walletHasPass ? 'Reenviar tarjeta Wallet' : 'Enviar tarjeta Wallet', icon: 'wallet', hint: bk.walletHasPass ? 'Ya tiene la tarjeta' : undefined, onClick: () => onSendWallet(bk), disabled: walletSending },
+    reschedulable && { label: 'Reagendar', icon: 'reschedule', onClick: () => onReschedule(bk) },
+    canMarkNoShow(bk) && { label: 'No vino', icon: 'user', danger: true, onClick: () => onNoShow(bk) },
+    cancelable && { label: 'Cancelar reserva', icon: 'close', danger: true, onClick: () => onQuickCancel(bk) },
+  ]
 }
 
-const resolveBarber = (bk, barbers) => barbers.find((x) => Number(x.id) === Number(bk.barberId)) || barberById(bk.barberId) || {}
-const initialsOf = (name) => (name || 'C').split(' ').map((w) => w[0]).slice(0, 2).join('').toUpperCase()
-
-/* Tarjeta (o fila, en vista lista): resumen + acciones rápidas + selector + "Ver detalles". */
-function ResCard({ bk, barbers, isAdmin, onOpen, onStatusSelect, onQuickAdvance, onQuickCancel }) {
-  const barber = resolveBarber(bk, barbers)
-  const short = barber?.short || barber?.name || 'Barbero'
-  const cls = String(bk.status).replace(' ', '-')
-  const waStatus = bk.status === 'cancelada' ? 'cancelada' : bk.status === 'pendiente' ? 'default' : bk.status
+/* Fila compacta del celular: hora · cliente/servicio, estado y UNA acción
+   rápida (la que corresponda al estado) + "···" para el resto. Barbero,
+   teléfono y precio quedan en la hoja de detalle. */
+function BookingRow({ bk, showDate, onOpen, onQuickAdvance, onConfirmPayment, menu }) {
   const next = NEXT_STATUS[bk.status]
-  const cancelable = bk.status !== 'cancelada' && bk.status !== 'completada'
+  const payPending = isPaymentPending(bk)
   return (
-    <div className={`psn-res-card ${cls}`}>
-      <div
-        className="psn-res-tap" role="button" tabIndex={0}
-        onClick={() => onOpen(bk)}
-        onKeyDown={(e) => { if (e.key === 'Enter') onOpen(bk) }}
-        aria-label={`Ver detalles de ${bk.client}`}
-      >
-        <div className="psn-res-top">
-          <span className="psn-res-time"><Icon name="clock" size={15} /> {bk.time} <small>{bk.date}</small></span>
-          <span className={`psn-res-badge ${cls}`}>{STATUS_LABEL[bk.status] || bk.status}</span>
-        </div>
-        <div className="psn-res-client">
-          <span className="psn-res-avatar">{initialsOf(bk.client)}</span>
-          <div style={{ minWidth: 0 }}>
-            <div className="nm">{bk.client}</div>
-            <div className="psn-res-phone"><Icon name="phone" size={12} /> +56 {bk.phone || '—'}</div>
-          </div>
-        </div>
-        <div className="psn-res-meta">
-          <div className="psn-res-row"><span>Servicio</span><b>{bk.service}</b></div>
-          {isAdmin && <div className="psn-res-row"><span>Barbero</span><b>{short}</b></div>}
-          <div className="psn-res-row"><span>Total</span><b className="gold-text">{CLP(bk.price)}</b></div>
+    <ListRow
+      lead={<Time value={bk.time} sub={showDate ? fmtDate(bk.date, 'dm') : undefined} />}
+      title={bk.client}
+      subtitle={bk.service}
+      onClick={() => onOpen(bk)}
+      dim={bk.status === 'cancelada'}
+      actions={<ActionMenu items={menu} label="Más opciones" title={bk.client} small />}
+    >
+      <span className="pn-reservas-rowfoot">
+        <span className="pn-hstack">
+          <StatusChip bk={bk} />
+          {payPending && <Chip tone="warn" icon="cash">Por confirmar</Chip>}
+        </span>
+        {next ? (
+          <Button variant="secondary" size="sm" icon={NEXT_ICON[bk.status]} onClick={(e) => { e.stopPropagation(); onQuickAdvance(bk) }}>
+            {NEXT_SHORT[bk.status]}
+          </Button>
+        ) : payPending ? (
+          <Button variant="secondary" size="sm" icon="cash" onClick={(e) => { e.stopPropagation(); onConfirmPayment(bk) }}>
+            Confirmar
+          </Button>
+        ) : null}
+      </span>
+    </ListRow>
+  )
+}
+
+/* Tarjeta: de partida en el celular (selector Tarjetas | Lista) y siempre en
+   escritorio. Botones EXTERNOS de 44 px: la acción principal según el
+   estado, WhatsApp y un "···" con lo demás — nada de eso exige entrar al
+   detalle. `compact` ajusta el aire en el celular (ver reservas.css). */
+function BookingCard({ bk, showBarber, showDate, barbers, loyalty, compact, onOpen, onQuickAdvance, onConfirmPayment, onWhatsApp, menu }) {
+  const next = NEXT_STATUS[bk.status]
+  const payPending = isPaymentPending(bk)
+  // El aviso del corte gratis va en las que todavía se pueden canjear (no en
+  // las ya cerradas: el saldo es del cliente, no de esa reserva).
+  const freeCutReady = loyalty?.freeCutReady && !bk.freeCut && Number(bk.price || 0) > 0 && !['cancelada', 'completada'].includes(bk.status)
+  return (
+    <div
+      className={cx('pn-reservas-card', compact && 'is-compact', bk.status === 'cancelada' && 'is-dim')}
+      role="button" tabIndex={0} aria-label={`Ver detalle de ${bk.client}`}
+      onClick={() => onOpen(bk)}
+      onKeyDown={(e) => { if (e.key === 'Enter' && e.target === e.currentTarget) onOpen(bk) }}
+    >
+      <div className="pn-reservas-card-top">
+        <Time value={bk.time} sub={showDate ? fmtDate(bk.date, 'short') : undefined} />
+        <StatusChip bk={bk} />
+      </div>
+      {payPending && <Chip tone="warn" icon="cash">Pago por confirmar</Chip>}
+      {freeCutReady && <Chip tone="accent" icon="gift">Corte gratis disponible</Chip>}
+      {bk.freeCut && <Chip tone="accent" icon="gift">Corte gratis aplicado</Chip>}
+      <div className="pn-reservas-card-client">
+        <Avatar name={bk.client} />
+        <div className="pn-reservas-card-clienttext">
+          <b>{bk.client}</b>
+          <span>{bk.service}</span>
         </div>
       </div>
-      <div className="psn-res-quick">
-        {next && (() => {
-          const label = bk.status === 'pendiente' ? 'Confirmar' : bk.status === 'confirmada' ? 'Iniciar atención' : 'Completar'
-          return (
-            <button type="button" className="qk-confirm" data-tip={label} aria-label={label} onClick={(e) => { e.stopPropagation(); onQuickAdvance(bk) }}>
-              <Icon name="check" size={14} />
-            </button>
-          )
-        })()}
-        <a className="qk-wa" data-tip="Enviar WhatsApp" aria-label="Enviar WhatsApp" href={waLink(bk, short, waStatus)} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
-          <Icon name="whatsapp" size={14} />
-        </a>
-        {cancelable && (
-          <button type="button" className="qk-cancel" data-tip="Cancelar reserva" aria-label="Cancelar reserva" onClick={(e) => { e.stopPropagation(); onQuickCancel(bk) }}>
-            <Icon name="x" size={14} />
-          </button>
+      {showBarber && <div className="pn-reservas-card-row"><span>Barbero</span><b>{barberShortOf(bk, barbers)}</b></div>}
+      <div className="pn-reservas-card-row"><span>Total</span><b className="pn-num">{CLP(Number(bk.price || 0))}</b></div>
+      <div className="pn-reservas-card-actions" onClick={(e) => e.stopPropagation()}>
+        {next ? (
+          <Button variant="primary" size="sm" icon={NEXT_ICON[bk.status]} onClick={() => onQuickAdvance(bk)}>{NEXT_LABEL[bk.status]}</Button>
+        ) : payPending ? (
+          <Button variant="primary" size="sm" icon="cash" onClick={() => onConfirmPayment(bk)}>Confirmar pago</Button>
+        ) : (
+          <span className="pn-reservas-card-actions-spacer" />
+        )}
+        <IconButton icon="whatsapp" label="Enviar WhatsApp" onClick={() => onWhatsApp(bk)} />
+        <ActionMenu items={menu} label="Más opciones" title={bk.client} small />
+      </div>
+    </div>
+  )
+}
+
+/* Hoja de filtro: estado (con contador, el mismo de las chips de arriba,
+   para quien prefiera un blanco más grande) y barbero solo si hay más de
+   uno. */
+function FilterSheet({ open, onClose, filter, setFilter, countFor, multiBarber, barbers, barberFilter, setBarberFilter }) {
+  return (
+    <Sheet open={open} onClose={onClose} title="Filtrar reservas" icon="filter" size="sm" footer={<Button variant="primary" block onClick={onClose}>Listo</Button>}>
+      <div className="pn-stack is-lg">
+        <Field label="Estado">
+          <ChoiceGrid
+            ariaLabel="Estado"
+            value={filter}
+            onChange={setFilter}
+            cols={2}
+            options={FILTERS.map((f) => ({ value: f, label: `${f} (${countFor(f)})` }))}
+          />
+        </Field>
+        {multiBarber && (
+          <Field label="Barbero">
+            <ChoiceGrid
+              ariaLabel="Barbero"
+              value={String(barberFilter)}
+              onChange={setBarberFilter}
+              cols={2}
+              options={[{ value: 'all', label: 'Todos' }, ...barbers.filter((b) => b.active !== false).map((b) => ({ value: String(b.id), label: b.name }))]}
+            />
+          </Field>
         )}
       </div>
-      <div className="psn-res-foot">
-        <select
-          className={`psn-res-status ${cls}`}
-          value={bk.status}
-          onChange={(e) => onStatusSelect(bk, e.target.value)}
-          aria-label="Cambiar estado"
-        >
-          {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{STATUS_LABEL[s]}</option>)}
-        </select>
-        <button type="button" className="btn btn-dark btn-sm psn-res-detail" onClick={() => onOpen(bk)}>
-          Ver detalles <Icon name="arrowRight" size={13} />
-        </button>
-      </div>
-    </div>
+    </Sheet>
   )
 }
 
-/* Modal de gestión de la reserva (responsive). */
-function ResModal({ bk, barbers, isAdmin, onClose, onStatus, onReschedule, onCancel, onAskDelete, prevStatus }) {
-  useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onClose])
-  if (!bk) return null
-  const barber = resolveBarber(bk, barbers)
-  const short = barber?.short || barber?.name || 'Barbero'
-  const cls = String(bk.status).replace(' ', '-')
-  const waStatus = bk.status === 'cancelada' ? 'cancelada' : bk.status === 'pendiente' ? 'default' : bk.status
-  return createPortal((
-    <div className="psn-modal" role="dialog" aria-modal="true">
-      <button className="psn-scrim" aria-label="Cerrar" onClick={onClose} />
-      <div className="psn-modal-card psn-res-modal">
-        <button className="psn-close" onClick={onClose} aria-label="Cerrar"><Icon name="close" size={17} /></button>
-        <span className={`psn-res-badge ${cls}`}>{STATUS_LABEL[bk.status] || bk.status}</span>
-        <h3 className="font-display">{bk.client}</h3>
-        <p className="psn-role"><Icon name="clock" size={13} /> {bk.time} · {bk.date}</p>
-
-        <div className="psn-res-meta psn-res-modal-meta">
-          <div className="psn-res-row"><span>Servicio</span><b>{bk.service}</b></div>
-          {isAdmin && <div className="psn-res-row"><span>Barbero</span><b>{short}</b></div>}
-          <div className="psn-res-row"><span>Teléfono</span><b>+56 {bk.phone || '—'}</b></div>
-          <div className="psn-res-row"><span>Total</span><b className="gold-text">{CLP(bk.price)}</b></div>
-        </div>
-
-        <div className="psn-actions">
-          {bk.status === 'pendiente' && (
-            <button className="btn btn-gold btn-block" onClick={() => onStatus(bk, 'confirmada')}><Icon name="check" size={16} /> Confirmar reserva</button>
-          )}
-          {bk.status === 'confirmada' && (
-            <button className="btn btn-gold btn-block" onClick={() => onStatus(bk, 'en curso')}><Icon name="scissors" size={16} /> Iniciar atención</button>
-          )}
-          {bk.status === 'en curso' && (
-            <button className="btn btn-gold btn-block" onClick={() => onStatus(bk, 'completada')}><Icon name="check" size={16} /> Completar</button>
-          )}
-
-          <a className="btn btn-wa btn-block" href={waLink(bk, short, waStatus)} target="_blank" rel="noopener noreferrer">
-            <Icon name="whatsapp" size={16} /> Enviar WhatsApp
-          </a>
-
-          {(bk.status === 'pendiente' || bk.status === 'confirmada') && (
-            <button className="btn btn-dark btn-block" onClick={() => { onReschedule && onReschedule(bk); onClose() }}>
-              <Icon name="reschedule" size={16} /> Reagendar
-            </button>
-          )}
-
-          {bk.status === 'cancelada' ? (
-            <button className="btn btn-dark btn-block" onClick={() => onStatus(bk, prevStatus || 'pendiente')}>
-              <Icon name="reschedule" size={16} /> Revertir cancelación
-            </button>
-          ) : bk.status !== 'completada' ? (
-            <button className="btn btn-danger btn-block" onClick={() => { onCancel(bk); onClose() }}>
-              <Icon name="x" size={16} /> Cancelar reserva
-            </button>
-          ) : null}
-
-          <button className="btn btn-ghost btn-block psn-res-delete" onClick={() => onAskDelete(bk)}>
-            <Icon name="trash" size={15} /> Eliminar reserva definitivamente
-          </button>
-        </div>
-      </div>
-    </div>
-  ), document.body)
-}
-
-/* Popup de confirmación de eliminación definitiva (única acción irreversible: se mantiene el confirm). */
-function ConfirmDelete({ bk, onClose, onConfirm }) {
-  if (!bk) return null
-  return createPortal((
-    <div className="psn-modal psn-modal-top" role="alertdialog" aria-modal="true">
-      <button className="psn-scrim" aria-label="Cerrar" onClick={onClose} />
-      <div className="psn-modal-card psn-confirm">
-        <span className="psn-confirm-ic"><Icon name="trash" size={22} /></span>
-        <h3 className="font-display">¿Eliminar esta reserva?</h3>
-        <p>Vas a borrar por completo la hora de <b>{bk.client}</b> ({bk.time} · {bk.date}). Esta acción no se puede deshacer.</p>
-        <div className="psn-confirm-actions">
-          <button className="btn btn-ghost btn-block" onClick={onClose}>Volver</button>
-          <button className="btn btn-danger btn-block" onClick={() => onConfirm(bk)}><Icon name="trash" size={15} /> Sí, eliminar</button>
-        </div>
-      </div>
-    </div>
-  ), document.body)
-}
-
-/* Toast de deshacer (cancelación es reversible: feedback en vez de confirmación previa). */
-function UndoToast({ toast, onUndo }) {
+/* Aviso con "Deshacer" (cancelar y "No vino" son reversibles: la acción
+   rápida de la tarjeta avisa en vez de pedir confirmación; la hoja de
+   detalle sí confirma, por ser la vía "deliberada"). Ofrece además avisarle
+   al cliente por WhatsApp con el mensaje ya escrito. */
+function UndoToast({ toast, onUndo, onClose }) {
   if (!toast) return null
   return createPortal((
-    <div className="psn-toast" role="status">
+    <div className="pn-reservas-toast" role="status">
       <span>{toast.message}</span>
-      <button type="button" onClick={onUndo}>Deshacer</button>
-    </div>
-  ), document.body)
-}
-
-/* Anillo de ocupación (donut SVG). */
-function OccRing({ pct }) {
-  const p = Math.max(0, Math.min(100, Math.round(pct)))
-  const r = 18
-  const c = 2 * Math.PI * r
-  return (
-    <svg className="psn-ring" viewBox="0 0 44 44" width="44" height="44" aria-hidden="true">
-      <circle cx="22" cy="22" r={r} className="psn-ring-bg" />
-      <circle cx="22" cy="22" r={r} className="psn-ring-fg"
-        strokeDasharray={c} strokeDashoffset={c * (1 - p / 100)} transform="rotate(-90 22 22)" />
-      <text x="22" y="22" className="psn-ring-txt" dominantBaseline="central" textAnchor="middle">{p}%</text>
-    </svg>
-  )
-}
-
-/* Modal calendario: ventana de 4 semanas con conteo de reservas por día.
-   Las flechas corren la ventana hacia atrás/adelante, para poder llegar a
-   reservas de semanas ya pasadas. */
-function CalendarModal({ onClose, countsByDay, selectedDay, todayKey, onPick, onEnsureRange }) {
-  const [base, setBase] = useState(0)
-  const [loading, setLoading] = useState(false)
-  const weeks = [0, 1, 2, 3].map((o) => buildWeek(base + o))
-  const dows = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
-  const rangeLabel = `${weeks[0][0].label} — ${weeks[3][6].label}`
-
-  // Los badges cuentan sobre las reservas que hay EN MEMORIA, así que al
-  // paginar hacia atrás salían todos en cero: el día tenía reservas, pero
-  // nadie las había pedido todavía. Acá se piden las de la ventana visible.
-  // Se pide SEMANA POR SEMANA (y no el rango de 4 de una) a propósito: así
-  // usa las mismas claves de caché que las flechas de semana, y una semana
-  // ya vista por cualquiera de los dos caminos no se vuelve a pedir.
-  useEffect(() => {
-    const pending = weeks
-      .map((w) => onEnsureRange?.(w[0].key, w[6].key))
-      .filter((p) => p && typeof p.then === 'function')
-    if (!pending.length) return
-    let alive = true
-    setLoading(true)
-    Promise.all(pending).finally(() => { if (alive) setLoading(false) })
-    return () => { alive = false }
-  }, [base])
-
-  return createPortal((
-    <div className="psn-modal" role="dialog" aria-modal="true">
-      <button className="psn-scrim" aria-label="Cerrar" onClick={onClose} />
-      <div className="psn-modal-card psn-cal">
-        <button className="psn-close" onClick={onClose} aria-label="Cerrar"><Icon name="close" size={17} /></button>
-        <h3 className="font-display">Calendario de reservas</h3>
-        <p className="psn-role">Toca un día para ver su agenda</p>
-        <div className="psn-cal-nav">
-          <button type="button" className="btn btn-dark btn-sm" onClick={() => setBase((b) => b - 4)} aria-label="Semanas anteriores"><Icon name="arrowLeft" size={13} /></button>
-          <span>{rangeLabel}{loading && <em className="psn-cal-loading"> · cargando…</em>}</span>
-          <button type="button" className="btn btn-dark btn-sm" onClick={() => setBase((b) => b + 4)} aria-label="Semanas siguientes"><Icon name="arrowRight" size={13} /></button>
-        </div>
-        <div className="psn-cal-head">{dows.map((d) => <span key={d}>{d}</span>)}</div>
-        <div className="psn-cal-grid">
-          {weeks.flat().map((d) => {
-            const n = countsByDay[d.key] || 0
-            const cls = [
-              'psn-cal-day',
-              d.key === selectedDay && 'is-sel',
-              d.key === todayKey && 'is-today',
-              n > 0 && 'has-res',
-            ].filter(Boolean).join(' ')
-            return (
-              <button key={d.key} className={cls} onClick={() => onPick(d.key)}>
-                <span className="psn-cal-num">{d.num}</span>
-                {n > 0 && <span className="psn-cal-badge">{n}</span>}
-              </button>
-            )
-          })}
-        </div>
+      <div className="pn-reservas-toast-actions">
+        {toast.waHref && (
+          <a href={toast.waHref} target="_blank" rel="noopener noreferrer"><Icon name="whatsapp" size={13} /> Avisar</a>
+        )}
+        {toast.prev ? (
+          <button type="button" onClick={onUndo}>Deshacer</button>
+        ) : (
+          <button type="button" onClick={onClose} aria-label="Cerrar aviso">OK</button>
+        )}
       </div>
     </div>
   ), document.body)
 }
 
-export default function BookingsInbox({ bookings = [], barbers = [], barber, admin = false, slotsPerDay = 14, onStatus = () => {}, onDelete = () => {}, onReschedule, onNewBooking, onEnsureRange, rangeEpoch = 0, focus }) {
+export default function BookingsInbox({
+  bookings = [], barbers = [], barber, admin = false, teamScope, isAdmin, clients = [],
+  onStatus = () => {}, onDelete = () => {}, onReschedule, onRedeemFreeCut, onEditPrice, onNewBooking,
+  onEnsureRange, rangeEpoch = 0, focus, onSellProducts, ctx,
+}) {
+  const isPhone = useIsPhone()
+  const seeAll = teamScope ?? admin
+  const canEditPrice = Boolean(isAdmin ?? admin)
   const [filter, setFilter] = useState('Todas')
   const [dateScope, setDateScope] = useState('dia')
-  const [viewMode, setViewMode] = useState(() => {
-    try { return localStorage.getItem('ps_res_view') === 'lista' ? 'lista' : 'cards' } catch { return 'cards' }
-  })
   const [barberFilter, setBarberFilter] = useState('all')
   const [query, setQuery] = useState('')
+  const [searchOpen, setSearchOpen] = useState(false)
+  const [filterOpen, setFilterOpen] = useState(false)
   const [detailId, setDetailId] = useState(null)
-  const [deleteTarget, setDeleteTarget] = useState(null)
   const [toast, setToast] = useState(null)
   const prevStatus = useRef({})
   const toastTimer = useRef(null)
+  // Celular: tarjetas de partida; la lista es una preferencia secundaria.
+  // En escritorio siempre tarjetas, sin selector.
+  const [cardsView, setCardsView] = useStoredFlag('pn_reservas_cards', initialCardsView)
+  const [reschedulingBk, setReschedulingBk] = useState(null)
 
   const [weekOffset, setWeekOffset] = useState(0)
   const [selectedDay, setSelectedDay] = useState(() => isoDate())
   const [calOpen, setCalOpen] = useState(false)
-  const [slideKey, setSlideKey] = useState(0) // re-dispara animate-in al cambiar de día
-  const touchX = useRef(null)
+  const [slideKey, setSlideKey] = useState(0) // re-dispara la animación al cambiar de día
 
-  useEffect(() => { try { localStorage.setItem('ps_res_view', viewMode) } catch {} }, [viewMode])
   useEffect(() => () => clearTimeout(toastTimer.current), [])
 
   const todayKey = isoDate()
-  const idOf = (b) => b.id ?? `${b.barberId}-${b.time}`
+  // Mismo identificador que usa la hoja de detalle (bookingUid, data.js):
+  // un String, así que el deep-link (?bookingId=) se compara como String.
+  const idOf = (b) => bookingUid(b)
   const multiBarber = barbers.length > 1
   const searching = query.trim().length > 0
+  const byBarber = (list) => (seeAll && multiBarber && barberFilter !== 'all'
+    ? list.filter((b) => Number(b.barberId) === Number(barberFilter))
+    : list)
 
-  // Alcance base: admin ve a todos; barbero ve solo lo suyo (cualquier fecha,
-  // para poder navegar por días). El recorte por día se hace más abajo.
+  // Alcance base: el admin ve todas; un barbero, solo las suyas (cualquier
+  // fecha, para poder navegar por días). El recorte por día va más abajo.
   const mine = useMemo(() => (
-    admin ? bookings : bookings.filter((b) => Number(b.barberId) === Number(barber?.id))
-  ), [bookings, admin, barber])
+    seeAll ? bookings : bookings.filter((b) => Number(b.barberId) === Number(barber?.id))
+  ), [bookings, seeAll, barber])
 
-  // Conteo de reservas activas por día (badges de la tira y el calendario).
+  // Conteo de reservas activas por día (tira de la semana y calendario).
   const countsByDay = useMemo(() => {
     const m = {}
     for (const b of mine) {
@@ -337,76 +260,39 @@ export default function BookingsInbox({ bookings = [], barbers = [], barber, adm
   const weekDays = useMemo(() => buildWeek(weekOffset), [weekOffset])
   const weekKeys = useMemo(() => weekDays.map((d) => d.key), [weekDays])
 
-  // Al navegar a una semana pasada, pide sus reservas por rango: pueden no
-  // estar entre las últimas 160 que carga el Dashboard al abrir. rangeEpoch
-  // cambia tras una recarga manual, que reemplaza la lista por esas 160: sin
-  // volver a pedir, la semana pasada que se está viendo quedaría vacía.
-  useEffect(() => { onEnsureRange?.(weekKeys[0], weekKeys[6]) }, [weekKeys, rangeEpoch])
+  // Al navegar a una semana pasada se piden sus reservas por rango: pueden
+  // no estar entre las últimas que el panel carga al abrir. rangeEpoch cambia
+  // tras una recarga manual (que reemplaza la lista): sin volver a pedir, la
+  // semana pasada que se está viendo quedaría vacía.
+  useEffect(() => { onEnsureRange?.(weekKeys[0], weekKeys[6]) }, [weekKeys, rangeEpoch]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Reservas del día seleccionado (con filtro de barbero en multi-barbero). Es
-  // la base de los KPIs del hero, que siempre hablan del día, sin importar el
-  // rango de fechas elegido para la lista de abajo.
-  const dayBookings = useMemo(() => {
-    let list = mine.filter((b) => b.date === selectedDay)
-    if (admin && multiBarber && barberFilter !== 'all') list = list.filter((b) => Number(b.barberId) === Number(barberFilter))
-    return list
-  }, [mine, selectedDay, admin, multiBarber, barberFilter])
-
-  // Rango de fechas rápido (Hoy / Semana / Todas) para la LISTA de reservas
-  // (independiente del día del hero). Con filtro de barbero aplicado.
+  // Rango de fechas rápido (Hoy / Semana / Todas) para la lista.
   const scopeList = useMemo(() => {
     let list = mine
     if (dateScope === 'dia') list = list.filter((b) => b.date === selectedDay)
     else if (dateScope === 'semana') list = list.filter((b) => weekKeys.includes(b.date))
-    if (admin && multiBarber && barberFilter !== 'all') list = list.filter((b) => Number(b.barberId) === Number(barberFilter))
-    return list
-  }, [mine, dateScope, selectedDay, weekKeys, admin, multiBarber, barberFilter])
+    return byBarber(list)
+  }, [mine, dateScope, selectedDay, weekKeys, seeAll, multiBarber, barberFilter]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const scopeCount = (st) => scopeList.filter((b) => b.status === st).length
+  const countFor = (f) => (f === 'Todas'
+    ? scopeList.filter((b) => b.status !== 'cancelada').length
+    : scopeList.filter((b) => b.status === FILTER_MAP[f]).length)
 
-  // Lista visible: búsqueda global (todas las fechas) o el rango elegido.
+  // Lista visible: búsqueda en todas las fechas, o el rango elegido.
   const visible = useMemo(() => {
+    const byTime = (a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`)
     if (searching) {
-      const q = query.toLowerCase()
-      let list = mine.filter((b) => `${b.client || ''} ${b.phone || ''} ${b.service || ''}`.toLowerCase().includes(q))
-      if (admin && multiBarber && barberFilter !== 'all') list = list.filter((b) => Number(b.barberId) === Number(barberFilter))
-      return [...list].sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`))
+      const q = query.trim().toLowerCase()
+      return byBarber(mine.filter((b) => `${b.client || ''} ${b.phone || ''} ${b.service || ''}`.toLowerCase().includes(q))).sort(byTime)
     }
-    let list = scopeList
-    if (filter !== 'Todas') list = list.filter((b) => b.status === FILTER_MAP[filter])
-    else list = list.filter((b) => b.status !== 'cancelada')
-    return [...list].sort((a, b) => `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`))
-  }, [searching, query, mine, scopeList, filter, admin, multiBarber, barberFilter])
+    const list = filter !== 'Todas'
+      ? scopeList.filter((b) => b.status === FILTER_MAP[filter])
+      : scopeList.filter((b) => b.status !== 'cancelada')
+    return [...list].sort(byTime)
+  }, [searching, query, mine, scopeList, filter, seeAll, multiBarber, barberFilter]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // KPIs del día (hero).
-  const count = (st) => dayBookings.filter((b) => b.status === st).length
-  const activeCount = dayBookings.filter((b) => b.status !== 'cancelada').length
-  const dayTotal = dayBookings.filter((b) => b.status !== 'cancelada').reduce((s, b) => s + Number(b.price || 0), 0)
-  const occPct = slotsPerDay ? (activeCount / slotsPerDay) * 100 : 0
-
-  // Próxima cita: primera no cancelada/completada; si es hoy, la primera cuya hora no pasó.
-  const now = new Date()
-  const nowMin = now.getHours() * 60 + now.getMinutes()
+  // Resumen de la semana visible (subtítulo del encabezado).
   const isToday = selectedDay === todayKey
-  const nextAppt = useMemo(() => {
-    const pool = dayBookings
-      .filter((b) => b.status !== 'cancelada' && b.status !== 'completada')
-      .sort((a, b) => String(a.time).localeCompare(String(b.time)))
-    if (!isToday) return pool[0] || null
-    return pool.find((b) => {
-      const [h, m] = String(b.time).split(':').map(Number)
-      return (h * 60 + m) >= nowMin
-    }) || null
-  }, [dayBookings, isToday, nowMin])
-  const nextEta = (() => {
-    if (!nextAppt || !isToday) return ''
-    const [h, m] = String(nextAppt.time).split(':').map(Number)
-    const diff = (h * 60 + m) - nowMin
-    if (diff <= 0) return 'ahora'
-    return diff >= 60 ? `en ${Math.floor(diff / 60)}h ${diff % 60}m` : `en ${diff}m`
-  })()
-
-  // KPIs de la semana visible.
   const weekCount = weekKeys.reduce((s, k) => s + (countsByDay[k] || 0), 0)
   const weekLabel = weekOffset === 0 ? 'esta semana'
     : weekOffset === 1 ? 'la próx. semana'
@@ -417,7 +303,8 @@ export default function BookingsInbox({ bookings = [], barbers = [], barber, adm
     .filter((b) => b.status !== 'cancelada' && weekKeys.includes(b.date))
     .reduce((s, b) => s + Number(b.price || 0), 0)
 
-  // La reserva del modal se resuelve en vivo desde props para reflejar cambios.
+  // La reserva del detalle se resuelve en vivo desde props, para reflejar
+  // cada cambio (y para abrirse sola cuando llega la de un deep-link).
   const detailBk = detailId != null ? bookings.find((b) => idOf(b) === detailId) || null : null
 
   // --- Navegación de días -------------------------------------------------
@@ -425,7 +312,10 @@ export default function BookingsInbox({ bookings = [], barbers = [], barber, adm
   const goToWeek = (offset) => {
     setWeekOffset(offset)
     const wd = buildWeek(offset)
-    if (!wd.some((d) => d.key === selectedDay)) selectDay(wd[0].key)
+    if (!wd.some((d) => d.key === selectedDay)) {
+      setSelectedDay(wd[0].key)
+      setSlideKey((k) => k + 1)
+    }
   }
   const shiftDay = (delta) => {
     const d = new Date(`${selectedDay}T00:00:00`)
@@ -434,254 +324,364 @@ export default function BookingsInbox({ bookings = [], barbers = [], barber, adm
     selectDay(key)
     if (!weekDays.some((x) => x.key === key)) setWeekOffset((o) => o + (delta > 0 ? 1 : -1))
   }
+  const goHoy = () => { setDateScope('dia'); selectDay(todayKey); setWeekOffset(0) }
   const pickFromCalendar = (key) => {
     selectDay(key)
-    setCalOpen(false)
-    // Offset real por diferencia de lunes (mismo cálculo que el foco externo):
-    // el calendario ahora navega a cualquier fecha, también semanas pasadas.
-    const mondayOf = (iso) => {
-      const d = new Date(`${iso}T00:00:00`)
-      const dow = d.getDay() || 7
-      d.setDate(d.getDate() - dow + 1)
-      d.setHours(0, 0, 0, 0)
-      return d
-    }
-    setWeekOffset(Math.round((mondayOf(key) - mondayOf(isoDate())) / (7 * 86400000)))
+    setWeekOffset(weekOffsetOf(key))
   }
 
-  // Foco externo (desde la búsqueda global): salta a una fecha ARBITRARIA.
-  // pickFromCalendar sólo escanea −1..+4 semanas, así que aquí calculamos el
-  // weekOffset real por diferencia de lunes. `ts` re-dispara focos repetidos.
+  /* El calendario pide las reservas del mes visible SEMANA POR SEMANA (y no
+     el mes de una): así usa las mismas claves de caché que las flechas de
+     semana, y una semana ya vista por cualquiera de los dos caminos no se
+     vuelve a pedir. Devuelve la promesa solo si algo fue a la red, para que
+     el calendario muestre "cargando…" nada más cuando corresponde. */
+  const ensureMonth = (fromKey, toKey) => {
+    if (!onEnsureRange) return undefined
+    const pending = []
+    const start = mondayOf(fromKey)
+    const end = new Date(`${toKey}T00:00:00`)
+    for (const d = new Date(start); d <= end; d.setDate(d.getDate() + 7)) {
+      const sunday = new Date(d)
+      sunday.setDate(d.getDate() + 6)
+      const p = onEnsureRange(isoDate(d), isoDate(sunday))
+      if (p && typeof p.then === 'function') pending.push(p)
+    }
+    return pending.length ? Promise.all(pending) : undefined
+  }
+
+  // Foco externo (búsqueda global, Resumen, notificación push o la campana):
+  // salta a una fecha ARBITRARIA. `ts` re-dispara focos repetidos.
   useEffect(() => {
     if (!focus?.day) return
-    const mondayOf = (iso) => {
-      const d = new Date(`${iso}T00:00:00`)
-      const dow = d.getDay() || 7
-      d.setDate(d.getDate() - dow + 1)
-      d.setHours(0, 0, 0, 0)
-      return d
-    }
-    const diffWeeks = Math.round((mondayOf(focus.day) - mondayOf(isoDate())) / (7 * 86400000))
-    setWeekOffset(diffWeeks)
+    setWeekOffset(weekOffsetOf(focus.day))
     setSelectedDay(focus.day)
     setDateScope(focus.scope || 'dia')
     if (focus.filter) setFilter(focus.filter)
     setSlideKey((k) => k + 1)
-    setQuery('')
-    // Deep-link a una reserva puntual (notificación push / popup de campana):
-    // abre directo su modal de detalle, además de ubicar el día/filtro.
-    if (focus.bookingId != null) setDetailId(Number(focus.bookingId))
-  }, [focus?.day, focus?.ts])
+    setQuery(''); setSearchOpen(false)
+    // Deep-link a una reserva puntual: idOf devuelve un String, así que el
+    // id de la URL (que llega como número) se compara como String.
+    if (focus.bookingId != null) setDetailId(String(focus.bookingId))
+  }, [focus?.day, focus?.ts]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // --- Swipe (móvil): cambia de día ---------------------------------------
-  const onTouchStart = (e) => { touchX.current = e.touches[0].clientX }
-  const onTouchEnd = (e) => {
-    if (searching || touchX.current == null) return
-    const dx = e.changedTouches[0].clientX - touchX.current
-    touchX.current = null
-    if (Math.abs(dx) > 50) shiftDay(dx < 0 ? 1 : -1)
+  // --- Deslizar (celular): cambia de día, en tarjetas y en lista por igual ---
+  // Con el mouse, soltar un arrastre encima de una tarjeta también dispara
+  // su click (y framer-motion avisa el fin del arrastre recién en el cuadro
+  // siguiente): mientras se arrastra, y un instante después, no se abre el
+  // detalle.
+  const swipe = useRef({ active: false, at: 0 })
+  const handleDaySwipeStart = () => { swipe.current = { active: true, at: Date.now() } }
+  const handleDaySwipeEnd = (_event, info) => {
+    swipe.current = { active: false, at: Date.now() }
+    if (searching || dateScope !== 'dia') return
+    const { offset, velocity } = info
+    if (Math.abs(offset.x) > 60 || Math.abs(velocity.x) > 500) shiftDay(offset.x < 0 ? 1 : -1)
   }
 
-  // Estado ↔ filtro (tarjetas KPI clickables).
-  const toggleStatusFilter = (status) => {
-    const f = STATUS_TO_FILTER[status]
-    setFilter((cur) => (cur === f ? 'Todas' : f))
-    setQuery('')
-  }
+  // Estrellas del cliente de una reserva: se cruzan por teléfono con la
+  // lista de clientes que el panel ya tiene (mismo dato que
+  // ctx.loyaltyForBooking), sin pedirle nada extra a la API.
+  const loyaltyByPhone = useMemo(() => {
+    const m = new Map()
+    for (const c of clients) {
+      if (c.loyalty && c.phone) m.set(cleanPhone(c.phone), c.loyalty)
+    }
+    return m
+  }, [clients])
+  const loyaltyOf = (bk) => (bk?.phone ? loyaltyByPhone.get(cleanPhone(bk.phone)) || null : null)
 
-  // Cancelación: reversible → feedback con deshacer, sin diálogo de confirmación previo.
+  const showToast = (next, ms = 15000) => {
+    clearTimeout(toastTimer.current)
+    setToast(next)
+    toastTimer.current = setTimeout(() => setToast(null), ms)
+  }
+  const closeToast = () => { clearTimeout(toastTimer.current); setToast(null) }
+
+  // Cancelar: reversible → aviso con "Deshacer", sin confirmación previa (la
+  // hoja de detalle sí confirma, por el "···").
   const cancelWithUndo = (bk) => {
     const prev = bk.status === 'cancelada' ? 'pendiente' : bk.status
     prevStatus.current[idOf(bk)] = prev
     onStatus(bk, 'cancelada')
-    clearTimeout(toastTimer.current)
-    setToast({ id: idOf(bk), prev, message: `Reserva de ${bk.client} cancelada` })
-    toastTimer.current = setTimeout(() => setToast(null), 8000)
+    showToast({
+      id: idOf(bk),
+      prev,
+      message: `Reserva de ${bk.client} cancelada`,
+      waHref: waHref(bk.phone, waMessages.cancelada(bk)),
+    })
+  }
+
+  // "No vino": cancelada + no_show (no es un estado nuevo). Va por
+  // ctx.updateBookingStatus porque onStatus solo lleva (reserva, estado).
+  const markNoShow = (bk) => (ctx?.updateBookingStatus
+    ? ctx.updateBookingStatus(bk, 'cancelada', { noShow: true })
+    : onStatus(bk, 'cancelada', { noShow: true }))
+  const noShowWithUndo = async (bk) => {
+    const prev = bk.status
+    prevStatus.current[idOf(bk)] = prev
+    showToast({ id: idOf(bk), prev, message: `Reserva de ${bk.client} marcada como «No vino»` })
+    const result = await markNoShow(bk)
+    if (result?.error) {
+      closeToast()
+      ctx?.pushToast?.('⚠️', result.error, 6000)
+    }
+    return result
+  }
+
+  // Reagendar: persiste vía PATCH y, si sale bien, ofrece el WhatsApp con el
+  // horario NUEVO para que el cliente confirme el cambio. Es el `onSubmit`
+  // que usan la hoja de detalle y el "···" de la tarjeta.
+  const submitReschedule = async (bk, patch) => {
+    if (!onReschedule) return { error: 'Reagendar no está disponible.' }
+    const result = await onReschedule(bk, patch)
+    if (result?.error) return result
+    const nextBarber = multiBarber ? barbers.find((x) => Number(x.id) === Number(patch.barberId)) : null
+    showToast({
+      id: idOf(bk),
+      message: `Hora de ${bk.client} movida al ${fmtDate(patch.date, 'short')} a las ${patch.time}`,
+      waHref: waHref(bk.phone, waRescheduledMessage({
+        client: bk.client, date: patch.date, time: patch.time,
+        barber: nextBarber ? (nextBarber.short || nextBarber.name) : undefined,
+      })),
+    })
+    return result
   }
   const undoToast = () => {
     if (!toast) return
-    const bk = bookings.find((b) => idOf(b) === toast.id)
-    if (bk) onStatus(bk, toast.prev)
-    clearTimeout(toastTimer.current)
-    setToast(null)
+    // El aviso de reagendar no trae `prev`: ahí no hay nada que deshacer.
+    if (toast.prev) {
+      const bk = bookings.find((b) => idOf(b) === toast.id)
+      if (bk) onStatus(bk, toast.prev)
+    }
+    closeToast()
   }
-  const onStatusSelect = (bk, value) => {
-    if (value === bk.status) return
-    if (value === 'cancelada') { cancelWithUndo(bk); return }
-    onStatus(bk, value)
-  }
+  // Avanzar con un toque. "en curso" → completada abre la hoja de cobro
+  // (ctx.updateBookingStatus → askForCharge); la estrella la avisa el panel.
   const onQuickAdvance = (bk) => { const next = NEXT_STATUS[bk.status]; if (next) onStatus(bk, next) }
-  const confirmDelete = (bk) => {
+  // Pago de una atención que se completó sola: la hoja de cobro en modo
+  // 'confirmar' (confirmAutoPayment, compartida con "Sin cerrar" y Caja).
+  const confirmPayment = async (bk) => {
+    if (!ctx) return
+    const result = await confirmAutoPayment(ctx, bk)
+    if (result?.error) ctx.pushToast?.('⚠️', result.error, 6000)
+  }
+  const confirmDeleteAndClose = (bk) => {
     onDelete(bk)
-    setDeleteTarget(null)
     if (detailId != null && idOf(bk) === detailId) setDetailId(null)
   }
+  const sendWallet = (bk) => ctx?.sendWalletCard?.({ phone: bk.phone, name: bk.client })
+  // WhatsApp de la tarjeta/fila: mensaje según el estado (textos de Brunetti,
+  // src/whatsapp.js).
+  const openWhatsApp = (bk) => {
+    const situation = bk.status === 'pendiente' ? 'default' : bk.status
+    const href = waHref(bk.phone, (waMessages[situation] || waMessages.default)(bk, barberShortOf(bk, barbers)))
+    if (href) window.open(href, '_blank', 'noopener,noreferrer')
+  }
+  const openDetail = (bk) => {
+    // (un "arrastrando" de más de 3 s se da por perdido: el div pudo
+    // desmontarse sin avisar el fin)
+    const since = Date.now() - swipe.current.at
+    if (since < (swipe.current.active ? 3000 : 250)) return
+    setDetailId(idOf(bk))
+  }
+  const menuFor = (bk, withWhatsApp) => rowMenuItems(bk, {
+    withWhatsApp,
+    reschedulable: Boolean(onReschedule) && (bk.status === 'pendiente' || bk.status === 'confirmada'),
+    walletSending: ctx?.walletSendingId != null && ctx.walletSendingId === bk.phone,
+    onWhatsApp: openWhatsApp,
+    onSendWallet: sendWallet,
+    onReschedule: setReschedulingBk,
+    onNoShow: noShowWithUndo,
+    onQuickCancel: cancelWithUndo,
+  })
 
-  const DOW_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
-  const selLabel = weekDays.find((d) => d.key === selectedDay)?.label
-    || (() => { const d = new Date(`${selectedDay}T00:00:00`); return `${DOW_SHORT[d.getDay()]} ${d.getDate()}` })()
-
-  const scopeLabel = dateScope === 'semana' ? 'la semana' : dateScope === 'todas' ? 'todas las fechas' : null
+  // " para hoy", " para el martes 29 de septiembre", " esta semana" o nada.
+  const whenText = dateScope === 'semana' ? ` ${weekLabel}`
+    : dateScope === 'todas' ? ''
+    : isToday ? ' para hoy' : ` para el ${fmtDate(selectedDay, 'long')}`
+  const showBarber = seeAll && multiBarber
+  // Con más de un día en pantalla (Semana, Todas o una búsqueda) cada
+  // reserva lleva su fecha; en "Hoy" sobra.
+  const showDate = searching || dateScope !== 'dia'
+  const closeSearch = () => { setQuery(''); setSearchOpen(false) }
+  const emptyTitle = searching
+    ? `Sin resultados para "${query.trim()}"`
+    : `Sin reservas${filter !== 'Todas' ? ` ${filter.toLowerCase()}` : ''}${whenText}.`
 
   return (
-    <div className="animate-in psn-inbox">
-      <div className="psn-mod-head">
-        <div>
-          <h2 className="font-display">Reservas recibidas</h2>
-          <p>{admin ? (multiBarber ? 'Vista administrador · agenda de todos' : 'Agenda de Brunetti') : `Tu agenda · ${barber?.name || 'Barbero'}`}</p>
-        </div>
-        <span className="chip chip-gold"><Icon name="bell" size={13} /> {count('pendiente')} por confirmar</span>
-      </div>
+    <div className="pn-page pn-reservas">
+      <ModuleHeader
+        title="Reservas"
+        subtitle={`${weekCount} ${weekCount === 1 ? 'reserva' : 'reservas'} ${weekLabel} · ${CLP(weekRevenue)}`}
+        primary={onNewBooking ? { label: 'Reserva', icon: 'plus', onClick: onNewBooking } : undefined}
+        actions={[
+          { label: 'Calendario', icon: 'calendar', onClick: () => setCalOpen(true) },
+          isPhone && { label: cardsView ? 'Ver como lista' : 'Ver como tarjetas', icon: cardsView ? 'list' : 'grid', onClick: () => setCardsView(!cardsView) },
+        ].filter(Boolean)}
+      />
 
-      {/* HERO de KPIs (siempre habla del día seleccionado) */}
-      <div className="psn-hero">
-        <div className="psn-hk psn-hk-next">
-          <span className="psn-hk-lbl"><Icon name="clock" size={12} /> Próxima cita {isToday ? '· hoy' : `· ${selLabel}`}</span>
-          {nextAppt ? (
-            <>
-              <b className="psn-hk-time">{nextAppt.time}{nextEta && <em>{nextEta}</em>}</b>
-              <span className="psn-hk-sub">{nextAppt.client} · {nextAppt.service}</span>
-            </>
-          ) : <span className="psn-hk-empty">Sin próximas citas</span>}
-        </div>
-
-        <div className="psn-hk psn-hk-occ">
-          <OccRing pct={occPct} />
-          <div><b>{activeCount}/{slotsPerDay}</b><span>Ocupación del día</span></div>
-        </div>
-
-        <button type="button" className={`psn-hk psn-hk-state pendiente ${filter === 'Pendientes' ? 'is-on' : ''}`} onClick={() => toggleStatusFilter('pendiente')}>
-          <b>{count('pendiente')}</b><span>Pendientes</span>
-        </button>
-        <button type="button" className={`psn-hk psn-hk-state confirmada ${filter === 'Confirmadas' ? 'is-on' : ''}`} onClick={() => toggleStatusFilter('confirmada')}>
-          <b>{count('confirmada')}</b><span>Confirmadas</span>
-        </button>
-        <button type="button" className={`psn-hk psn-hk-state en-curso ${filter === 'En curso' ? 'is-on' : ''}`} onClick={() => toggleStatusFilter('en curso')}>
-          <b>{count('en curso')}</b><span>En curso</span>
-        </button>
-
-        <div className="psn-hk psn-hk-total">
-          <b className="gold-text">{CLP(dayTotal)}</b><span>Total del día</span>
-        </div>
-      </div>
-
-      {/* VISOR DE SEMANA (oculto durante la búsqueda global) */}
-      {!searching && <div className="psn-week">
-        <div className="psn-week-head">
-          <div className="psn-seg" role="group" aria-label="Rango de fechas">
-            {SCOPES.map(([key, label]) => (
-              <button key={key} type="button" className={dateScope === key ? 'is-on' : ''} onClick={() => setDateScope(key)}>{label}</button>
-            ))}
-          </div>
-          {dateScope !== 'todas' && (
-            <div className="psn-week-toggle">
-              {/* Flechas sin tope hacia atrás: también hay que poder revisar
-                  (y cancelar) reservas de semanas ya pasadas. */}
-              <button type="button" className="btn btn-dark btn-sm" onClick={() => goToWeek(weekOffset - 1)} aria-label="Semana anterior"><Icon name="arrowLeft" size={13} /></button>
-              <button type="button" className={`btn btn-sm ${weekOffset === 0 ? 'btn-gold' : 'btn-dark'}`} onClick={() => goToWeek(0)}>Esta semana</button>
-              <button type="button" className="btn btn-dark btn-sm" onClick={() => goToWeek(weekOffset + 1)} aria-label="Semana siguiente"><Icon name="arrowRight" size={13} /></button>
-              <button type="button" className="btn btn-dark btn-sm psn-cal-btn" onClick={() => setCalOpen(true)}><Icon name="calendar" size={13} /> <span className="btn-label">Calendario</span></button>
-            </div>
-          )}
-          <span className="psn-week-sum">{weekCount} reservas {weekLabel} · <b className="gold-text">{CLP(weekRevenue)}</b></span>
-        </div>
-        {dateScope !== 'todas' && <div className="daypick" role="group" aria-label="Día de la semana">
-          {weekDays.map((d) => {
-            const n = countsByDay[d.key] || 0
-            const isActive = d.key === selectedDay && dateScope === 'dia'
-            const isTdy = d.key === todayKey
-            return (
-              <button key={d.key} type="button" className={`daypick-btn ${isActive ? 'is-active' : ''} ${isTdy ? 'is-today' : ''}`} aria-pressed={isActive} onClick={() => selectDay(d.key)}>
-                <span className="dp-dow">{isTdy ? 'Hoy' : d.dow}</span>
-                <span className="dp-num">{d.num}</span>
-                <span className="dp-ind">{n > 0 && <span className="dp-count">{n}</span>}</span>
-              </button>
-            )
-          })}
-        </div>}
-      </div>}
-
-      {/* TOOLBAR */}
-      <div className="psn-inbox-toolbar">
-        <div className="psn-status-seg" role="group" aria-label="Filtrar por estado">
-          {FILTERS.map((f) => {
-            const n = f === 'Todas' ? scopeList.filter((b) => b.status !== 'cancelada').length : scopeCount(FILTER_MAP[f])
-            return (
-              <button key={f} type="button" className={filter === f && !searching ? 'is-on' : ''} onClick={() => { setFilter(f); setQuery('') }}>
-                {f}<span className="psn-seg-count">{n}</span>
-              </button>
-            )
-          })}
-        </div>
-        {admin && multiBarber && (
-          <select className="psn-barber-filter" value={barberFilter} onChange={(e) => setBarberFilter(e.target.value)}>
-            <option value="all">Todos los barberos</option>
-            {barbers.filter((b) => b.active !== false).map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-          </select>
-        )}
-        <div className="psn-inbox-search">
-          <Icon name="user" size={15} />
-          <input placeholder="Buscar en todas las fechas" value={query} onChange={(e) => setQuery(e.target.value)} />
-          {searching && <button type="button" className="psn-search-clear" onClick={() => setQuery('')} aria-label="Limpiar"><Icon name="close" size={13} /></button>}
-        </div>
-        <div className="psn-view-toggle" role="group" aria-label="Vista">
-          <button type="button" className={viewMode === 'cards' ? 'is-on' : ''} onClick={() => setViewMode('cards')} data-tip="Vista tarjetas" aria-label="Vista tarjetas"><Icon name="grid" size={15} /></button>
-          <button type="button" className={viewMode === 'lista' ? 'is-on' : ''} onClick={() => setViewMode('lista')} data-tip="Vista lista" aria-label="Vista lista"><Icon name="list" size={15} /></button>
-        </div>
-        {onNewBooking && (
-          <button type="button" className="btn btn-gold btn-sm" style={{ display: 'inline-flex', alignItems: 'center', gap: '.4rem' }} onClick={onNewBooking}>
-            <Icon name="calendar" size={14} /> Nueva reserva
-          </button>
-        )}
-      </div>
-
-      {searching && <p className="psn-search-note"><Icon name="user" size={12} /> {visible.length} resultado{visible.length === 1 ? '' : 's'} en todas las fechas</p>}
-      {!searching && scopeLabel && <p className="psn-search-note"><Icon name="calendar" size={12} /> Mostrando reservas de {scopeLabel}</p>}
-
-      {visible.length ? (
-        <div key={slideKey} className={`psn-inbox-grid animate-in ${viewMode === 'lista' ? 'is-list' : ''}`} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
-          {visible.map((bk) => (
-            <ResCard
-              key={idOf(bk)} bk={bk} barbers={barbers} isAdmin={admin && multiBarber}
-              onOpen={(b) => setDetailId(idOf(b))} onStatusSelect={onStatusSelect}
-              onQuickAdvance={onQuickAdvance} onQuickCancel={cancelWithUndo}
+      <Toolbar>
+        {searchOpen ? (
+          <>
+            <SearchField value={query} onChange={setQuery} placeholder="Buscar en todas las fechas" autoFocus className="pn-grow" />
+            <IconButton icon="close" label="Cerrar búsqueda" onClick={closeSearch} />
+          </>
+        ) : (
+          <>
+            <Segmented
+              ariaLabel="Rango de fechas"
+              options={SCOPES.map(([v, l]) => ({ value: v, label: l }))}
+              value={dateScope}
+              onChange={(v) => (v === 'dia' ? goHoy() : setDateScope(v))}
             />
-          ))}
-        </div>
-      ) : (
-        <div className="card psn-empty" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} style={{ padding: '2.5rem', textAlign: 'center', color: 'var(--muted)', display: 'grid', gap: '.9rem', justifyItems: 'center' }}>
-          <span>{searching ? 'Sin resultados para tu búsqueda.' : `Sin reservas para ${isToday && dateScope === 'dia' ? 'hoy' : scopeLabel || selLabel}.`}</span>
-          {!searching && onNewBooking && (
-            <button type="button" className="btn btn-gold btn-sm" onClick={onNewBooking}>
-              <Icon name="calendar" size={14} /> Nueva reserva
-            </button>
-          )}
-        </div>
-      )}
+            <div className="pn-toolbar-spacer" />
+            <IconButton icon="search" label="Buscar" onClick={() => setSearchOpen(true)} />
+            <IconButton icon="filter" label="Filtrar" onClick={() => setFilterOpen(true)} />
+          </>
+        )}
+      </Toolbar>
 
-      {calOpen && (
-        <CalendarModal onClose={() => setCalOpen(false)} countsByDay={countsByDay} selectedDay={selectedDay} todayKey={todayKey} onPick={pickFromCalendar} onEnsureRange={onEnsureRange} />
-      )}
-
-      {detailBk && (
-        <ResModal
-          bk={detailBk}
-          barbers={barbers}
-          isAdmin={admin && multiBarber}
-          onClose={() => setDetailId(null)}
-          onStatus={onStatus}
-          onReschedule={onReschedule}
-          onCancel={cancelWithUndo}
-          onAskDelete={(b) => setDeleteTarget(b)}
-          prevStatus={prevStatus.current[idOf(detailBk)]}
+      {/* Chips de estado con contador: son el KPI de estado y el filtro a la vez. */}
+      {!searching && (
+        <FilterChips
+          ariaLabel="Filtrar por estado"
+          value={filter}
+          onChange={setFilter}
+          options={FILTERS.map((f) => ({ value: f, label: f, count: countFor(f) }))}
         />
       )}
 
-      {deleteTarget && (
-        <ConfirmDelete bk={deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={confirmDelete} />
+      {/* La tira de semana (con sus flechas) solo aparece con "Semana": para
+          "Hoy" no hace falta y para "Todas" no aplica. */}
+      {!searching && dateScope === 'semana' && (
+        <div className="pn-reservas-week">
+          <PeriodNav
+            label={fmtRange(weekKeys[0], weekKeys[6])}
+            sublabel={weekLabel}
+            onPrev={() => goToWeek(weekOffset - 1)}
+            onNext={() => goToWeek(weekOffset + 1)}
+            onLabelClick={() => setCalOpen(true)}
+            prevLabel="Semana anterior"
+            nextLabel="Semana siguiente"
+          />
+          <div className="pn-reservas-daystrip" role="group" aria-label="Día de la semana">
+            {weekDays.map((d) => {
+              const n = countsByDay[d.key] || 0
+              const isActive = d.key === selectedDay
+              const isTdy = d.key === todayKey
+              return (
+                <button key={d.key} type="button" className={cx('pn-reservas-day', isActive && 'is-active', isTdy && 'is-today')} aria-pressed={isActive} onClick={() => selectDay(d.key)}>
+                  <span>{isTdy ? 'Hoy' : d.dow}</span>
+                  <b>{d.num}</b>
+                  <i>{n > 0 ? n : ''}</i>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+      {!searching && dateScope === 'dia' && !isToday && (
+        <p className="pn-muted pn-reservas-note">
+          <Icon name="calendar" size={12} /> Mostrando el {fmtDate(selectedDay, 'long')}.
+          <button type="button" className="pn-reservas-notelink" onClick={goHoy}>Volver a hoy</button>
+        </p>
+      )}
+      {searching && <p className="pn-muted pn-reservas-note"><Icon name="search" size={12} /> {visible.length} resultado{visible.length === 1 ? '' : 's'} en todas las fechas</p>}
+
+      <motion.div
+        key={slideKey}
+        className="pn-reservas-swipe"
+        drag={searching || dateScope !== 'dia' ? false : 'x'}
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={0.5}
+        dragDirectionLock
+        onDragStart={handleDaySwipeStart}
+        onDragEnd={handleDaySwipeEnd}
+      >
+        {visible.length === 0 ? (
+          <EmptyState
+            compact
+            icon={searching ? 'search' : 'calendar'}
+            title={emptyTitle}
+            action={!searching && onNewBooking ? { label: 'Nueva reserva', icon: 'plus', onClick: onNewBooking } : undefined}
+          />
+        ) : isPhone && !cardsView ? (
+          <List>
+            {visible.map((bk) => (
+              <BookingRow
+                key={idOf(bk)} bk={bk} showDate={showDate}
+                onOpen={openDetail} onQuickAdvance={onQuickAdvance} onConfirmPayment={confirmPayment}
+                menu={menuFor(bk, true)}
+              />
+            ))}
+          </List>
+        ) : (
+          <div className={cx('pn-reservas-cards', isPhone && 'is-compact')}>
+            {visible.map((bk) => (
+              <BookingCard
+                key={idOf(bk)} bk={bk} barbers={barbers} showBarber={showBarber} showDate={showDate} loyalty={loyaltyOf(bk)} compact={isPhone}
+                onOpen={openDetail} onQuickAdvance={onQuickAdvance} onConfirmPayment={confirmPayment}
+                onWhatsApp={openWhatsApp} menu={menuFor(bk, false)}
+              />
+            ))}
+          </div>
+        )}
+      </motion.div>
+
+      <CalendarSheet
+        open={calOpen}
+        onClose={() => setCalOpen(false)}
+        value={selectedDay}
+        onChange={pickFromCalendar}
+        counts={countsByDay}
+        onMonthChange={ensureMonth}
+        title="Calendario de reservas"
+        subtitle="Toca un día para ver sus reservas"
+      />
+
+      <FilterSheet
+        open={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        filter={filter}
+        setFilter={setFilter}
+        countFor={countFor}
+        multiBarber={seeAll && multiBarber}
+        barbers={barbers}
+        barberFilter={barberFilter}
+        setBarberFilter={setBarberFilter}
+      />
+
+      <BookingDetailModal
+        booking={detailBk}
+        onClose={() => setDetailId(null)}
+        ctx={ctx}
+        clients={clients}
+        barbers={barbers}
+        canEditPrice={canEditPrice}
+        loyalty={loyaltyOf(detailBk)}
+        prevStatus={detailBk ? prevStatus.current[idOf(detailBk)] : undefined}
+        onStatus={onStatus}
+        onReschedule={onReschedule ? submitReschedule : undefined}
+        onCancel={cancelWithUndo}
+        onNoShow={noShowWithUndo}
+        onDelete={confirmDeleteAndClose}
+        onEditPrice={onEditPrice}
+        onRedeem={onRedeemFreeCut}
+        onSellProducts={onSellProducts}
+      />
+
+      {/* Reagendar rápido desde el "···" de la tarjeta/fila, sin abrir el
+          detalle: misma hoja y mismo onSubmit que usa el detalle. */}
+      {onReschedule && (
+        <RescheduleSheet
+          open={Boolean(reschedulingBk)}
+          booking={reschedulingBk}
+          onClose={() => setReschedulingBk(null)}
+          onSubmit={submitReschedule}
+        />
       )}
 
-      <UndoToast toast={toast} onUndo={undoToast} />
+      <UndoToast toast={toast} onUndo={undoToast} onClose={closeToast} />
     </div>
   )
 }

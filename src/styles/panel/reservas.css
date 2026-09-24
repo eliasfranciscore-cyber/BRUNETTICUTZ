@@ -131,3 +131,35 @@
 
 /* ---- Fila del celular: estado a la izquierda, acción rápida a la derecha ---- */
 .pn-reservas-rowfoot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; min-width: 0; }
+
+/* ---- Brunetti: detalles propios de esta bandeja ---- */
+/* "Volver a hoy" dentro de la nota del día elegido: un enlace de texto, con
+   zona de toque de 44 px (mismo truco que el aviso de deshacer). */
+.pn-reservas-notelink {
+  position: relative;
+  margin-left: 2px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--pn-accent);
+  font-family: var(--font-display);
+  font-size: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+.pn-reservas-notelink::after {
+  content: ""; position: absolute; left: 50%; top: 50%;
+  width: max(100%, 44px); height: 44px; transform: translate(-50%, -50%);
+}
+/* Avisos de la tarjeta (pago por confirmar, corte gratis): en su propia
+   línea, del ancho de su texto. */
+.pn-reservas-card > .pn-chip { justify-self: start; }
+/* Deslizar para cambiar de día también sobre un día vacío. */
+.pn-reservas-swipe { min-height: 96px; touch-action: pan-y; }
+/* Cancelada / "No vino": se ve, pero apagada (mismo criterio que la fila). */
+.pn-reservas-card.is-dim .pn-reservas-card-clienttext b,
+.pn-reservas-card.is-dim .pn-reservas-card-row b { color: var(--pn-text-3); }
+/* Monto cobrado en la hoja de detalle. */
+.pn-reservas-paid { font-family: var(--font-display); font-size: var(--pn-fs-sm); font-weight: 650; color: var(--pn-text); font-variant-numeric: tabular-nums; }
