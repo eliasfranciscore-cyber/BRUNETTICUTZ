@@ -11,7 +11,7 @@ npm run build            # Build for production (outputs to dist/)
 npm run preview          # Serve the production build locally
 ```
 
-> **Note:** `npm run dev` runs Vite only — serverless API functions are NOT available locally. The app falls back to `localStorage` + demo data. For testing backend endpoints, use `npx vercel dev` (requires `.env.local` with DATABASE_URL and PS_SESSION_SECRET).
+> **Note:** `npm run dev` runs Vite only — serverless API functions are NOT available locally. The app falls back to `localStorage` + demo data. For a full backend without touching production data, run `VITE_DEV_MOCKS=1 npm run dev` (or the `dev-mock` launch config) — see [Dev mock](#dev-mock-vite_dev_mocks1) below. `.env.local` holds **production** secrets (Neon prod, Mercado Pago, Resend, Notion, the PimpStudio bridge secret) — never run `npx vercel dev` or the `vercel-dev` launch config against it casually; it hits the real backend.
 
 ## Project Overview
 
@@ -33,15 +33,18 @@ npm run preview          # Serve the production build locally
 - `Home` — Landing page (loaded eagerly, no splitting)
 - `Booking` — Public booking flow
 - `Login` — Account/history view for clients
-- `BarberLogin` — Barber authentication
-- `Dashboard` — Barber panel (reservations, expenses, analytics)
+- `BarberLogin` — Barber authentication (now with "¿Olvidaste tu contraseña?")
+- `ResetPassword` — `/restablecer`, password reset by email (`FEATURES.passwordReset`)
+- `Review` — `/resena`, public post-visit rating (`FEATURES.reviews`)
+- `Dashboard` — Barber panel shell (`src/pages/Dashboard.jsx`); most tabs live in `src/pages/panel/*.jsx` — see [Panel architecture](#panel-architecture)
+- `Essentials`, `EssentialsGracias` — Essentials store and its own Mercado Pago return page (`/essentials/gracias`)
 - `Workshop`, `Cursos`, `EncuentraEstilo` — Marketing pages
 
-**Components:** Organized by function (UI primitives in `ui.jsx`, page-specific in respective folders). Tailwind + custom CSS (`src/styles/`).
+**Components:** Organized by function (UI primitives in `ui.jsx`, page-specific in respective folders, panel kit in `src/components/panel/`). Tailwind + custom CSS (`src/styles/`).
 
 **State management:** Lightweight Zustand-like stores (`bookingsStore.js`, `enrollmentsStore.js`) for local client state. No global Redux.
 
-**Styling:** Tailwind CSS with PostCSS. Base styles in `src/styles/pimp.css` (reusable), page-specific in `brunetti.css`, `workshop.css`, etc.
+**Styling:** Tailwind CSS with PostCSS. Base design-system tokens and public-site styles in `src/styles/pimp.css`, panel-specific extras in `modules.css`, page-specific in `brunetti.css`, `workshop.css`, etc. The panel's own design system is `src/styles/panel.css` + `src/styles/panel/*.css` — see [Panel architecture](#panel-architecture).
 
 #### Backend (Vercel Functions)
 
@@ -52,35 +55,54 @@ Each file in `/api` exports a default handler: `async function handler(req, res)
 - `readSession(req)` — validates token from `Authorization: Bearer <token>` header
 - `requireInternal(req, res, {admin?})` — middleware; returns null + 401/403 if not authenticated
 
-**Key endpoints:**
+**Key endpoints (11 of 12 Serverless Functions — Vercel Hobby plan caps a deployment at 12; see "Cupo de funciones" below):**
 - `/api/auth-login.js` — Barber login (phone + password validation)
-- `/api/auth-barber.js` — Barber authentication checks
-- `/api/bookings.js` — CRUD for reservations (with graceful demo fallback)
-- `/api/services.js` — Menu items
-- `/api/clients.js` — Customer registry (barber view)
-- `/api/expenses.js` — Finance tracking
-- `/api/mp-payments.js` — Mercado Pago Checkout Pro: checkout + webhook handler (Cursos, Workshop, Essentials)
-- `/api/push.js` — Web Push notifications
-- `/api/_email.js` — Booking confirmation email to clients (Resend REST API, no SDK)
-- `/api/_notion.js` — Syncs bookings to a Notion database (REST API, no SDK) so they show up in Notion Calendar
+- `/api/auth-barber.js` — Barber login, `?me=1` profile refresh, account update (name/email/password), password reset request/confirm, DB-backed lockout — see [Auth](#auth)
+- `/api/bookings.js` — CRUD for reservations plus panel-only modes (`unclosed`, `cash`, `sales`, `sale`) and the PimpStudio bridge modes (`bridge-completed`, `bridge-manual`) — see [Booking modes](#booking-modes-apibookingsjs)
+- `/api/services.js` — Menu items (featured, single-day, loyalty-eligible flags)
+- `/api/clients.js` — Customer registry (barber view), `?mode=register` (folded-in `register-client`, see `vercel.json` rewrite below), wallet/loyalty bridge modes, bridge modes for PimpStudio
+- `/api/expenses.js` — Finance tracking, `?kind=all|gasto|ingreso` (default `gasto`, for iOS backward compat)
+- `/api/barbers.js` — Barber CRUD plus `?mode=me|settings|shop-settings|reviews|review` — see [Barbers modes](#barbers-modes-apibarbersjs)
+- `/api/mp-payments.js` — Mercado Pago Checkout Pro: checkout + webhook handler (Cursos, Workshop, Essentials) — see [Mercado Pago Integration](#mercado-pago-integration)
+- `/api/push.js` — Web Push subscriptions, `?job=reminders` (1h reminders + auto-complete), `?job=csp-report` (in-memory rate-limited CSP report sink), `{action:'test'}` (real test push from the panel)
 - `/api/availability.js` — Barber time slots
+- `/api/enrollments.js` — Cursos/Workshop lead capture (free waitlist path; paid path goes through `mp-payments.js`)
+- `/api/_auth.js` — Session creation/validation (HMAC, see [Session Management](#session-management))
+- `/api/_password.js` — PBKDF2 hashing/verification (with legacy SHA-256 fallback) and reset-token generation
+- `/api/_rateLimit.js` — In-memory + DB-backed rate limiting (`login_attempts` table for the login lockout)
+- `/api/_bridge.js` — `isBridgeRequest()` (constant-time secret check) and `normalizePhone()`, shared by every PimpStudio bridge mode; deliberately import-free from the rest of the project to avoid cycles
+- `/api/_schema.js` — Additive, `information_schema`-checked migrations (`ensure*` functions) — see [Migrations](#migrations)
+- `/api/_money.js` — The no-commission money model (`readPayment`, `onlineSales`) — see [Money model](#money-model-no-commission)
+- `/api/_products.js` — Essentials inventory ledger (stock, moves, drift/reconcile) — see [Inventory](#inventory)
+- `/api/_bookingLife.js` — The single loyalty writer, plus review-row creation and the auto-completer — see [Loyalty: single writer](#loyalty-single-writer)
+- `/api/_bookingAudit.js` — Logs rejected/errored booking attempts (surfaced via `?issues=1`)
+- `/api/_email.js` — Transactional email to clients (Resend REST API, no SDK): booking confirmation, reschedule notice, review-thanks
+- `/api/_notion.js` — Syncs bookings to a Notion database (REST API, no SDK) so they show up in Notion Calendar
+- `/api/_loyaltyBridge.js` — Calls PimpStudio's `bridge-*` loyalty/Wallet modes, best-effort
 
-**Graceful degradation:** All endpoints return demo data on database errors so the app remains usable offline.
+**Graceful degradation, corrected:** this is narrower than it sounds. A **public, unauthenticated** GET (no session, e.g. the client booking flow with no phone yet) still falls back to demo data on a database error, so a dropped connection never blank-pages a visitor. But a **session-authenticated** GET (the panel) now returns a plain `500 {ok:false, error:"..."}` on a DB error instead — the barber sees an error banner, never demo rows they could accidentally act on (cancel, charge, etc.). The **PimpStudio bridge** modes never fall back to demo either way: a bad/missing `X-Bridge-Secret` is a `404 {ok:false, error:"No encontrado"}` (indistinguishable from the mode not existing), and a real error is a `500` — inventing a client list or a fake `{ok:true}` booking would make PimpStudio believe fabricated data was real.
 
 #### Database (PostgreSQL)
 
 Schema in `db/schema.sql`:
-- `users` — Clients (phone, name, email)
-- `barbers` — Staff (id, code, password_hash, rating, tier)
-- `services` — Menu (name, price, duration, category)
-- `bookings` — Reservations (client_id, barber_id, service_id, date, time, status)
+- `users` — Clients (phone, name, email, `profession`)
+- `barbers` — Staff (id, code, `password_hash TEXT` — PBKDF2 now, legacy SHA-256 still verified —, `email`, rating, tier)
+- `services` — Menu (name, price, duration, category, `featured`, `only_on_date`, `loyalty_eligible`)
+- `bookings` — Reservations (client_id, barber_id, service_id, date, time, status) plus the money/lifecycle columns from the no-commission model: `no_show`, `started_at`, `auto_completed_at`, `completed_at`, `redeem_state`, `price_snapshot`, `paid_amount`, `payment_method`, `payment_ref`, `paid_at`, `charged_by` — see [Money model](#money-model-no-commission)
 - `availability_blocks` — Barber unavailability (time off)
-- `expenses` — Finance tracking
-- `barber_permissions` — Role-based access (finance, team management, etc.)
+- `expenses` — Finance tracking (`kind`: `gasto` | `ingreso`)
 - `push_subscriptions` — Web Push endpoints per barber
 - `enrollments` — Cursos/Workshop signups (paid via Mercado Pago webhook, or manual lead capture)
-- `shop_orders` — Essentials paid orders (Mercado Pago webhook), item snapshot in `items` JSONB
-- `products` — Essentials catalog (barber-managed via panel)
+- `shop_orders` — Essentials paid orders (Mercado Pago webhook), item snapshot in `items` JSONB, `paid_at`
+- `products` — Essentials catalog (barber-managed via panel), plus `archived_at`, `sku`, `cost` — see [Inventory](#inventory)
+- `product_sales` / `product_sale_items` / `product_stock_moves` — Mesón sale records and the stock ledger (history only; `products.stock` stays the source of truth)
+- `barber_reviews` — Post-visit ratings (`/resena`), one row per booking (`UNIQUE(booking_id)`)
+- `settings` — Generic `key TEXT PRIMARY KEY, value TEXT` store used by `panel:*` keys (auto-complete toggle, business info, budgets, per-barber prefs) and by `mp-payments.js`'s own keys (Cursos/Workshop price+date+pause)
+- `password_resets` / `login_attempts` — Password-reset tokens (hashed, 30 min TTL) and the login lockout counter
+
+`barber_permissions` (role-based access for a multi-barber team) was not ported — this project is one barber (Bruno) and doesn't need it; see "No se porta" in the port's own planning notes if you're wondering why it's gone.
+
+Migrations are **not** a manual pre-deploy step — see [Migrations](#migrations). `db/schema.sql` stays the canonical reference, but `api/_schema.js`'s `ensure*` functions apply the same columns/tables automatically, additively, from the running code.
 
 Seed data in `db/seed.sql` (optional; most tables auto-create on first use).
 
@@ -89,13 +111,13 @@ Seed data in `db/seed.sql` (optional; most tables auto-create on first use).
 **Vite config** (`vite.config.js`):
 - Vendor splitting: React + React Router cached separately (`react-vendor` chunk)
 - Custom Mercado Pago mock middleware for local dev (intercepts `/api/mp-payments` POST in dev mode)
+- `VITE_DEV_MOCKS=1` registers a second plugin, `scripts/dev-mock/index.mjs` (`apply: 'serve'`, Node-only import — never reaches the production bundle) that answers all of `/api/*` from in-memory fixtures — see [Dev mock](#dev-mock-vite_dev_mocks1)
 - Chunk size warning raised to 700KB (minified CSS is large)
 
 **Vercel config** (`vercel.json`):
-- SPA routing: all non-asset requests → `/index.html`
-- Strict security headers (X-Frame-Options, CSP via Permissions-Policy, etc.)
-- Aggressive caching for assets (immutable, 1-year max-age)
-- Images cached for 1 hour + must-revalidate
+- Rewrites: SPA fallback (all non-asset requests → `/index.html`), `/api/register-client` → `/api/clients?mode=register` (keeps the function count at 11/12 while iOS keeps calling the old path), `/api/csp-report` → `/api/push?job=csp-report`
+- Security headers: X-Frame-Options, `Strict-Transport-Security` (`max-age` only — **no** `preload`/`includeSubDomains`, both deliberate), `Content-Security-Policy-Report-Only` (not enforcing yet) with `report-uri /api/csp-report`
+- `index.html` served with `Cache-Control: no-store` (the PWA never trusts a cached shell — see `buildWatch.js` under [PWA](#pwa--standalone-mode)); `/assets/*` stay aggressively cached (immutable, 1-year max-age for JS/CSS/fonts; 1 hour + must-revalidate for images)
 
 **Environment variables** (`.env.local` or Vercel settings):
 - `DATABASE_URL` — Neon connection string (required in prod)
@@ -104,10 +126,15 @@ Seed data in `db/seed.sql` (optional; most tables auto-create on first use).
 - `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` — Web Push keys
 - `VITE_VAPID_PUBLIC_KEY` — Public VAPID key exposed to frontend
 - `BLOB_READ_WRITE_TOKEN` — Vercel Blob (optional backup storage)
-- `RESEND_API_KEY`, `RESEND_FROM` — Resend email API for booking confirmations (optional; skipped if missing)
+- `RESEND_API_KEY`, `RESEND_FROM` — Resend email API for booking confirmations, reschedule notices and review-thanks (optional; skipped if missing)
 - `NOTION_API_KEY`, `NOTION_DATABASE_ID` — Syncs bookings to Notion so they appear in Notion Calendar (optional; skipped if missing)
-- `CRON_SECRET` — Bearer token required by `/api/cron-reminders` if set (optional but recommended when triggering the cron from outside Vercel)
-- `BARBER_PASSWORDS` — JSON fallback: `{code: sha256_hex}` if DB is down
+- `CRON_SECRET` — Bearer token required by `GET /api/push?job=reminders` (and by extension the auto-completer it triggers) if set (optional but recommended when triggering the cron from outside Vercel)
+- `BARBER_PASSWORDS` — JSON fallback `{code: hash}` used only when the login-attempt counter can't be read; accepts either a SHA-256 hex digest or a PBKDF2 `pbkdf2$<iter>$<salt>$<hash>` string
+- `PASSWORD_REHASH` — `1` re-hashes a barber's password to PBKDF2 on a successful login that verified via the legacy SHA-256 path. **Off by default** until the PBKDF2 rollout has been stable for about a week (an instant rollback to an older build that only understands SHA-256 would otherwise lock everyone out)
+- `PASSWORD_RULE` — `legacy` is an escape hatch back to the old, weaker password rule (8-64 letters/numbers, 1 upper, 1 number, no symbols required); anything else (including unset) uses the strong PimpStudio-style rule
+- `SITE_URL` — Base URL for the password-reset link emailed to a barber (default `https://brunetticutz.cl`)
+- `AUTO_COMPLETE_SANDBOX` — `1` lets the auto-completer run outside `VERCEL_ENV=production` (for local/staging testing only — see [Auto-complete](#auto-complete))
+- `PIMPSTUDIO_BRIDGE_SECRET` — Shared secret with PimpStudio's Vercel project for the two-way bridge (agenda, loyalty, Wallet) — see the Puente section
 
 ## Patterns & Conventions
 
@@ -120,13 +147,25 @@ res.status(401).json({ ok: false, error: "..." })
 res.json({ ok: true, data: ... })
 ```
 
-Errors are caught with try/catch; if database is unavailable, return demo data instead of throwing. This keeps the app usable offline.
+Errors are caught with try/catch. **Not every path falls back to demo data anymore** — see the corrected "Graceful degradation" note above: only public/unauthenticated reads do that; a session-authenticated panel GET returns a real `500` on a DB error, and every PimpStudio bridge mode does too (or `404` for a bad secret). Demo data exists to keep the public site usable offline, not to hide a broken panel from the barber.
 
 ### Frontend Data Flow
 
 - Fetch functions live near their usage (in component files or in `src/data.js` for shared constants)
 - Error handling: show UI fallback or localStorage cache, do NOT block the page
 - For internal dashboard (barber), require valid session token in `Authorization` header
+
+### Panel architecture
+
+The panel was rebuilt with one file per tab instead of a single giant `Dashboard.jsx`:
+
+- **`src/pages/panel/*.jsx`** — one file per tab (`AgendaTab`, `FinanzasTab`, `ClientesTab`, `ServiciosTab`, `EssentialsTab` + `EssentialsSell`, `ConfigTab`, `MarketingTab`, `CajaTab`, `InscripcionesTab`, `PedidosTab`, `SinCerrar`, `BookingDetailSheet`, `FinanceMovementSheet`, plus shared helpers in `shared.jsx`). Not every tab was split out this way — Resumen, Reservas and Gastos still render through the older standalone components (`DashboardResumen.jsx`, `BookingsInbox.jsx`, `ExpensesModule.jsx` in `src/components/`) that `Dashboard.jsx` mounts directly; those were rewritten in place to the new `pn-*` class system rather than moved.
+- **`Dashboard.jsx`** is now the shell + orchestrator: it owns all panel state, builds a single `dash` context object (a plain object literal, no spreads — `scratchpad/sync/tools/ctx-contract.mjs` statically checks this contract, i.e. that every key a tab destructures from `ctx` actually exists on `dash`) and passes `ctx={dash}` into every tab/component.
+- **`src/components/panel/*`** — the shared kit: `Shell.jsx` (`PanelShell`/`PanelTopbar`, the Emblem wordmark, notifications popover), `kit.jsx`, `Sheet.jsx` (bottom-sheet-on-mobile / drawer-on-desktop pattern for modals), `DataTable.jsx`, `ModuleHeader.jsx`, `ActionMenu.jsx`, `CalendarSheet.jsx`. `MobileDock.jsx` (the iOS-style bottom pill nav) stayed in `src/components/` rather than moving into the kit.
+- **Layout**: each tab draws its own `ModuleHeader` (not a shared `HEADER_TABS` list); the topbar collapses the page title into itself once you scroll past it, via a `useScrolledPast` hook watching `.dashboard-main` (the panel's single scroll container — see the "anti-rebote" CSS note under PWA).
+- **Nav**: grouped into "Día a día" (Resumen, Agenda, Reservas, Caja, Clientes) and "Negocio" (Finanzas, Gastos, Pedidos, Inscripciones, Servicios, Essentials, Marketing), with Ajustes on its own (`NAV_GROUPS` in `Shell.jsx`). There's no `panelModules.js`/per-module-permission model — `has(id)` is just derived from the same nav filter that builds the menu, so there's a single source of truth for "does this barber see this tab".
+- **`src/styles/panel.css`** is the panel's own design system (imported **last** in `main.jsx`, after `pimp.css`/`modules.css`/`brunetti.css`/`tailwind.css`) — it must never define `--gold-*`/`--on-gold` itself; those tokens come from `brunetti.css` and `panel.css` only re-exposes them as `--pn-accent` etc. Per-tab CSS lives in `src/styles/panel/*.css` (`agenda.css`, `finanzas.css`, `clientes.css`, …), each imported directly by the component(s) that use it.
+- **`src/features.js`** (`FEATURES`) — flags for UI built ahead of its backend during the port; all are `true` now that the backend caught up. They're dev/rollout switches, not business settings — a business toggle (like auto-complete) lives in the `settings` table instead, editable from Ajustes.
 
 ### Session Management
 
@@ -137,6 +176,95 @@ Sessions are cryptographically signed, stateless tokens (no DB lookup):
 4. Server validates via `readSession()` — no session table, just HMAC verification
 5. If `PS_SESSION_SECRET` is missing/weak in production, all tokens are rejected (fail-closed)
 
+The token itself is unchanged by the auth hardening below — what changed is how the *password* is verified before a token is even issued. See [Auth](#auth).
+
+### Auth
+
+- **Password hashing** (`api/_password.js`): PBKDF2 (600,000 iterations, SHA-256, stored as `pbkdf2$<iter>$<salt>$<hash>`), not raw SHA-256. `verifyPassword()` still accepts a legacy 64-hex-char SHA-256 row so existing barbers aren't locked out; it returns `{ok, needsRehash}` either way. `PASSWORD_REHASH=1` opts into rehashing a barber to PBKDF2 the next time they log in successfully via the legacy path — **off by default** (see env var above).
+- **Password rule**: strong by default (10+ chars, upper/lower/digit — PimpStudio's rule); `PASSWORD_RULE=legacy` reverts to the old BrunettiCutz rule. `api/auth-barber.js`'s `usesStrongPasswordRule()` is the single source of truth for which rule applies, both for the strength check and for the user-facing error copy.
+- **Exact-match login**: `WHERE code = $1 OR lower(name) = $1` — no more `ILIKE`, which let `%` and `_` act as wildcards (a username of literally `%` used to match anyone).
+- **DB-backed lockout**: 3 failed attempts within 5 minutes locks the login, tracked both per-username and per-IP (table `login_attempts`, via `api/_rateLimit.js`). If the attempts counter itself can't be read (DB hiccup), login falls back to **only** checking `BARBER_PASSWORDS` — it deliberately does not also try the DB passwords in that state, since that would remove the lockout's protection against guessing.
+- **Password reset by email**: `POST /api/auth-barber?reset=request` (body `{email}`) generates a random token, stores only its SHA-256 hash in `password_resets` with a 30-minute expiry, and emails a link built from `SITE_URL` (`/restablecer?token=...`, `src/pages/ResetPassword.jsx`). `POST ?reset=confirm` (body `{token, password}`) redeems it. `BarberLogin.jsx` has a "¿Olvidaste tu contraseña?" link.
+- **`GET /api/auth-barber?me=1`**: refreshes the barber's profile (including `barber.email`, read via `to_jsonb(b)->>'email'` so it degrades to `null` before the migration runs) and issues a fresh token. The session token is signed **without** the email, so an older token issued before this change still validates.
+- **`PATCH`/`PUT /api/auth-barber`**: account self-update (`{currentPassword, newPassword?, email?}`) — always requires the current password, even just to change the email.
+
+### iOS compat notes
+
+The native app (`ios/BrunettiCutz/`) decodes API responses strictly, so a few endpoints keep it in mind even as the web panel grows new states:
+- `api/availability.js`'s `'past'` slot state is translated to `'blocked'` for native clients — iOS doesn't understand `'past'` and would otherwise crash/misrender on it.
+- The public phone-based booking history and booking creation no longer *require* the app to send the client's name — a session-scoped lookup and a name fallback cover the case where the native client omits it.
+- `price`, `client` and `service` are never `null` in a booking response — the new money/lifecycle fields are additive, not replacements.
+
+### Migrations
+
+Migrations are automatic, not a manual pre-deploy step. `api/_schema.js` exports `ensure*` functions (`ensureBookingColumns`, `ensureClientColumns`, `ensureServiceColumns`, `ensureExpenseColumns`, `ensureSettingsTable`, `ensureReviewsTable`, `ensureProductsLedger`, `ensureShopOrderColumns`, `ensureAuthColumns`, …), each memoized per warm lambda instance (`once()`), each checking `information_schema` (or `presentTables`/`presentColumns`) before altering anything, and each additive-only — `ADD COLUMN IF NOT EXISTS`, `CREATE TABLE IF NOT EXISTS`, one `ALTER TABLE` per table, indexes/constraints in their own try/catch so a pre-existing conflict doesn't block the rest. `db/schema.sql` is still the canonical reference for what the schema *should* look like, but the running code brings a fresh (or behind) database up to date on its own — there's no separate migration-runner script to remember to invoke.
+
+The one hard rule: **no `ensure*` call runs during checkout or the Mercado Pago webhook.** Those hot/money-moving paths read optional columns defensively instead — `to_jsonb(row)->>'column'` or a `hasColumns()` check — so they work whether or not the migration has already run on that particular warm instance, and never risk a DDL statement racing a payment.
+
+### Security odds and ends
+
+A few hardening items outside the Auth section, worth knowing about if you're touching these paths:
+- **Public cancellation requires the phone**, not just the booking id — the id is a plain `SERIAL`, so id-only cancellation used to let a 3-line loop wipe the whole calendar with zero credentials. The phone is read from the JSON body (falls back to `?phone=`) and rate-limited to 10 attempts / 5 minutes per IP.
+- **New barbers require a real password from the caller** — `POST /api/barbers` takes `password` in the body and hashes it with PBKDF2; there's no default `"1234"` PIN anymore.
+- **Availability writes are scoped to your own agenda**: `canTouchAgenda(session, barberId)` in `api/availability.js` only lets a session block/open its own `barberId` unless `session.admin`. The PimpStudio bridge is further pinned to `barberId === 6` (Bruno) regardless of what secret it presents.
+
+### Money model (no commission)
+
+BrunettiCutz has no commission/payout system (that's PimpStudio's multi-barber feature, not ported). `api/_money.js` defines three related numbers instead:
+- **`listPrice`** — `COALESCE(price_snapshot, services.price, custom_price)`, the catalog price.
+- **`price`** — `COALESCE(custom_price, price_snapshot, services.price)`, what's actually owed (this is where an admin price edit or a free-cut redeem, at `$0`, lands).
+- **`collected`** — `paid_amount`; `null` until charged.
+
+`readPayment(body)` parses `{paidAmount, paymentMethod, paymentRef}` from a request body — `null` if neither came in (iOS, the PimpStudio bridge, or an old client), an error object if something invalid came in, otherwise `{collected, method, ref}`. `payment_method: 'cortesia'` is a deliberate `$0` charge (a comped visit), distinct from `null`/"not yet charged". A **bridge** PATCH never carries payment fields at all — `handlePatch` strips them for bridge calls before `readPayment` ever sees the body, so PimpStudio can change a booking's status without being able to fabricate a payment.
+
+`onlineSales(sql, {from, to})` combines paid `shop_orders` (Essentials) and paid `enrollments` (Cursos/Workshop, matched via the Mercado Pago webhook's own confirmation message) into one `{total, count, byType, byDay}` shape, bucketed by day in `America/Santiago`. This feeds the "Ventas online" KPI in Resumen/Finanzas and the "Online (web)" line in Caja.
+
+Every state-changing booking write sets `updated_at = NOW()` — PimpStudio's `bridge-completed` star-repair cron depends on that column to find recently-touched completions.
+
+### Booking modes (`api/bookings.js`)
+
+Beyond plain CRUD, `api/bookings.js` dispatches on `mode=`:
+- **GET** `?mode=unclosed[&summary=1]` — past-due open bookings + payment-pending completed ones (admin); `?mode=cash&date=` — the day's cash reconciliation (bookings + product sales + online MP sales); `?mode=sales&from=&to=` — paid product-sale line items for a range; `?issues=1` (not a mode) — recent rejected/errored booking attempts.
+- **POST** `?mode=sale` — register a mesón product sale, optionally tied to a booking.
+- **DELETE** `?mode=sale` — void a sale and restock; `?purge=1` — hard-delete a booking (session required, with a pre-delete loyalty snapshot/reversal).
+- **PATCH** has no `mode=` — it branches on the request body shape:
+  - **Reschedule** (date/time/service change): re-checks availability excluding the booking's own current slot, resets the 1-hour reminder flag, updates the Notion page's date, and emails the client only if the booking is still upcoming and not yet confirmed-past-the-point-of-no-return.
+  - **Admin price edit**: blocked if the free-cut redeem is already active and the new price is non-zero; dropping a completed booking's price to `$0` marks it a `cortesia`.
+  - **"No vino"**: `status → cancelada` + `no_show = true` (any other status forces `no_show = false`).
+  - **Payment**: only applied when there's a session and the target status is `completada` — see [Money model](#money-model-no-commission).
+  - **`completada → completada`** is a no-op for loyalty and the review email — it only lets a payment correction through. A star is credited exactly once, the moment a booking *first* transitions into `completada`.
+- **`chargeOnCreate: true`** on a manual booking (panel only, not the bridge) inserts it as `en curso` instead of `completada` and opens the payment sheet immediately, rather than landing silently in "payment pending".
+- `bridge-completed` (used by PimpStudio's star-repair cron) filters out services with `loyalty_eligible = false`, so a non-star-earning service never gets backfilled a star either.
+
+### Auto-complete
+
+Long-running "en curso" bookings nobody remembered to close out get auto-completed by `api/_bookingLife.js`'s `autoCompleteStarted()`:
+- Gated by the `panel:auto_complete` key in `settings` — **default off** (missing key, missing table, or a DB error during the read all resolve to "off"). Toggle lives in Ajustes, admin-only.
+- Gated by environment: only runs when `VERCEL_ENV === 'production'` (or `AUTO_COMPLETE_SANDBOX=1` for local testing).
+- Only claims bookings whose date is within the last 30 days (a floor, not a ceiling — it will never reach further back than that) and whose scheduled end time has passed by at least 60 minutes (or the service's own duration if longer).
+- Claims rows with `FOR UPDATE SKIP LOCKED` inside a materialized CTE, 4 at a time, up to a `limit` (default 10, capped 50), inside an 8-second time budget; throttled to once per 15 seconds per warm instance unless `force: true`.
+- Runs from three places: every panel GET of the booking list, `?mode=unclosed`, `?mode=cash`, and `GET /api/push?job=reminders` (with `force: true`, limit 25) — **no new cron was added**; it rides the existing hourly cron-job.org ping.
+- Goes through the same single loyalty writer as everything else — see "Un solo escritor" in the Puente section.
+
+### Inventory
+
+`products.stock` is the number that's true; `product_stock_moves` is history, never the other way around — nothing recomputes `stock` from the ledger. `api/_products.js` exposes a computed `drift` (`stock - sum(moves)`) per product, and a `?action=reconcile` ("cuadrar") that inserts a single `'ajuste'` move equal to the drift so the ledger catches up to `stock` — it never touches `stock` itself. Deleting a product **archives** it (`archived_at`, `active = false`) if it has any sale/move history, and only hard-deletes if it's never been touched; the response shape is `{ok, archived, deleted}`. The Mercado Pago webhook writes stock-move rows for a paid Essentials order best-effort, after the payment itself is already confirmed — a failure there never blocks the "payment confirmed" response.
+
+### Reviews
+
+`/resena` (`src/pages/Review.jsx`, `FEATURES.reviews`) is the public post-visit rating page, backed by `barbers.js?mode=review` (public GET by token / POST to rate) and `?mode=reviews` (admin summary + list). The `barber_reviews` table has one row per booking (`UNIQUE(booking_id)`) created by `api/_bookingLife.js`'s `afterCompletion()` the moment a booking first completes — `INSERT ... ON CONFLICT (booking_id) DO NOTHING RETURNING token` means only the *first* completion ever gets a token back, so re-completing a booking (a payment correction, an auto-complete racing a manual one) never creates a second review row or resends the email. The "thanks, please rate us" email only goes out if a token was actually returned **and** the visit is fresh (today or yesterday, `America/Santiago`) **and** there's an email on file — a stale or emailless booking still gets its (token-less on retry) review row, just no email.
+
+### Barbers modes (`api/barbers.js`)
+
+Dispatched on `?mode=`, before the general admin gate, each with its own try/catch (a mode-specific failure is a clean 500, never a crash that falls through to static/demo data); an unrecognized mode is `404` on every HTTP method.
+- `me` (PATCH, any barber) — rename your own account.
+- `settings` (GET/PATCH, any barber) — your own `notif`/`whatsapp`/`horario` prefs, stored under `settings` key `panel:barber:<id>`.
+- `shop-settings` (GET/PATCH, admin) — business info (`panel:business`), expense budgets (`panel:budgets`), and the auto-complete toggle (`panel:auto_complete`).
+- `reviews` (GET, any barber; admin can pass `?barberId=`) — rating summary + recent rated reviews.
+- `review` (GET/POST, public, no session) — the `/resena` backend.
+
+None of these `panel:*` settings keys collide with `mp-payments.js`'s own `SETTINGS_KEYS` (`cursos_price`, `workshop_price`, `workshop_date`, `workshop_payments`) — different table, different naming convention, kept deliberately distinct.
+
 ### PWA & Standalone Mode
 
 iOS "Add to Home Screen" often ignores manifest `start_url` and instead launches the last-viewed page. The app detects this with `isStandaloneLaunch()` in `App.jsx` and redirects:
@@ -144,6 +272,14 @@ iOS "Add to Home Screen" often ignores manifest `start_url` and instead launches
 - Otherwise → `/ingreso` (login)
 
 This only happens once per app session (sessionStorage flag).
+
+**Build freshness (`buildWatch.js`).** The installed PWA is what Bruno actually uses, and iOS freezes it on exit and restores the same in-memory JS for days — a normal deploy alone doesn't reach it, since `index.html` (served `Cache-Control: no-store`) is only re-fetched on a hard navigation, which an already-open PWA never does. `buildWatch.js` compares the hashed entry-chunk filename this tab loaded against what the server is serving now, on return-from-background and on a background heartbeat. The heartbeat only reloads inside `/panel`, and only with no sheet/modal open and no focused field — on the public site it only checks on tab-focus, so a client mid-`/reservar` never loses their selection to an auto-reload.
+
+**Service worker**: `sw.js` no longer has a `SW_VERSION` — that was leftover from an earlier version that actually cached responses; nothing reads it anymore.
+
+**Install prompt** (`src/installPrompt.js` + `InstallPrompt.jsx`): barber-only now (the public site doesn't prompt clients to install anything). Dismissal is remembered in `localStorage` under `bc_install_dismissed`.
+
+**Theme**: automatic by hour (light 7:00–18:59, dark otherwise, `America/Santiago`), with a manual override (`ps_theme_manual` in `localStorage`) that always wins once set — there's no periodic reset of that flag. The switch lives in Ajustes → Apariencia.
 
 ### Mercado Pago Integration
 
@@ -154,15 +290,19 @@ All three paid modules — Cursos, Workshop, Essentials — share one endpoint, 
 2. For `essentials`, the API first creates a `shop_orders` row with `status: 'pending'` (snapshotting validated price/name per item) and uses `essentials-<orderId>` as the Mercado Pago `external_reference`; for `cursos`/`workshop` it instead base64url-encodes `{source, name, phone, email, edition?}` directly into `external_reference` (no DB row needed since there's nothing to look up — mirrors how the old Flow integration passed customer data through its `optional` field)
 3. API calls Mercado Pago's `/checkout/preferences` with the item(s), `back_urls` pointing back to the originating page, and `notification_url` for the webhook; returns `{checkoutUrl}` — `sandbox_init_point` if `MP_ACCESS_TOKEN` starts with `TEST-`, otherwise `init_point` (Mercado Pago decides sandbox vs prod purely from the token prefix)
 4. Frontend does a full-page redirect to `checkoutUrl` (Mercado Pago hosted Checkout Pro — cards, transferencia, billeteras)
-5. Mercado Pago redirects the browser back to the module's own page with `status`/`payment_id` (or `collection_status`/`collection_id`) in the query string — the frontend uses these only to display a message, never to write anything
-6. Independently, Mercado Pago POSTs server-to-server to `notification_url` (`/api/mp-payments?webhook=1`); the handler calls `GET /v1/payments/{id}` to verify the real status before saving anything (never trusts the return redirect alone). On `approved`: essentials marks the `shop_orders` row paid and best-effort decrements `products.stock`; cursos/workshop decode `external_reference` and insert into `enrollments` (workshop additionally triggers the confirmation email)
+5. Mercado Pago redirects the browser back to the module's own page with `status`/`payment_id` (or `collection_status`/`collection_id`) in the query string — the frontend uses these only to display a message, never to write anything. **Essentials is the exception**: its `back_urls` point to its own dedicated `/essentials/gracias` (`src/pages/EssentialsGracias.jsx`), not back to `/essentials`. That page polls `GET /api/mp-payments?status=1&payment_id=...` every 3 seconds, up to 10 times, while the payment is `pending`/`in_process`; on `approved` it clears the cart and shows a receipt built from the `bc_last_order` `sessionStorage` key that `Essentials.jsx` writes right before the redirect (still without writing anything to the DB itself — that's the webhook's job). `/essentials` itself still handles a `?status=` from an older preference for backward compat.
+6. Independently, Mercado Pago POSTs server-to-server to `notification_url` (`/api/mp-payments?webhook=1`); the handler calls `GET /v1/payments/{id}` to verify the real status before saving anything (never trusts the return redirect alone). On `approved`: essentials marks the `shop_orders` row paid and best-effort decrements `products.stock` (plus writes `paid_at` and `product_stock_moves` rows, best-effort, after the payment is already confirmed — see [Inventory](#inventory)); cursos/workshop decode `external_reference` and insert into `enrollments` (workshop additionally triggers the confirmation email)
 7. `GET /api/mp-payments?status=1&payment_id=...` is a read-only status check used by the frontend after the return redirect — it does not write to the DB
 
-**Interruptor de pagos del Workshop (pausa).** El Workshop tiene un on/off propio en el panel interno (Config → **Precios y fechas**, junto al precio y la fecha), guardado en la tabla `settings` bajo la clave `workshop_payments`. Con el interruptor apagado, `handleCheckout` devuelve **409** para `source: 'workshop'` antes de crear cualquier preferencia — Cursos y Essentials no se ven afectados — y la página `/workshop` pasa a modo pausa: muestra "Fecha por confirmar" en vez de la fecha y la cuenta regresiva, y el formulario solo ofrece la lista de espera (`/api/enrollments`, gratis, sin cobro). El default cuando la clave no existe —o cuando la DB no responde— es **apagado**, a propósito: nadie debe poder pagar un cupo sin fecha confirmada. El flujo esperado al abrir una edición nueva es guardar primero la fecha y recién ahí encender el interruptor. El toggle del panel guarda solo (PATCH inmediato), sin pasar por el botón "Guardar".
+**Interruptor de pagos del Workshop (pausa).** El Workshop tiene un on/off propio en el panel interno (**Ajustes → Cursos y Workshop**, junto al precio y la fecha), guardado en la tabla `settings` bajo la clave `workshop_payments`. Con el interruptor apagado, `handleCheckout` devuelve **409** para `source: 'workshop'` antes de crear cualquier preferencia — Cursos y Essentials no se ven afectados — y la página `/workshop` pasa a modo pausa: muestra "Fecha por confirmar" en vez de la fecha y la cuenta regresiva, y el formulario solo ofrece la lista de espera (`/api/enrollments`, gratis, sin cobro). El default cuando la clave no existe —o cuando la DB no responde— es **apagado**, a propósito: nadie debe poder pagar un cupo sin fecha confirmada. El flujo esperado al abrir una edición nueva es guardar primero la fecha y recién ahí encender el interruptor. El toggle del panel guarda solo (PATCH inmediato), sin pasar por el botón "Guardar".
 
 Workshop's reservation form used to save a lead immediately on submit, before any payment (`/api/enrollments`, no charge). It now only does that for the free waitlist option (`WAITLIST_OPTION` in `Register`); picking the dated edition instead goes through the Mercado Pago flow above, and the seat is only confirmed once the webhook fires.
 
-In dev mode (`npm run dev`), Mercado Pago requests are mocked by Vite middleware (see `vite.config.js`) — the mock redirects straight back with `status=approved`, but since it doesn't hit the real webhook, nothing is actually written to the DB in dev (use `npx vercel dev` to test the full flow).
+In dev mode (`npm run dev`), Mercado Pago requests are mocked by Vite middleware (see `vite.config.js`) — the mock redirects straight back with `status=approved`, but since it doesn't hit the real webhook, nothing is actually written to the DB in dev (use `VITE_DEV_MOCKS=1 npm run dev` or `npx vercel dev` to test the full flow, see below).
+
+### Dev mock (`VITE_DEV_MOCKS=1`)
+
+`.env.local` holds **production** credentials, so `npx vercel dev` (and the `vercel-dev` launch config) should be used sparingly and deliberately, not as the everyday inner loop. `VITE_DEV_MOCKS=1 npm run dev` (or the `dev-mock` config in `.claude/launch.json`) is the everyday alternative: `scripts/dev-mock/index.mjs`, a Vite plugin (`apply: 'serve'`, Node-only — never bundled) that answers every `/api/*` request from in-memory fixtures (`scripts/dev-mock/fixtures.mjs`) shaped the same as the real backend. Any `Authorization: Bearer <anything>` is treated as Bruno (barber id 6, admin) — including the local `"dev-token"` fallback `BarberLogin.jsx` uses when it can't reach a server — so the whole panel is reachable without a database, Mercado Pago, Notion, Resend, or PimpStudio. Mock login accepts `bruno-herrera` (or `brunetti`) with any 8+ character password; three wrong attempts trigger a 429 for 2 minutes, mirroring the real lockout. Without the env var, `npm run dev` behaves exactly as it always did (no middleware registered at all).
 
 ### Notion Calendar Sync & Reminders
 
@@ -172,7 +312,7 @@ In dev mode (`npm run dev`), Mercado Pago requests are mocked by Vite middleware
 3. The created page ID is stored in `bookings.notion_page_id`. Status changes (PATCH) map to one of the 3 Status stages via `updateNotionBookingStatus(...)`; cancellations (DELETE) **archive** the Notion page instead of setting a status, since "cancelada" doesn't fit any of the 3 fixed stages — this also makes cancelled bookings disappear from the calendar view, which is arguably the correct behavior anyway
 4. To see these events in the Notion Calendar app, the Notion database must be added as a calendar source from within Notion Calendar itself (Settings → Notion databases) — this is a one-time manual step, not something the API can do
 
-**Reminder limitation (important):** Notion's API has no reminder/notification field at all (the `date` property object is empty), and Notion's own UI-based reminders for database Date properties only offer day-level presets (same day, 1 day before, 1 week before) — there is no way, via API or UI, to get a Notion-database-backed calendar entry to notify at a specific number of minutes/hours before. A "1 hour before" alert is therefore handled entirely outside Notion: `GET /api/push?job=reminders` (in `api/push.js`, alongside the existing Web Push subscription handling) sends a Web Push notification via `notifyBarber` to the assigned barber when a booking is between 45 and 105 minutes away (as of 2026-09-12; was 45–90). **The window must be at least as wide as the cron interval, or it drops reminders.** A booking at time T is only caught if some tick lands in [T-toMin, T-fromMin]; with an hourly cron, any window narrower than 60 minutes can contain no tick at all and the booking is skipped with no trace. The old 45–90 window argued that an hourly cron leaves no gaps because every slot lands on the hour (`SLOT_GROUPS`, `src/data.js`), but that is wrong: bookings being aligned with each other does not align them with the *minute* the cron fires, and 15 minutes of trigger lateness is enough to miss the HH:00 booking entirely. pimpstudio had the same narrow window and measured it — of 37 eligible bookings the 1-hour notice reached 31 (84%) — and widened to 60 minutes wide on 2026-09-09; this project followed on 2026-09-12. Because a 60-minute-wide window means the push can go out anywhere from 45 to 105 minutes ahead, the copy states the **absolute** appointment time ("Próximo turno · hoy a las 16:00") instead of a duration ("Turno en 1 hora"), which would be off by up to 45 minutes. Fires once, tracked via the `reminder_60_sent` column. Do **not** narrow the window back below the cron interval. There used to also be a 15-minutes-before reminder (`reminder_15_sent`, still present as an unused column in `db/schema.sql`), but it was dropped: once the cron interval grew to 40 minutes, the window needed to reliably catch it (≥40 min wide) would have made "15 minutes" inaccurate by up to the same margin, defeating the point. This lives inside `push.js` instead of its own file because Vercel's Hobby plan caps a deployment at 12 Serverless Functions — the project is already at that cap, so anything cron-related has to fold into an existing endpoint rather than add a new one.
+**Reminder limitation (important):** Notion's API has no reminder/notification field at all (the `date` property object is empty), and Notion's own UI-based reminders for database Date properties only offer day-level presets (same day, 1 day before, 1 week before) — there is no way, via API or UI, to get a Notion-database-backed calendar entry to notify at a specific number of minutes/hours before. A "1 hour before" alert is therefore handled entirely outside Notion: `GET /api/push?job=reminders` (in `api/push.js`, alongside the existing Web Push subscription handling) sends a Web Push notification via `notifyBarber` to the assigned barber when a booking is between 45 and 105 minutes away (as of 2026-09-12; was 45–90). **The window must be at least as wide as the cron interval, or it drops reminders.** A booking at time T is only caught if some tick lands in [T-toMin, T-fromMin]; with an hourly cron, any window narrower than 60 minutes can contain no tick at all and the booking is skipped with no trace. The old 45–90 window argued that an hourly cron leaves no gaps because every slot lands on the hour (`SLOT_GROUPS`, `src/data.js`), but that is wrong: bookings being aligned with each other does not align them with the *minute* the cron fires, and 15 minutes of trigger lateness is enough to miss the HH:00 booking entirely. pimpstudio had the same narrow window and measured it — of 37 eligible bookings the 1-hour notice reached 31 (84%) — and widened to 60 minutes wide on 2026-09-09; this project followed on 2026-09-12. Because a 60-minute-wide window means the push can go out anywhere from 45 to 105 minutes ahead, the copy states the **absolute** appointment time ("Próximo turno · hoy a las 16:00") instead of a duration ("Turno en 1 hora"), which would be off by up to 45 minutes. Fires once, tracked via the `reminder_60_sent` column. Do **not** narrow the window back below the cron interval. There used to also be a 15-minutes-before reminder (`reminder_15_sent`, still present as an unused column in `db/schema.sql`), but it was dropped: once the cron interval grew to 40 minutes, the window needed to reliably catch it (≥40 min wide) would have made "15 minutes" inaccurate by up to the same margin, defeating the point. This lives inside `push.js` instead of its own file because Vercel's Hobby plan caps a deployment at 12 Serverless Functions and this project is at 11/12 — anything cron-related folds into an existing endpoint rather than adding a new one. The same ping now also drives the [auto-completer](#auto-complete) (`force: true`, right after the reminders are sent) and, via `vercel.json`'s rewrite, doubles as the target for `/api/csp-report` (`?job=csp-report` — no DB, no session, just an in-memory per-IP rate limit, always `204`).
 
 **Trigger (cron-job.org, not Vercel Cron):** this project is on Vercel's Hobby plan, which only runs `vercel.json`-declared cron jobs once a day (a `*/5 * * * *` schedule fails deployment outright on Hobby). So an external [cron-job.org](https://cron-job.org) job hits `GET https://brunetticutz.cl/api/push?job=reminders` **every hour, 8:00–21:00** with header `Authorization: Bearer $CRON_SECRET`. The 8am start (not 9am, business open) is deliberate: the 09:00 booking's "1 hour before" reminder has to fire at 08:00.
 
@@ -185,16 +325,22 @@ This schedule has been walked down twice for the same reason — the ping was de
 npm run dev
 ```
 
+### Run dev server with the full API mocked (no DB, no secrets)
+```bash
+VITE_DEV_MOCKS=1 npm run dev
+# or the "dev-mock" launch config in .claude/launch.json
+```
+
 ### Build for production
 ```bash
 npm run build
 # Output: dist/
 ```
 
-### Test backend locally (requires Vercel CLI)
+### Test backend locally against real production data (requires Vercel CLI and .env.local)
 ```bash
 npx vercel dev
-# Starts Vite + serverless functions on localhost:3000
+# Starts Vite + serverless functions on localhost:3000 — talks to real Neon/MP/Notion/Resend
 ```
 
 ### Database schema setup (after cloning)
@@ -202,6 +348,7 @@ npx vercel dev
 psql "$DATABASE_URL" -f db/schema.sql
 psql "$DATABASE_URL" -f db/seed.sql  # optional
 ```
+This is the canonical reference, not a required manual step before every deploy — `api/_schema.js` applies the same columns/tables automatically at runtime. See [Migrations](#migrations).
 
 ### Generate secure session secret
 ```bash
@@ -224,22 +371,30 @@ No `desarrollo`/staging branch — `main` is the only branch. A manual `npx verc
 | Path | Purpose |
 |------|---------|
 | `src/App.jsx` | Route definitions, PWA launch detection |
-| `src/main.jsx` | React DOM render |
+| `src/main.jsx` | React DOM render, CSS import order (`panel.css` last) |
 | `src/data.js` | Static data (services, constants) |
+| `src/features.js` | `FEATURES` flags for panel UI |
+| `src/pages/Dashboard.jsx` | Panel shell, `dash` context, tab routing |
+| `src/pages/panel/*.jsx` | Panel tabs (see [Panel architecture](#panel-architecture)) |
+| `src/components/panel/*` | Panel component kit (`Shell`, `Sheet`, `kit`, …) |
 | `api/_auth.js` | Session creation/validation |
-| `db/schema.sql` | Database table definitions |
-| `vite.config.js` | Vite build config + Mercado Pago mock |
-| `vercel.json` | Deployment routing, headers, caching |
+| `api/_schema.js` | Automatic, additive migrations (`ensure*`) |
+| `api/_bookingLife.js` | Single loyalty writer, reviews, auto-complete |
+| `api/_money.js` | No-commission money model |
+| `db/schema.sql` | Database table definitions (canonical reference) |
+| `vite.config.js` | Vite build config + Mercado Pago mock + dev-mock plugin |
+| `vercel.json` | Deployment routing, rewrites (`register-client`, `csp-report`), headers, caching |
 | `.env.example` | Required environment variables |
 
 ## Deployment Checklist
 
 Before pushing to `main`:
 1. Verify `PS_SESSION_SECRET` is set in Vercel (≥16 chars)
-2. Verify `DATABASE_URL` is accessible and schema is initialized
+2. Verify `DATABASE_URL` is accessible — the schema itself doesn't need a manual step; `api/_schema.js` migrates it on first request (see [Migrations](#migrations))
 3. Verify `MP_ACCESS_TOKEN` is set (test token for sandbox, production token to charge for real)
 4. Run `npm run build` locally and test with `npm run preview`
 5. `git push origin main` — Vercel auto-deploys straight to production (`brunetticutz.cl`). There is no staging branch, so anything pushed to `main` goes live immediately.
+6. **If this deploy is the BrunettiCutz side of the PimpStudio sync**: PimpStudio's own `panel-rediseno` branch (the source this port was built from) must not deploy until *this* is live in production — its bridge calls (agenda, loyalty repair) assume the endpoints/response shapes documented here already exist.
 
 ## Visual Editor (dev-only)
 
@@ -289,7 +444,16 @@ BrunettiCutz y PimpStudio (`pimpstudio.cl`) son dos proyectos con bases de datos
 
 **Fidelidad — no hay sistema propio, se reusa el de PimpStudio.** Una sola tarjeta ("Pimp Studio", `pass.cl.pimpstudio.loyalty`) sirve en los dos locales y suma con los cortes de ambos; los clientes se cruzan por teléfono (9 dígitos). Reglas: 1 estrella por servicio completado, 5 → 30% en productos, 10 → corte gratis.
 
-**Un solo escritor (regla crítica).** La estrella la acredita SIEMPRE el backend de este proyecto, y siempre por `loyaltyForTransition()` de `api/bookings.js`. Dos caminos llegan ahí: el `PATCH`, que ejecutan los dos paneles (el de acá directamente, y el de PimpStudio a través del puente de agenda), y el alta manual (`createManualBooking`: panel con sesión o puente `?mode=bridge-manual`) cuando la reserva ya nace `completada` (ver más abajo). Ninguna otra función llama a `creditStar()`. La única excepción es de reposición y vive allá: el cron de PimpStudio acredita, con la misma llave, las completadas que se quedaron sin estrella (`bridge-completed`), y solo suma. Antes `bruno-agenda.js` también acreditaba y una reserva completada desde allá sumaba dos estrellas. El identificador de idempotencia es `bridge_ref = "brunetti:<id de la reserva acá>"`, con índices únicos parciales en el `db/schema.sql` de PimpStudio (earn y redeem por separado).
+**Un solo escritor (regla crítica).** La estrella la acredita SIEMPRE el backend de este proyecto, y siempre por `loyaltyForTransition()` de **`api/_bookingLife.js`** — no `api/bookings.js` (ese solo lo llama). Es el **único** archivo del proyecto que importa `creditStar`, `revertStar`, `redeemFreeCut` y `cancelRedeem` de `api/_loyaltyBridge.js`; ninguna otra función los toca. Sus llamadores, todos pasando por la misma `loyaltyForTransition()`:
+- El `PATCH` de `api/bookings.js`, que ejecutan los dos paneles (el de acá directamente, y el de PimpStudio a través del puente de agenda) y la app iOS.
+- El alta manual (`createManualBooking`) cuando la reserva ya nace `completada` — **tanto** desde el panel con sesión **como** desde el puente `?mode=bridge-manual`: desde el 2026-09-24 los dos acreditan (antes el alta con sesión no lo hacía, y esas atenciones quedaban sin estrella).
+- El canje (`redeemForBooking`, vía el `PATCH` con `{redeem: "free_cut"}`) y su reverso: cancelar una reserva con el corte gratis ya canjeado le devuelve las 10 estrellas al cliente (`voidRedeem`); des-cancelarla vuelve a canjear (`restoreRedeem`), o cae al precio de lista con un `notice` si el canje ya no es posible.
+- La cancelación pública y el `purge` (DELETE con `?purge=1`) — ambos toman una foto (`loyaltySnapshot`) antes de revertir, para no perder el estado si algo falla a mitad de camino.
+- El `DELETE` de un cliente en `api/clients.js`, vía `purgeLoyaltyForClient`.
+
+`_bookingLife.js` también concentra `afterCompletion()` (la fila de reseña + el correo de gracias, ver [Reviews](#reviews)) y `autoCompleteStarted()` (ver [Auto-complete](#auto-complete)) — todo lo que un cambio de estado de una reserva dispara vive en un solo archivo. `services.loyalty_eligible` ("Suma estrella") se respeta en dos lugares: al acreditar acá, y al filtrar qué completadas ofrece `bridge-completed` para reponer.
+
+La única excepción al escritor único es de reposición y vive allá: el cron de PimpStudio acredita, con la misma llave, las completadas que se quedaron sin estrella (`bridge-completed`), y solo suma. Antes `bruno-agenda.js` también acreditaba y una reserva completada desde allá sumaba dos estrellas. El identificador de idempotencia es `bridge_ref = "brunetti:<id de la reserva acá>"`, con índices únicos parciales en el `db/schema.sql` de PimpStudio (earn y redeem por separado).
 
 **Superficie en el front:**
 - `src/walletPrompt.js` + `src/components/WalletPrompt.jsx` — popup "Agregar a Wallet" (iOS descarga el `.pkpass`; Android pide un link firmado). Montado en `Booking.jsx` (paso 3, con 4,5 s de respiro) y en `Account.jsx`.
@@ -321,7 +485,7 @@ Lo que `bridge-manual` agrega sobre la del panel, todo bajo `bridge: true` (el a
 
 **Comparación del secreto en tiempo constante.** `isBridgeRequest()` vive en `api/_bridge.js` (sin imports del proyecto, para no cerrar ciclos) y compara los SHA-256 de los dos lados con `crypto.timingSafeEqual`: con `===` el tiempo de respuesta filtra cuántos caracteres del principio coinciden. La usan `api/bookings.js`, `api/clients.js` y `api/availability.js` (esta última tenía su propia copia con `===` hasta 2026-09-24).
 
-**Cupo de funciones:** este proyecto está en 12/12 Serverless Functions (tope del plan Hobby), así que **no se puede agregar ningún archivo nuevo a `api/`**. Todo lo de fidelidad va como `?mode=wallet-*` dentro de `api/clients.js`, y la lógica compartida en archivos con prefijo `_` (que Vercel no cuenta).
+**Cupo de funciones:** este proyecto está en **11/12** Serverless Functions (tope del plan Hobby) — `register-client` se plegó en `clients.js?mode=register` (con un rewrite en `vercel.json` para que la app iOS, que sigue llamando a `/api/register-client`, no se entere), dejando un cupo libre. Aun así **no conviene agregar un archivo nuevo a `api/`** salvo que sea imprescindible: todo lo nuevo va como `?mode=` dentro de un endpoint existente (fidelidad como `?mode=wallet-*` en `api/clients.js`, reseñas/ajustes como `?mode=me|settings|shop-settings|reviews|review` en `api/barbers.js`, etc.), y la lógica compartida en archivos con prefijo `_` (que Vercel no cuenta).
 
 ## Native iOS App
 
