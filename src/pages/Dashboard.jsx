@@ -1,279 +1,32 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { createPortal } from 'react-dom'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Brandmark, Icon, Stat } from '../components/ui.jsx'
-import { ThemeProvider, ThemeToggle, useTheme } from '../components/theme.jsx'
+import { Brandmark, Icon } from '../components/ui.jsx'
+import { ThemeToggle } from '../components/theme.jsx'
 import MobileDock from '../components/MobileDock.jsx'
-import { BARBERS, CLIENTS, EXPENSES, SERVICES, TODAY_BOOKINGS, barberById, CLP, CLPk, isAdminUser, cleanPhone } from '../data.js'
+import { BARBERS, CLIENTS, EXPENSES, SERVICES, TODAY_BOOKINGS, barberById, isAdminUser, cleanPhone } from '../data.js'
 import { addLocalBooking, mergeBookings, readLocalBookings } from '../bookingsStore.js'
-import { mergeEnrollments, removeLocalEnrollment } from '../enrollmentsStore.js'
 import BookingsInbox from '../components/BookingsInbox.jsx'
 import BookingSyncIssues from '../components/BookingSyncIssues.jsx'
 import DashboardResumen from '../components/DashboardResumen.jsx'
 import NewBookingModal from '../components/NewBookingModal.jsx'
 import GlobalSearch from '../components/GlobalSearch.jsx'
 import NewClientModal from '../components/NewClientModal.jsx'
-import ExpensesModule, { EXPENSE_CATEGORIES, CATEGORY_META } from '../components/ExpensesModule.jsx'
-import { KpiTile, AnimatedRing } from '../components/DashKit.jsx'
-import ClientModal from '../components/ClientModal.jsx'
-import EnrollmentModal from '../components/EnrollmentModal.jsx'
-import NewEnrollmentModal from '../components/NewEnrollmentModal.jsx'
-import BarberModal from '../components/BarberModal.jsx'
+import ExpensesModule from '../components/ExpensesModule.jsx'
+import { registerServiceWorker, notifyBarberOfBooking, pushEnabledFor } from '../push.js'
 import {
-  registerServiceWorker, notifyBarberOfBooking, pushEnabledFor,
-  enablePush, disablePush, notifyLocal, permissionState,
-  pushAvailableHere, pushSupported, isIOS, isStandalone,
-} from '../push.js'
-
-const AGENDA_SLOTS = ["09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00"]
-const SESSION_TIMEOUT_MS = 30 * 60 * 1000 // 30 min sin actividad → cerrar sesión
-const DAY_LABELS = ["Dom", "Lun", "Mar", "Mie", "Jue", "Vie", "Sab"]
-const DOW_LONG = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"]
-const MONTH_LONG = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
-
-// Duración de un servicio expresada en bloques de 1h (lo que realmente
-// bloquea en la agenda — ver api/_slots.js), redondeando hacia arriba: un
-// servicio de 75 min sigue ocupando 2 horarios seguidos.
-function minToBlocks(min) {
-  return Math.max(1, Math.ceil(Number(min || 60) / 60))
-}
-function blocksToMin(blocks) {
-  return Math.max(1, Number(blocks) || 1) * 60
-}
-
-function getSvcIcon(svc) {
-  const n = ((svc.name || '') + ' ' + (svc.cat || '')).toLowerCase()
-  if (n.includes('asesor') || n.includes('visag') || n.includes('imagen')) return 'user'
-  if (n.includes('barba') || n.includes('beard')) return 'cut'
-  if (n.includes('quim') || n.includes('color') || n.includes('platin')) return 'spark'
-  if (n.includes('fade') || n.includes('degra')) return 'trend'
-  return 'scissors'
-}
-
-function isoDate(date) {
-  // Componentes locales, no UTC: en Chile (UTC-3/-4) toISOString() hace
-  // rollover al día siguiente durante la noche, lo que desalineaba "hoy" y
-  // la semana activa de la agenda para quien la usa después del atardecer.
-  const y = date.getFullYear()
-  const m = String(date.getMonth() + 1).padStart(2, "0")
-  const d = String(date.getDate()).padStart(2, "0")
-  return `${y}-${m}-${d}`
-}
-
-function buildWeek(offset = 0) {
-  const now = new Date()
-  const monday = new Date(now)
-  const day = monday.getDay() || 7
-  monday.setDate(now.getDate() - day + 1 + offset * 7)
-  // Atiende los 7 días de la semana, incluido domingo.
-  return Array.from({ length: 7 }, (_, i) => {
-    const date = new Date(monday)
-    date.setDate(monday.getDate() + i)
-    return { key: isoDate(date), label: `${DAY_LABELS[date.getDay()]} ${date.getDate()}` }
-  })
-}
-
-// Ventana reservable del cliente (espejo de src/pages/Booking.jsx y de
-// api/bookings.js, que rechaza con 422 fuera de rango).
-const MAX_LEAD_DAYS = 10
-
-/* Último día que la agenda deja administrar hacia adelante. Es el mayor entre
-   el domingo de la semana siguiente y hoy+MAX_LEAD_DAYS: el tope viejo era solo
-   lo primero, y un viernes/sábado/domingo eso cae a +9/+8/+7, o sea menos que
-   la ventana del cliente — el barbero no podía abrir ni bloquear días que sí
-   eran reservables. El max también conserva lo de antes (preparar la semana
-   siguiente completa, hasta +13 un lunes). */
-function AGENDA_MAX_KEY() {
-  const endOfNextWeek = buildWeek(1)[6].key
-  const lead = new Date()
-  lead.setDate(lead.getDate() + MAX_LEAD_DAYS)
-  const leadKey = isoDate(lead)
-  return endOfNextWeek > leadKey ? endOfNextWeek : leadKey
-}
-
-function localBlockKey(barberId, date, slot) {
-  return `${barberId}|${date}|${slot}`
-}
-
-function readLocalBlocks() {
-  try { return JSON.parse(localStorage.getItem("ps_availability_blocks") || "{}") } catch { return {} }
-}
-
-function writeLocalBlocks(blocks) {
-  localStorage.setItem("ps_availability_blocks", JSON.stringify(blocks))
-}
-
-function BarChart({ data, fmt }) {
-  const max = Math.max(...data.map((d) => d.v))
-  return (
-    <div style={{ display: "flex", alignItems: "flex-end", gap: ".7rem", height: 160, padding: "0 .2rem" }}>
-      {data.map((d, i) => (
-        <div key={d.d} style={{ flex: 1, display: "grid", justifyItems: "center", gap: ".5rem", height: "100%", gridTemplateRows: "1fr auto auto" }}>
-          <div style={{ width: "100%", display: "flex", alignItems: "flex-end", height: "100%" }}>
-            <div title={fmt(d.v)} style={{ width: "100%", height: `${(d.v / max) * 100}%`, borderRadius: "6px 6px 0 0", background: i === data.length - 1 ? "var(--gold-grad)" : "linear-gradient(180deg,#3a3935,#222220)" }} />
-          </div>
-          <span style={{ fontSize: ".66rem", color: "var(--muted-2)" }}>{CLPk(d.v)}</span>
-          <span style={{ fontSize: ".72rem", color: "var(--muted)" }}>{d.d}</span>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function Panel({ title, action, children, style }) {
-  return (
-    <div className="card dashboard-panel" style={{ padding: "1.3rem", ...style }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.1rem" }}>
-        <h3 className="font-display" style={{ margin: 0, fontSize: "1rem", fontWeight: 600 }}>{title}</h3>
-        {action}
-      </div>
-      {children}
-    </div>
-  )
-}
-
-// Popover de calendario propio de Agenda: sólo dentro de la ventana
-// administrable (semana actual + siguiente) los días son elegibles; el resto
-// se muestran deshabilitados para no sugerir una selección que igual va a
-// rebotar con el toast de "fuera de rango".
-function AgendaDatePicker({ month, year, selectedKey, onPrevMonth, onNextMonth, onPick, maxKey }) {
-  const todayKey = isoDate(new Date())
-  const first = new Date(year, month, 1)
-  const startOffset = (first.getDay() + 6) % 7 // semana empieza lunes
-  const daysInMonth = new Date(year, month + 1, 0).getDate()
-  const cells = [...Array(startOffset).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)]
-  return (
-    <div className="agenda-cal" role="dialog" aria-label="Elegir fecha">
-      <div className="agenda-cal-head">
-        <button type="button" onClick={onPrevMonth} aria-label="Mes anterior"><Icon name="arrowLeft" size={13} /></button>
-        <span>{MONTH_LONG[month]} {year}</span>
-        <button type="button" onClick={onNextMonth} aria-label="Mes siguiente"><Icon name="arrowRight" size={13} /></button>
-      </div>
-      <div className="agenda-cal-grid">
-        {["L", "M", "M", "J", "V", "S", "D"].map((d, i) => <span key={i} className="agenda-cal-dow">{d}</span>)}
-        {cells.map((d, i) => {
-          if (!d) return <span key={`e${i}`} />
-          const key = isoDate(new Date(year, month, d))
-          const isSel = key === selectedKey
-          const isToday = key === todayKey
-          // El pasado siempre se puede revisar; solo se bloquea el futuro más
-          // allá de la semana siguiente (fuera del rango reservable).
-          const selectable = !maxKey || key <= maxKey
-          return (
-            <button
-              key={key}
-              type="button"
-              className={`agenda-cal-day ${isSel ? "is-sel" : ""} ${isToday && !isSel ? "is-today" : ""}`}
-              disabled={!selectable}
-              onClick={() => onPick(key)}
-            >
-              {d}
-            </button>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
-// Modal de detalle de una reserva (click en un slot "booked" o en la lista de
-// Reservas del día). Portal a document.body, mismo patrón que NewBookingModal.
-function BookingDetailModal({ booking, clients, onClose, onConfirm, onCancel, onRedeemFreeCut }) {
-  useEffect(() => {
-    if (!booking) return
-    const onKey = (e) => { if (e.key === "Escape") onClose() }
-    window.addEventListener("keydown", onKey)
-    return () => window.removeEventListener("keydown", onKey)
-  }, [booking, onClose])
-
-  if (!booking) return null
-  const client = clients.find((c) => cleanPhone(c.phone) === cleanPhone(booking.phone))
-  const isRecurring = client && Number(client.visits || 0) > 1
-  const initial = (booking.client || "?").trim().charAt(0).toUpperCase() || "?"
-
-  return createPortal((
-    <div className="psn-modal" role="dialog" aria-modal="true" aria-label="Detalle de la reserva">
-      <button className="psn-scrim" aria-label="Cerrar" onClick={onClose} />
-      <div className="psn-modal-card agenda-detail">
-        <button className="psn-close" onClick={onClose} aria-label="Cerrar"><Icon name="close" size={17} /></button>
-        <span className={`chip ${booking.status === "confirmada" ? "chip-gold" : ""} agenda-detail-status`}>{booking.status}</span>
-        <div className="agenda-detail-client">
-          <span className="agenda-detail-avatar">{initial}</span>
-          <div>
-            <strong>{booking.client}</strong>
-            <span className="agenda-detail-tag">{isRecurring ? `Cliente recurrente · ${client.visits} visitas` : "Cliente nuevo"}</span>
-          </div>
-        </div>
-        <div className="agenda-detail-grid">
-          <div className="agenda-detail-cell"><span>Hora</span><b>{booking.time}</b></div>
-          <div className="agenda-detail-cell"><span>Servicio</span><b>{booking.service}</b></div>
-          <div className="agenda-detail-cell"><span>Fecha</span><b>{booking.date}</b></div>
-          <div className="agenda-detail-cell"><span>Precio</span><b>{CLP(Number(booking.price || 0))}</b></div>
-        </div>
-        {/* Fidelidad: el saldo viene de la lista de clientes (una sola llamada
-            al puente por carga del panel, no una por reserva). El canje solo
-            se ofrece si le alcanza y si esta reserva no está ya en $0. */}
-        {client?.loyalty && (
-          <div style={{ display: "grid", gap: ".4rem", margin: ".2rem 0 .4rem" }}>
-            <span className="chip chip-gold" style={{ justifySelf: "start", fontSize: ".68rem" }}>
-              <Icon name="star" size={11} /> {client.loyalty.stars}/{client.loyalty.goal} estrellas
-            </span>
-            {client.loyalty.freeCutReady && Number(booking.price || 0) > 0 && onRedeemFreeCut && (
-              <button type="button" className="btn btn-gold btn-block" onClick={() => onRedeemFreeCut(booking)}>
-                <Icon name="gift" size={15} /> Canjear corte gratis
-              </button>
-            )}
-          </div>
-        )}
-        <div className="agenda-detail-actions">
-          <button type="button" className="btn btn-gold btn-block" onClick={() => onConfirm(booking)}>
-            <Icon name="check" size={15} /> Confirmar
-          </button>
-          <button type="button" className="btn btn-ghost btn-block agenda-detail-cancel" onClick={() => onCancel(booking)}>
-            Cancelar cita
-          </button>
-        </div>
-      </div>
-    </div>
-  ), document.body)
-}
-
-/* ============================================================
-   Campañas por Wallet — audiencias y plantillas
-   ------------------------------------------------------------
-   Los ids TIENEN que calzar con CAMPAIGN_AUDIENCES en api/_loyalty.js del
-   proyecto PimpStudio: es allá donde se traducen a un SELECT (el programa de
-   fidelidad es uno solo, ver CLAUDE.md). Si acá aparece un id que allá no
-   existe, el backend lo degrada silenciosamente a "todos" — que es
-   exactamente el error caro: mandarle a los 200 lo que era para 12.
-
-   Brunetti y Pimp Studio comparten el pase, pero no el ticket: los servicios
-   de Brunetti valen bastante más, así que las audiencias `brunetti` / `pimp`
-   existen para poder mandar promos con precios distintos a cada grupo sin
-   que se crucen. Quien va a los dos locales cuenta como cliente de Brunetti.
-   ============================================================ */
-const AUDIENCES = [
-  { id: "all",            icon: "users",     label: "Todos",            desc: "Todos los que tienen la tarjeta agregada." },
-  { id: "brunetti",       icon: "scissors",  label: "Solo Brunetti",    desc: "Clientes que se atienden acá. Ticket más alto: promos propias." },
-  { id: "pimp",           icon: "star",      label: "Solo Pimp Studio", desc: "Clientes del otro local. Quien va a los dos cuenta como Brunetti." },
-  { id: "free_cut_ready", icon: "gift",      label: "Corte gratis",     desc: "Con 10 estrellas: el próximo corte les sale gratis." },
-  { id: "almost_free",    icon: "target",    label: "A punto",          desc: "Entre 7 y 9 estrellas. Les falta poco, es el mejor empujón." },
-  { id: "five_plus",      icon: "percent",   label: "5+ estrellas",     desc: "Ya tienen 30% en productos." },
-  { id: "starters",       icon: "user",      label: "Recién parten",    desc: "0 o 1 estrella: todavía hay que engancharlos." },
-  { id: "active",         icon: "trend",     label: "Vinieron hace poco", desc: "Con una hora en los últimos 30 días." },
-  { id: "inactive",       icon: "clock",     label: "Sin venir 30+ días", desc: "El público de una promo de reactivación." },
-]
-const AUDIENCE_BY_ID = Object.fromEntries(AUDIENCES.map((a) => [a.id, a]))
-const AUDIENCE_LABEL = Object.fromEntries(AUDIENCES.map((a) => [a.id, a.label]))
-
-/* Arranques de mensaje, no textos definitivos: rellenan el textarea para que
-   el barbero edite en vez de mirar un campo en blanco. */
-const CAMPAIGN_TEMPLATES = [
-  "Esta semana: 20% en perfilado de barba de lunes a miércoles.",
-  "Te queda poco para el corte gratis. Te esperamos.",
-  "Liberamos horas para el fin de semana — reserva en brunetticutz.cl",
-  "Tanto tiempo. Vuelve esta semana y te dejamos el corte listo.",
-]
+  AGENDA_SLOTS, SESSION_TIMEOUT_MS, MAX_LEAD_DAYS, AGENDA_MAX_KEY, ALWAYS_NAV,
+  minToBlocks, isoDate, buildWeek, localBlockKey, readLocalBlocks, writeLocalBlocks,
+} from './panel/shared.jsx'
+import { BookingDetailModal } from './panel/BookingDetailSheet.jsx'
+import AgendaTab from './panel/AgendaTab.jsx'
+import FinanzasTab from './panel/FinanzasTab.jsx'
+import ClientesTab from './panel/ClientesTab.jsx'
+import InscripcionesTab from './panel/InscripcionesTab.jsx'
+import PedidosTab from './panel/PedidosTab.jsx'
+import ServiciosTab, { ServiciosDialogs } from './panel/ServiciosTab.jsx'
+import EssentialsTab, { EssentialsDialogs } from './panel/EssentialsTab.jsx'
+import ConfigTab from './panel/ConfigTab.jsx'
+import MarketingTab from './panel/MarketingTab.jsx'
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -751,7 +504,6 @@ export default function Dashboard() {
   // Acceso por barbero: Bruno (admin) ve todo. El admin concede módulos por barbero
   // (barber.modules) para los módulos "abiertos"; Finanzas/Servicios/Gastos siguen
   // por permiso. Resumen y Config siempre disponibles.
-  const ALWAYS = ["resumen", "config"]
   const MODULE_IDS = ["agenda", "reservas", "clientes", "marketing"]
   const barberModules = Array.isArray(barber?.modules) ? barber.modules : null
   const accessibleNav = nav.filter(([id]) => {
@@ -760,7 +512,7 @@ export default function Dashboard() {
     return true
   })
   // Preferencia personal de visibilidad (config → módulos visibles).
-  const personalNav = accessibleNav.filter(([id]) => ALWAYS.includes(id) || navSettings[id] !== false)
+  const personalNav = accessibleNav.filter(([id]) => ALWAYS_NAV.includes(id) || navSettings[id] !== false)
   // ── Modo "solo Brunetti" ──────────────────────────────────────────────
   // BRUNETTI_ONLY = true oculta la sección "Equipo" en Config (gestión multi-barbero).
   // Todos los demás módulos (Finanzas, Clientes, Servicios, etc.) siguen visibles.
@@ -1309,6 +1061,214 @@ export default function Dashboard() {
 
   if (!barber) return null
 
+  /* Contexto del panel para las pestañas (src/pages/panel/*Tab.jsx): cada una
+     toma de acá lo que necesita. Va completo (estado, derivados y acciones)
+     para que rediseñar una pestaña no obligue a tocar este archivo solo para
+     pasarle un dato más. authHeaders viaja como función: en PimpStudio,
+     ConfigPanel la llamaba sin recibirla y el ReferenceError dejaba el panel
+     en negro al abrir Config (d4466e2). */
+  const dash = {
+    BRUNETTI_ONLY,
+    activeClients,
+    admin,
+    agendaBarber,
+    agendaBusy,
+    agendaDayKey,
+    agendaError,
+    agendaQuery,
+    agendaView,
+    applyClientLoyalty,
+    audienceCount,
+    authHeaders,
+    availability,
+    avgTicket,
+    barber,
+    barberDraft,
+    barbers,
+    bookingForSlot,
+    bookings,
+    bulkAgenda,
+    calMonth,
+    calNextMonth,
+    calOpen,
+    calPrevMonth,
+    calRef,
+    calYear,
+    campaignAudience,
+    campaignConfirming,
+    campaignMessage,
+    campaignSending,
+    campaigns,
+    canEditServices,
+    canManageTeam,
+    canViewFinance,
+    cardProgress,
+    cardSending,
+    cardStopRef,
+    cardTestEmail,
+    cardTestPhone,
+    clientActivityOf,
+    clientEditing,
+    clientFilter,
+    clientHistory,
+    clientKey,
+    clientQuery,
+    clientSort,
+    clients,
+    completedBookings,
+    createBooking,
+    createClient,
+    createExpense,
+    deleteBarber,
+    deleteBooking,
+    deleteClient,
+    deleteExpense,
+    deleteProduct,
+    deleteService,
+    deleteSvc,
+    detail,
+    dockItems,
+    dockShortcuts,
+    dragRef,
+    editProductId,
+    editSvcId,
+    ensurePastBookings,
+    expenseBudgets,
+    expenses,
+    exportCSV,
+    filteredClients,
+    financePeriod,
+    financeSort,
+    goToDayInReservas,
+    goToPendingInReservas,
+    goToWeek,
+    inactiveClients,
+    inboxFocus,
+    loadAgenda,
+    logout,
+    monthExpensesTotal,
+    monthKeyNow,
+    nav,
+    navSettings,
+    navigate,
+    newBookingOpen,
+    newClientOpen,
+    newClientsCount,
+    openClient,
+    pastRangeEpoch,
+    periodStartKey,
+    personalNav,
+    pickCalendarDay,
+    prevWeekStats,
+    productDraft,
+    productOpen,
+    productUploading,
+    products,
+    pushToast,
+    ranking,
+    recurringPct,
+    redeemFreeCut,
+    refreshAll,
+    refreshing,
+    removeProduct,
+    revenueByDate,
+    revenueByService,
+    revenueTotal,
+    saveBarber,
+    saveClient,
+    saveProduct,
+    saveService,
+    searchParams,
+    selectedClient,
+    sendCampaign,
+    sendLoyaltyCard,
+    sendLoyaltyCards,
+    serviceDraft,
+    serviceOpen,
+    services,
+    setAgendaBarber,
+    setAgendaBusy,
+    setAgendaDayKey,
+    setAgendaError,
+    setAgendaQuery,
+    setAgendaView,
+    setAvailability,
+    setBarber,
+    setBarberDraft,
+    setBarbers,
+    setBookings,
+    setCalMonth,
+    setCalOpen,
+    setCalYear,
+    setCampaignAudience,
+    setCampaignConfirming,
+    setCampaignMessage,
+    setCampaignSending,
+    setCampaigns,
+    setCardProgress,
+    setCardSending,
+    setCardTestEmail,
+    setCardTestPhone,
+    setClientEditing,
+    setClientFilter,
+    setClientHistory,
+    setClientQuery,
+    setClientSort,
+    setClients,
+    setDeleteProduct,
+    setDeleteSvc,
+    setDetail,
+    setDockShortcuts,
+    setEditProductId,
+    setEditSvcId,
+    setExpenseBudgets,
+    setExpenses,
+    setFinancePeriod,
+    setFinanceSort,
+    setInboxFocus,
+    setNavSettings,
+    setNewBookingOpen,
+    setNewClientOpen,
+    setPastRangeEpoch,
+    setPrevWeekStats,
+    setProductDraft,
+    setProductOpen,
+    setProductUploading,
+    setProducts,
+    setRefreshing,
+    setSelectedClient,
+    setServiceDraft,
+    setServiceOpen,
+    setServices,
+    setTab,
+    setToasts,
+    setTopbarScrolled,
+    setWalletStats,
+    setWeekOffset,
+    sortedClients,
+    sortedFinanceRows,
+    svcMinByName,
+    tab,
+    toasts,
+    todayKeyNow,
+    toggleClientSort,
+    toggleFinanceSort,
+    toggleSlot,
+    topClients,
+    topbarScrolled,
+    updateBarberLocal,
+    updateBookingStatus,
+    updateExpense,
+    uploadProductPhoto,
+    upsertClientLocal,
+    visibleBookings,
+    visibleNav,
+    walletStats,
+    weekDays,
+    weekOffset,
+    weekStats,
+  }
+
   return (
     <DashboardShell
       tab={tab}
@@ -1350,323 +1310,7 @@ export default function Dashboard() {
         )}
 
         {/* AGENDA */}
-        {tab === "agenda" && agendaDayKey && (
-          <div className="animate-in" style={{ display: "grid", gap: "1.1rem" }}>
-            {agendaError && (
-              <div className="card" style={{ padding: ".8rem 1rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: ".8rem", border: "1px solid rgba(217,154,143,.4)", background: "rgba(217,154,143,.08)" }}>
-                <span style={{ fontSize: ".82rem", color: "#d99a8f" }}>{agendaError}</span>
-                <button type="button" className="btn btn-dark btn-sm" onClick={() => setAgendaError("")}>Cerrar</button>
-              </div>
-            )}
-
-            {/* Cabecera propia del módulo: el topbar global ya trae título/tema/
-                campana/avatar/buscador general — acá solo va el kicker y un
-                buscador LOCAL de las reservas del día visible. */}
-            <div className="agenda-topline">
-              <span className="agenda-kicker">PANEL INTERNO</span>
-              <div className="agenda-search">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" aria-hidden="true">
-                  <circle cx="11" cy="11" r="7" /><path d="M21 21l-4.35-4.35" />
-                </svg>
-                <input
-                  className="agenda-search-input"
-                  placeholder="Buscar reserva del día…"
-                  value={agendaQuery}
-                  onChange={(e) => setAgendaQuery(e.target.value)}
-                />
-                {agendaQuery && (
-                  <button type="button" className="agenda-search-clear" onClick={() => setAgendaQuery("")} aria-label="Limpiar búsqueda">
-                    <Icon name="close" size={12} />
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* HERO: ocupación del día + KPIs de la semana + próxima cita. */}
-            {(() => {
-              const daySlots = availability[agendaDayKey] || []
-              const bookedDay = daySlots.filter((s) => s.state === "booked").length
-              const freeDay = daySlots.filter((s) => s.state === "free").length
-              const dayOcc = (bookedDay + freeDay) ? Math.round((bookedDay / (bookedDay + freeDay)) * 100) : 0
-              const [dy, dm, dd] = agendaDayKey.split("-").map(Number)
-              const dateObj = new Date(dy, dm - 1, dd)
-              const longDate = `${DOW_LONG[dateObj.getDay()]} ${dd} de ${MONTH_LONG[dm - 1]}`
-              const weekSuffix = weekOffset === 0 ? "esta semana"
-                : weekOffset === 1 ? "próx. semana"
-                : weekOffset === -1 ? "sem. pasada"
-                : weekOffset < 0 ? `hace ${-weekOffset} sem.`
-                : `en ${weekOffset} sem.`
-              const dayBookingsToday = visibleBookings
-                .filter((b) => b.date === agendaDayKey && b.status !== "cancelada")
-                .sort((a, b) => (a.time || "").localeCompare(b.time || ""))
-              const nextBooking = dayBookingsToday[0]
-              // Nuevos vs recurrentes del día: cruza por teléfono con el
-              // registro de clientes (visits > 1 = recurrente).
-              let newCount = 0, recurringCount = 0
-              dayBookingsToday.forEach((b) => {
-                const c = clients.find((item) => cleanPhone(item.phone) === cleanPhone(b.phone))
-                if (c && Number(c.visits || 0) > 1) recurringCount += 1
-                else newCount += 1
-              })
-              // Deltas vs. la semana anterior: si no hay datos previos fiables
-              // (API caída), no se inventan cifras — se ocultan.
-              const weekDelta = prevWeekStats ? {
-                booked: weekStats.booked - prevWeekStats.booked,
-                free: weekStats.free - prevWeekStats.free,
-                blocked: weekStats.blocked - prevWeekStats.blocked,
-              } : null
-              return (
-                <div className="dk-hero">
-                  <div className="dk-hero-grid cols-6 dk-stagger">
-                    <div className="dk-hero-lead">
-                      <AnimatedRing pct={dayOcc} size={84} label="del día" />
-                      <div>
-                        <span className="agenda-kicker agenda-kicker-hero">AGENDA DE BRUNETTI</span>
-                        <h2 className="dk-hero-title">{longDate}</h2>
-                        <span className="dk-hero-sub">{bookedDay}/{bookedDay + freeDay} horas reservadas hoy</span>
-                        <span className="agenda-next-chip">
-                          <Icon name="clock" size={11} /> Próximo: {nextBooking ? `${nextBooking.client} · ${nextBooking.time}` : "sin reservas"}
-                        </span>
-                      </div>
-                    </div>
-                    <KpiTile icon="calendar" label={`Reservados · ${weekSuffix}`} value={weekStats.booked} delta={weekDelta?.booked} />
-                    <KpiTile icon="clock" label={`Disponibles · ${weekSuffix}`} value={weekStats.free} suffix="h" color="var(--green)" delta={weekDelta?.free} />
-                    <KpiTile icon="trend" label={`Bloqueados · ${weekSuffix}`} value={weekStats.blocked} color="var(--red)" delta={weekDelta?.blocked} />
-                    <KpiTile icon="user" label="Nuevos vs recurrentes" value={newCount} format={(n) => `${n}/${recurringCount}`} sub={`${recurringCount} recurrentes hoy`} />
-                    <button className="btn btn-gold" style={{ display: "inline-flex", alignItems: "center", gap: ".5rem", alignSelf: "center" }} onClick={() => setNewBookingOpen(true)}>
-                      <Icon name="plus" size={16} /> Nueva reserva
-                    </button>
-                  </div>
-                </div>
-              )
-            })()}
-            <div className="agenda-controls">
-              {/* Selector de barbero retirado: la agenda es exclusiva de Brunetti.
-                  (Se conserva agendaBarber fijado a Bruno para la API de disponibilidad.) */}
-              {/* La agenda se administra semana por semana. Hacia adelante el tope
-                  es AGENDA_MAX_KEY, que siempre alcanza la ventana reservable del
-                  cliente (MAX_LEAD_DAYS); hacia atrás no hay tope. */}
-              <div className="agenda-bulk-actions">
-                {/* Flechas sin tope hacia atrás: las semanas pasadas se pueden
-                    revisar (reservas no atendidas, cancelaciones tardías). */}
-                <button type="button" className="btn btn-dark btn-sm" onClick={() => goToWeek(weekOffset - 1)} aria-label="Semana anterior">
-                  <Icon name="arrowLeft" size={14} />
-                </button>
-                <button type="button" className={`btn btn-sm ${weekOffset === 0 ? "btn-gold" : "btn-dark"}`} onClick={() => goToWeek(0)}>
-                  Esta semana
-                </button>
-                <button type="button" className="btn btn-dark btn-sm" onClick={() => goToWeek(weekOffset + 1)} aria-label="Semana siguiente">
-                  <Icon name="arrowRight" size={14} />
-                </button>
-                {/* El botón de calendario vive acá (no en la franja de días): a 320px
-                    de ancho, sacarlo de esa fila es lo que hace viable mostrar los
-                    7 días en una grilla sin scroll horizontal. */}
-                <div className="agenda-cal-wrap" ref={calRef}>
-                  <button type="button" className="btn btn-dark btn-sm agenda-cal-btn" onClick={() => setCalOpen((v) => !v)} aria-label="Elegir fecha">
-                    <Icon name="calendar" size={14} />
-                  </button>
-                  {calOpen && (
-                    <AgendaDatePicker
-                      month={calMonth}
-                      year={calYear}
-                      selectedKey={agendaDayKey}
-                      onPrevMonth={calPrevMonth}
-                      onNextMonth={calNextMonth}
-                      onPick={pickCalendarDay}
-                      maxKey={AGENDA_MAX_KEY()}
-                    />
-                  )}
-                </div>
-              </div>
-              <div className="daypick daypick-sticky" role="group" aria-label="Día de la semana">
-                {weekDays.map((d) => {
-                  const isActive = d.key === agendaDayKey
-                  const isToday = d.key === isoDate(new Date())
-                  const hasBookings = (availability[d.key] || []).some((s) => s.state === "booked")
-                  const [dow, num] = d.label.split(" ")
-                  return (
-                    <button
-                      key={d.key}
-                      type="button"
-                      className={`daypick-btn ${isActive ? "is-active" : ""} ${isToday ? "is-today" : ""}`}
-                      aria-pressed={isActive}
-                      onClick={() => setAgendaDayKey(d.key)}
-                    >
-                      <span className="dp-dow">{isToday ? "Hoy" : dow}</span>
-                      <span className="dp-num">{num}</span>
-                      <span className="dp-ind">{hasBookings && <span className="dp-dot" />}</span>
-                    </button>
-                  )
-                })}
-              </div>
-              {/* Antes eran 6 botones sueltos (mañana/tarde/día/semana × bloquear/
-                  habilitar) todos visibles a la vez. Mañana/tarde ahora son un
-                  toggle contextual junto al título de cada periodo (más abajo);
-                  acá solo quedan día completo y semana completa, y cada uno es
-                  un único botón cuya etiqueta cambia según el estado actual. */}
-              <div className="agenda-bulk-actions agenda-bulk-row">
-                {(() => {
-                  const dayFree = (availability[agendaDayKey] || []).filter((s) => s.state === "free").length
-                  const dayIsBlocked = dayFree === 0
-                  const weekIsBlocked = weekStats.free === 0
-                  return (
-                    <>
-                      <button type="button" className={`btn btn-sm ${dayIsBlocked ? "btn-gold" : "btn-dark"}`} disabled={!!agendaBusy} onClick={() => { bulkAgenda("day", dayIsBlocked ? "enable" : "block"); pushToast(dayIsBlocked ? "✓" : "✕", dayIsBlocked ? "Día habilitado" : "Día bloqueado") }}>
-                        <Icon name={dayIsBlocked ? "check" : "close"} size={13} /> {dayIsBlocked ? "Habilitar" : "Bloquear"} día completo
-                      </button>
-                      <button type="button" className={`btn btn-sm ${weekIsBlocked ? "btn-gold" : "btn-dark"}`} disabled={!!agendaBusy} onClick={() => { bulkAgenda("week", weekIsBlocked ? "enable" : "block"); pushToast(weekIsBlocked ? "✓" : "✕", weekIsBlocked ? "Semana habilitada" : "Semana bloqueada") }}>
-                        <Icon name={weekIsBlocked ? "check" : "close"} size={13} /> {weekIsBlocked ? "Habilitar" : "Bloquear"} semana completa
-                      </button>
-                    </>
-                  )
-                })()}
-                <span className="agenda-drag-hint">Arrastra sobre las horas para bloquear un rango ⇄</span>
-              </div>
-            </div>
-            <div className="agenda-layout">
-              <Panel
-                title={`${(barbers.find((item) => item.id === agendaBarber) || barberById(agendaBarber))?.name || "Barbero"}`}
-                action={(
-                  <div style={{ display: "flex", alignItems: "center", gap: ".5rem", flexWrap: "wrap", justifyContent: "flex-end" }}>
-                    <span className="chip chip-gold">{(availability[agendaDayKey] || []).filter((s) => s.state === "free").length} libres</span>
-                    <div className="agenda-view-toggle" role="group" aria-label="Vista de la agenda">
-                      <button type="button" className={`agenda-view-tab ${agendaView === "grid" ? "is-on" : ""}`} onClick={() => setAgendaView("grid")}>▦ Bloques</button>
-                      <button type="button" className={`agenda-view-tab ${agendaView === "timeline" ? "is-on" : ""}`} onClick={() => setAgendaView("timeline")}>☰ Línea</button>
-                    </div>
-                  </div>
-                )}
-              >
-                <div className="agenda-legend">
-                  <span><i className="free" /> Atiende</span>
-                  <span><i className="blocked" /> Bloqueado</span>
-                  <span><i className="booked" /> Reservado</span>
-                </div>
-                {agendaView === "grid" && ["MAÑANA", "TARDE"].map((label) => {
-                  const slots = AGENDA_SLOTS.filter((t) => label === "MAÑANA" ? Number(t.slice(0, 2)) < 12 : Number(t.slice(0, 2)) >= 12)
-                  const periodStates = slots.map((t) => (availability[agendaDayKey] || []).find((item) => item.slot === t))
-                  const periodIsBlocked = periodStates.every((s) => s?.state !== "free")
-                  return (
-                    <div key={label} className="agenda-period">
-                      <div className="agenda-period-head">
-                        <p className="agenda-period-title">{label}</p>
-                        <button
-                          type="button"
-                          className={`agenda-period-toggle ${periodIsBlocked ? "is-blocked" : ""}`}
-                          disabled={!!agendaBusy}
-                          onClick={() => { bulkAgenda(label === "MAÑANA" ? "morning" : "afternoon", periodIsBlocked ? "enable" : "block"); pushToast(periodIsBlocked ? "✓" : "✕", `${label === "MAÑANA" ? "Mañana" : "Tarde"} ${periodIsBlocked ? "habilitada" : "bloqueada"}`) }}
-                        >
-                          {periodIsBlocked ? "Habilitar" : "Bloquear"}
-                        </button>
-                      </div>
-                      <div className="agenda-tile-grid">
-                        {slots.map((t) => {
-                          const slotInfo = (availability[agendaDayKey] || []).find((item) => item.slot === t)
-                          const state = slotInfo?.state || (slotInfo?.available === false ? "blocked" : "free")
-                          const busy = agendaBusy === `${agendaDayKey}-${t}`
-                          const bk = state === "booked" ? bookingForSlot(agendaDayKey, t) : null
-                          const tag = state === "booked" ? "Reservado" : state === "blocked" ? "Bloqueado" : "Libre"
-                          const applyToggle = () => {
-                            toggleSlot(agendaDayKey, t, state)
-                            pushToast(state === "free" ? "✕" : "✓", state === "free" ? `${t} bloqueado` : `${t} habilitado`)
-                          }
-                          return (
-                            <button
-                              key={t}
-                              className={`agenda-tile ${state}`}
-                              disabled={busy}
-                              onMouseDown={() => {
-                                if (state === "booked") return
-                                dragRef.current = { active: true, mode: state === "free" ? "block" : "enable" }
-                                applyToggle()
-                              }}
-                              onTouchStart={() => {
-                                if (state === "booked") return
-                                dragRef.current = { active: true, mode: state === "free" ? "block" : "enable" }
-                              }}
-                              onMouseEnter={() => {
-                                if (!dragRef.current.active || state === "booked") return
-                                const { mode } = dragRef.current
-                                if ((mode === "block" && state === "free") || (mode === "enable" && state === "blocked")) applyToggle()
-                              }}
-                              onClick={() => { if (state === "booked" && bk) setDetail(bk) }}
-                              title={state === "booked" ? (bk ? `${bk.client} · ${bk.service}` : "Reservado") : state === "blocked" ? "Tocar para atender" : "Tocar para bloquear"}
-                            >
-                              <span className="agenda-tile-h">{busy ? "…" : t}</span>
-                              <span className="agenda-tile-tag">{tag}</span>
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  )
-                })}
-                {agendaView === "timeline" && (
-                  <div className="agenda-timeline">
-                    {AGENDA_SLOTS.map((t) => {
-                      const slotInfo = (availability[agendaDayKey] || []).find((item) => item.slot === t)
-                      const state = slotInfo?.state || (slotInfo?.available === false ? "blocked" : "free")
-                      const bk = state === "booked" ? bookingForSlot(agendaDayKey, t) : null
-                      return (
-                        <div
-                          key={t}
-                          className={`agenda-tl-row ${state}`}
-                          onClick={() => { if (state === "booked" && bk) setDetail(bk) }}
-                          role={state === "booked" ? "button" : undefined}
-                        >
-                          <span className="agenda-tl-time">{t}</span>
-                          <span className={`agenda-tl-rail ${state}`} />
-                          <div className="agenda-tl-card">
-                            {state === "booked" ? (
-                              <>
-                                <div className="agenda-tl-info">
-                                  <strong>{bk?.client || "Reservado"}</strong>
-                                  <span>{bk?.service}</span>
-                                </div>
-                                <span className={`agenda-tl-badge ${bk?.status === "confirmada" ? "is-gold" : ""}`}>{bk?.status === "confirmada" ? "confirmada" : "pendiente"}</span>
-                              </>
-                            ) : state === "blocked" ? (
-                              <span className="agenda-tl-empty">Bloqueado</span>
-                            ) : (
-                              <>
-                                <span className="agenda-tl-empty">Disponible</span>
-                                <span className="agenda-tl-badge">Libre</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </Panel>
-              <Panel title="Reservas del día" action={<span className="chip">{(weekDays.find((d) => d.key === agendaDayKey)?.label) || ""}</span>}>
-                <div className="agenda-day-panel">
-                  {visibleBookings
-                    .filter((b) => b.date === agendaDayKey && b.status !== "cancelada")
-                    .filter((b) => {
-                      const q = agendaQuery.trim().toLowerCase()
-                      if (!q) return true
-                      return `${b.client || ""} ${b.service || ""}`.toLowerCase().includes(q)
-                    })
-                    .sort((a, b) => (a.time || "").localeCompare(b.time || ""))
-                    .map((b) => (
-                      <button key={b.id || `${b.date}-${b.time}-${b.client}`} type="button" className="agenda-day-booking" onClick={() => setDetail(b)}>
-                        <span className="adb-time">{b.time}</span>
-                        <span className="adb-info">
-                          <strong>{b.client}</strong>
-                          <span>{b.service}</span>
-                        </span>
-                        <span className={`chip ${b.status === "confirmada" ? "chip-gold" : ""}`} style={{ fontSize: ".64rem" }}>{b.status}</span>
-                      </button>
-                    ))}
-                  {!visibleBookings.some((b) => b.date === agendaDayKey && b.status !== "cancelada") && (
-                    <div className="empty-state">Sin reservas este día.</div>
-                  )}
-                </div>
-              </Panel>
-            </div>
-          </div>
-        )}
+        {tab === "agenda" && agendaDayKey && <AgendaTab ctx={dash} />}
 
         {/* RESERVAS */}
         {tab === "reservas" && (
@@ -1687,408 +1331,26 @@ export default function Dashboard() {
         )}
 
         {/* FINANZAS */}
-        {tab === "finanzas" && (
-          <div className="animate-in" style={{ display: "grid", gap: "1.1rem" }}>
-            <div className="fin-toolbar">
-              <div className="psn-seg" role="group" aria-label="Periodo">
-                <button type="button" className={financePeriod === "semana" ? "is-on" : ""} onClick={() => setFinancePeriod("semana")}>Semana</button>
-                <button type="button" className={financePeriod === "mes" ? "is-on" : ""} onClick={() => setFinancePeriod("mes")}>Mes</button>
-                <button type="button" className={financePeriod === "año" ? "is-on" : ""} onClick={() => setFinancePeriod("año")}>Año</button>
-              </div>
-              <button type="button" className="btn btn-dark btn-sm" onClick={() => exportCSV("Finanzas")}>
-                <Icon name="wallet" size={13} /> Exportar CSV
-              </button>
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: "1rem" }}>
-              <Stat icon="wallet"   label="Ingresos del periodo" value={CLP(revenueTotal)} accent />
-              <Stat icon="chart"    label="Ticket promedio" value={CLP(avgTicket)} />
-              <Stat icon="scissors" label="Servicios"       value={completedBookings.length} />
-              <Stat icon="wallet"   label="Gastos del mes"  value={CLP(monthExpensesTotal)} />
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(280px,1fr))", gap: "1.1rem" }}>
-              <Panel title="Ingresos por día">
-                {revenueByDate.length
-                  ? <BarChart data={revenueByDate} fmt={CLP} />
-                  : <p style={{ color: "var(--muted)", fontSize: ".84rem" }}>Sin datos en este periodo.</p>}
-              </Panel>
-              <Panel title="Ingresos por servicio">
-                <div style={{ display: "grid", gap: ".75rem" }}>
-                  {!revenueByService.length && <p style={{ color: "var(--muted)", fontSize: ".84rem" }}>Sin datos en este periodo.</p>}
-                  {revenueByService.slice(0, 5).map((item) => {
-                    const p = Math.round((item.total / Math.max(1, revenueTotal)) * 100)
-                    return (
-                      <div key={item.name} style={{ display: "grid", gap: ".3rem" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: ".82rem" }}><span style={{ color: "var(--ink-soft)" }}>{item.name}</span><span className="gold-text" style={{ fontWeight: 600 }}>{p}%</span></div>
-                        <div style={{ height: 6, borderRadius: 99, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}><div style={{ height: "100%", width: `${p}%`, background: "var(--gold-grad)", borderRadius: 99 }} /></div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </Panel>
-            </div>
-            <Panel title="Ingresos por barbero">
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(160px,1fr))", gap: ".8rem" }}>
-                {!ranking.length && <p style={{ color: "var(--muted)", fontSize: ".84rem" }}>Sin datos en este periodo.</p>}
-                {ranking.map((r) => {
-                  const b = barbers.find((item) => item.id === r.id) || barberById(r.id)
-                  return (
-                    <div key={r.id} style={{ padding: "1rem", border: "1px solid var(--hair)", borderRadius: 12, background: "rgba(0,0,0,0.25)" }}>
-                      <span style={{ fontSize: ".8rem", color: "var(--muted)", display: "block", marginBottom: ".3rem" }}>{b?.short}</span>
-                      <span className="font-display gold-text" style={{ fontSize: "1.1rem", fontWeight: 700 }}>{CLP(r.rev)}</span>
-                      <span style={{ fontSize: ".72rem", color: "var(--muted-2)", display: "block", marginTop: ".2rem" }}>{r.cuts} servicios</span>
-                    </div>
-                  )
-                })}
-              </div>
-            </Panel>
-
-            <Panel title="Movimientos" action={<span className="chip">{sortedFinanceRows.length} en el periodo</span>}>
-              <div className="fin-table-head" style={{ "--fin-cols": admin ? "100px 1.3fr 1.1fr 110px 90px 100px" : "100px 1.3fr 1.1fr 90px 100px" }}>
-                <button type="button" onClick={() => toggleFinanceSort("date")} className={financeSort.key === "date" ? "is-sorted" : ""}>Fecha {financeSort.key === "date" && (financeSort.dir === "asc" ? "↑" : "↓")}</button>
-                <button type="button" onClick={() => toggleFinanceSort("client")} className={financeSort.key === "client" ? "is-sorted" : ""}>Cliente {financeSort.key === "client" && (financeSort.dir === "asc" ? "↑" : "↓")}</button>
-                <button type="button" onClick={() => toggleFinanceSort("service")} className={financeSort.key === "service" ? "is-sorted" : ""}>Servicio {financeSort.key === "service" && (financeSort.dir === "asc" ? "↑" : "↓")}</button>
-                {admin && <button type="button" onClick={() => toggleFinanceSort("barber")} className={financeSort.key === "barber" ? "is-sorted" : ""}>Barbero {financeSort.key === "barber" && (financeSort.dir === "asc" ? "↑" : "↓")}</button>}
-                <button type="button" onClick={() => toggleFinanceSort("price")} className={financeSort.key === "price" ? "is-sorted" : ""}>Precio {financeSort.key === "price" && (financeSort.dir === "asc" ? "↑" : "↓")}</button>
-                <span>Estado</span>
-              </div>
-              <div className="fin-mov-scroll">
-                <div className="fin-mov-list">
-                  {sortedFinanceRows.map((b) => {
-                    const bb = barberById(b.barberId)
-                    return (
-                      <div key={b.id} className="fin-row" style={{ "--fin-cols": admin ? "100px 1.3fr 1.1fr 110px 90px 100px" : "100px 1.3fr 1.1fr 90px 100px" }}>
-                        <div className="fin-c-date"><strong>{b.date?.slice(5)}</strong><span>{b.time}</span></div>
-                        <div className="fin-c-client"><strong>{b.client}</strong></div>
-                        <div className="fin-c-svc"><span>{b.service}</span></div>
-                        {admin && <div className="fin-c-barber"><span>{bb?.short || bb?.name || "—"}</span></div>}
-                        <div className="fin-c-price"><strong className="gold-text">{CLP(b.price)}</strong></div>
-                        <span className="chip fin-c-status">{b.status}</span>
-                      </div>
-                    )
-                  })}
-                  {!sortedFinanceRows.length && (
-                    <div className="empty-state" style={{ display: "grid", gap: ".7rem", justifyItems: "center" }}>
-                      <span>Sin movimientos en este periodo.</span>
-                      <button type="button" className="btn btn-gold btn-sm" onClick={() => setNewBookingOpen(true)}>
-                        <Icon name="calendar" size={14} /> Nueva reserva
-                      </button>
-                    </div>
-                  )}
-                </div>
-                {sortedFinanceRows.length > 0 && (
-                  <div className="fin-row-total">
-                    <span>Total del periodo</span>
-                    <b className="gold-text">{CLP(revenueTotal)}</b>
-                  </div>
-                )}
-              </div>
-            </Panel>
-          </div>
-        )}
+        {tab === "finanzas" && <FinanzasTab ctx={dash} />}
 
         {/* CLIENTES */}
-        {tab === "clientes" && (
-          <div className="animate-in" style={{ display: "grid", gap: "1.1rem" }}>
-            <div className="client-filter-grid">
-              <button type="button" className={`client-filter-card ${clientFilter === "active" ? "is-active" : ""}`} onClick={() => setClientFilter((f) => f === "active" ? "all" : "active")}>
-                <span className="cf-ic"><Icon name="user" size={16} /></span>
-                <span className="cf-body"><strong>{activeClients.length}</strong><span className="cf-label">Activos</span></span>
-              </button>
-              <button type="button" className={`client-filter-card ${clientFilter === "inactive" ? "is-active" : ""}`} onClick={() => setClientFilter((f) => f === "inactive" ? "all" : "inactive")}>
-                <span className="cf-ic"><Icon name="clock" size={16} /></span>
-                <span className="cf-body"><strong>{inactiveClients.length}</strong><span className="cf-label">Inactivos 30+ días</span></span>
-              </button>
-              <button type="button" className={`client-filter-card ${clientFilter === "top" ? "is-active" : ""}`} onClick={() => setClientFilter((f) => f === "top" ? "all" : "top")}>
-                <span className="cf-ic"><Icon name="star" size={16} /></span>
-                <span className="cf-body"><strong>{topClients.length}</strong><span className="cf-label">Más activos</span></span>
-              </button>
-            </div>
-            <Panel
-              title="Panel de clientes"
-              action={(
-                <div style={{ display: "flex", gap: ".5rem", alignItems: "center" }}>
-                  <span className="chip chip-gold">Teléfono como ID</span>
-                  <button className="btn btn-gold btn-sm" onClick={() => setNewClientOpen(true)}>
-                    <Icon name="user" size={14} /> Nuevo
-                  </button>
-                </div>
-              )}
-            >
-              <div className="client-search">
-                <Icon name="user" size={15} />
-                <input value={clientQuery} onChange={(e) => setClientQuery(e.target.value)} placeholder="Buscar por nombre, telefono o correo" />
-              </div>
-              <div className="client-table-head">
-                <button type="button" onClick={() => toggleClientSort("name")} className={clientSort.key === "name" ? "is-sorted" : ""}>
-                  Cliente {clientSort.key === "name" && (clientSort.dir === "asc" ? "↑" : "↓")}
-                </button>
-                <button type="button" onClick={() => toggleClientSort("visits")} className={clientSort.key === "visits" ? "is-sorted" : ""}>
-                  Visitas {clientSort.key === "visits" && (clientSort.dir === "asc" ? "↑" : "↓")}
-                </button>
-                <button type="button" onClick={() => toggleClientSort("totalSpent")} className={clientSort.key === "totalSpent" ? "is-sorted" : ""}>
-                  Total {clientSort.key === "totalSpent" && (clientSort.dir === "asc" ? "↑" : "↓")}
-                </button>
-                <span />
-              </div>
-              <div className="client-list">
-                {sortedClients.map((client) => (
-                  <div key={client.id || client.phone} className="client-row" onClick={() => openClient(client)} role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') openClient(client) }}>
-                    <div style={{ minWidth: 0 }}>
-                      <strong>{client.name}</strong>
-                      <span>+56 {client.phone} · {client.email || "sin correo"}</span>
-                    </div>
-                    <div>
-                      <strong>{client.visits || 0}</strong>
-                      <span>
-                        visitas
-                        {client.loyalty && (
-                          <span className="chip chip-gold" style={{ marginLeft: ".35rem", fontSize: ".62rem", padding: ".1rem .35rem" }} title={`${client.loyalty.stars} de ${client.loyalty.goal} estrellas`}>
-                            <Icon name="star" size={9} /> {client.loyalty.stars}
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                    <div><strong>{CLP(client.totalSpent || 0)}</strong><span>{client.lastVisit || "sin visitas"}</span></div>
-                    <div style={{ display: "flex", gap: ".3rem", justifyContent: "flex-end" }}>
-                      {/* Enviar la tarjeta por WhatsApp: solo a quien todavía no
-                          la tiene agregada — a los demás no hay nada que
-                          ofrecerles. */}
-                      {!client.walletHasPass && (
-                        <button className="btn btn-dark btn-sm client-row-edit" title="Enviar tarjeta de fidelización por WhatsApp"
-                          onClick={(e) => { e.stopPropagation(); sendLoyaltyCard(client) }}>
-                          <Icon name="wallet" size={13} /> <span className="btn-label">Tarjeta</span>
-                        </button>
-                      )}
-                      <button className="btn btn-dark btn-sm client-row-edit" onClick={(e) => { e.stopPropagation(); openClient(client, { edit: true }) }}>
-                        <Icon name="user" size={13} /> <span className="btn-label">Editar</span>
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                {!sortedClients.length && (
-                  <div className="empty-state" style={{ display: "grid", gap: ".7rem", justifyItems: "center" }}>
-                    <span>No hay clientes que coincidan con la busqueda.</span>
-                    <button type="button" className="btn btn-gold btn-sm" onClick={() => setNewClientOpen(true)}>
-                      <Icon name="user" size={14} /> Nuevo cliente
-                    </button>
-                  </div>
-                )}
-              </div>
-            </Panel>
-          </div>
-        )}
-
-        {tab === "clientes" && selectedClient && (
-          <ClientModal
-            client={selectedClient}
-            history={clientHistory}
-            barbers={barbers}
-            startEditing={clientEditing}
-            onClose={() => setSelectedClient(null)}
-            onSave={saveClient}
-            onDelete={deleteClient}
-            onSchedule={() => navigate("/reservar")}
-          />
-        )}
+        {tab === "clientes" && <ClientesTab ctx={dash} />}
 
         {/* INSCRIPCIONES */}
-        {tab === "inscripciones" && (
-          <EnrollmentsPanel clients={clients} authHeaders={authHeaders} onCreateClient={createClient} onToast={pushToast} />
-        )}
+        {tab === "inscripciones" && <InscripcionesTab ctx={dash} />}
 
         {/* PEDIDOS */}
-        {tab === "pedidos" && (
-          <PedidosPanel authHeaders={authHeaders} />
-        )}
+        {tab === "pedidos" && <PedidosTab ctx={dash} />}
 
         {/* SERVICIOS */}
-        {tab === "servicios" && (
-          <div className="animate-in" style={{ display: "grid", gap: "1.1rem" }}>
-            <button className="btn btn-gold btn-block" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: ".5rem" }} onClick={() => setServiceOpen(true)}>
-              <Icon name="spark" size={16} /> Nuevo servicio
-            </button>
-            <Panel title="Servicios publicados" action={<span className="chip chip-gold">{services.filter((s) => s.active !== false).length} activos</span>}>
-              <div className="svc-grid">
-                {services.map((svc) => (
-                  <button key={svc.id} type="button" className="svc-card" onClick={() => setEditSvcId(svc.id)}>
-                    <div className="svc-card-ic"><Icon name={getSvcIcon(svc)} size={20} /></div>
-                    <div className="svc-card-name">{svc.name}</div>
-                    <div className="svc-card-price">{CLP(svc.price)}</div>
-                    <div className="svc-card-meta"><Icon name="clock" size={11} /> {svc.min} min · bloquea {minToBlocks(svc.min)}h · {svc.cat}</div>
-                    <span className={svc.active === false ? "chip" : "chip chip-gold"} style={{ fontSize: ".68rem" }}>{svc.active === false ? "Oculto" : "Publicado"}</span>
-                  </button>
-                ))}
-              </div>
-            </Panel>
-          </div>
-        )}
-
-        {/* DRAWER edición de servicio (antes expandía la card a fila completa) */}
-        {tab === "servicios" && editSvcId != null && (() => {
-          const svc = services.find((item) => item.id === editSvcId)
-          if (!svc) return null
-          return (
-            <div className="psn-modal is-drawer" role="dialog" aria-modal="true">
-              <button className="psn-scrim" aria-label="Cerrar" onClick={() => setEditSvcId(null)} />
-              <div className="psn-modal-card psn-newbk psn-drawer-card">
-                <button className="psn-close" onClick={() => setEditSvcId(null)} aria-label="Cerrar"><Icon name="close" size={17} /></button>
-                <h3><Icon name={getSvcIcon(svc)} size={20} /> Editar servicio</h3>
-                <div className="psn-newbk-sec">
-                  <label className="dk-field-lbl">Nombre</label>
-                  <input className="input" value={svc.name} onChange={(e) => setServices((items) => items.map((item) => item.id === svc.id ? { ...item, name: e.target.value } : item))} />
-                </div>
-                <div className="psn-newbk-sec" style={{ gridTemplateColumns: "1fr 1fr", display: "grid", gap: ".5rem" }}>
-                  <div><label className="dk-field-lbl">Precio</label><input className="input" inputMode="numeric" value={svc.price} onChange={(e) => setServices((items) => items.map((item) => item.id === svc.id ? { ...item, price: e.target.value.replace(/\D/g, "") } : item))} /></div>
-                  <div>
-                    <label className="dk-field-lbl">Bloquea en agenda</label>
-                    <div style={{ display: "flex", alignItems: "center", gap: ".4rem" }}>
-                      <button type="button" className="chip" style={{ padding: ".3rem .6rem" }}
-                        onClick={() => setServices((items) => items.map((item) => item.id === svc.id ? { ...item, min: String(blocksToMin(minToBlocks(item.min) - 1)) } : item))}
-                        disabled={minToBlocks(svc.min) <= 1}>−</button>
-                      <span style={{ flex: 1, textAlign: "center", fontSize: ".85rem" }}>{minToBlocks(svc.min)} {minToBlocks(svc.min) === 1 ? "bloque" : "bloques"}</span>
-                      <button type="button" className="chip" style={{ padding: ".3rem .6rem" }}
-                        onClick={() => setServices((items) => items.map((item) => item.id === svc.id ? { ...item, min: String(blocksToMin(minToBlocks(item.min) + 1)) } : item))}>+</button>
-                    </div>
-                  </div>
-                </div>
-                <p style={{ margin: 0, fontSize: ".7rem", color: "var(--muted)" }}>1 bloque = 1 hora de agenda. Duración real guardada: {svc.min} min.</p>
-                <div className="psn-confirm-actions" style={{ gridTemplateColumns: admin ? "1fr 1fr 1fr" : "1fr 1fr" }}>
-                  <button className={svc.active === false ? "chip" : "chip chip-gold"} onClick={() => saveService({ ...svc, active: svc.active === false })}>{svc.active === false ? "Oculto" : "Publicado"}</button>
-                  {admin && (
-                    <button className="btn btn-sm psn-res-delete" onClick={() => setDeleteSvc(svc)}><Icon name="close" size={14} /> Eliminar</button>
-                  )}
-                  <button className="btn btn-gold btn-sm" onClick={() => { saveService(svc); setEditSvcId(null) }}><Icon name="check" size={14} /> Guardar</button>
-                </div>
-              </div>
-            </div>
-          )
-        })()}
+        {tab === "servicios" && <ServiciosTab ctx={dash} />}
 
         {/* ESSENTIALS (tienda de clientes) */}
-        {tab === "essentials" && admin && (
-          <div className="animate-in" style={{ display: "grid", gap: "1.1rem" }}>
-            <button className="btn btn-gold btn-block" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: ".5rem" }} onClick={() => setProductOpen(true)}>
-              <Icon name="spark" size={16} /> Nuevo producto
-            </button>
-            <Panel title="Productos" action={<span className="chip chip-gold">{products.filter((p) => p.active !== false).length} activos</span>}>
-              {products.length === 0 ? (
-                <p style={{ margin: 0, color: "var(--muted)", fontSize: ".88rem" }}>Aún no hay productos. Crea el primero con el botón de arriba.</p>
-              ) : (
-                <div className="svc-grid">
-                  {products.map((p) => (
-                    <button key={p.id} type="button" className="svc-card" onClick={() => setEditProductId(p.id)}>
-                      <div className="svc-card-ic" style={{ width: 36, height: 36, overflow: "hidden", padding: 0 }}>
-                        {p.imgFront ? <img src={p.imgFront} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <Icon name="gift" size={18} />}
-                      </div>
-                      <div className="svc-card-name">{p.name}</div>
-                      <div className="svc-card-price">{CLP(p.price)}</div>
-                      <div className="svc-card-meta"><Icon name="wallet" size={11} /> Stock {p.stock}</div>
-                      <span className={p.active === false ? "chip" : "chip chip-gold"} style={{ fontSize: ".68rem" }}>{p.active === false ? "Oculto" : "Publicado"}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </Panel>
-          </div>
-        )}
+        {tab === "essentials" && <EssentialsTab ctx={dash} />}
 
-        {/* DRAWER edición de producto */}
-        {tab === "essentials" && editProductId != null && (() => {
-          const p = products.find((item) => item.id === editProductId)
-          if (!p) return null
-          const slots = [["imgFront", "front", "Portada"], ["imgBack", "back", "Hover"], ["imgDetail", "detail", "Detalle / modal"]]
-          return (
-            <div className="psn-modal is-drawer" role="dialog" aria-modal="true">
-              <button className="psn-scrim" aria-label="Cerrar" onClick={() => setEditProductId(null)} />
-              <div className="psn-modal-card psn-newbk psn-drawer-card">
-                <button className="psn-close" onClick={() => setEditProductId(null)} aria-label="Cerrar"><Icon name="close" size={17} /></button>
-                <h3><Icon name="gift" size={20} /> Editar producto</h3>
-
-                <div style={{ display: "flex", gap: ".6rem", marginBottom: ".2rem" }}>
-                  {slots.map(([field, slot, label]) => (
-                    <label key={slot} style={{ flex: 1, aspectRatio: "4/5", borderRadius: 10, overflow: "hidden", position: "relative", border: "1px dashed var(--hair-2)", cursor: "pointer", background: "var(--panel)", display: "block" }}>
-                      {p[field]
-                        ? <img src={p[field]} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                        : <div style={{ width: "100%", height: "100%", display: "grid", placeItems: "center", color: "var(--muted-2)" }}><Icon name="image" size={18} /></div>}
-                      <span style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "2px", textAlign: "center", fontSize: ".58rem", letterSpacing: ".03em", background: "rgba(0,0,0,.55)", color: "#e6cd90" }}>
-                        {productUploading === `${p.id}-${slot}` ? "Subiendo…" : label}
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/png,image/jpeg,image/webp"
-                        style={{ position: "absolute", inset: 0, opacity: 0, cursor: "pointer" }}
-                        onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) uploadProductPhoto(p.id, slot, f) }}
-                      />
-                    </label>
-                  ))}
-                </div>
-
-                <div className="psn-newbk-sec">
-                  <label className="dk-field-lbl">Nombre</label>
-                  <input className="input" value={p.name} onChange={(e) => setProducts((items) => items.map((item) => item.id === p.id ? { ...item, name: e.target.value } : item))} />
-                </div>
-                <div className="psn-newbk-sec">
-                  <label className="dk-field-lbl">Marca</label>
-                  <input className="input" value={p.brand || ""} onChange={(e) => setProducts((items) => items.map((item) => item.id === p.id ? { ...item, brand: e.target.value } : item))} />
-                </div>
-                <div className="psn-newbk-sec">
-                  <label className="dk-field-lbl">Descripción</label>
-                  <input className="input" value={p.description || ""} onChange={(e) => setProducts((items) => items.map((item) => item.id === p.id ? { ...item, description: e.target.value } : item))} />
-                </div>
-                <div className="psn-newbk-sec" style={{ gridTemplateColumns: "1fr 1fr", display: "grid", gap: ".5rem" }}>
-                  <div><label className="dk-field-lbl">Precio</label><input className="input" inputMode="numeric" value={p.price} onChange={(e) => setProducts((items) => items.map((item) => item.id === p.id ? { ...item, price: e.target.value.replace(/\D/g, "") } : item))} /></div>
-                  <div><label className="dk-field-lbl">Stock</label><input className="input" inputMode="numeric" value={p.stock} onChange={(e) => setProducts((items) => items.map((item) => item.id === p.id ? { ...item, stock: e.target.value.replace(/\D/g, "") } : item))} /></div>
-                </div>
-                <div className="psn-confirm-actions" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
-                  <button className={p.active === false ? "chip" : "chip chip-gold"} onClick={() => saveProduct({ ...p, active: p.active === false })}>{p.active === false ? "Oculto" : "Publicado"}</button>
-                  <button className="btn btn-sm psn-res-delete" onClick={() => setDeleteProduct(p)}><Icon name="close" size={14} /> Eliminar</button>
-                  <button className="btn btn-gold btn-sm" onClick={() => { saveProduct(p); setEditProductId(null) }}><Icon name="check" size={14} /> Guardar</button>
-                </div>
-              </div>
-            </div>
-          )
-        })()}
-
-        {/* CONFIRMAR ELIMINAR PRODUCTO */}
-        {deleteProduct && (
-          <div className="psn-modal psn-modal-top" role="alertdialog" aria-modal="true">
-            <button className="psn-scrim" aria-label="Cerrar" onClick={() => setDeleteProduct(null)} />
-            <div className="psn-modal-card psn-confirm">
-              <span className="psn-confirm-ic"><Icon name="close" size={22} /></span>
-              <h3 className="font-display">¿Eliminar “{deleteProduct.name}”?</h3>
-              <p>Esta acción no se puede deshacer. El producto desaparece de inmediato del catálogo público.</p>
-              <div className="psn-confirm-actions">
-                <button className="btn btn-ghost btn-block" onClick={() => setDeleteProduct(null)}>Volver</button>
-                <button className="btn btn-danger btn-block" onClick={() => { removeProduct(deleteProduct); setDeleteProduct(null) }}>Sí, eliminar</button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* MODAL NUEVO PRODUCTO */}
-        {productOpen && (
-          <div style={{ position: "fixed", inset: 0, zIndex: 1200, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }} onClick={() => setProductOpen(false)}>
-            <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }} />
-            <div className="card" style={{ position: "relative", width: "100%", maxWidth: 420, padding: "1.6rem", display: "grid", gap: "1.1rem", zIndex: 1 }} onClick={(e) => e.stopPropagation()}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <h3 className="font-display" style={{ margin: 0, fontSize: "1.1rem" }}>Nuevo producto</h3>
-                <button style={{ background: "none", border: 0, color: "var(--muted)", cursor: "pointer", padding: ".3rem" }} onClick={() => setProductOpen(false)} aria-label="Cerrar">
-                  <Icon name="close" size={18} />
-                </button>
-              </div>
-              <span className="chip" style={{ justifySelf: "start" }}>Impacta la web pública · agrega las fotos después de crearlo</span>
-              <div className="admin-form-grid">
-                <input className="input" placeholder="Nombre del producto" value={productDraft.name} onChange={(e) => setProductDraft({ ...productDraft, name: e.target.value })} />
-                <input className="input" placeholder="Marca" value={productDraft.brand} onChange={(e) => setProductDraft({ ...productDraft, brand: e.target.value })} />
-                <input className="input" placeholder="Precio (CLP)" inputMode="numeric" value={productDraft.price} onChange={(e) => setProductDraft({ ...productDraft, price: e.target.value.replace(/\D/g, "") })} />
-                <input className="input" placeholder="Stock inicial" inputMode="numeric" value={productDraft.stock} onChange={(e) => setProductDraft({ ...productDraft, stock: e.target.value.replace(/\D/g, "") })} />
-                <input className="input" placeholder="Descripción" value={productDraft.description} onChange={(e) => setProductDraft({ ...productDraft, description: e.target.value })} />
-                <button className="btn btn-gold btn-block" onClick={async () => { await saveProduct(); setProductOpen(false) }}><Icon name="check" size={15} /> Crear producto</button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* CONFIRMAR ELIMINAR PRODUCTO y MODAL NUEVO PRODUCTO (EssentialsTab.jsx):
+            fuera del filtro de pestaña, como siempre */}
+        <EssentialsDialogs ctx={dash} />
 
         {/* GASTOS */}
         {tab === "gastos" && admin && (
@@ -2147,1376 +1409,17 @@ export default function Dashboard() {
           onCreate={createClient}
         />
 
-        {/* CONFIRMAR ELIMINAR SERVICIO */}
-        {deleteSvc && (
-          <div className="psn-modal psn-modal-top" role="alertdialog" aria-modal="true">
-            <button className="psn-scrim" aria-label="Cerrar" onClick={() => setDeleteSvc(null)} />
-            <div className="psn-modal-card psn-confirm">
-              <span className="psn-confirm-ic"><Icon name="close" size={22} /></span>
-              <h3 className="font-display">¿Eliminar “{deleteSvc.name}”?</h3>
-              <p>Las reservas existentes conservarán su nombre y precio. Esta acción no se puede deshacer.</p>
-              <div className="psn-confirm-actions">
-                <button className="btn btn-ghost btn-block" onClick={() => setDeleteSvc(null)}>Volver</button>
-                <button className="btn btn-danger btn-block" onClick={() => { deleteService(deleteSvc); setDeleteSvc(null) }}>Sí, eliminar</button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* MODAL NUEVO SERVICIO */}
-        {serviceOpen && (
-          <div style={{ position: "fixed", inset: 0, zIndex: 1200, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }} onClick={() => setServiceOpen(false)}>
-            <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }} />
-            <div className="card" style={{ position: "relative", width: "100%", maxWidth: 420, padding: "1.6rem", display: "grid", gap: "1.1rem", zIndex: 1 }} onClick={(e) => e.stopPropagation()}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <h3 className="font-display" style={{ margin: 0, fontSize: "1.1rem" }}>Nuevo servicio</h3>
-                <button style={{ background: "none", border: 0, color: "var(--muted)", cursor: "pointer", padding: ".3rem" }} onClick={() => setServiceOpen(false)} aria-label="Cerrar">
-                  <Icon name="close" size={18} />
-                </button>
-              </div>
-              <span className="chip" style={{ justifySelf: "start" }}>Impacta la web pública</span>
-              <div className="admin-form-grid">
-                <input className="input" placeholder="Nombre del servicio" value={serviceDraft.name} onChange={(e) => setServiceDraft({ ...serviceDraft, name: e.target.value })} />
-                <input className="input" placeholder="Precio (CLP)" inputMode="numeric" value={serviceDraft.price} onChange={(e) => setServiceDraft({ ...serviceDraft, price: e.target.value.replace(/\D/g, "") })} />
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: ".5rem", padding: ".55rem .7rem", border: "1px solid var(--hair-2)", borderRadius: 10 }}>
-                  <span style={{ fontSize: ".8rem", color: "var(--muted)" }}>Bloquea en agenda</span>
-                  <div style={{ display: "flex", alignItems: "center", gap: ".4rem" }}>
-                    <button type="button" className="chip" style={{ padding: ".3rem .6rem" }}
-                      onClick={() => setServiceDraft((d) => ({ ...d, min: String(blocksToMin(minToBlocks(d.min) - 1)) }))}
-                      disabled={minToBlocks(serviceDraft.min) <= 1}>−</button>
-                    <span style={{ fontSize: ".85rem", minWidth: 64, textAlign: "center" }}>{minToBlocks(serviceDraft.min)} {minToBlocks(serviceDraft.min) === 1 ? "bloque" : "bloques"}</span>
-                    <button type="button" className="chip" style={{ padding: ".3rem .6rem" }}
-                      onClick={() => setServiceDraft((d) => ({ ...d, min: String(blocksToMin(minToBlocks(d.min) + 1)) }))}>+</button>
-                  </div>
-                </div>
-                <select className="input" value={serviceDraft.cat} onChange={(e) => setServiceDraft({ ...serviceDraft, cat: e.target.value })}>
-                  <option value="general">General</option>
-                  <option value="premium">Premium</option>
-                  <option value="quimico">Quimico</option>
-                </select>
-                <input className="input" placeholder="Descripción" value={serviceDraft.desc} onChange={(e) => setServiceDraft({ ...serviceDraft, desc: e.target.value })} />
-                <button className="btn btn-gold btn-block" onClick={() => { saveService(); setServiceOpen(false) }}><Icon name="check" size={15} /> Crear servicio</button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* CONFIRMAR ELIMINAR SERVICIO y MODAL NUEVO SERVICIO (ServiciosTab.jsx):
+            fuera del filtro de pestaña, como siempre */}
+        <ServiciosDialogs ctx={dash} />
 
         {/* CONFIG */}
-        {tab === "config" && (
-          <ConfigPanel
-            brunettiOnly={BRUNETTI_ONLY}
-            barber={barber}
-            barbers={barbers}
-            admin={admin}
-            canManageTeam={canManageTeam}
-            barberDraft={barberDraft}
-            setBarberDraft={setBarberDraft}
-            saveBarber={saveBarber}
-            updateBarberLocal={updateBarberLocal}
-            deleteBarber={deleteBarber}
-            onExport={exportCSV}
-            onLogout={logout}
-            nav={nav}
-            navSettings={navSettings}
-            setNavSettings={setNavSettings}
-            dockShortcuts={dockShortcuts}
-            setDockShortcuts={setDockShortcuts}
-            expenseBudgets={expenseBudgets}
-            setExpenseBudgets={setExpenseBudgets}
-          />
-        )}
+        {tab === "config" && <ConfigTab ctx={dash} />}
 
         {/* MARKETING */}
-        {tab === "marketing" && (
-          <div className="animate-in mkt">
-            {/* KPIs. Los que dependen del puente muestran "—" mientras cargan
-                en vez de 0: un 0 se lee como "nadie instaló la tarjeta" y ya
-                pasó que se tomaran decisiones mirando un dato que aún no
-                llegaba. */}
-            <div className="mkt-kpis">
-              <Stat icon="wallet" label="Tarjetas en Wallet" accent
-                value={walletStats ? walletStats.installed : "—"}
-                hint={walletStats ? `${walletStats.installRate}% de ${walletStats.passesIssued} emitidas` : "Cargando…"} />
-              <Stat icon="star" label="Estrellas del mes"
-                value={walletStats ? walletStats.starsThisMonth : "—"}
-                hint={walletStats ? `${walletStats.starsAllTime} desde el inicio` : null} />
-              <Stat icon="gift" label="Corte gratis listo"
-                value={walletStats ? walletStats.freeCutReady : "—"}
-                hint={walletStats ? `${walletStats.freeCutsRedeemed} canjeados ya` : null} />
-              <Stat icon="target" label="A punto (7-9)"
-                value={walletStats ? (walletStats.audienceCounts?.almost_free ?? 0) : "—"}
-                hint="Les falta poco" />
-              <Stat icon="users" label="Clientes activos" value={activeClients.length} hint={`${recurringPct}% vuelve`} />
-              <Stat icon="user" label="Nuevos hoy" value={newClientsCount} />
-              <Stat icon="megaphone" label="Campañas del mes"
-                value={walletStats ? walletStats.campaignsThisMonth : "—"}
-                hint={walletStats ? `${walletStats.campaignsSent} en total` : null} />
-              <Stat icon="percent" label="Promedio de estrellas"
-                value={walletStats ? walletStats.avgStars : "—"}
-                hint={walletStats ? `sobre ${walletStats.clientsWithStars} clientes` : null} />
-            </div>
-
-            {/* Campañas — el bloque principal de la pestaña, primero y no
-                después de las métricas: es lo que el barbero viene a hacer. */}
-            <Panel
-              title="Campaña push"
-              action={walletStats ? <span className="chip chip-gold">{audienceCount(campaignAudience)} destinatarios</span> : null}
-            >
-              <div style={{ display: "grid", gap: ".9rem" }}>
-                <p className="mkt-note">
-                  El mensaje aparece en la tarjeta del cliente y dispara una notificación en su celular. Solo llega a quien tiene el pase agregado — el resto no se entera.
-                </p>
-
-                <div style={{ display: "grid", gap: ".5rem" }}>
-                  <span className="mkt-sub"><Icon name="target" size={13} /> A quién</span>
-                  <div className="mkt-auds">
-                    {AUDIENCES.map((a) => {
-                      const n = audienceCount(a.id)
-                      return (
-                        <button
-                          key={a.id}
-                          type="button"
-                          className={`mkt-aud${campaignAudience === a.id ? " is-on" : ""}`}
-                          disabled={walletStats && n === 0}
-                          title={a.desc}
-                          onClick={() => { setCampaignAudience(a.id); setCampaignConfirming(false) }}
-                        >
-                          <Icon name={a.icon} size={13} />
-                          <b>{a.label}</b>
-                          <span className="n">{walletStats ? n : "…"}</span>
-                        </button>
-                      )
-                    })}
-                  </div>
-                  <p className="mkt-note">{AUDIENCE_BY_ID[campaignAudience]?.desc}</p>
-                </div>
-
-                <div className="mkt-block">
-                  <span className="mkt-sub"><Icon name="send" size={13} /> Mensaje</span>
-                  <div className="mkt-tpls">
-                    {CAMPAIGN_TEMPLATES.map((t) => (
-                      <button key={t} type="button" className="mkt-tpl"
-                        onClick={() => { setCampaignMessage(t); setCampaignConfirming(false) }}>
-                        {t.length > 34 ? `${t.slice(0, 34)}…` : t}
-                      </button>
-                    ))}
-                  </div>
-                  <textarea
-                    className="mkt-ta"
-                    value={campaignMessage}
-                    onChange={(e) => { setCampaignMessage(e.target.value.slice(0, 180)); setCampaignConfirming(false) }}
-                    placeholder="Ej: Este viernes, 20% en barba. Te esperamos."
-                    rows={3}
-                  />
-                  <div className="mkt-meta">
-                    <span>Se ve en la tarjeta hasta que mandes otro mensaje.</span>
-                    <span className={`mkt-count${campaignMessage.length > 150 ? " is-near" : ""}`}>{campaignMessage.length}/180</span>
-                  </div>
-
-                  {campaignMessage.trim() && (
-                    <div className="mkt-preview">
-                      <span className="who">Brunetti Cutz</span>
-                      <span className="msg">{campaignMessage.trim()}</span>
-                      <span className="to">→ {AUDIENCE_LABEL[campaignAudience]} · {audienceCount(campaignAudience)} cliente{audienceCount(campaignAudience) === 1 ? "" : "s"}</span>
-                    </div>
-                  )}
-
-                  {/* Dos toques para enviar. Es irreversible: el push sale al
-                      celular de decenas de clientes y no hay "deshacer". */}
-                  {!campaignConfirming ? (
-                    <button className="btn btn-gold btn-block"
-                      disabled={!campaignMessage.trim() || campaignSending || (walletStats && audienceCount(campaignAudience) === 0)}
-                      onClick={() => setCampaignConfirming(true)}>
-                      <Icon name="megaphone" size={15} /> Enviar campaña
-                    </button>
-                  ) : (
-                    <div className="mkt-actions">
-                      <button className="btn btn-ghost" disabled={campaignSending} onClick={() => setCampaignConfirming(false)}>Cancelar</button>
-                      <button className="btn btn-gold" disabled={campaignSending} onClick={sendCampaign}>
-                        <Icon name="check" size={15} /> {campaignSending ? "Enviando…" : `Confirmar · ${audienceCount(campaignAudience)}`}
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {campaigns.length > 0 && (
-                  <div className="mkt-block">
-                    <span className="mkt-sub"><Icon name="clock" size={13} /> Historial</span>
-                    <div className="mkt-hist">
-                      {campaigns.slice(0, 8).map((c) => (
-                        <div key={c.id} className="mkt-hist-row">
-                          <span className="msg">{c.message}</span>
-                          <span className="meta">
-                            <span>{AUDIENCE_LABEL[c.audience] || c.audience}</span>
-                            <span>· {c.recipientCount} destinatarios</span>
-                            <span>· {String(c.createdAt || "").slice(0, 10)}</span>
-                            <span className="src">{c.source === "brunetti" ? "Brunetti" : "Pimp Studio"}</span>
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </Panel>
-
-            {/* Adopción de la tarjeta: emitidas vs realmente agregadas, y en
-                qué punto del camino al corte gratis está la gente. */}
-            <Panel
-              title="Tarjeta de fidelidad"
-              action={walletStats ? <span className="chip chip-gold">{walletStats.passesIssued} emitidas</span> : null}
-            >
-              {!walletStats && <p style={{ color: "var(--muted)", fontSize: ".84rem" }}>Cargando métricas…</p>}
-              {walletStats && (
-                <div style={{ display: "grid", gap: "1rem" }}>
-                  <div style={{ display: "grid", gap: ".4rem" }}>
-                    <div className="mkt-meta">
-                      <span className="mkt-sub">Instaladas</span>
-                      <span>{walletStats.installed} de {walletStats.passesIssued} · {walletStats.installRate}%</span>
-                    </div>
-                    <div className="mkt-meter"><i style={{ width: `${Math.min(100, walletStats.installRate)}%` }} /></div>
-                  </div>
-
-                  <div className="mkt-kpis">
-                    <Stat icon="apple"   label="En iPhone"  value={walletStats.appleInstalled} />
-                    <Stat icon="android" label="En Android" value={walletStats.googleInstalled} />
-                    <Stat icon="star"    label="Con 5+ estrellas" value={walletStats.withFiveOrMore} />
-                    <Stat icon="gift"    label="Corte gratis listo" value={walletStats.freeCutReady} accent />
-                  </div>
-
-                  <div style={{ display: "grid", gap: ".4rem" }}>
-                    <span className="mkt-sub">Clientes por estrellas</span>
-                    <div className="mkt-bars">
-                      {walletStats.byStars.map((n, i) => {
-                        const max = Math.max(1, ...walletStats.byStars)
-                        return (
-                          <div key={i} className={`mkt-bar${i >= 10 ? " is-goal" : ""}`} title={`${n} cliente${n === 1 ? "" : "s"} con ${i} estrella${i === 1 ? "" : "s"}`}>
-                            <i style={{ height: `${Math.max(n ? 4 : 1, Math.round((n / max) * 62))}px` }} />
-                            <span>{i}</span>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </Panel>
-
-            {/* Envío del link de la tarjeta por correo. Va por tandas desde el
-                navegador (ver ?mode=wallet-send-cards): así se ve el avance y
-                se puede detener a mitad. */}
-            <Panel title="Mandar la tarjeta por correo">
-              <div style={{ display: "grid", gap: ".7rem" }}>
-                <p className="mkt-note">
-                  Cada cliente recibe su propio link. Al abrirlo desde el celular le aparece un solo botón: Apple Wallet en iPhone, Google Wallet en Android. Se omite a quien ya la tiene agregada.
-                </p>
-                <div className="mkt-fields">
-                  <input
-                    className="mkt-input"
-                    value={cardTestPhone}
-                    onChange={(e) => setCardTestPhone(e.target.value.replace(/\D/g, "").slice(0, 9))}
-                    placeholder="9 dígitos (prueba)"
-                    inputMode="numeric"
-                  />
-                  <input
-                    className="mkt-input"
-                    value={cardTestEmail}
-                    onChange={(e) => setCardTestEmail(e.target.value.trim())}
-                    placeholder="correo de prueba (opcional)"
-                    inputMode="email"
-                  />
-                </div>
-                <div className="mkt-actions">
-                  <button className="btn btn-dark" disabled={cardTestPhone.length !== 9 || cardSending}
-                    onClick={() => sendLoyaltyCards({ onlyPhone: cardTestPhone, again: true, includeInstalled: true, testEmail: cardTestEmail || null })}>
-                    <Icon name="wallet" size={14} /> Probar con uno
-                  </button>
-                  <button className="btn btn-gold" disabled={cardSending} onClick={() => sendLoyaltyCards({})}>
-                    <Icon name="mail" size={14} /> {cardSending ? "Enviando…" : "Enviar a los que faltan"}
-                  </button>
-                  {cardSending && <button className="btn btn-ghost" onClick={() => { cardStopRef.current = true }}>Detener</button>}
-                </div>
-                {cardProgress && <span style={{ fontSize: ".74rem", color: "var(--muted)" }}>{cardProgress}</span>}
-              </div>
-            </Panel>
-
-            <Panel title="Clientes frecuentes" action={<span className="chip chip-gold">3+ visitas</span>}>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(200px,1fr))", gap: ".8rem" }}>
-                {!topClients.length && <p style={{ color: "var(--muted)", fontSize: ".84rem" }}>Sin datos aún.</p>}
-                {topClients.slice(0, 8).map((c) => (
-                  <div key={clientKey(c)} style={{ padding: "1rem", border: "1px solid var(--hair)", borderRadius: 12, background: "rgba(0,0,0,0.25)" }}>
-                    <span style={{ fontSize: ".85rem", fontWeight: 500, display: "block", marginBottom: ".3rem" }}>{c.name}</span>
-                    <span className="font-display gold-text" style={{ fontSize: "1.05rem", fontWeight: 700 }}>{CLP(c.totalSpent || 0)}</span>
-                    <span style={{ fontSize: ".72rem", color: "var(--muted-2)", display: "block", marginTop: ".2rem" }}>{c.visits} visitas</span>
-                  </div>
-                ))}
-              </div>
-            </Panel>
-          </div>
-        )}
+        {tab === "marketing" && <MarketingTab ctx={dash} />}
       </main>
     </DashboardShell>
-  )
-}
-
-/* ============================================================
-   Config Panel — Santa Julieta style two-column settings
-   ============================================================ */
-const CFG_SECTIONS = [
-  { id: "cuenta",        icon: "user",     label: "Cuenta y seguridad", kw: "contraseña password usuario nombre rol" },
-  { id: "apariencia",    icon: "star",     label: "Apariencia", kw: "tema modo claro oscuro" },
-  { id: "accesos",       icon: "pin",      label: "Accesos directos", kw: "dock atajos shortcuts" },
-  { id: "navegacion",    icon: "grid",     label: "Navegacion", kw: "pestañas tabs orden menu" },
-  { id: "notificaciones",icon: "bell",     label: "Notificaciones", kw: "push alertas avisos" },
-  { id: "whatsapp",      icon: "whatsapp", label: "WhatsApp", kw: "recordatorio plantillas mensajes" },
-  { id: "negocio",       icon: "scissors", label: "Negocio", kw: "horario direccion telefono nombre local" },
-  { id: "precios",       icon: "wallet",   label: "Precios y fechas", kw: "cursos workshop precio fecha mercado pago" },
-  { id: "presupuestos",  icon: "wallet",   label: "Presupuestos", kw: "gastos categoria limite" },
-  { id: "equipo",        icon: "key",      label: "Equipo y permisos", kw: "barberos permisos roles" },
-  { id: "datos",         icon: "wallet",   label: "Datos y respaldos", kw: "exportar csv respaldo backup" },
-  { id: "acerca",        icon: "spark",    label: "Acerca de", kw: "version creditos" },
-]
-
-/* ============================================================
-   INSCRIPCIONES — lista unificada de Cursos + Workshop
-   Carga desde /api/enrollments (requiere sesión interna).
-   Categoriza con colores del módulo: azul = cursos, morado = workshop.
-   ============================================================ */
-function EnrollmentsPanel({ clients = [], authHeaders = () => ({}), onCreateClient = async () => {}, onToast = () => {} }) {
-  const [rows, setRows] = React.useState([])
-  const [loading, setLoading] = React.useState(true)
-  const [filter, setFilter] = React.useState("todos") // todos | cursos | workshop
-  const [query, setQuery] = React.useState("")
-  const [selected, setSelected] = React.useState(null)
-  const [creating, setCreating] = React.useState(false)
-
-  React.useEffect(() => {
-    // Combina lo del backend con el respaldo local (inscripciones hechas desde
-    // Cursos/Workshop), para que aparezcan aunque /api no esté disponible.
-    const token = localStorage.getItem("ps_barber_token") || ""
-    fetch("/api/enrollments", { headers: token ? { Authorization: `Bearer ${token}` } : {} })
-      .then((r) => r.headers.get("content-type")?.includes("application/json") ? r.json() : Promise.reject(new Error("api unavailable")))
-      .then((d) => { setRows(mergeEnrollments(d.enrollments || [])); setLoading(false) })
-      .catch(() => { setRows(mergeEnrollments([])); setLoading(false) })
-  }, [])
-
-  const saveEnrollment = async (updated) => {
-    setRows((list) => list.map((r) => (r.id === updated.id ? { ...r, ...updated } : r)))
-    setSelected((r) => (r && r.id === updated.id ? { ...r, ...updated } : r))
-    try {
-      const res = await fetch(`/api/enrollments?id=${updated.id}`, {
-        method: "PATCH",
-        headers: authHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify(updated),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok || data?.ok === false) throw new Error(data?.error || "No se pudo guardar")
-    } catch (err) {
-      console.error("saveEnrollment:", err?.message)
-    }
-  }
-
-  const deleteEnrollment = async (enrollment) => {
-    setRows((list) => list.filter((r) => r.id !== enrollment.id))
-    setSelected(null)
-    /* Borrar también la copia del respaldo local: si no, mergeEnrollments la
-       vuelve a mostrar al recargar aunque la fila ya no exista en Neon. */
-    removeLocalEnrollment(enrollment)
-    /* Las inscripciones que solo viven en localStorage (id `local-…`) no
-       tienen fila que borrar en el backend. */
-    if (!Number(enrollment.id)) return
-    fetch(`/api/enrollments?id=${enrollment.id}`, { method: "DELETE", headers: authHeaders() }).catch(() => {})
-  }
-
-  /* Correo con la ubicación y el horario del día a quienes ya tienen cupo en
-     el Workshop. Primero pregunta al backend a quiénes les llegaría (dryRun),
-     confirma con el barbero y recién ahí manda: son correos a clientes
-     reales. Quien ya lo recibió queda fuera (details_sent_at). */
-  const [sendingDetails, setSendingDetails] = React.useState(false)
-  const sendWorkshopDetails = async () => {
-    if (sendingDetails) return
-    setSendingDetails(true)
-    try {
-      const preview = await fetch("/api/enrollments?job=workshop-details", {
-        method: "POST",
-        headers: authHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify({ dryRun: true }),
-      }).then((r) => r.json())
-
-      const list = preview?.recipients || []
-      if (!list.length) {
-        onToast("✉️", preview?.skipped ? "Ya se les había enviado a todos" : "No hay a quién enviarle")
-        return
-      }
-      const names = list.map((r) => `· ${r.name} (${r.email})`).join("\n")
-      if (!window.confirm(`Enviar el correo con ubicación y horario a ${list.length} ${list.length === 1 ? "persona" : "personas"}:\n\n${names}`)) return
-
-      const out = await fetch("/api/enrollments?job=workshop-details", {
-        method: "POST",
-        headers: authHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify({ whenLabel: null }),
-      }).then((r) => r.json())
-
-      const okCount = out?.sent?.length || 0
-      const badCount = out?.failed?.length || 0
-      onToast(badCount ? "⚠️" : "✉️", badCount ? `Enviados ${okCount}, fallaron ${badCount}` : `Correo enviado a ${okCount}`)
-      if (badCount) console.error("workshop-details fallidos:", out.failed)
-    } catch (err) {
-      console.error("sendWorkshopDetails:", err?.message)
-      onToast("⚠️", "No se pudo enviar")
-    } finally {
-      setSendingDetails(false)
-    }
-  }
-
-  const createEnrollment = async (draft) => {
-    const res = await fetch("/api/enrollments", {
-      method: "POST",
-      headers: authHeaders({ "Content-Type": "application/json" }),
-      body: JSON.stringify(draft),
-    })
-    const data = await res.json().catch(() => ({}))
-    if (!res.ok || data?.ok === false) throw new Error(data?.error || "No se pudo guardar la inscripción.")
-    setRows((list) => [{ id: data.id, ...draft, created_at: new Date().toISOString() }, ...list])
-  }
-
-  const filtered = rows.filter((r) => {
-    if (filter !== "todos" && r.source !== filter) return false
-    if (query) {
-      const q = query.toLowerCase()
-      return r.name?.toLowerCase().includes(q) || r.phone?.includes(q) || r.email?.toLowerCase().includes(q)
-    }
-    return true
-  })
-
-  const cursosBadge = { background: "rgba(11,18,158,0.18)", color: "#6b74f0", border: "1px solid rgba(107,116,240,0.35)" }
-  const workshopBadge = { background: "rgba(136,56,216,0.18)", color: "#b483f3", border: "1px solid rgba(136,56,216,0.35)" }
-
-  const fmtDate = (iso) => {
-    if (!iso) return "—"
-    const d = new Date(iso)
-    return d.toLocaleDateString("es-CL", { day: "2-digit", month: "short", year: "numeric" })
-  }
-
-  return (
-    <div className="animate-in" style={{ display: "grid", gap: "1.1rem" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: "1rem" }}>
-        <Stat icon="user"    label="Total inscripciones" value={rows.length} accent />
-        <Stat icon="spark"   label="Cursos"   value={rows.filter(r => r.source === "cursos").length} />
-        <Stat icon="scissors" label="Workshop" value={rows.filter(r => r.source === "workshop").length} />
-      </div>
-      <Panel title="Inscripciones" action={
-        <div style={{ display: "flex", gap: ".6rem", alignItems: "center", flexWrap: "wrap" }}>
-          <div className="psn-seg" role="group" aria-label="Filtrar por origen">
-            {["todos","cursos","workshop"].map(f => (
-              <button key={f} type="button" className={filter === f ? "is-on" : ""} style={{ textTransform: "capitalize" }} onClick={() => setFilter(f)}>{f}</button>
-            ))}
-          </div>
-          <button type="button" className="btn btn-dark btn-sm" disabled={sendingDetails} onClick={sendWorkshopDetails} title="Manda ubicación y horario del día a quienes tienen cupo en el Workshop">
-            <Icon name="spark" size={14} /> {sendingDetails ? "Enviando…" : "Enviar detalles"}
-          </button>
-          <button type="button" className="btn btn-gold btn-sm" onClick={() => setCreating(true)}>
-            <Icon name="user" size={14} /> Nueva inscripción
-          </button>
-        </div>
-      }>
-        <div className="client-search">
-          <Icon name="user" size={15} />
-          <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Buscar por nombre, teléfono o email" />
-        </div>
-        <div className="client-table-head" style={{ gridTemplateColumns: "1.4fr 1fr auto auto" }}>
-          <span>Cliente</span>
-          <span>Detalle</span>
-          <span>Origen</span>
-          <span>Fecha</span>
-        </div>
-        <div className="client-list">
-          {loading && <div className="empty-state">Cargando inscripciones…</div>}
-          {!loading && !filtered.length && <div className="empty-state">No hay inscripciones que coincidan.</div>}
-          {filtered.map((r) => (
-            <div key={r.id} className="client-row" style={{ gridTemplateColumns: "1.4fr 1fr auto auto" }} onClick={() => setSelected(r)}>
-              <div style={{ minWidth: 0 }}>
-                <strong>{r.name}</strong>
-                <span>{r.phone} · {r.email}</span>
-              </div>
-              <div style={{ minWidth: 0 }}>
-                <span>{r.level || "—"}</span>
-                {r.edition && <span>Edición: {r.edition}</span>}
-              </div>
-              <span style={{ fontSize: "0.7rem", padding: "2px 8px", borderRadius: 999, justifySelf: "start", ...( r.source === "cursos" ? cursosBadge : workshopBadge) }}>
-                {r.source === "cursos" ? "Cursos" : "Workshop"}
-              </span>
-              <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>{fmtDate(r.created_at)}</span>
-            </div>
-          ))}
-        </div>
-      </Panel>
-
-      {selected && (
-        <EnrollmentModal
-          enrollment={selected}
-          clients={clients}
-          onClose={() => setSelected(null)}
-          onSave={saveEnrollment}
-          onDelete={deleteEnrollment}
-          onCreateClient={onCreateClient}
-        />
-      )}
-
-      <NewEnrollmentModal
-        open={creating}
-        onClose={() => setCreating(false)}
-        onCreate={createEnrollment}
-      />
-    </div>
-  )
-}
-
-/* ============================================================
-   PEDIDOS — lista unificada de pagos reales (Cursos + Workshop +
-   Essentials). Carga desde /api/mp-payments?panel=1 (requiere sesión).
-   A diferencia de "Inscripciones" (que también incluye leads de lista de
-   espera sin pagar), acá solo aparecen pedidos con pago confirmado.
-   ============================================================ */
-const PEDIDOS_BADGE = {
-  cursos:     { background: "rgba(11,18,158,0.18)",  color: "#6b74f0", border: "1px solid rgba(107,116,240,0.35)" },
-  workshop:   { background: "rgba(136,56,216,0.18)", color: "#b483f3", border: "1px solid rgba(136,56,216,0.35)" },
-  essentials: { background: "rgba(111,191,134,0.18)", color: "#9fd7af", border: "1px solid rgba(111,191,134,0.35)" },
-}
-const PEDIDOS_LABEL = { cursos: "Cursos", workshop: "Workshop", essentials: "Essentials" }
-
-function PedidosPanel({ authHeaders = () => ({}) }) {
-  const [rows, setRows] = React.useState([])
-  const [loading, setLoading] = React.useState(true)
-  const [error, setError] = React.useState("")
-  const [filter, setFilter] = React.useState("todos") // todos | cursos | workshop | essentials
-  const [query, setQuery] = React.useState("")
-
-  React.useEffect(() => {
-    fetch("/api/mp-payments?panel=1", { headers: authHeaders() })
-      .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
-      .then(({ ok, d }) => {
-        if (!ok || d?.ok === false) throw new Error(d?.error || "No se pudieron cargar los pedidos")
-        setRows(d.orders || [])
-        setLoading(false)
-      })
-      .catch((err) => { setError(err.message || "No se pudieron cargar los pedidos"); setLoading(false) })
-  }, [])
-
-  const filtered = rows.filter((r) => {
-    if (filter !== "todos" && r.type !== filter) return false
-    if (query) {
-      const q = query.toLowerCase()
-      return r.name?.toLowerCase().includes(q) || r.phone?.includes(q) || r.email?.toLowerCase().includes(q)
-    }
-    return true
-  })
-
-  const total = rows.reduce((n, r) => n + (r.amount || 0), 0)
-  const fmtDate = (iso) => {
-    if (!iso) return "—"
-    return new Date(iso).toLocaleDateString("es-CL", { day: "2-digit", month: "short", year: "numeric" })
-  }
-
-  return (
-    <div className="animate-in" style={{ display: "grid", gap: "1.1rem" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: "1rem" }}>
-        <Stat icon="wallet" label="Total recaudado" value={CLP(total)} accent />
-        <Stat icon="spark" label="Cursos" value={rows.filter((r) => r.type === "cursos").length} />
-        <Stat icon="scissors" label="Workshop" value={rows.filter((r) => r.type === "workshop").length} />
-        <Stat icon="gift" label="Essentials" value={rows.filter((r) => r.type === "essentials").length} />
-      </div>
-      <Panel title="Pedidos" action={
-        <div className="psn-seg" role="group" aria-label="Filtrar por origen">
-          {["todos", "cursos", "workshop", "essentials"].map((f) => (
-            <button key={f} type="button" className={filter === f ? "is-on" : ""} style={{ textTransform: "capitalize" }} onClick={() => setFilter(f)}>{f}</button>
-          ))}
-        </div>
-      }>
-        <div className="client-search">
-          <Icon name="user" size={15} />
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar por nombre, teléfono o email" />
-        </div>
-        <div className="client-table-head" style={{ gridTemplateColumns: "1.4fr 1.4fr auto auto auto" }}>
-          <span>Cliente</span>
-          <span>Detalle</span>
-          <span>Origen</span>
-          <span>Monto</span>
-          <span>Fecha</span>
-        </div>
-        <div className="client-list">
-          {loading && <div className="empty-state">Cargando pedidos…</div>}
-          {!loading && error && <div className="empty-state">{error}</div>}
-          {!loading && !error && !filtered.length && <div className="empty-state">No hay pedidos que coincidan.</div>}
-          {!loading && !error && filtered.map((r) => (
-            <div key={`${r.type}-${r.id}`} className="client-row" style={{ gridTemplateColumns: "1.4fr 1.4fr auto auto auto" }}>
-              <div style={{ minWidth: 0 }}>
-                <strong>{r.name}</strong>
-                <span>{r.phone} · {r.email}</span>
-              </div>
-              <span style={{ minWidth: 0 }}>{r.detail || "—"}</span>
-              <span style={{ fontSize: "0.7rem", padding: "2px 8px", borderRadius: 999, justifySelf: "start", ...PEDIDOS_BADGE[r.type] }}>
-                {PEDIDOS_LABEL[r.type]}
-              </span>
-              <span style={{ fontSize: "0.85rem", color: "var(--ink)", fontWeight: 600 }}>{CLP(r.amount || 0)}</span>
-              <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>{fmtDate(r.created_at)}</span>
-            </div>
-          ))}
-        </div>
-      </Panel>
-    </div>
-  )
-}
-
-function ConfigSwitch({ checked, onChange, disabled }) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      disabled={disabled}
-      onClick={() => onChange(!checked)}
-      style={{
-        width: 44, height: 26, borderRadius: 13, border: "none", cursor: disabled ? "default" : "pointer",
-        background: checked ? "var(--gold)" : "var(--hair-2)",
-        position: "relative", flexShrink: 0, transition: "background .2s",
-        opacity: disabled ? .45 : 1,
-      }}
-    >
-      <span style={{
-        position: "absolute", top: 3, left: checked ? 21 : 3, width: 20, height: 20,
-        borderRadius: "50%", background: "#fff", transition: "left .2s",
-        boxShadow: "0 1px 4px rgba(0,0,0,.35)",
-      }} />
-    </button>
-  )
-}
-
-function CfgRow({ label, sub, children }) {
-  return (
-    <div className="cfg-setting-row">
-      <div>
-        <div className="cfg-setting-label">{label}</div>
-        {sub && <div className="cfg-setting-sub">{sub}</div>}
-      </div>
-      <div style={{ flexShrink: 0 }}>{children}</div>
-    </div>
-  )
-}
-
-/* Notificaciones push para iOS (app instalada en inicio).
-   Solo activa avisos para el barbero autenticado (su usuario): recibirá un push
-   cuando un cliente agende una hora con él. */
-function PushCard({ barber }) {
-  const [perm, setPerm] = useState(() => permissionState())
-  const [enabled, setEnabled] = useState(() => pushEnabledFor(barber))
-  const [busy, setBusy] = useState(false)
-  const [msg, setMsg] = useState("")
-  const supported = pushSupported()
-  const iosNeedsInstall = isIOS() && !isStandalone()
-
-  const toggle = async () => {
-    setBusy(true); setMsg("")
-    if (enabled) {
-      await disablePush(barber)
-      setEnabled(false)
-      setMsg("Notificaciones desactivadas.")
-    } else {
-      const r = await enablePush(barber)
-      setPerm(r.permission)
-      if (r.ok) {
-        setEnabled(true)
-        setMsg("Listo. Te avisaremos cuando agenden una hora contigo.")
-      } else if (r.reason === "ios-needs-install") {
-        setMsg("En iPhone: abre el menú Compartir y elige “Agregar a inicio”. Luego abre la app instalada y activa aquí.")
-      } else if (r.reason === "denied") {
-        setMsg("Permiso de notificaciones bloqueado. Actívalo en los ajustes del navegador/app.")
-      } else if (r.reason === "unsupported") {
-        setMsg("Este navegador no soporta notificaciones push.")
-      } else {
-        setMsg("No se pudo activar. Intenta nuevamente.")
-      }
-    }
-    setBusy(false)
-  }
-
-  const test = async () => {
-    const ok = await notifyLocal({
-      title: "Brunetti",
-      body: `Prueba de notificación para ${barber?.name || "ti"}.`,
-    })
-    setMsg(ok ? "Notificación de prueba enviada." : "Activa primero las notificaciones para probar.")
-  }
-
-  return (
-    <div className="cfg-card">
-      <p className="cfg-card-head">Notificaciones push · iOS</p>
-      <CfgRow
-        label="Avisarme de nuevas reservas"
-        sub="Recibe un aviso cuando un cliente agende una hora contigo."
-      >
-        <ConfigSwitch checked={enabled} disabled={busy || iosNeedsInstall} onChange={toggle} />
-      </CfgRow>
-
-      {iosNeedsInstall && (
-        <div style={{
-          marginTop: ".8rem", padding: ".85rem 1rem", borderRadius: 12,
-          border: "1px solid var(--gold-line)", background: "rgba(201,161,78,0.07)",
-          fontSize: ".82rem", color: "var(--ink-soft)", lineHeight: 1.5,
-        }}>
-          <strong style={{ color: "var(--gold-lt)" }}>Para activar en iPhone:</strong> abre esta web en Safari,
-          toca <b>Compartir</b> → <b>Agregar a inicio</b>. Abre la app instalada y vuelve aquí para activar las push.
-        </div>
-      )}
-
-      {!supported && !iosNeedsInstall && (
-        <p style={{ marginTop: ".7rem", fontSize: ".8rem", color: "var(--muted)" }}>
-          Este dispositivo o navegador no soporta notificaciones push.
-        </p>
-      )}
-
-      {enabled && (
-        <button className="btn btn-dark btn-sm" style={{ marginTop: ".9rem" }} onClick={test}>
-          <Icon name="bell" size={13} /> Enviar notificación de prueba
-        </button>
-      )}
-
-      {msg && <p style={{ marginTop: ".8rem", fontSize: ".8rem", color: "var(--gold-lt)" }}>{msg}</p>}
-
-      <p style={{ marginTop: ".9rem", fontSize: ".74rem", color: "var(--muted-2)", lineHeight: 1.5 }}>
-        Solo tú recibirás estos avisos en tu cuenta. Estado del permiso: <b>{perm}</b>.
-      </p>
-    </div>
-  )
-}
-
-function isStrongPassword(pw) {
-  return /^[A-Za-z0-9]{8,64}$/.test(pw) && /[A-Z]/.test(pw) && /[0-9]/.test(pw)
-}
-
-function ConfigPanel({ brunettiOnly, barber, barbers, admin, canManageTeam, barberDraft, setBarberDraft, saveBarber, updateBarberLocal, deleteBarber, onExport, onLogout, nav, navSettings, setNavSettings, dockShortcuts, setDockShortcuts, expenseBudgets = {}, setExpenseBudgets = () => {} }) {
-  const [section, setSection] = useState(null)
-  // En modo "solo Brunetti" se oculta la gestión de Equipo/barberos (código conservado).
-  // Presupuestos es exclusivo de admin (gestiona finanzas del negocio).
-  const sections = CFG_SECTIONS
-    .filter((s) => brunettiOnly ? s.id !== "equipo" : true)
-    .filter((s) => s.id !== "presupuestos" || admin)
-  const [teamModal, setTeamModal] = useState(null) // null=cerrado; {barber:null}=crear; {barber:obj}=editar
-  const [biz, setBiz] = useState(() => {
-    try { return { name: "Brunetti Barber Studio", address: "Maipú, Santiago", phone: "+56 9 1234 5678", waPhone: "+56 9 1234 5678", ...JSON.parse(localStorage.getItem("ps_biz") || "{}") } } catch { return { name: "Brunetti Barber Studio", address: "Maipú, Santiago", phone: "+56 9 1234 5678", waPhone: "+56 9 1234 5678" } }
-  })
-  const [bizSaved, setBizSaved] = useState("")
-  const saveBiz = () => {
-    try { localStorage.setItem("ps_biz", JSON.stringify(biz)) } catch {}
-    setBizSaved("ok"); setTimeout(() => setBizSaved(""), 1800)
-  }
-  const [pwOpen, setPwOpen] = useState(false)
-  const [pwForm, setPwForm] = useState({ current: "", next: "", confirm: "" })
-  const [pwStatus, setPwStatus] = useState("") // "", "saving", "done"
-  const [pwError, setPwError] = useState("")
-
-  const changePassword = async () => {
-    setPwError("")
-    if (!isStrongPassword(pwForm.next)) {
-      setPwError("La nueva contraseña debe tener 8 caracteres alfanuméricos, con al menos 1 mayúscula y 1 número.")
-      return
-    }
-    if (pwForm.next !== pwForm.confirm) {
-      setPwError("Las contraseñas no coinciden.")
-      return
-    }
-    setPwStatus("saving")
-    try {
-      const token = localStorage.getItem("ps_barber_token") || ""
-      const res = await fetch("/api/auth-barber", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify({ currentPassword: pwForm.current, newPassword: pwForm.next }),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (res.ok && data.ok) {
-        setPwStatus("done")
-        setPwForm({ current: "", next: "", confirm: "" })
-        setTimeout(() => { setPwStatus(""); setPwOpen(false) }, 2000)
-      } else {
-        setPwStatus("")
-        setPwError(data.error || "No se pudo cambiar la contraseña.")
-      }
-    } catch {
-      setPwStatus("")
-      setPwError("No se pudo conectar con el servidor.")
-    }
-  }
-  const [notifSettings, setNotifSettings] = useState({ reserva: true, cancelacion: true, recordatorio: true, marketing: false })
-  const [waSettings, setWaSettings] = useState({ activo: true, recordatorio24h: true, recordatorio2h: false, confirmacion: true })
-  const [acct, setAcct] = useState({ name: barber?.name || "", code: barber?.code || "" })
-  const [acctSaved, setAcctSaved] = useState(false)
-  const saveAccount = () => {
-    const updated = { ...barber, name: acct.name.trim() || barber?.name, code: acct.code.trim() || barber?.code }
-    try { localStorage.setItem("ps_barber", JSON.stringify(updated)) } catch {}
-    setAcctSaved(true)
-    setTimeout(() => setAcctSaved(false), 2500)
-  }
-  const { theme, toggle } = useTheme()
-
-  // PRECIOS Y FECHAS — a diferencia del resto de Config (que vive en
-  // localStorage), esto se guarda en la DB porque también lo lee el
-  // cobro real de Mercado Pago (api/mp-payments.js) y las páginas
-  // públicas de Cursos/Workshop.
-  const [precios, setPrecios] = useState({ cursosPrice: "", workshopPrice: "", workshopDate: "", workshopPaymentsEnabled: false })
-  const [preciosLoading, setPreciosLoading] = useState(true)
-  const [preciosStatus, setPreciosStatus] = useState("") // "", "saving", "done"
-  const [preciosError, setPreciosError] = useState("")
-  const [pagosBusy, setPagosBusy] = useState(false)
-  useEffect(() => {
-    fetch("/api/mp-payments?settings=1")
-      .then((r) => r.json())
-      .then((s) => setPrecios({
-        cursosPrice: s.cursosPrice ?? "",
-        workshopPrice: s.workshopPrice ?? "",
-        workshopDate: s.workshopDate ? new Date(s.workshopDate).toISOString().slice(0, 16) : "",
-        workshopPaymentsEnabled: !!s.workshopPaymentsEnabled,
-      }))
-      .catch(() => {})
-      .finally(() => setPreciosLoading(false))
-  }, [])
-  const savePrecios = async () => {
-    setPreciosStatus("saving"); setPreciosError("")
-    try {
-      const token = localStorage.getItem("ps_barber_token") || ""
-      const res = await fetch("/api/mp-payments?settings=1", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify({
-          cursosPrice: Number(precios.cursosPrice) || 0,
-          workshopPrice: Number(precios.workshopPrice) || 0,
-          workshopDate: precios.workshopDate ? new Date(precios.workshopDate).toISOString() : "",
-          workshopPaymentsEnabled: precios.workshopPaymentsEnabled,
-        }),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(data.error || "No se pudo guardar")
-      setPreciosStatus("done")
-      setTimeout(() => setPreciosStatus(""), 2000)
-    } catch (err) {
-      setPreciosStatus("")
-      setPreciosError(err.message || "No se pudo conectar con el servidor.")
-    }
-  }
-
-  /* El interruptor guarda solo, sin pasar por "Guardar": cortar los cobros es
-     algo que se hace de urgencia y no puede quedar a medias en pantalla. Si el
-     PATCH falla se revierte para no mostrar un estado que el servidor no tiene. */
-  const toggleWorkshopPagos = async (v) => {
-    const prev = precios.workshopPaymentsEnabled
-    setPagosBusy(true); setPreciosError("")
-    setPrecios((p) => ({ ...p, workshopPaymentsEnabled: v }))
-    try {
-      const token = localStorage.getItem("ps_barber_token") || ""
-      const res = await fetch("/api/mp-payments?settings=1", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-        body: JSON.stringify({ workshopPaymentsEnabled: v }),
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(data.error || "No se pudo guardar")
-    } catch (err) {
-      setPrecios((p) => ({ ...p, workshopPaymentsEnabled: prev }))
-      setPreciosError(err.message || "No se pudo conectar con el servidor.")
-    } finally {
-      setPagosBusy(false)
-    }
-  }
-
-  const current = sections.find((s) => s.id === section)
-  const [sectionQuery, setSectionQuery] = useState("")
-  const visibleSections = sections.filter((s) => {
-    const q = sectionQuery.trim().toLowerCase()
-    if (!q) return true
-    return s.label.toLowerCase().includes(q) || s.kw?.toLowerCase().includes(q)
-  })
-
-  // Escritorio (≥1024px): lista + contenido lado a lado, la lista nunca se
-  // oculta — "secciones colapsables" en vez de navegar a pantalla completa.
-  // Móvil: la lista desaparece mientras hay una sección abierta (regla CSS
-  // con :has, ver .cfg-split) — mismo comportamiento de siempre ahí.
-  return (
-    <div className="animate-in cfg-split">
-      <div className="cfg-list-screen">
-        <p className="cfg-nav-head">Configuraciones</p>
-        <div className="cfg-search">
-          <Icon name="user" size={15} />
-          <input value={sectionQuery} onChange={(e) => setSectionQuery(e.target.value)} placeholder="Buscar un ajuste…" />
-        </div>
-        <div className="cfg-list">
-          {visibleSections.map((s) => (
-            <button
-              key={s.id}
-              type="button"
-              className={`cfg-list-item ${section === s.id ? "is-active" : ""}`}
-              onClick={() => setSection(section === s.id ? null : s.id)}
-            >
-              <span className="cfg-list-icon"><Icon name={s.icon} size={18} /></span>
-              <span className="cfg-list-label">{s.label}</span>
-              <Icon name={section === s.id ? "close" : "arrowRight"} size={16} style={{ opacity: .4 }} />
-            </button>
-          ))}
-          {!visibleSections.length && <p className="empty-state" style={{ fontSize: ".84rem" }}>Sin ajustes que coincidan.</p>}
-        </div>
-      </div>
-
-      {section && (
-      <div className="cfg-detail-screen">
-      <button type="button" className="cfg-back" onClick={() => setSection(null)}>
-        <Icon name="arrowLeft" size={16} /> Volver a ajustes
-      </button>
-      <div className="cfg-content">
-        <h2 className="cfg-content-title">{current?.label}</h2>
-
-        {/* CUENTA Y SEGURIDAD */}
-        {section === "cuenta" && (
-          <div style={{ display: "grid", gap: "1.4rem" }}>
-            <div className="cfg-card">
-              <p className="cfg-card-head">Datos personales</p>
-              <div className="cfg-form-grid">
-                <div className="cfg-field">
-                  <label>Nombre</label>
-                  <input className="input" value={acct.name} onChange={(e) => setAcct((a) => ({ ...a, name: e.target.value }))} placeholder="Nombre completo" />
-                </div>
-                <div className="cfg-field">
-                  <label>Usuario</label>
-                  <input className="input" value={acct.code} onChange={(e) => setAcct((a) => ({ ...a, code: e.target.value.toLowerCase().replace(/\s+/g, "-") }))} placeholder="usuario" />
-                </div>
-                <div className="cfg-field">
-                  <label>Rol</label>
-                  <input className="input" defaultValue={barber?.role || "Barbero"} disabled />
-                </div>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: ".8rem", marginTop: ".5rem" }}>
-                <button className="btn btn-gold" onClick={saveAccount}><Icon name="check" size={14} /> Guardar cambios</button>
-                {acctSaved && <span className="chip chip-gold" style={{ fontSize: ".72rem" }}><Icon name="check" size={12} /> Guardado</span>}
-              </div>
-            </div>
-
-            <div className="cfg-card">
-              <p className="cfg-card-head">Cambiar contraseña</p>
-              {!pwOpen && (
-                <button className="btn btn-dark" onClick={() => { setPwOpen(true); setPwError(""); setPwStatus(""); setPwForm({ current: "", next: "", confirm: "" }) }}>
-                  <Icon name="key" size={14} /> Cambiar contraseña
-                </button>
-              )}
-              {pwOpen && (
-                <div style={{ display: "grid", gap: ".7rem" }}>
-                  <div className="cfg-field">
-                    <label>Contraseña actual</label>
-                    <input className="input" type="password" autoComplete="current-password" value={pwForm.current} onChange={(e) => setPwForm((f) => ({ ...f, current: e.target.value }))} placeholder="Tu contraseña actual" />
-                  </div>
-                  <div className="cfg-field">
-                    <label>Nueva contraseña</label>
-                    <input className="input" type="password" autoComplete="new-password" value={pwForm.next} onChange={(e) => setPwForm((f) => ({ ...f, next: e.target.value.slice(0, 64) }))} placeholder="8+ caracteres, 1 mayúscula y 1 número" />
-                  </div>
-                  <div className="cfg-field">
-                    <label>Confirmar nueva contraseña</label>
-                    <input className="input" type="password" autoComplete="new-password" value={pwForm.confirm} onChange={(e) => setPwForm((f) => ({ ...f, confirm: e.target.value.slice(0, 64) }))} placeholder="Repite la nueva contraseña" />
-                  </div>
-                  <p style={{ fontSize: ".74rem", color: pwForm.next && !isStrongPassword(pwForm.next) ? "#d99a8f" : "var(--muted-2)", margin: 0 }}>
-                    Mínimo 8 caracteres alfanuméricos, con al menos 1 mayúscula y 1 número.
-                  </p>
-                  {pwError && <p style={{ fontSize: ".8rem", color: "#d99a8f", margin: 0 }}>{pwError}</p>}
-                  {pwStatus === "done" && <p style={{ fontSize: ".8rem", color: "var(--gold-lt)", margin: 0 }}><Icon name="check" size={12} /> Contraseña actualizada.</p>}
-                  <div style={{ display: "flex", gap: ".5rem", marginTop: ".2rem" }}>
-                    <button className="btn btn-gold btn-sm" disabled={pwStatus === "saving"} onClick={changePassword}>
-                      {pwStatus === "saving" ? "Guardando…" : "Guardar contraseña"}
-                    </button>
-                    <button className="btn btn-dark btn-sm" onClick={() => { setPwOpen(false); setPwError(""); setPwStatus("") }}>Cancelar</button>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="cfg-card">
-              <p className="cfg-card-head">Sesion</p>
-              <CfgRow label="Cerrar sesion" sub="Seras redirigido al ingreso">
-                <button className="btn btn-dark btn-sm" onClick={onLogout}><Icon name="logout" size={14} /> Salir</button>
-              </CfgRow>
-            </div>
-          </div>
-        )}
-
-        {/* APARIENCIA */}
-        {section === "apariencia" && (
-          <div style={{ display: "grid", gap: "1.4rem" }}>
-            <div className="cfg-card">
-              <p className="cfg-card-head">Tema de la interfaz</p>
-              <CfgRow label="Modo oscuro" sub="El modo claro solo esta disponible en el panel interno">
-                <ConfigSwitch checked={theme === "dark"} onChange={() => toggle()} />
-              </CfgRow>
-              <div className="cfg-theme-preview">
-                <div className={`cfg-theme-tile ${theme === "dark" ? "is-active" : ""}`} onClick={() => theme !== "dark" && toggle()}>
-                  <div className="cfg-theme-thumb dark" />
-                  <span>Oscuro</span>
-                </div>
-                <div className={`cfg-theme-tile ${theme === "light" ? "is-active" : ""}`} onClick={() => theme !== "light" && toggle()}>
-                  <div className="cfg-theme-thumb light" />
-                  <span>Claro</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ACCESOS DIRECTOS */}
-        {section === "accesos" && (
-          <div style={{ display: "grid", gap: "1.4rem" }}>
-            <div className="cfg-card">
-              <p className="cfg-card-head">Footer bar — 4 accesos rapidos</p>
-              <p style={{ fontSize: ".82rem", color: "var(--muted)", margin: "0 0 1rem" }}>Elige los 4 modulos que aparecen en el dock móvil (el centro siempre abre el menú completo).</p>
-              <div style={{ display: "grid", gap: ".6rem" }}>
-                {nav.filter((n) => !n[0].includes("config")).map(([id, ic, label]) => (
-                  <label key={id} style={{ display: "flex", alignItems: "center", gap: ".8rem", padding: ".6rem .8rem", borderRadius: 10, border: "1px solid var(--border)", cursor: "pointer", transition: "background .15s" }}>
-                    <input
-                      type="checkbox"
-                      checked={dockShortcuts.includes(id)}
-                      onChange={(e) => {
-                        if (e.target.checked && dockShortcuts.length < 4) {
-                          setDockShortcuts([...dockShortcuts, id])
-                        } else if (!e.target.checked) {
-                          setDockShortcuts(dockShortcuts.filter((s) => s !== id))
-                        }
-                      }}
-                      style={{ accentColor: "var(--gold)", width: 18, height: 18 }}
-                    />
-                    <Icon name={ic} size={16} style={{ color: dockShortcuts.includes(id) ? "var(--gold)" : "var(--muted)" }} />
-                    <span style={{ fontSize: ".88rem", flex: 1 }}>{label}</span>
-                    {dockShortcuts.includes(id) && <span className="chip chip-gold" style={{ fontSize: ".66rem" }}>✓</span>}
-                  </label>
-                ))}
-              </div>
-              {dockShortcuts.length === 4 && <p style={{ fontSize: ".76rem", color: "var(--muted-2)", margin: "1rem 0 0" }}>✓ 4 accesos seleccionados</p>}
-            </div>
-          </div>
-        )}
-
-        {/* NAVEGACION */}
-        {section === "navegacion" && (
-          <div style={{ display: "grid", gap: "1.4rem" }}>
-            <div className="cfg-card">
-              <p className="cfg-card-head">Modulos visibles</p>
-              <p style={{ fontSize: ".82rem", color: "var(--muted)", margin: "0 0 1rem" }}>Activa o desactiva los modulos que aparecen en la barra lateral y el dock movil.</p>
-              {[
-                ["agenda",    "calendar", "Agenda",    true],
-                ["reservas",  "scissors", "Reservas",  true],
-                ["finanzas",  "wallet",   "Finanzas",  admin],
-                ["clientes",  "user",     "Clientes",  true],
-                ["servicios", "cut",      "Servicios", admin],
-                ["gastos",    "wallet",   "Gastos",    admin],
-                ["marketing", "spark",    "Marketing", true],
-              ].map(([id, ic, label, allowed]) => (
-                <CfgRow key={id} label={label}>
-                  <ConfigSwitch
-                    checked={navSettings[id] !== false}
-                    disabled={!allowed}
-                    onChange={(v) => setNavSettings((s) => ({ ...s, [id]: v }))}
-                  />
-                </CfgRow>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* NOTIFICACIONES */}
-        {section === "notificaciones" && (
-          <div style={{ display: "grid", gap: "1.4rem" }}>
-            <PushCard barber={barber} />
-            <div className="cfg-card">
-              <p className="cfg-card-head">Alertas internas</p>
-              <CfgRow label="Nueva reserva" sub="Notificacion cuando un cliente agenda">
-                <ConfigSwitch checked={notifSettings.reserva} onChange={(v) => setNotifSettings((s) => ({ ...s, reserva: v }))} />
-              </CfgRow>
-              <CfgRow label="Cancelacion" sub="Cuando un cliente cancela su cita">
-                <ConfigSwitch checked={notifSettings.cancelacion} onChange={(v) => setNotifSettings((s) => ({ ...s, cancelacion: v }))} />
-              </CfgRow>
-              <CfgRow label="Recordatorio de cita" sub="30 minutos antes de cada servicio">
-                <ConfigSwitch checked={notifSettings.recordatorio} onChange={(v) => setNotifSettings((s) => ({ ...s, recordatorio: v }))} />
-              </CfgRow>
-              <CfgRow label="Novedades y marketing" sub="Actualizaciones del sistema">
-                <ConfigSwitch checked={notifSettings.marketing} onChange={(v) => setNotifSettings((s) => ({ ...s, marketing: v }))} />
-              </CfgRow>
-            </div>
-          </div>
-        )}
-
-        {/* WHATSAPP */}
-        {section === "whatsapp" && (
-          <div style={{ display: "grid", gap: "1.4rem" }}>
-            <div className="cfg-card">
-              <p className="cfg-card-head">Mensajeria automatica</p>
-              <CfgRow label="WhatsApp activo" sub="Envio automatico de mensajes a clientes">
-                <ConfigSwitch checked={waSettings.activo} onChange={(v) => setWaSettings((s) => ({ ...s, activo: v }))} />
-              </CfgRow>
-              <CfgRow label="Recordatorio 24h" sub="Mensaje el dia previo a la cita">
-                <ConfigSwitch checked={waSettings.recordatorio24h} disabled={!waSettings.activo} onChange={(v) => setWaSettings((s) => ({ ...s, recordatorio24h: v }))} />
-              </CfgRow>
-              <CfgRow label="Recordatorio 2h" sub="Mensaje dos horas antes">
-                <ConfigSwitch checked={waSettings.recordatorio2h} disabled={!waSettings.activo} onChange={(v) => setWaSettings((s) => ({ ...s, recordatorio2h: v }))} />
-              </CfgRow>
-              <CfgRow label="Confirmacion de reserva" sub="Mensaje inmediato al agendar">
-                <ConfigSwitch checked={waSettings.confirmacion} disabled={!waSettings.activo} onChange={(v) => setWaSettings((s) => ({ ...s, confirmacion: v }))} />
-              </CfgRow>
-            </div>
-            <div className="cfg-card">
-              <p className="cfg-card-head">Numero de negocio</p>
-              <div className="cfg-form-grid">
-                <div className="cfg-field">
-                  <label>Telefono WhatsApp Business</label>
-                  <input className="input" placeholder="+56 9 xxxx xxxx" value={biz.waPhone} onChange={(e) => setBiz((b) => ({ ...b, waPhone: e.target.value }))} />
-                </div>
-              </div>
-              <button className="btn btn-gold" style={{ marginTop: ".5rem" }} onClick={saveBiz}><Icon name="check" size={14} /> {bizSaved ? "Guardado ✓" : "Guardar"}</button>
-            </div>
-          </div>
-        )}
-
-        {/* NEGOCIO */}
-        {section === "negocio" && (
-          <div style={{ display: "grid", gap: "1.4rem" }}>
-            <div className="cfg-card">
-              <p className="cfg-card-head">Datos del negocio</p>
-              <div className="cfg-form-grid">
-                <div className="cfg-field"><label>Nombre</label><input className="input" value={biz.name} onChange={(e) => setBiz((b) => ({ ...b, name: e.target.value }))} /></div>
-                <div className="cfg-field"><label>Direccion</label><input className="input" value={biz.address} onChange={(e) => setBiz((b) => ({ ...b, address: e.target.value }))} /></div>
-                <div className="cfg-field"><label>Telefono</label><input className="input" value={biz.phone} onChange={(e) => setBiz((b) => ({ ...b, phone: e.target.value }))} /></div>
-              </div>
-              <button className="btn btn-gold" style={{ marginTop: ".5rem" }} onClick={saveBiz}><Icon name="check" size={14} /> {bizSaved ? "Guardado ✓" : "Guardar"}</button>
-            </div>
-            <div className="cfg-card">
-              <p className="cfg-card-head">Horario operativo</p>
-              <div className="ops-settings-grid">
-                <label><span>Apertura</span><select className="input" defaultValue="09:00"><option>09:00</option><option>10:00</option></select></label>
-                <label><span>Cierre</span><select className="input" defaultValue="20:00"><option>19:00</option><option>20:00</option><option>21:00</option></select></label>
-                <label><span>Anticipacion minima</span><select className="input" defaultValue="120"><option value="60">1 hora</option><option value="120">2 horas</option><option value="240">4 horas</option></select></label>
-                <label><span>Ventana de reservas</span><select className="input" defaultValue="30"><option value="14">14 dias</option><option value="30">30 dias</option></select></label>
-                <label><span>Domingos</span><select className="input" defaultValue="closed"><option value="closed">Cerrado</option><option value="open">Abierto</option></select></label>
-                <label><span>Cancelacion cliente</span><select className="input" defaultValue="24h"><option value="manual">Solo manual</option><option value="24h">Hasta 24h</option><option value="12h">Hasta 12h</option></select></label>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* PRECIOS Y FECHAS — precio de Cursos, precio de Workshop, fecha del
-            Workshop y el interruptor de pagos del Workshop. Se guarda en la DB:
-            lo lee el cobro real y las páginas públicas de Cursos/Workshop. */}
-        {section === "precios" && (
-          <div style={{ display: "grid", gap: "1.4rem" }}>
-            <div className="cfg-card">
-              <p className="cfg-card-head">Cursos y Workshop</p>
-              <p style={{ fontSize: ".78rem", color: "var(--muted)", margin: "0 0 .8rem" }}>
-                Define el precio real que se cobra por Mercado Pago y la fecha de la próxima edición del Workshop.
-              </p>
-              {preciosLoading ? (
-                <p className="empty-state">Cargando…</p>
-              ) : (
-                <>
-                  {/* Corta o abre el cobro del Workshop en la web pública. Se
-                      guarda al tiro, sin apretar "Guardar". */}
-                  <CfgRow
-                    label="Pagos del Workshop"
-                    sub={precios.workshopPaymentsEnabled
-                      ? "Activos: la web cobra por Mercado Pago para la fecha de abajo."
-                      : "En pausa: nadie puede pagar. La web solo ofrece la lista de espera y no muestra fecha."}
-                  >
-                    <ConfigSwitch
-                      checked={precios.workshopPaymentsEnabled}
-                      disabled={pagosBusy}
-                      onChange={toggleWorkshopPagos}
-                    />
-                  </CfgRow>
-                  <div className="cfg-form-grid" style={{ marginTop: ".8rem" }}>
-                    <div className="cfg-field">
-                      <label>Precio Cursos (CLP)</label>
-                      <input
-                        className="input"
-                        inputMode="numeric"
-                        value={precios.cursosPrice}
-                        onChange={(e) => setPrecios((p) => ({ ...p, cursosPrice: e.target.value.replace(/\D/g, "") }))}
-                        placeholder="9990"
-                      />
-                    </div>
-                    <div className="cfg-field">
-                      <label>Precio Workshop (CLP)</label>
-                      <input
-                        className="input"
-                        inputMode="numeric"
-                        value={precios.workshopPrice}
-                        onChange={(e) => setPrecios((p) => ({ ...p, workshopPrice: e.target.value.replace(/\D/g, "") }))}
-                        placeholder="49990"
-                      />
-                    </div>
-                    <div className="cfg-field">
-                      <label>Fecha del Workshop</label>
-                      <input
-                        className="input"
-                        type="datetime-local"
-                        value={precios.workshopDate}
-                        onChange={(e) => setPrecios((p) => ({ ...p, workshopDate: e.target.value }))}
-                      />
-                      <span style={{ fontSize: ".72rem", color: "var(--muted)" }}>
-                        Guarda la fecha nueva y recién ahí enciende los pagos.
-                      </span>
-                    </div>
-                  </div>
-                  {preciosError && <p style={{ fontSize: ".8rem", color: "#d99a8f", margin: ".5rem 0 0" }}>{preciosError}</p>}
-                  <div style={{ display: "flex", alignItems: "center", gap: ".8rem", marginTop: ".8rem" }}>
-                    <button className="btn btn-gold" disabled={preciosStatus === "saving"} onClick={savePrecios}>
-                      <Icon name="check" size={14} /> {preciosStatus === "saving" ? "Guardando…" : "Guardar"}
-                    </button>
-                    {preciosStatus === "done" && <span className="chip chip-gold" style={{ fontSize: ".72rem" }}><Icon name="check" size={12} /> Guardado</span>}
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* PRESUPUESTOS por categoría (se guarda en este dispositivo) */}
-        {section === "presupuestos" && (
-          <div style={{ display: "grid", gap: "1.4rem" }}>
-            <div className="cfg-card">
-              <p className="cfg-card-head">Presupuesto mensual por categoría</p>
-              <p style={{ fontSize: ".78rem", color: "var(--muted)", margin: "0 0 .8rem" }}>
-                Define un tope por categoría para activar el semáforo de gastos. Se guarda en este dispositivo.
-              </p>
-              <div style={{ display: "grid", gap: ".6rem" }}>
-                {EXPENSE_CATEGORIES.map((cat) => {
-                  const m = CATEGORY_META[cat]
-                  return (
-                    <div key={cat} style={{ display: "flex", alignItems: "center", gap: ".7rem" }}>
-                      <span className="dk-badge" style={{ "--c": m.color, minWidth: 130 }}><Icon name={m.icon} size={12} /> {cat}</span>
-                      <input
-                        className="input"
-                        inputMode="numeric"
-                        placeholder="Sin presupuesto"
-                        style={{ flex: 1 }}
-                        value={expenseBudgets[cat] ? String(expenseBudgets[cat]) : ""}
-                        onChange={(e) => {
-                          const v = e.target.value.replace(/\D/g, "")
-                          setExpenseBudgets((b) => { const next = { ...b }; if (v) next[cat] = Number(v); else delete next[cat]; return next })
-                        }}
-                      />
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* EQUIPO */}
-        {section === "equipo" && (
-          <div style={{ display: "grid", gap: "1.4rem" }}>
-            <div className="cfg-card">
-              <div className="cfg-card-head-row">
-                <p className="cfg-card-head" style={{ margin: 0 }}>Usuarios y permisos</p>
-                {canManageTeam && (
-                  <button className="btn btn-gold btn-sm" onClick={() => setTeamModal({ barber: null })}>
-                    <Icon name="user" size={14} /> Nuevo barbero
-                  </button>
-                )}
-              </div>
-              <div style={{ display: "grid", gap: ".6rem" }}>
-                {barbers.map((item) => {
-                  const lockedAdmin = item.name?.toLowerCase().includes("brunetti") || item.admin
-                  const activePerms = [["canViewFinance","Finanzas"],["canEditServices","Servicios"],["canManageTeam","Equipo"],["canManageBlocks","Bloques"]]
-                    .filter(([k]) => lockedAdmin || (k === "canManageBlocks" ? item[k] !== false : Boolean(item[k])))
-                    .map(([, l]) => l)
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      className={`cfg-barber-row is-tappable ${item.active === false ? "is-disabled" : ""}`}
-                      onClick={() => canManageTeam && setTeamModal({ barber: item })}
-                      disabled={!canManageTeam}
-                    >
-                      <div className="cfg-barber-head">
-                        <div className="cfg-barber-avatar">{(item.name || "B")[0].toUpperCase()}</div>
-                        <div style={{ minWidth: 0 }}>
-                          <strong style={{ fontSize: ".9rem" }}>{item.name} {lockedAdmin && <Icon name="key" size={11} color="var(--gold)" />}</strong>
-                          <span style={{ fontSize: ".74rem", color: "var(--muted)", display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                            {activePerms.length ? activePerms.join(" · ") : "Sin permisos extra"}
-                          </span>
-                        </div>
-                        <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: ".5rem", flexShrink: 0 }}>
-                          <span className={item.active === false ? "chip" : "chip chip-gold"}>{item.active === false ? "Inactivo" : "Activo"}</span>
-                          <Icon name="arrowRight" size={15} color="var(--muted)" />
-                        </div>
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* DATOS Y RESPALDOS */}
-        {section === "datos" && (
-          <div style={{ display: "grid", gap: "1.4rem" }}>
-            <div className="cfg-card">
-              <p className="cfg-card-head">Exportar datos</p>
-              <div style={{ display: "grid", gap: ".7rem" }}>
-                {[["Clientes","CSV con historial y contactos","user"],["Reservas","Historial completo de citas","calendar"],["Finanzas","Movimientos de ingresos del periodo activo","chart"],["Gastos","Registro de egresos por categoria","wallet"],["Servicios","Catalogo actual publicado","scissors"]].map(([label, sub, icon]) => (
-                  <div key={label} className="cfg-setting-row">
-                    <div>
-                      <div className="cfg-setting-label">{label}</div>
-                      <div className="cfg-setting-sub">{sub}</div>
-                    </div>
-                    <button className="btn btn-dark btn-sm" onClick={() => onExport(label)}><Icon name={icon} size={13} /> Exportar CSV</button>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="cfg-card">
-              <p className="cfg-card-head">Base de datos</p>
-              <div className="settings-grid">
-                <div><strong>Neon PostgreSQL</strong><span>Backup automatico diario. Revisar snapshot antes de cambios masivos.</span></div>
-                <div><strong>Auditoria</strong><span>Cambios de agenda y servicios quedan trazables en el log del servidor.</span></div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ACERCA DE */}
-        {section === "acerca" && (
-          <div style={{ display: "grid", gap: "1.4rem" }}>
-            <div className="cfg-card" style={{ textAlign: "center", padding: "2rem 1.5rem" }}>
-              <span className="pimp-mark" style={{ width: 72, height: 72, margin: "0 auto 1rem", display: "block" }} />
-              <h3 className="font-display" style={{ margin: "0 0 .3rem", fontSize: "1.4rem" }}>BRUNETTI</h3>
-              <p style={{ margin: 0, color: "var(--muted)", fontSize: ".84rem" }}>Panel interno v2.0</p>
-              <p style={{ margin: ".5rem 0 0", color: "var(--muted-2)", fontSize: ".78rem" }}>Barberia Premium · Maipu, Santiago</p>
-            </div>
-            <div className="cfg-card">
-              <div className="settings-grid">
-                <div><strong>Version</strong><span>2.0.0 — React + Vite + Vercel</span></div>
-                <div><strong>Ambiente</strong><span>Produccion — rama desarrollo</span></div>
-                <div><strong>Soporte</strong><span>Panel gestionado internamente.</span></div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-      </div>
-      )}
-
-      {teamModal && (
-        <BarberModal
-          barber={teamModal.barber}
-          canManage={canManageTeam}
-          onClose={() => setTeamModal(null)}
-          onSave={(payload) => { saveBarber(payload); setTeamModal(null) }}
-          onDelete={(b) => { deleteBarber(b); setTeamModal(null) }}
-        />
-      )}
-    </div>
   )
 }
 
