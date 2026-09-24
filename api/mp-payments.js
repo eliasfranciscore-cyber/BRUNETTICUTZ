@@ -6,18 +6,28 @@
    GET   /api/mp-payments?settings=1          (público: precio Cursos/Workshop + fecha Workshop + si el Workshop cobra)
    PATCH /api/mp-payments?settings=1          (panel interno: edita esos ajustes)
    GET   /api/mp-payments?panel=1             (panel interno: lista unificada de pedidos pagados)
+   GET   /api/mp-payments?panel=1&summary=1&from=&to=
+                                              (panel interno: "Ventas online" agregadas por rango)
 
    Fuentes soportadas: 'cursos', 'workshop' (precio fijo, sin carrito) y
    'essentials' (carrito de productos, valida precio/stock contra la DB).
    El sandbox vs producción lo decide Mercado Pago automáticamente según el
    prefijo del access token (TEST- vs el de producción) — a diferencia de
    Flow, acá no hace falta una env var de ambiente aparte.
+
+   Ninguna migración nueva corre en el checkout ni en el webhook: las
+   columnas y tablas del inventario (products.archived_at, shop_orders.paid_at,
+   product_stock_moves) las crean los caminos del panel (api/_schema.js), y
+   acá se leen sin depender de ellas (to_jsonb / hasColumns) o se escriben en
+   best-effort. Un pago real nunca queda sin registrar por el inventario.
    ================================================================ */
 
 import { neon } from '@neondatabase/serverless'
 import { requireInternal } from './_auth.js'
 import { notifyAll } from './push.js'
 import { sendWorkshopConfirmationEmail } from './_email.js'
+import { onlineSales } from './_money.js'
+import { ensureShopOrderColumns, hasColumns } from './_schema.js'
 
 const MP_API_BASE = 'https://api.mercadopago.com'
 const SOURCES = ['cursos', 'workshop', 'essentials']
@@ -26,7 +36,11 @@ const SOURCE_TITLES = {
   cursos: 'Curso Brunetti · Visagismo & Barbería',
   workshop: 'Workshop Brunetti · Contenido que Vende',
 }
-const SOURCE_PATHS = { cursos: '/cursos', workshop: '/workshop', essentials: '/essentials' }
+/* A dónde vuelve el navegador después de pagar. Essentials tiene su propia
+   página de comprobante (/essentials/gracias), que lee payment_id/status de
+   la URL y consulta ?status=1 hasta que el webhook confirma. Mismo mapa que
+   el mock de Mercado Pago en vite.config.js: si cambia uno, cambia el otro. */
+const SOURCE_PATHS = { cursos: '/cursos', workshop: '/workshop', essentials: '/essentials/gracias' }
 
 function cleanPhone(v) {
   let digits = String(v || '').replace(/\D/g, '')
@@ -74,6 +88,7 @@ export default async function handler(req, res) {
 
   if (req.query.panel === '1') {
     if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' })
+    if (req.query.summary === '1') return handlePanelSummary(req, res)
     return handlePanelOrders(req, res)
   }
 
@@ -188,6 +203,7 @@ async function handlePanelOrders(req, res) {
     const sql = neon(process.env.DATABASE_URL)
     await ensureEnrollmentsTable(sql)
     await ensureShopOrdersTable(sql)
+    await ensureShopOrderColumnsSafely(sql)
 
     const [enrollmentRows, orderRows] = await Promise.all([
       sql`
@@ -247,6 +263,46 @@ function parseAmountFromMessage(message) {
   if (!m) return null
   const n = Number(m[1].replace(/\./g, ''))
   return Number.isFinite(n) ? n : null
+}
+
+/* ============================================================
+   PANEL: "Ventas online" por rango, para Finanzas y el Resumen.
+   Misma fuente que la lista de arriba (pedidos de Essentials
+   pagados + inscripciones pagadas de Cursos y Workshop), pero
+   agregada en el servidor por onlineSales() de api/_money.js:
+   así las cifras no dependen del LIMIT 300 de la lista, y el
+   día es el de Santiago. Va aparte del cobro en mesón con medio
+   "mercadopago": son dos plata distintas. Requiere sesión.
+   ============================================================ */
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+
+async function handlePanelSummary(req, res) {
+  const session = requireInternal(req, res)
+  if (!session) return
+
+  const from = DATE_RE.test(String(req.query.from || '')) ? req.query.from : null
+  const to = DATE_RE.test(String(req.query.to || '')) ? req.query.to : null
+  try {
+    const sql = neon(process.env.DATABASE_URL)
+    await ensureShopOrderColumnsSafely(sql)
+    const summary = await onlineSales(sql, { from, to, withOrders: req.query.orders === '1' })
+    return res.status(200).json({ ok: true, range: { from, to }, ...summary })
+  } catch (err) {
+    console.error('handlePanelSummary error:', err?.message)
+    return res.status(500).json({ ok: false, error: 'No se pudieron cargar las ventas online' })
+  }
+}
+
+/* shop_orders.paid_at lo crea este camino del panel, nunca el checkout ni el
+   webhook (ver ensureShopOrderColumns en api/_schema.js). Si la migración
+   falla, la lista y el resumen se cargan igual: onlineSales cuenta desde
+   created_at cuando no hay paid_at. */
+async function ensureShopOrderColumnsSafely(sql) {
+  try {
+    await ensureShopOrderColumns(sql)
+  } catch (err) {
+    console.error('ensureShopOrderColumns (no bloquea):', err?.message)
+  }
 }
 
 /* ============================================================
@@ -338,7 +394,15 @@ async function buildEssentialsOrder({ name, phone, email, items }) {
   const ids = [...new Set(items.map((i) => Number(i.productId)).filter(Number.isFinite))]
   if (ids.length === 0) return { error: 'Carrito inválido' }
 
-  const rows = await sql`SELECT id, name, price, stock FROM products WHERE id = ANY(${ids})`
+  /* Solo lo publicado y no archivado se puede comprar: "Eliminar" en el panel
+     ahora archiva en vez de borrar, así que un carrito viejo guardado en el
+     navegador todavía puede traer el id de un producto que ya no está en la
+     tienda. archived_at por to_jsonb: el checkout no corre migraciones y la
+     columna puede no existir todavía (da NULL). */
+  const rows = await sql`
+    SELECT p.id, p.name, p.price, p.stock FROM products p
+    WHERE p.id = ANY(${ids}) AND p.active = true AND (to_jsonb(p)->>'archived_at') IS NULL
+  `
   const byId = new Map(rows.map((r) => [r.id, r]))
 
   const orderItems = []
@@ -543,13 +607,39 @@ async function handleEssentialsPaid(sql, ref, payment, res) {
       return res.status(200).json({ received: true, paymentId: payment.id, orderId, message: 'Pago ya registrado' })
     }
 
+    // Los ítems cuyo descuento sí corrió: si el loop se corta a la mitad, los
+    // que no alcanzaron a descontarse tampoco se anotan en el libro de
+    // inventario (más abajo), y el desfase no los cuenta como vendidos.
+    const decremented = []
     try {
       const items = Array.isArray(order.items) ? order.items : JSON.parse(order.items || '[]')
       for (const it of items) {
         await sql`UPDATE products SET stock = GREATEST(stock - ${it.qty}, 0), updated_at = NOW() WHERE id = ${it.productId}`
+        decremented.push(it)
       }
     } catch (serr) {
       console.error('[WEBHOOK] stock decrement (no bloquea):', serr?.message)
+    }
+
+    /* Cuándo se confirmó el pago: es el día en que cuenta en "Ventas online".
+       Solo si la columna ya existe (la crea el panel, nunca este camino); si
+       no, onlineSales cuenta desde created_at. */
+    try {
+      if (await hasColumns(sql, 'shop_orders', ['paid_at'])) {
+        const approvedAt = Number.isNaN(Date.parse(payment.date_approved || '')) ? null : payment.date_approved
+        await sql`UPDATE shop_orders SET paid_at = COALESCE(paid_at, ${approvedAt}::timestamptz, NOW()) WHERE id = ${orderId}`
+      }
+    } catch (perr) {
+      console.error('[WEBHOOK] paid_at (no bloquea):', perr?.message)
+    }
+
+    try {
+      await recordWebSaleMoves(sql, orderId, decremented)
+    } catch (merr) {
+      // El libro puede no existir todavía (lo crea el panel), o un producto
+      // viejo puede haber desaparecido: el pedido ya está pagado igual. Lo que
+      // falte aparece como desfase en Inventario y se cuadra desde ahí.
+      console.error('[WEBHOOK] movimientos de inventario (no bloquea):', merr?.message)
     }
 
     try {
@@ -591,6 +681,43 @@ async function handleEssentialsPaid(sql, ref, payment, res) {
     }
     return res.status(500).json({ received: false, paymentId: payment.id, error: 'No se pudo guardar el pedido' })
   }
+}
+
+/* Anota en el libro de inventario (product_stock_moves) la venta web de un
+   pedido de Essentials: un movimiento 'venta' por producto, con la cantidad
+   pedida y el id del pedido. products.stock ya se descontó antes, aparte; esto
+   es solo la historia, y por eso va en best-effort.
+   - La cantidad es la PEDIDA. Si el stock no alcanzaba (el pago se aprobó
+     cuando ya no quedaban unidades, y el descuento se corta en 0), el libro
+     queda debajo del stock y la diferencia se ve como desfase en Inventario:
+     es una sobreventa, y tiene que estar a la vista.
+   - Una sola vez por pedido: lo llama únicamente el webhook que ganó el
+     UPDATE … WHERE status = 'pending', y el NOT EXISTS cubre igual un
+     reintento raro.
+   - JOIN products: un producto borrado de antes del inventario se salta en
+     vez de reventar la FK y llevarse al resto. */
+async function recordWebSaleMoves(sql, orderId, items) {
+  const qtyById = new Map()
+  for (const it of items || []) {
+    const productId = Number(it?.productId)
+    const qty = Math.floor(Number(it?.qty))
+    if (!Number.isInteger(productId) || productId <= 0 || !Number.isFinite(qty) || qty <= 0) continue
+    qtyById.set(productId, (qtyById.get(productId) || 0) + qty)
+  }
+  if (!qtyById.size) return
+
+  const ids = [...qtyById.keys()]
+  const qtys = ids.map((id) => qtyById.get(id))
+  await sql`
+    INSERT INTO product_stock_moves (product_id, delta, kind, reason, shop_order_id)
+    SELECT p.id, -x.qty, 'venta', ${`Venta web · pedido #${orderId}`}::text, ${orderId}::int
+    FROM unnest(${ids}::int[], ${qtys}::int[]) AS x(product_id, qty)
+    JOIN products p ON p.id = x.product_id
+    WHERE NOT EXISTS (
+      SELECT 1 FROM product_stock_moves m
+      WHERE m.shop_order_id = ${orderId}::int AND m.product_id = p.id AND m.kind = 'venta'
+    )
+  `
 }
 
 async function ensureEnrollmentsTable(sql) {
