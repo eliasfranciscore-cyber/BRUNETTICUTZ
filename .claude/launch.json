@@ -8,6 +8,12 @@
       "autoPort": true
     },
     {
+      "name": "dev-mock",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "source ~/.nvm/nvm.sh && VITE_DEV_MOCKS=1 npm run dev"],
+      "autoPort": true
+    },
+    {
       "name": "edit",
       "runtimeExecutable": "bash",
       "runtimeArgs": ["-c", "source ~/.nvm/nvm.sh && npm run edit"],
