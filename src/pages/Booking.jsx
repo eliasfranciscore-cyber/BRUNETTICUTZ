@@ -2,8 +2,9 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Emblem, Icon, MobileScreen } from '../components/ui.jsx'
 import { GlareCard } from '../components/GlareCard.jsx'
-import { BARBERS, SERVICES, SERVICE_BARBERS, SLOT_GROUPS, DAYS_ES, MONTHS_ES, slotState, barberById, CLP, tne } from '../data.js'
+import { BARBERS, SERVICES, SERVICE_BARBERS, SLOT_GROUPS, CAT_LABEL, DAYS_ES, MONTHS_ES, slotState, barberById, CLP } from '../data.js'
 import { addLocalBooking } from '../bookingsStore.js'
+import { FEATURES } from '../features.js'
 import WalletPrompt, { useAutoWalletPrompt } from '../components/WalletPrompt.jsx'
 
 const ALL_BOOKING_SLOTS = Object.values(SLOT_GROUPS).flat()
@@ -55,6 +56,102 @@ function isSlotTooSoon(dateKey, slot, todayKey, now) {
   return (slotDate - now) / 60000 < MIN_LEAD_MINUTES
 }
 
+// Orden de las categorías en el paso "Servicio". Cualquier categoría que
+// aparezca en la base y no esté acá se agrega al final en vez de desaparecer.
+const CAT_ORDER = ["general", "premium", "quimico"]
+
+function groupByCategory(list) {
+  const extras = [...new Set(list.map((s) => s.cat).filter((cat) => cat && !CAT_ORDER.includes(cat)))]
+  return [...CAT_ORDER, ...extras]
+    .map((cat) => ({ cat, label: CAT_LABEL[cat] || cat, items: list.filter((s) => s.cat === cat) }))
+    .filter((group) => group.items.length)
+}
+
+// Un servicio de un solo día guarda su fecha como día de calendario
+// ("2026-11-15"), no como instante: se arma en UTC y se formatea en UTC para
+// que no se corra un día según la zona del navegador (mismo criterio que
+// api/_email.js).
+function dateParts(key) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(key || ""))
+  return m ? new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]))) : null
+}
+function longDate(key) {
+  const d = dateParts(key)
+  if (!d) return key
+  // "jueves, 15 de octubre" -> "Jueves, 15 de octubre". Se sube solo la
+  // primera letra a mano en vez de con textTransform: capitalize, que en
+  // español también levantaría la preposición ("15 De Octubre").
+  const txt = new Intl.DateTimeFormat("es-CL", { timeZone: "UTC", weekday: "long", day: "numeric", month: "long" }).format(d)
+  return txt.charAt(0).toUpperCase() + txt.slice(1)
+}
+function shortDate(key) {
+  const d = dateParts(key)
+  if (!d) return key
+  return new Intl.DateTimeFormat("es-CL", { timeZone: "UTC", day: "numeric", month: "short" }).format(d).replace(".", "")
+}
+
+// La misma tarjeta se usa en la fila de destacados y dentro de cada categoría,
+// así que vive suelta en vez de duplicar los estilos inline en los dos sitios.
+function ServiceCard({ service, selected, onSelect, showBadge }) {
+  return (
+    <GlareCard
+      as="button"
+      type="button"
+      onClick={() => onSelect(service.id)}
+      aria-pressed={selected}
+      style={{
+        border: selected ? "2px solid var(--gold-line)" : "1px solid var(--hair-2)",
+        padding: ".7rem",
+        display: "grid",
+        gap: ".3rem",
+        cursor: "pointer",
+        textAlign: "center",
+        background: selected ? "linear-gradient(135deg, rgba(214, 188, 70, 0.15), rgba(214, 188, 70, 0.05))" : "var(--fill-card)",
+        transition: "all .2s",
+        borderRadius: "12px",
+        width: "100%",
+      }}
+    >
+      {showBadge && (
+        <span className="chip chip-gold" style={{ justifySelf: "center", fontSize: ".6rem", padding: ".1rem .45rem" }}>Destacado</span>
+      )}
+      {/* Servicio de un solo día: la fecha va en la tarjeta, no escondida en el
+          paso siguiente — es lo primero que decide si te sirve o no. */}
+      {service.onlyOnDate && (
+        <span className="chip chip-gold" style={{ justifySelf: "center", fontSize: ".6rem", padding: ".1rem .45rem" }}>Solo el {shortDate(service.onlyOnDate)}</span>
+      )}
+      <span className="font-display" style={{ fontWeight: 600, fontSize: ".85rem" }}>{service.name}</span>
+      <span className="font-display gold-text" style={{ fontWeight: 700, fontSize: "1.1rem" }}>{CLP(service.price)}</span>
+      <div style={{ display: "flex", gap: ".3rem", color: "var(--muted)", fontSize: ".7rem", alignItems: "center", justifyContent: "center" }}>
+        <Icon name="clock" size={12} /> {service.min} min
+      </div>
+      {/* La descripción se muestra dentro de la tarjeta elegida, no bajo la
+          grilla: en un teléfono el catálogo es más alto que la pantalla, así
+          que una nota al final queda fuera de vista justo cuando hay que
+          leerla. Acá aparece bajo el dedo que acaba de elegir. "Solo fade" es
+          el caso que lo motivó — se elegía creyendo que era el precio del
+          corte, cuando cubre solo la mantención del degradado. El texto vive
+          en `description` del servicio, que edita el panel. */}
+      {selected && service.desc && (
+        <span style={{ display: "block", marginTop: ".15rem", paddingTop: ".35rem", borderTop: "1px solid var(--hair-2)", color: "var(--muted)", fontSize: ".68rem", lineHeight: 1.4, whiteSpace: "normal" }}>
+          {service.desc}
+        </span>
+      )}
+    </GlareCard>
+  )
+}
+
+// `min` baja a 140px dentro de las categorías: ahí la grilla vive con el
+// padding del acordeón encima y con 160px no alcanzaban dos columnas en un
+// teléfono, así que cada servicio ocupaba una fila entera.
+function ServiceGrid({ children, min = 160 }) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: `repeat(auto-fill, minmax(${min}px, 1fr))`, gap: ".6rem" }}>
+      {children}
+    </div>
+  )
+}
+
 export default function Booking() {
   const navigate = useNavigate()
   // Marca personal de un solo barbero: Brunetti. Se reserva siempre con él.
@@ -65,6 +162,20 @@ export default function Booking() {
   // panel tiene apagados alcanzaban a mostrarse — en este local, el corte de
   // $15.990, que no se vende acá (el corte de Brunetti es el de $19.990).
   const [services, setServices] = useState(() => SERVICES.filter((item) => item.active !== false))
+  // ¿La lista ya es la de /api/services? El mapeo estático SERVICE_BARBERS
+  // solo vale para el catálogo de respaldo: aplicado a la respuesta real,
+  // escondía todo servicio creado en el panel (un id que no estaba en la
+  // lista fija), y con eso los destacados y los de un solo día nunca
+  // llegaban a /reservar.
+  const [servicesFromApi, setServicesFromApi] = useState(false)
+  // ¿Ya contestó /api/services (bien o mal)? Hasta entonces no se abre
+  // ninguna categoría sola: el catálogo de respaldo no trae destacados, y
+  // abrir la primera para cerrarla un instante después se ve como un salto.
+  const [catalogReady, setCatalogReady] = useState(false)
+  // Categorías desplegadas en el paso "Servicio". `null` = todavía nadie las
+  // tocó: se abre la primera solo si no hay fila de destacados, para que el
+  // paso nunca se vea como tres títulos cerrados y nada que elegir.
+  const [openCats, setOpenCats] = useState(null)
   const [availableSlots, setAvailableSlots] = useState([])
   // El paso "Barbero" se omite: arrancamos en Servicio con Brunetti ya elegido.
   const [step, setStep] = useState(1)
@@ -97,7 +208,15 @@ export default function Booking() {
       setStep(2) // paso de fecha + hora
     }
 
-    fetch("/api/services").then((r) => r.json()).then((data) => { if (data.services?.length) setServices(data.services.filter((item) => item.active !== false)) }).catch(() => {})
+    // ?includeSingleDay=1: la lista pública simple deja fuera los servicios de
+    // un solo día a propósito (PimpStudio la lee para agendar a Bruno y no
+    // entiende la fecha única); esta página sí los muestra, con su fecha.
+    const url = FEATURES.singleDay ? "/api/services?includeSingleDay=1" : "/api/services"
+    fetch(url).then((r) => r.json()).then((data) => {
+      if (!data.services?.length) return
+      setServices(data.services.filter((item) => item.active !== false))
+      setServicesFromApi(true)
+    }).catch(() => {}).finally(() => setCatalogReady(true))
   }, [])
 
   useEffect(() => {
@@ -120,7 +239,38 @@ export default function Booking() {
 
   const barber = barbers.find((b) => b.id === barberId) || barberById(barberId)
   const service = services.find((s) => s.id === serviceId)
-  const allowedServices = barberId ? services.filter((s) => SERVICE_BARBERS[barberId] ? SERVICE_BARBERS[barberId].includes(s.id) : true) : []
+  // Fecha única del servicio elegido (services.only_on_date), si la tiene.
+  const onlyOnDate = (FEATURES.singleDay && service?.onlyOnDate) || null
+  const now = new Date()
+  const todayKey = localDateKey(now)
+  const allowedServices = !barberId ? [] : services.filter((s) => {
+    if (!servicesFromApi && SERVICE_BARBERS[barberId] && !SERVICE_BARBERS[barberId].includes(s.id)) return false
+    // Un servicio de un solo día que ya pasó no se ofrece (el servidor ya no
+    // lo lista, pero el borde puede servir una copia de hasta 15 min).
+    if (s.onlyOnDate && (!FEATURES.singleDay || s.onlyOnDate < todayKey)) return false
+    return true
+  })
+  const featuredServices = FEATURES.featuredServices ? allowedServices.filter((s) => s.featured) : []
+  const serviceGroups = groupByCategory(allowedServices)
+  const defaultCats = !catalogReady || featuredServices.length || !serviceGroups.length ? [] : [serviceGroups[0].cat]
+  const shownCats = openCats ?? defaultCats
+  const toggleCat = (cat) => setOpenCats((prev) => {
+    const base = prev ?? defaultCats
+    return base.includes(cat) ? base.filter((c) => c !== cat) : [...base, cat]
+  })
+
+  // Si se llega con un servicio ya elegido (tarjeta del home →
+  // ps_pending_service) su categoría se abre sola. Si no, al volver al paso 1
+  // la selección quedaría escondida dentro de un acordeón cerrado.
+  useEffect(() => {
+    if (!serviceId) return
+    const chosen = allowedServices.find((s) => s.id === serviceId)
+    if (!chosen || (FEATURES.featuredServices && chosen.featured)) return
+    setOpenCats((prev) => {
+      const base = prev ?? defaultCats
+      return base.includes(chosen.cat) ? base : [...base, chosen.cat]
+    })
+  }, [serviceId, services])
   const steps = ["Servicio", "Fecha", "Listo"]
   const canNext = (step === 1 && serviceId) || (step === 2 && dateKey && slot)
 
@@ -128,8 +278,6 @@ export default function Booking() {
 
   const firstDow = new Date(year, month, 1).getDay()
   const daysInMonth = new Date(year, month + 1, 0).getDate()
-  const now = new Date()
-  const todayKey = localDateKey(now)
   // El cliente solo puede reservar dentro de los próximos MAX_LEAD_DAYS días:
   // más allá de eso el barbero todavía no publicó su disponibilidad (ver
   // agenda del panel interno, que se administra semana a semana).
@@ -151,6 +299,22 @@ export default function Booking() {
   // dentro de la ventana de MAX_LEAD_DAYS días (p. ej. a inicios de mes).
   const nextMonthFirstKey = `${month === 11 ? year + 1 : year}-${String(month === 11 ? 1 : month + 2).padStart(2, "0")}-01`
   const canGoNextMonth = month < 11 && nextMonthFirstKey <= maxDateKey
+
+  // Un servicio de un solo día trae su fecha puesta: es la única posible, así
+  // que se elige sola, aunque caiga más allá de los MAX_LEAD_DAYS (la ventana
+  // no aplica a ese servicio; el servidor hace la misma excepción). Y al
+  // volver a un servicio normal hay que soltarla, o quedaría apuntando a un
+  // día fuera de la ventana y el servidor rechazaría la reserva recién al
+  // confirmar.
+  useEffect(() => {
+    if (!service) return
+    if (onlyOnDate) {
+      if (dateKey !== onlyOnDate) { setDateKey(onlyOnDate); setSlot(null) }
+    } else if (dateKey && dateKey > maxDateKey) {
+      setDateKey(null)
+      setSlot(null)
+    }
+  }, [serviceId, services])
 
   const [bookingError, setBookingError] = useState(null)
 
@@ -275,46 +439,63 @@ export default function Booking() {
         {step === 1 && (
           <div className="animate-in" style={{ display: "grid", gap: ".8rem" }}>
             <h3 className="font-display" style={{ margin: ".2rem 0", fontSize: "1.05rem" }}>Servicio con {barber?.short}</h3>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: ".6rem" }}>
-              {allowedServices.map((s) => (
-                <GlareCard
-                  key={s.id}
-                  as="button"
-                  type="button"
-                  onClick={() => setServiceId(s.id)}
-                  style={{
-                    border: serviceId === s.id ? "2px solid var(--gold-line)" : "1px solid var(--hair-2)",
-                    padding: ".7rem",
-                    display: "grid",
-                    gap: ".3rem",
-                    cursor: "pointer",
-                    textAlign: "center",
-                    background: serviceId === s.id ? "linear-gradient(135deg, rgba(214, 188, 70, 0.15), rgba(214, 188, 70, 0.05))" : "var(--fill-card)",
-                    transition: "all .2s",
-                    borderRadius: "12px",
-                    width: "100%",
-                  }}
-                >
-                  <span className="font-display" style={{ fontWeight: 600, fontSize: ".85rem" }}>{s.name}</span>
-                  <span className="font-display gold-text" style={{ fontWeight: 700, fontSize: "1.1rem" }}>{CLP(s.price)}</span>
-                  <div style={{ display: "flex", gap: ".3rem", color: "var(--muted)", fontSize: ".7rem", alignItems: "center", justifyContent: "center" }}>
-                    <Icon name="clock" size={12} /> {s.min} min
+
+            {/* Destacados: siempre a la vista, fuera del acordeón. Son los que
+                el panel marca como destacados (Servicios → "Los más pedidos"). */}
+            {featuredServices.length > 0 && (
+              <div style={{ display: "grid", gap: ".5rem" }}>
+                <span className="font-display" style={{ fontSize: ".72rem", letterSpacing: ".14em", textTransform: "uppercase", color: "var(--gold-lt)" }}>Los más pedidos</span>
+                <ServiceGrid>
+                  {featuredServices.map((s) => (
+                    <ServiceCard key={s.id} service={s} selected={serviceId === s.id} onSelect={setServiceId} />
+                  ))}
+                </ServiceGrid>
+              </div>
+            )}
+
+            {/* Resto del catálogo por categoría, plegable: la grilla plana
+                obligaba a scrollear el paso entero para ver las opciones de
+                cada tipo. */}
+            <div style={{ display: "grid", gap: ".45rem" }}>
+              {serviceGroups.map((group) => {
+                const isOpen = shownCats.includes(group.cat)
+                const panelId = `svc-cat-${group.cat}`
+                return (
+                  <div key={group.cat} className="card" style={{ padding: 0, overflow: "hidden", borderRadius: "12px" }}>
+                    <button
+                      type="button"
+                      onClick={() => toggleCat(group.cat)}
+                      aria-expanded={isOpen}
+                      aria-controls={panelId}
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: ".6rem",
+                        padding: ".75rem .85rem",
+                        background: "none",
+                        border: 0,
+                        color: "inherit",
+                        cursor: "pointer",
+                        textAlign: "left",
+                      }}
+                    >
+                      <Icon name="chevronRight" size={15} color="var(--gold-lt)" style={{ transition: "transform .2s", transform: isOpen ? "rotate(90deg)" : "none", flexShrink: 0 }} />
+                      <span className="font-display" style={{ fontWeight: 600, fontSize: ".9rem", flex: 1 }}>{group.label}</span>
+                      <span style={{ color: "var(--muted)", fontSize: ".75rem" }}>{group.items.length}</span>
+                    </button>
+                    {isOpen && (
+                      <div id={panelId} style={{ padding: "0 .7rem .7rem" }}>
+                        <ServiceGrid min={140}>
+                          {group.items.map((s) => (
+                            <ServiceCard key={s.id} service={s} selected={serviceId === s.id} onSelect={setServiceId} showBadge={FEATURES.featuredServices && s.featured} />
+                          ))}
+                        </ServiceGrid>
+                      </div>
+                    )}
                   </div>
-                  {/* La descripción se muestra dentro de la tarjeta elegida, no
-                      bajo la grilla: en un teléfono la grilla es más alta que la
-                      pantalla, así que una nota al final queda fuera de vista
-                      justo cuando hay que leerla. Acá aparece bajo el dedo que
-                      acaba de elegir. "Solo fade" es el caso que lo motivó — se
-                      elegía creyendo que era el precio del corte, cuando cubre
-                      solo la mantención del degradado. El texto vive en
-                      `description` del servicio, que edita el panel. */}
-                  {serviceId === s.id && s.desc && (
-                    <span style={{ display: "block", marginTop: ".15rem", paddingTop: ".35rem", borderTop: "1px solid var(--hair-2)", color: "var(--muted)", fontSize: ".68rem", lineHeight: 1.4, whiteSpace: "normal" }}>
-                      {s.desc}
-                    </span>
-                  )}
-                </GlareCard>
-              ))}
+                )
+              })}
             </div>
           </div>
         )}
@@ -324,7 +505,17 @@ export default function Booking() {
           <div className="animate-in" style={{ display: "grid", gap: ".8rem" }}>
             <h3 className="font-display" style={{ margin: ".2rem 0", fontSize: "1.05rem" }}>Elige fecha y hora</h3>
             <div className="booking-datetime">
-              {/* CALENDARIO COMPACTO */}
+              {/* Un servicio de un solo día no tiene calendario que elegir, tiene
+                  UNA fecha. Mostrar el mes entero apagado para que el cliente
+                  cace el único día encendido es peor que decirle cuál es. */}
+              {onlyOnDate ? (
+                <div className="card booking-cal" style={{ padding: "1rem .8rem", display: "grid", gap: ".3rem", alignContent: "center", textAlign: "center" }}>
+                  <span style={{ fontSize: ".6rem", letterSpacing: ".14em", textTransform: "uppercase", color: "var(--gold-lt)" }}>Fecha única</span>
+                  <span className="font-display" style={{ fontSize: "1rem", fontWeight: 700 }}>{longDate(onlyOnDate)}</span>
+                  <span style={{ fontSize: ".68rem", color: "var(--muted)", lineHeight: 1.4 }}>{service?.name} se hace solo este día.</span>
+                </div>
+              ) : (
+              /* CALENDARIO COMPACTO */
               <div className="card booking-cal" style={{ padding: ".7rem", display: "grid", gap: ".5rem" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: ".3rem" }}>
                   <button
@@ -363,6 +554,7 @@ export default function Booking() {
                 </div>
                 <div style={{ fontSize: ".6rem", color: "var(--muted-2)", textAlign: "center", marginTop: ".3rem" }}>Reservas hasta {MAX_LEAD_DAYS} días antes</div>
               </div>
+              )}
 
               {/* HORAS DISPONIBLES */}
               {dateKey && (

@@ -3,6 +3,7 @@ import SiteNav from '../components/SiteNav.jsx'
 import ModuleFooter from '../components/ModuleFooter.jsx'
 import { Icon } from '../components/ui.jsx'
 import { useBrunettiFx, scrollToId } from '../components/brunetti.jsx'
+import { useTheme } from '../components/theme.jsx'
 import { Sparkles } from '../components/ui/sparkles.jsx'
 import { InteractiveSelector } from '../components/ui/interactive-selector.jsx'
 import { CLP } from '../data.js'
@@ -14,17 +15,47 @@ import '../styles/essentials.css'
    Hero + grilla de productos (portada / hover / detalle en modal) +
    carrito local (localStorage) + checkout con Mercado Pago Checkout Pro.
    Comparte SiteNav + ModuleFooter con el resto del sitio.
+
+   Los precios que se muestran son informativos: el checkout los revalida
+   contra la base, así que editar el localStorage no compra nada más barato.
+   Mercado Pago devuelve al comprador a /essentials/gracias
+   (EssentialsGracias.jsx), que confirma el pago con el servidor y vacía el
+   carrito. El manejo de ?status= que sigue acá abajo es para las
+   preferencias viejas, que todavía vuelven a /essentials.
    ================================================================ */
+
+// Foto del pedido que se guarda justo antes de irse a Mercado Pago, para que
+// /essentials/gracias pueda mostrar el comprobante (qué se compró y a nombre
+// de quién). sessionStorage: vive lo que la pestaña, no queda en el equipo.
+const LAST_ORDER_KEY = 'bc_last_order'
+const WA_SHOP = '56987483279'
+
+// Si ya reservó alguna vez, sus datos están en localStorage (ps_user): no se
+// los volvemos a pedir para pagar.
+function readBuyer() {
+  try {
+    const u = JSON.parse(localStorage.getItem('ps_user') || 'null')
+    return { name: u?.name || '', email: u?.email || '', phone: u?.phone || '' }
+  } catch {
+    return { name: '', email: '', phone: '' }
+  }
+}
 
 export default function Essentials() {
   const rootRef = useRef(null)
+  const { theme } = useTheme()
   const [products, setProducts] = useState([])
+  // ¿Hay pasarela viva? Lo dice el servidor (sin MP_ACCESS_TOKEN, o con la
+  // base caída y el catálogo de respaldo, viene en false): ofrecer un botón
+  // que muere al tocarlo es peor que ofrecer coordinar por WhatsApp. Si la
+  // respuesta no trae el dato, se asume que sí hay, como antes.
+  const [checkoutEnabled, setCheckoutEnabled] = useState(true)
   const [loading, setLoading] = useState(true)
   const [cart, setCart] = useState(() => readCart())
   const [cartOpen, setCartOpen] = useState(false)
   const [activeProduct, setActiveProduct] = useState(null)
   const [modalQty, setModalQty] = useState(1)
-  const [contact, setContact] = useState({ name: '', email: '', phone: '' })
+  const [contact, setContact] = useState(readBuyer)
   const [payLoading, setPayLoading] = useState(false)
   const [payError, setPayError] = useState('')
   const [returnStatus, setReturnStatus] = useState(null) // null | 'checking' | 'paid' | 'pending' | 'failed'
@@ -34,7 +65,10 @@ export default function Essentials() {
   useEffect(() => {
     fetch('/api/services?scope=shop')
       .then((r) => r.json())
-      .then((data) => setProducts(data.products || []))
+      .then((data) => {
+        setProducts(data.products || [])
+        setCheckoutEnabled(data.checkoutEnabled !== false)
+      })
       .catch(() => setProducts([]))
       .finally(() => setLoading(false))
   }, [])
@@ -88,6 +122,25 @@ export default function Essentials() {
 
   const setContactField = (k) => (e) => setContact((c) => ({ ...c, [k]: e.target.value }))
 
+  // El checkout rechaza un producto que se despublicó o archivó después de
+  // entrar al carrito ("ya no está disponible"), pero no dice cuál. Se vuelve
+  // a pedir el catálogo y se sacan del carrito guardado los que ya no están;
+  // si no, el cliente quedaría atrapado reintentando un pago que nunca pasa.
+  const dropUnavailable = async () => {
+    const fresh = await fetch('/api/services?scope=shop', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((data) => (Array.isArray(data.products) ? data.products : null))
+      .catch(() => null)
+    if (!fresh) return false
+    setProducts(fresh)
+    const alive = new Set(fresh.map((p) => p.id))
+    const stale = readCart().filter((i) => !alive.has(i.productId))
+    let next = readCart()
+    for (const item of stale) next = removeFromCart(item.productId)
+    setCart(next)
+    return stale.length > 0
+  }
+
   const checkout = async () => {
     setPayError('')
     const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contact.email.trim())
@@ -111,10 +164,32 @@ export default function Essentials() {
         }),
       })
       if (!response.ok) {
-        const data = await response.json()
+        const data = await response.json().catch(() => ({}))
+        if (/ya no está disponible/i.test(data.error || '')) {
+          const dropped = await dropUnavailable()
+          throw new Error(dropped
+            ? 'Sacamos de tu carrito lo que ya no está disponible. Revisa tu pedido y vuelve a pagar.'
+            : 'Uno de los productos ya no está disponible. Quítalo del carrito y vuelve a intentarlo.')
+        }
         throw new Error(data.error || 'Error al crear sesión de pago')
       }
       const data = await response.json()
+      if (!data.checkoutUrl) throw new Error('No pudimos iniciar el pago. Intenta de nuevo en un momento.')
+      // El carrito NO se vacía acá: se vacía en /essentials/gracias cuando el
+      // pago aparece aprobado. Si alguien se arrepiente en Mercado Pago y
+      // vuelve atrás, su carrito tiene que seguir ahí.
+      try {
+        const items = cart
+          .map((i) => { const p = byId.get(i.productId); return p ? { productId: p.id, name: p.name, qty: i.qty, price: p.price } : null })
+          .filter(Boolean)
+        sessionStorage.setItem(LAST_ORDER_KEY, JSON.stringify({
+          items,
+          total: items.reduce((n, i) => n + i.price * i.qty, 0),
+          name: contact.name.trim(),
+          email: contact.email.trim(),
+          at: Date.now(),
+        }))
+      } catch { /* sin sessionStorage el comprobante sale sin detalle; el pago sigue igual */ }
       window.location.href = data.checkoutUrl
     } catch (err) {
       setPayError(err.message || 'Error al procesar pago')
@@ -171,7 +246,8 @@ export default function Essentials() {
 
         {/* Fondo de partículas doradas, igual que Home/Cursos (hero fuera). */}
         <div className="bru-sparkles-zone">
-          <Sparkles className="bru-sparkles--bg" />
+          {/* Solo en oscuro: es un efecto pensado para fondo negro. */}
+          {theme !== 'light' && <Sparkles className="bru-sparkles--bg" />}
 
         {/* ============ SELECTOR INTERACTIVO DE PRODUCTOS (igual que Visagismo en Home) ============ */}
         {!loading && products.length > 0 && (
@@ -334,15 +410,32 @@ export default function Essentials() {
             {cart.length > 0 && (
               <div className="essentials-drawer-foot">
                 <div className="essentials-drawer-subtotal"><span>Subtotal</span><b>{CLP(subtotal)}</b></div>
-                <div className="essentials-drawer-contact">
-                  <input type="text" placeholder="Nombre completo" value={contact.name} onChange={setContactField('name')} />
-                  <input type="email" placeholder="tu@email.com" value={contact.email} onChange={setContactField('email')} />
-                  <input type="tel" placeholder="Teléfono (WhatsApp)" value={contact.phone} onChange={setContactField('phone')} />
-                </div>
-                {payError && <p className="essentials-drawer-note" style={{ color: 'var(--wk-error, #d33)' }}>{payError}</p>}
-                <button type="button" className="btn btn-gold btn-block essentials-checkout-btn" onClick={checkout} disabled={payLoading}>
-                  {payLoading ? 'Procesando...' : 'Pagar con Mercado Pago'}
-                </button>
+                {checkoutEnabled ? (
+                  <>
+                    <div className="essentials-drawer-contact">
+                      <input type="text" placeholder="Nombre completo" autoComplete="name" value={contact.name} onChange={setContactField('name')} />
+                      <input type="email" placeholder="tu@email.com" autoComplete="email" value={contact.email} onChange={setContactField('email')} />
+                      <input type="tel" placeholder="Teléfono (WhatsApp)" autoComplete="tel" inputMode="tel" value={contact.phone} onChange={setContactField('phone')} />
+                    </div>
+                    {payError && <p className="essentials-pay-error" role="alert">{payError}</p>}
+                    <button type="button" className="btn btn-gold btn-block essentials-checkout-btn" onClick={checkout} disabled={payLoading}>
+                      {payLoading ? 'Redirigiendo a Mercado Pago…' : 'Pagar con Mercado Pago'}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <a
+                      className="btn btn-gold btn-block essentials-checkout-btn"
+                      href={`https://wa.me/${WA_SHOP}?text=${encodeURIComponent(
+                        `Hola Bruno, quiero comprar en Essentials:\n${cart.map((i) => { const p = byId.get(i.productId); return p ? `· ${i.qty}× ${p.name}` : '' }).filter(Boolean).join('\n')}\nTotal: ${CLP(subtotal)}`
+                      )}`}
+                      target="_blank" rel="noopener noreferrer"
+                    >
+                      <Icon name="whatsapp" size={15} /> Coordinar por WhatsApp
+                    </a>
+                    <p className="essentials-drawer-note">El pago en línea vuelve pronto. Mientras tanto te lo dejamos apartado y lo pagas en el estudio.</p>
+                  </>
+                )}
               </div>
             )}
           </aside>

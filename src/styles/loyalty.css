@@ -1,0 +1,108 @@
+/* ============================================================
+   TARJETA DE FIDELIDAD (/cuenta) — 10 casilleros, uno por corte.
+   Importado solo por src/pages/Account.jsx. Usa los tokens dorados
+   del sitio (--gold*, --on-gold, definidos en pimp.css/brunetti.css);
+   acá no se define ninguno.
+   ============================================================ */
+
+.loyalty-card {
+  padding: 1rem;
+  display: grid;
+  gap: .7rem;
+  background: linear-gradient(180deg, rgba(201, 161, 78, .10), rgba(201, 161, 78, .02));
+  border: 1px solid var(--gold-line);
+}
+.loyalty-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: .6rem;
+}
+.loyalty-title {
+  font-weight: 600;
+  font-size: .95rem;
+  margin-top: .1rem;
+}
+.loyalty-head strong {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--gold-lt);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Tamaño fijo en vez de una grilla que estira: con 1fr × 10 los círculos
+   crecían hasta ocupar media pantalla en una tarjeta de escritorio. Los 10
+   van en UNA fila: partida en dos, la tarjeta deja de leerse como una
+   cartilla de sellos. 10 × 25px + 9 gaps entra a 375px de ancho. */
+.loyalty-dots {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: .3rem;
+}
+.loyalty-dot {
+  width: 25px;
+  height: 25px;
+  flex: 0 1 auto;
+  min-width: 0;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px solid var(--gold-line);
+  background: rgba(255, 255, 255, .04);
+  display: grid;
+  place-items: center;
+  color: var(--muted-2);
+  transition: background .25s ease, transform .25s ease;
+}
+.loyalty-dot.is-on {
+  background: var(--gold-grad);
+  border-color: transparent;
+  color: var(--on-gold);
+}
+/* El décimo se distingue del resto: es el premio, no un casillero más. */
+.loyalty-dot.is-goal {
+  border-style: dashed;
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.loyalty-dot.is-goal.is-on {
+  border-style: solid;
+  border-color: transparent;
+  color: var(--on-gold);
+  transform: scale(1.12);
+}
+/* En claro el blanco al 4% desaparece sobre el papel: el casillero vacío
+   necesita un tinte oscuro para verse como casillero. */
+[data-theme="light"] .loyalty-dot {
+  background: rgba(40, 33, 18, .05);
+}
+[data-theme="light"] .loyalty-dot.is-on {
+  background: var(--gold-grad);
+}
+
+.loyalty-msg {
+  margin: 0;
+  font-size: .8rem;
+  color: var(--muted);
+}
+.loyalty-msg strong { color: var(--gold-lt); }
+.loyalty-perk {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .72rem;
+  color: var(--gold-lt);
+}
+.loyalty-perk.is-muted { color: var(--muted-2); }
+.loyalty-error {
+  margin: 0;
+  font-size: .75rem;
+  color: #d9775f;
+}
+[data-theme="light"] .loyalty-error { color: #a8412c; }
+
+@media (prefers-reduced-motion: reduce) {
+  .loyalty-dot { transition: none; }
+  .loyalty-dot.is-goal.is-on { transform: none; }
+}
