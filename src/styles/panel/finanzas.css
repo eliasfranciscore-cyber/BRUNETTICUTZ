@@ -11,12 +11,27 @@ body.dash-mode .pn-fin-range { font-size: var(--pn-fs-sm); color: var(--pn-text-
 body.dash-mode .pn-fin-sortth { display: inline-flex; align-items: center; gap: 3px; background: none; border: 0; padding: 0; margin: 0; font: inherit; color: inherit; cursor: pointer; }
 body.dash-mode .pn-fin-sortth:hover { color: var(--pn-text); }
 
-/* ---------- Tarjetas en grilla (p. ej. ventas online por origen): auto-fit, sin huecos ---------- */
+/* ---------- Tarjetas en grilla (ventas online por origen): auto-fit, sin huecos ---------- */
 body.dash-mode .pn-fin-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
   gap: 10px;
   align-items: start;
+}
+
+/* Tres orígenes fijos (Cursos, Workshop, Essentials): siempre en una fila,
+   también en el celular, en vez de tres tarjetas apiladas. */
+body.dash-mode .pn-fin-grid.is-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 640px) {
+  body.dash-mode .pn-fin-grid.is-3 { gap: 8px; }
+  body.dash-mode .pn-fin-grid.is-3 .pn-fin-bcard { padding: 10px; }
+  body.dash-mode .pn-fin-grid.is-3 .pn-fin-bcard-val { font-size: .9375rem; }
+  /* El chip de origen entra entero en el tercio de la tarjeta; si igual no
+     cabe, se corta con "…" en vez de salirse del borde. */
+  body.dash-mode .pn-fin-grid.is-3 .pn-fin-bcard-name .pn-chip {
+    display: inline-block; max-width: 100%; height: 22px; line-height: 20px; padding: 0 5px; letter-spacing: -.01em;
+    font-size: var(--pn-fs-2xs); overflow: hidden; text-overflow: ellipsis; vertical-align: top;
+  }
 }
 
 body.dash-mode .pn-fin-bcard {
@@ -34,36 +49,93 @@ body.dash-mode .pn-fin-bcard {
 body.dash-mode button.pn-fin-bcard { cursor: pointer; transition: background .12s, border-color .12s; }
 body.dash-mode button.pn-fin-bcard:hover { background: var(--pn-card-3); }
 body.dash-mode .pn-fin-bcard.is-on { border-color: var(--pn-accent); background: var(--pn-accent-soft); }
+body.dash-mode .pn-fin-bcard.is-empty .pn-fin-bcard-val { color: var(--pn-text-3); }
 body.dash-mode .pn-fin-bcard-name { font-size: var(--pn-fs-xs); color: var(--pn-text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 body.dash-mode .pn-fin-bcard-val { font-family: var(--font-display); font-size: 1.0625rem; font-weight: 700; color: var(--pn-text); font-variant-numeric: tabular-nums; }
 body.dash-mode .pn-fin-bcard-meta { font-size: var(--pn-fs-2xs); color: var(--pn-text-3); line-height: 1.3; }
 body.dash-mode .pn-fin-bcard-split { font-size: var(--pn-fs-2xs); color: var(--pn-text-3); }
 body.dash-mode .pn-fin-bcard .pn-bar { margin-top: 1px; }
+body.dash-mode .pn-fin-grid + .pn-alert,
+body.dash-mode .pn-alert + .pn-fin-grid { margin-top: 10px; }
+
+/* ---------- Ingresos por día: barras con los tokens del panel ---------- */
+body.dash-mode .pn-fin-bars {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 8px;
+  height: 172px;
+  padding: 0 2px;
+}
+body.dash-mode .pn-fin-bar {
+  min-width: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  justify-items: center;
+  gap: 6px;
+}
+body.dash-mode .pn-fin-bar-track { width: 100%; max-width: 46px; height: 100%; display: flex; align-items: flex-end; }
+body.dash-mode .pn-fin-bar-track i {
+  display: block;
+  width: 100%;
+  border-radius: 6px 6px 2px 2px;
+  background: color-mix(in srgb, var(--pn-accent) 32%, var(--pn-card-2));
+  transition: height .35s var(--pn-ease, ease);
+}
+body.dash-mode .pn-fin-bar.is-last .pn-fin-bar-track i { background: var(--pn-accent); }
+body.dash-mode .pn-fin-bar-val,
+body.dash-mode .pn-fin-bar-lbl {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--pn-fs-2xs);
+  font-variant-numeric: tabular-nums;
+}
+body.dash-mode .pn-fin-bar-val { color: var(--pn-text-2); }
+body.dash-mode .pn-fin-bar-lbl { color: var(--pn-text-3); }
+body.dash-mode .pn-fin-bar.is-last .pn-fin-bar-val { color: var(--pn-text); font-weight: 650; }
 
 /* ---------- Ingresos por servicio: filas con % ---------- */
 body.dash-mode .pn-fin-svcrow { display: grid; gap: 5px; }
 body.dash-mode .pn-fin-svcrow-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; font-size: var(--pn-fs-sm); color: var(--pn-text-2); }
-body.dash-mode .pn-fin-svcrow-head b { color: var(--pn-text); font-weight: 650; font-variant-numeric: tabular-nums; }
+body.dash-mode .pn-fin-svcrow-head span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body.dash-mode .pn-fin-svcrow-head b { flex: 0 0 auto; color: var(--pn-text); font-weight: 650; font-variant-numeric: tabular-nums; }
 
 /* ---------- Avisos rápidos (pendientes / a un premio) ---------- */
 body.dash-mode .pn-fin-flags { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
 body.dash-mode .pn-fin-flag {
   display: flex; align-items: center; gap: 10px; min-width: 0;
   padding: 12px 14px; border-radius: var(--pn-r); border: 1px solid var(--pn-line);
-  background: var(--pn-card-2); font-size: var(--pn-fs-sm); color: var(--pn-text-2); text-align: left;
+  background: var(--pn-card-2); font: inherit; font-size: var(--pn-fs-sm); color: var(--pn-text-2); text-align: left;
 }
-body.dash-mode button.pn-fin-flag { cursor: pointer; }
+body.dash-mode .pn-fin-flag > span { flex: 1 1 auto; min-width: 0; }
+body.dash-mode .pn-fin-flag > svg { flex: 0 0 auto; color: var(--pn-text-3); }
+body.dash-mode button.pn-fin-flag { cursor: pointer; min-height: 44px; }
 body.dash-mode button.pn-fin-flag:hover { background: var(--pn-card-3); }
 body.dash-mode .pn-fin-flag.is-warn { border-color: color-mix(in srgb, var(--pn-warn) 35%, transparent); background: var(--pn-warn-soft); }
 body.dash-mode .pn-fin-flag b { font: 700 1.25rem/1 var(--font-display); color: var(--pn-text); flex: 0 0 auto; }
 
-/* ---------- Movimientos manuales / lista de reservas: ícono acentuado ---------- */
+/* ---------- Movimientos manuales / lista de gastos: ícono acentuado ---------- */
 body.dash-mode .pn-fin-cat-ic {
   width: 34px; height: 34px; border-radius: 10px; flex: 0 0 auto;
   display: grid; place-items: center;
   background: color-mix(in srgb, var(--c, var(--pn-accent)) 16%, var(--pn-card-2));
   color: var(--c, var(--pn-accent));
 }
+/* Monto con signo: el gasto en el color del texto, el ingreso en verde. */
+body.dash-mode .pn-fin-amt { font-variant-numeric: tabular-nums; white-space: nowrap; }
+body.dash-mode .pn-fin-amt.is-in { color: var(--pn-ok); }
+body.dash-mode .pn-fin-more { display: flex; justify-content: center; padding: 6px 12px 10px; border-top: 1px solid var(--pn-line); }
+
+/* ---------- Pie con el total en el celular (la tabla ya lo trae en su tfoot) ---------- */
+body.dash-mode .pn-fin-foot {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  padding: 12px 16px 14px;
+  border-top: 1px solid var(--pn-line);
+  font-size: var(--pn-fs-sm); color: var(--pn-text-2);
+}
+body.dash-mode .pn-fin-foot b { font-family: var(--font-display); font-size: var(--pn-fs-lg); font-weight: 700; color: var(--pn-text); font-variant-numeric: tabular-nums; }
 
 /* ---------- Gastos: tarjeta hero (total + barra de presupuesto) ---------- */
 body.dash-mode .pn-fin-exp-total { padding: 2px 2px 14px; display: grid; gap: 4px; }
@@ -75,6 +147,8 @@ body.dash-mode .pn-kpis.pn-fin-exp-mini { grid-template-columns: repeat(3, minma
 
 /* ---------- Mini KPI dentro de la tarjeta hero (más chico que el Kpi normal) ---------- */
 body.dash-mode .pn-fin-mini-kpi { display: grid; gap: 2px; min-width: 0; }
-body.dash-mode .pn-fin-mini-kpi-label { display: flex; align-items: center; gap: 5px; font-size: var(--pn-fs-2xs); color: var(--pn-text-3); }
+body.dash-mode .pn-fin-mini-kpi-label { display: flex; align-items: center; gap: 5px; min-width: 0; font-size: var(--pn-fs-2xs); color: var(--pn-text-3); white-space: nowrap; }
+body.dash-mode .pn-fin-mini-kpi-label svg { flex: 0 0 auto; }
+body.dash-mode .pn-fin-mini-kpi-label span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 body.dash-mode .pn-fin-mini-kpi-value { font-family: var(--font-display); font-size: var(--pn-fs-lg); font-weight: 650; color: var(--pn-text); font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 body.dash-mode .pn-fin-mini-kpi-sub { font-size: var(--pn-fs-2xs); color: var(--pn-text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
