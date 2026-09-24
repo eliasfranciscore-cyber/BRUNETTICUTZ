@@ -87,6 +87,8 @@ export function RescheduleSheet({ open, booking, onClose, onSubmit }) {
   const [day, setDay] = useState(() => booking?.date || isoDate())
   const [slot, setSlot] = useState('')
   const [slots, setSlots] = useState(null)
+  const [slotsError, setSlotsError] = useState(false)
+  const [slotsRetry, setSlotsRetry] = useState(0)
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState('')
   const [confirming, setConfirming] = useState(false)
@@ -109,6 +111,7 @@ export function RescheduleSheet({ open, booking, onClose, onSubmit }) {
     if (!open || barberId == null) return undefined
     let alive = true
     setSlots(null)
+    setSlotsError(false)
     // excludeBookingId: que la propia reserva no tape sus horarios (el
     // servidor igual vuelve a chequear el choque al guardar: 409/422).
     const params = new URLSearchParams({ barberId: String(barberId), date: day })
@@ -117,9 +120,13 @@ export function RescheduleSheet({ open, booking, onClose, onSubmit }) {
     fetch(`/api/availability?${params}`)
       .then((r) => (r.headers.get('content-type')?.includes('application/json') ? r.json() : Promise.reject(new Error('offline'))))
       .then((data) => { if (alive) setSlots(Array.isArray(data?.slots) ? data.slots : []) })
-      .catch(() => { if (alive) setSlots([]) })
+      // Una falla de red/API no es lo mismo que un día realmente sin
+      // horarios: sin distinguirlas acá, "Sin horarios para ese día." se veía
+      // igual para las dos y el barbero no tenía forma de saber que era un
+      // problema de conexión, ni cómo reintentar sin cerrar la hoja.
+      .catch(() => { if (alive) { setSlots([]); setSlotsError(true) } })
     return () => { alive = false }
-  }, [open, barberId, day, booking?.serviceId, booking?.id])
+  }, [open, barberId, day, booking?.serviceId, booking?.id, slotsRetry])
 
   if (!booking) return null
 
@@ -179,7 +186,11 @@ export function RescheduleSheet({ open, booking, onClose, onSubmit }) {
               />
             </Field>
             <Field label="Horario">
-              {slots === null ? (
+              {slotsError ? (
+                <InlineAlert tone="error" action={{ label: 'Reintentar', onClick: () => setSlotsRetry((n) => n + 1) }}>
+                  No se pudieron cargar los horarios. Revisa la conexión.
+                </InlineAlert>
+              ) : slots === null ? (
                 <p className="pn-muted">Cargando horarios…</p>
               ) : slots.length === 0 ? (
                 <p className="pn-muted">Sin horarios para ese día.</p>
