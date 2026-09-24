@@ -1,20 +1,100 @@
 /* ============================================================
-   VENTAS ONLINE — chips de origen (solo BrunettiCutz)
-   Inscripciones y Pedidos marcan de qué módulo pagado viene cada fila:
-   Cursos (azul), Workshop (morado) y Essentials (verde). Son los mismos
-   colores de cada módulo en el sitio público y los que ya usaba el panel
-   de antes (PEDIDOS_BADGE en Dashboard.jsx). Se usan con el Chip del kit:
-   <Chip tone="cursos|workshop|essentials">.
-   Van con `.pn-chip.` delante: así le ganan a la base `.pn-chip` de
-   panel.css sea cual sea el orden en que se carguen las dos hojas.
+   VENTAS ONLINE — Inscripciones y Pedidos (solo BrunettiCutz)
+   Las dos pestañas marcan de qué módulo pagado viene cada fila: Cursos
+   (azul), Workshop (morado) y Essentials (verde). Son los colores de cada
+   módulo en el sitio público y los que ya usaba el panel de antes
+   (PEDIDOS_BADGE). Se usan con el Chip del kit (<Chip tone="cursos|workshop|
+   essentials">, ver OriginChip en pages/panel/PedidosTab.jsx) y como punto de
+   color de los KPI por origen (var(--pn-online-*)).
+   Solo tokens --pn-online-*: el dorado de la marca no se redefine acá.
    ============================================================ */
 
-.pn-chip.pn-chip--cursos { color: #6b74f0; background: rgba(107, 116, 240, .14); border-color: transparent; }
-.pn-chip.pn-chip--workshop { color: #b483f3; background: rgba(136, 56, 216, .16); border-color: transparent; }
-.pn-chip.pn-chip--essentials { color: #6fbf86; background: rgba(111, 191, 134, .14); border-color: transparent; }
-
+:root {
+  --pn-online-cursos: #6b74f0;
+  --pn-online-cursos-soft: rgba(107, 116, 240, .14);
+  --pn-online-workshop: #b483f3;
+  --pn-online-workshop-soft: rgba(136, 56, 216, .16);
+  --pn-online-essentials: #6fbf86;
+  --pn-online-essentials-soft: rgba(111, 191, 134, .14);
+}
 /* En claro los tonos de arriba quedan lavados sobre crema: se oscurecen para
    que el rótulo se lea (mismo criterio que --pn-ok en claro). */
-[data-theme="light"] .pn-chip.pn-chip--cursos { color: #0b129e; background: rgba(11, 18, 158, .09); }
-[data-theme="light"] .pn-chip.pn-chip--workshop { color: #6b2fb3; background: rgba(107, 47, 179, .10); }
-[data-theme="light"] .pn-chip.pn-chip--essentials { color: #2b8750; background: rgba(43, 135, 80, .11); }
+[data-theme="light"] {
+  --pn-online-cursos: #0b129e;
+  --pn-online-cursos-soft: rgba(11, 18, 158, .09);
+  --pn-online-workshop: #6b2fb3;
+  --pn-online-workshop-soft: rgba(107, 47, 179, .10);
+  --pn-online-essentials: #2b8750;
+  --pn-online-essentials-soft: rgba(43, 135, 80, .11);
+}
+
+/* Van con `.pn-chip.` delante: así le ganan a la base `.pn-chip` de
+   panel.css sea cual sea el orden en que se carguen las dos hojas. */
+.pn-chip.pn-chip--cursos { color: var(--pn-online-cursos); background: var(--pn-online-cursos-soft); border-color: transparent; }
+.pn-chip.pn-chip--workshop { color: var(--pn-online-workshop); background: var(--pn-online-workshop-soft); border-color: transparent; }
+.pn-chip.pn-chip--essentials { color: var(--pn-online-essentials); background: var(--pn-online-essentials-soft); border-color: transparent; }
+
+/* KPI: en el celular (2 columnas) el primero va a lo ancho, así 3 o 5
+   tarjetas no dejan una sola colgando al final. */
+@media (max-width: 640px) {
+  .pn-online-kpis > .pn-kpi:first-child { grid-column: 1 / -1; }
+}
+
+/* Celda "Cliente" de la tabla: avatar + nombre + teléfono y correo. */
+.pn-online-who { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.pn-online-who > .pn-avatar { flex: 0 0 auto; }
+.pn-online-who-text { display: grid; gap: 1px; min-width: 0; flex: 1 1 auto; }
+.pn-online-who-text strong { font-size: var(--pn-fs-sm); font-weight: 600; color: var(--pn-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pn-online-who-text span { font-size: var(--pn-fs-xs); color: var(--pn-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pn-table td:first-child .pn-online-who { max-width: 340px; }
+
+/* "Detalle" (productos de Essentials, nivel o edición): se deja partir en
+   dos líneas en vez de estirar la tabla. */
+.pn-table td.pn-online-detail { color: var(--pn-text-2); min-width: 140px; max-width: 280px; line-height: 1.35; }
+
+/* Chips de origen + "Pagada" juntos, sin partir el chip. */
+.pn-online-chips { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+/* Pie de Pedidos en el celular: la tabla no dibuja su <tfoot> como lista,
+   así que el total de lo filtrado va en su propia fila al final. */
+.pn-online-foot {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  padding: 12px 16px 10px;
+  border-top: 1px solid var(--pn-line-2);
+  font-size: var(--pn-fs-sm);
+  color: var(--pn-text-2);
+}
+.pn-online-foot strong {
+  font-family: var(--font-display);
+  font-size: var(--pn-fs-md);
+  font-weight: 650;
+  color: var(--pn-text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Destinatarios del correo de detalles del Workshop, dentro de la
+   confirmación (que es centrada): la lista va alineada a la izquierda y
+   scrollea sola si son muchos. */
+.pn-online-recipients {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  width: 100%;
+  max-height: min(240px, 40vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  text-align: left;
+  border: 1px solid var(--pn-line);
+  border-radius: var(--pn-r-sm);
+  background: var(--pn-card-2);
+}
+.pn-online-recipients li { display: grid; gap: 1px; padding: 8px 12px; border-bottom: 1px solid var(--pn-line); min-width: 0; }
+.pn-online-recipients li:last-child { border-bottom: 0; }
+.pn-online-recipients strong { font-size: var(--pn-fs-sm); font-weight: 600; color: var(--pn-text); }
+.pn-online-recipients span { font-size: var(--pn-fs-xs); color: var(--pn-text-3); overflow-wrap: anywhere; }
+
+/* Hoja de detalle de un pedido: filas de dato, sin el sangrado de lista
+   navegable (no se tocan). */
+.pn-online-sheet-list .pn-row { --pn-row-inset: 0px; min-height: 48px; padding-left: 0; padding-right: 0; }
+.pn-online-sheet-list .pn-row-sub { color: var(--pn-text-2); }

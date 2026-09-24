@@ -1,114 +1,287 @@
-import React from 'react'
-import { Icon, Stat } from '../../components/ui.jsx'
-import { CLP } from '../../data.js'
-import { Panel } from './shared.jsx'
+import React, { useMemo, useState } from 'react'
+import { CLP, fmtDate, santiagoDateKey } from '../../data.js'
+import { waHref } from '../../whatsapp.js'
+import {
+  ModuleHeader, KpiGrid, FilterChips, SearchField, Card, DataTable, Avatar, Chip, Button,
+  List, ListRow, EmptyState, SkeletonRows, InlineAlert, Sheet, useIsPhone,
+} from '../../components/panel/index.js'
+import '../../styles/panel/online.css'
 
 /* ============================================================
-   PEDIDOS — lista unificada de pagos reales (Cursos + Workshop +
-   Essentials). Carga desde /api/mp-payments?panel=1 (requiere sesión).
-   A diferencia de "Inscripciones" (que también incluye leads de lista de
-   espera sin pagar), acá solo aparecen pedidos con pago confirmado.
+   PEDIDOS — pagos web confirmados por Mercado Pago (Cursos, Workshop y
+   Essentials). Solo BrunettiCutz, solo admin.
+   Lee `ctx.onlineOrders`, la misma lista que Dashboard pide a
+   /api/mp-payments?panel=1 al entrar y en cada Actualizar (y que usan el
+   KPI "Ventas online" de Finanzas y Resumen y la línea online de Caja): acá
+   no hay un segundo fetch. A diferencia de Inscripciones, que también trae
+   la lista de espera y las consultas sin pago, acá solo hay plata que entró.
    ============================================================ */
-export const PEDIDOS_BADGE = {
-  cursos:     { background: "rgba(11,18,158,0.18)",  color: "#6b74f0", border: "1px solid rgba(107,116,240,0.35)" },
-  workshop:   { background: "rgba(136,56,216,0.18)", color: "#b483f3", border: "1px solid rgba(136,56,216,0.35)" },
-  essentials: { background: "rgba(111,191,134,0.18)", color: "#9fd7af", border: "1px solid rgba(111,191,134,0.35)" },
+
+/* Origen de cada fila: el color es el de cada módulo en el sitio público
+   (tokens --pn-online-* de styles/panel/online.css, con su versión clara). */
+export const ORIGIN = {
+  cursos: { label: 'Cursos', color: 'var(--pn-online-cursos)' },
+  workshop: { label: 'Workshop', color: 'var(--pn-online-workshop)' },
+  essentials: { label: 'Essentials', color: 'var(--pn-online-essentials)' },
 }
-export const PEDIDOS_LABEL = { cursos: "Cursos", workshop: "Workshop", essentials: "Essentials" }
+const ORIGIN_KEYS = Object.keys(ORIGIN)
 
-export function PedidosPanel({ authHeaders = () => ({}) }) {
-  const [rows, setRows] = React.useState([])
-  const [loading, setLoading] = React.useState(true)
-  const [error, setError] = React.useState("")
-  const [filter, setFilter] = React.useState("todos") // todos | cursos | workshop | essentials
-  const [query, setQuery] = React.useState("")
+export function OriginChip({ type }) {
+  const meta = ORIGIN[type]
+  if (!meta) return <Chip tone="muted">{type || '—'}</Chip>
+  return <Chip tone={type}>{meta.label}</Chip>
+}
 
-  React.useEffect(() => {
-    fetch("/api/mp-payments?panel=1", { headers: authHeaders() })
-      .then((r) => r.json().then((d) => ({ ok: r.ok, d })))
-      .then(({ ok, d }) => {
-        if (!ok || d?.ok === false) throw new Error(d?.error || "No se pudieron cargar los pedidos")
-        setRows(d.orders || [])
-        setLoading(false)
-      })
-      .catch((err) => { setError(err.message || "No se pudieron cargar los pedidos"); setLoading(false) })
-  }, [])
-
-  const filtered = rows.filter((r) => {
-    if (filter !== "todos" && r.type !== filter) return false
-    if (query) {
-      const q = query.toLowerCase()
-      return r.name?.toLowerCase().includes(q) || r.phone?.includes(q) || r.email?.toLowerCase().includes(q)
-    }
-    return true
-  })
-
-  const total = rows.reduce((n, r) => n + (r.amount || 0), 0)
-  const fmtDate = (iso) => {
-    if (!iso) return "—"
-    return new Date(iso).toLocaleDateString("es-CL", { day: "2-digit", month: "short", year: "numeric" })
-  }
-
+/* Nombre con teléfono y correo, con el avatar de iniciales en dorado. La usan
+   Pedidos e Inscripciones en la tabla de escritorio. */
+export function PersonCell({ name, phone, email }) {
+  const contact = [phone ? `+56 ${phone}` : null, email || null].filter(Boolean).join(' · ')
   return (
-    <div className="animate-in" style={{ display: "grid", gap: "1.1rem" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(160px,1fr))", gap: "1rem" }}>
-        <Stat icon="wallet" label="Total recaudado" value={CLP(total)} accent />
-        <Stat icon="spark" label="Cursos" value={rows.filter((r) => r.type === "cursos").length} />
-        <Stat icon="scissors" label="Workshop" value={rows.filter((r) => r.type === "workshop").length} />
-        <Stat icon="gift" label="Essentials" value={rows.filter((r) => r.type === "essentials").length} />
+    <div className="pn-online-who">
+      <Avatar name={name} size={32} accent />
+      <div className="pn-online-who-text">
+        <strong>{name || 'Sin nombre'}</strong>
+        {contact && <span>{contact}</span>}
       </div>
-      <Panel title="Pedidos" action={
-        <div className="psn-seg" role="group" aria-label="Filtrar por origen">
-          {["todos", "cursos", "workshop", "essentials"].map((f) => (
-            <button key={f} type="button" className={filter === f ? "is-on" : ""} style={{ textTransform: "capitalize" }} onClick={() => setFilter(f)}>{f}</button>
-          ))}
-        </div>
-      }>
-        <div className="client-search">
-          <Icon name="user" size={15} />
-          <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Buscar por nombre, teléfono o email" />
-        </div>
-        <div className="client-table-head" style={{ gridTemplateColumns: "1.4fr 1.4fr auto auto auto" }}>
-          <span>Cliente</span>
-          <span>Detalle</span>
-          <span>Origen</span>
-          <span>Monto</span>
-          <span>Fecha</span>
-        </div>
-        <div className="client-list">
-          {loading && <div className="empty-state">Cargando pedidos…</div>}
-          {!loading && error && <div className="empty-state">{error}</div>}
-          {!loading && !error && !filtered.length && <div className="empty-state">No hay pedidos que coincidan.</div>}
-          {!loading && !error && filtered.map((r) => (
-            <div key={`${r.type}-${r.id}`} className="client-row" style={{ gridTemplateColumns: "1.4fr 1.4fr auto auto auto" }}>
-              <div style={{ minWidth: 0 }}>
-                <strong>{r.name}</strong>
-                <span>{r.phone} · {r.email}</span>
-              </div>
-              <span style={{ minWidth: 0 }}>{r.detail || "—"}</span>
-              <span style={{ fontSize: "0.7rem", padding: "2px 8px", borderRadius: 999, justifySelf: "start", ...PEDIDOS_BADGE[r.type] }}>
-                {PEDIDOS_LABEL[r.type]}
-              </span>
-              <span style={{ fontSize: "0.85rem", color: "var(--ink)", fontWeight: 600 }}>{CLP(r.amount || 0)}</span>
-              <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>{fmtDate(r.created_at)}</span>
-            </div>
-          ))}
-        </div>
-      </Panel>
     </div>
   )
 }
 
-/* Pestaña «pedidos» del panel interno, extraída tal cual de Dashboard.jsx
-   para que cada módulo viva en su propio archivo. Recibe en `ctx` el estado
-   y las acciones de Dashboard que usa (ver el objeto `dash` que arma
-   Dashboard.jsx).
-   El módulo sigue siendo PedidosPanel, con las mismas props de siempre. */
+/* `created_at` es un instante (timestamptz), no un día: se lleva al día de
+   Santiago antes de formatear, o un pago de las 22:00 de Chile saldría con
+   la fecha de mañana (en UTC ya es otro día). El año solo si no es este. */
+export function fmtStamp(value) {
+  const key = santiagoDateKey(value)
+  if (!key) return '—'
+  return fmtDate(key, key.slice(0, 4) === santiagoDateKey().slice(0, 4) ? 'dm' : 'dmy')
+}
+
+const TIME_CL = new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', hour: '2-digit', minute: '2-digit', hour12: false })
+function fmtTime(value) {
+  const d = value ? new Date(value) : null
+  return d && !Number.isNaN(d.getTime()) ? TIME_CL.format(d) : ''
+}
+
+// Qué se pagó: Essentials trae los productos ("2× Cera mate…"); el Workshop,
+// su edición; un Curso no trae detalle.
+export function orderDetail(o) {
+  if (o?.type === 'workshop') return o.detail ? `Edición ${o.detail}` : 'Cupo en el Workshop'
+  if (o?.type === 'cursos') return o.detail || 'Inscripción al curso'
+  return o?.detail || '—'
+}
+
+const amountOf = (o) => Number(o?.amount || 0)
+const stampMs = (value) => { const t = new Date(value || 0).getTime(); return Number.isNaN(t) ? 0 : t }
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`
+
+const waOrderMessage = (o) => {
+  const first = String(o?.name || '').trim().split(' ')[0] || 'Hola'
+  const what = o?.type === 'essentials' ? 'tu pedido de Essentials'
+    : o?.type === 'workshop' ? 'tu cupo en el Workshop'
+      : 'tu inscripción al curso'
+  return `Hola ${first}, te escribimos de Brunetti por ${what} 💈`
+}
+
+/* Detalle de un pedido: lo que la fila no alcanza a mostrar en el celular
+   (teléfono, correo, hora del pago) y los dos atajos para escribirle. */
+function OrderSheet({ order, onClose }) {
+  const [last, setLast] = useState(order)
+  if (order && order !== last) setLast(order)
+  const o = order || last
+  if (!o) return null
+  const wa = waHref(o.phone, waOrderMessage(o))
+  const time = fmtTime(o.created_at)
+  return (
+    <Sheet
+      open={Boolean(order)}
+      onClose={onClose}
+      size="sm"
+      lead={<Avatar name={o.name} size={44} accent />}
+      title={o.name || 'Pedido'}
+      subtitle={`${ORIGIN[o.type]?.label || o.type} · ${fmtStamp(o.created_at)}${time ? ` · ${time}` : ''}`}
+      footer={(
+        <>
+          <Button variant="secondary" icon="mail" disabled={!o.email} onClick={() => { if (o.email) window.location.href = `mailto:${o.email}` }}>Correo</Button>
+          <Button variant="primary" icon="whatsapp" disabled={!wa} onClick={() => wa && window.open(wa, '_blank', 'noopener,noreferrer')}>WhatsApp</Button>
+        </>
+      )}
+    >
+      <List className="pn-online-sheet-list">
+        <ListRow title="Monto" value={CLP(amountOf(o))} />
+        <ListRow title="Origen" trailing={<OriginChip type={o.type} />} />
+        <ListRow title="Detalle" subtitle={orderDetail(o)} subtitleWrap />
+        <ListRow title="Teléfono" subtitle={o.phone ? `+56 ${o.phone}` : 'Sin teléfono'} />
+        <ListRow title="Correo" subtitle={o.email || 'Sin correo'} subtitleWrap />
+      </List>
+    </Sheet>
+  )
+}
+
+/* Pestaña «pedidos» del panel interno. Recibe en `ctx` el estado y las
+   acciones de Dashboard (ver el objeto `dash` de Dashboard.jsx). */
 export default function PedidosTab({ ctx }) {
   const {
-    authHeaders,
+    admin,
+    onlineOrders,
+    onlineOrdersLoading,
+    onlineOrdersError,
+    loadOnlineOrders,
+    onlineMonthTotal,
+    monthKeyNow,
   } = ctx
+  const isPhone = useIsPhone()
+  const [filter, setFilter] = useState('todos') // todos | cursos | workshop | essentials
+  const [query, setQuery] = useState('')
+  const [selected, setSelected] = useState(null)
+
+  // Más nuevo primero: el servidor junta dos tablas (inscripciones y
+  // shop_orders) y ya las ordena, pero no cuesta asegurarlo acá.
+  const rows = useMemo(
+    () => (Array.isArray(onlineOrders) ? onlineOrders : [])
+      .slice()
+      .sort((a, b) => stampMs(b.created_at) - stampMs(a.created_at)),
+    [onlineOrders],
+  )
+
+  const byType = useMemo(() => {
+    const out = Object.fromEntries(ORIGIN_KEYS.map((k) => [k, { count: 0, total: 0 }]))
+    for (const o of rows) {
+      if (!out[o.type]) continue
+      out[o.type].count += 1
+      out[o.type].total += amountOf(o)
+    }
+    return out
+  }, [rows])
+
+  const total = rows.reduce((n, o) => n + amountOf(o), 0)
+  // "Este mes" es la misma cifra que el KPI "Ventas online del mes" de
+  // Finanzas y Resumen (resumen del servidor cuando lo hay); la cuenta sale
+  // de la lista, con el día de Santiago.
+  const monthKey = monthKeyNow || santiagoDateKey().slice(0, 7)
+  const monthRows = rows.filter((o) => santiagoDateKey(o.created_at).startsWith(monthKey))
+  const monthTotal = Number.isFinite(Number(onlineMonthTotal)) && onlineMonthTotal != null
+    ? Number(onlineMonthTotal)
+    : monthRows.reduce((n, o) => n + amountOf(o), 0)
+
+  const q = query.trim().toLowerCase()
+  const filtered = rows.filter((o) => {
+    if (filter !== 'todos' && o.type !== filter) return false
+    if (!q) return true
+    return o.name?.toLowerCase().includes(q)
+      || String(o.phone || '').includes(q)
+      || o.email?.toLowerCase().includes(q)
+      || String(o.detail || '').toLowerCase().includes(q)
+  })
+  // El pie suma lo que se está viendo (filtro + búsqueda), no el total.
+  const filteredTotal = filtered.reduce((n, o) => n + amountOf(o), 0)
+  const filtering = filter !== 'todos' || Boolean(q)
+  const clearFilters = () => { setFilter('todos'); setQuery('') }
+
+  if (!admin) {
+    return (
+      <div className="pn-page">
+        <ModuleHeader title="Pedidos" subtitle="Pagos confirmados por Mercado Pago" />
+        <Card>
+          <EmptyState icon="lock" title="Solo para administración" text="Los pedidos web los ve el administrador de Brunetti." />
+        </Card>
+      </div>
+    )
+  }
+
+  // Primera carga: cifras en "—", no en $0.
+  const firstLoad = onlineOrdersLoading && !rows.length
+  const kpis = [
+    { id: 'total', label: 'Total recaudado', icon: 'wallet', value: firstLoad ? null : total, format: CLP, hint: firstLoad ? undefined : plural(rows.length, 'pedido', 'pedidos') },
+    { id: 'mes', label: 'Este mes', icon: 'calendar', value: firstLoad ? null : monthTotal, format: CLP, hint: firstLoad ? undefined : plural(monthRows.length, 'pedido', 'pedidos') },
+    ...ORIGIN_KEYS.map((k) => ({ id: k, label: ORIGIN[k].label, color: ORIGIN[k].color, value: firstLoad ? null : byType[k].count, hint: firstLoad ? undefined : CLP(byType[k].total) })),
+  ]
+
+  const columns = [
+    { key: 'who', label: 'Cliente', render: (o) => <PersonCell name={o.name} phone={o.phone} email={o.email} /> },
+    { key: 'detail', label: 'Detalle', className: 'pn-online-detail', render: (o) => orderDetail(o) },
+    { key: 'origin', label: 'Origen', render: (o) => <OriginChip type={o.type} /> },
+    { key: 'amount', label: 'Monto', num: true, strong: true, render: (o) => CLP(amountOf(o)) },
+    { key: 'date', label: 'Fecha', muted: true, nowrap: true, render: (o) => fmtStamp(o.created_at) },
+  ]
+  const countLabel = plural(filtered.length, 'pedido', 'pedidos')
+  const footer = filtered.length
+    ? columns.map((c) => (c.key === 'who' ? `Total · ${countLabel}` : c.key === 'amount' ? CLP(filteredTotal) : ''))
+    : undefined
+
   return (
-          <PedidosPanel authHeaders={authHeaders} />
+    <div className="pn-page">
+      <ModuleHeader title="Pedidos" subtitle="Pagos confirmados por Mercado Pago" />
+
+      {onlineOrdersError && (
+        <InlineAlert
+          tone="error"
+          title="No se pudieron cargar los pedidos"
+          action={loadOnlineOrders ? { label: onlineOrdersLoading ? 'Cargando…' : 'Reintentar', onClick: () => loadOnlineOrders() } : undefined}
+        >
+          {rows.length ? `${onlineOrdersError} Lo que ves es la última lista que llegó.` : onlineOrdersError}
+        </InlineAlert>
+      )}
+
+      <KpiGrid items={kpis} className="pn-online-kpis" />
+
+      <div className="pn-stack">
+        <SearchField value={query} onChange={setQuery} placeholder="Nombre, teléfono o producto" ariaLabel="Buscar pedidos" />
+        <FilterChips
+          ariaLabel="Filtrar por origen"
+          value={filter}
+          onChange={setFilter}
+          options={[
+            { value: 'todos', label: 'Todos', count: rows.length },
+            ...ORIGIN_KEYS.map((k) => ({ value: k, label: ORIGIN[k].label, count: byType[k].count })),
+          ]}
+        />
+      </div>
+
+      <Card flush>
+        {firstLoad ? <SkeletonRows rows={4} /> : (
+          <>
+            <DataTable
+              ariaLabel="Pedidos"
+              columns={columns}
+              rows={filtered}
+              rowKey={(o) => `${o.type}-${o.id}`}
+              onRowClick={(o) => setSelected(o)}
+              footer={footer}
+              mobile={(o) => ({
+                title: o.name || 'Sin nombre',
+                subtitle: orderDetail(o),
+                value: CLP(amountOf(o)),
+                meta: fmtStamp(o.created_at),
+                children: <span className="pn-row-chips"><OriginChip type={o.type} /></span>,
+                chevron: true,
+              })}
+              empty={filtering ? (
+                <EmptyState
+                  compact
+                  icon="search"
+                  title="No hay pedidos que coincidan"
+                  text="Prueba con otro nombre o cambia el filtro."
+                  action={{ label: 'Ver todos', icon: 'close', onClick: clearFilters }}
+                />
+              ) : (
+                <EmptyState
+                  icon="box"
+                  title="Todavía no hay pedidos"
+                  text="Cuando alguien pague un Curso, el Workshop o productos de Essentials en brunetticutz.cl, el pago aparece acá apenas Mercado Pago lo confirma."
+                />
+              )}
+            />
+            {isPhone && filtered.length > 0 && (
+              <div className="pn-online-foot" role="status">
+                <span>Total · {countLabel}</span>
+                <strong>{CLP(filteredTotal)}</strong>
+              </div>
+            )}
+          </>
+        )}
+      </Card>
+
+      <OrderSheet order={selected} onClose={() => setSelected(null)} />
+    </div>
   )
 }
