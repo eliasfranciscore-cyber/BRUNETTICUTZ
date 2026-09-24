@@ -5,6 +5,7 @@ import SiteNav from '../components/SiteNav.jsx'
 import ModuleFooter from '../components/ModuleFooter.jsx'
 import { Lamp } from '../components/ui/lamp.jsx'
 import { Sparkles } from '../components/ui/sparkles.jsx'
+import { useTheme } from '../components/theme.jsx'
 import MercadoPagoCheckout from '../components/MercadoPagoCheckout.jsx'
 import { EditableText } from '../components/edit/EditableText.jsx'
 import { Editable } from '../components/edit/Editable.jsx'
@@ -43,6 +44,8 @@ export default function Cursos() {
   const navigate = useNavigate()
   const rootRef = useRef(null)
   const [openIdx, setOpenIdx] = useState(-1)
+  // Las partículas son un efecto de fondo oscuro: en claro no se montan.
+  const { theme } = useTheme()
 
   useBrunettiFx(rootRef, { parallax: false })
 
@@ -79,7 +82,7 @@ export default function Cursos() {
 
         {/* Fondo de partículas azules para el cuerpo de cursos (hero fuera). */}
         <div className="bru-sparkles-zone">
-          <Sparkles className="bru-sparkles--bg" color="107, 116, 240" />
+          {theme !== 'light' && <Sparkles className="bru-sparkles--bg" color="107, 116, 240" />}
 
         {/* ============ INTRO ============ */}
         <section className="bsection">

@@ -47,6 +47,18 @@ export default function SiteNav({ onSection, scrolled: scrolledProp }) {
   // Cerrar el menú al cambiar de ruta.
   useEffect(() => { setMenuOpen(false) }, [location.pathname])
 
+  /* Marca el documento mientras esta barra existe. El toggle flotante de tema
+     (FloatingThemeToggle, montado en App.jsx) se ancla DENTRO de la fila del
+     botón "Reservar" en móvil cuando la marca está puesta (ver brunetti.css,
+     body.has-cta-bar), en vez de quedar flotando sobre el contenido: a 6.4rem
+     del borde caía justo encima del "Reservar hora" de las tarjetas de
+     servicio y se robaba el tap. En las páginas sin esta barra (/reservar,
+     /cuenta, /ingreso) el toggle conserva su posición elevada de siempre. */
+  useEffect(() => {
+    document.body.classList.add('has-cta-bar')
+    return () => document.body.classList.remove('has-cta-bar')
+  }, [])
+
   const scrolled = scrolledProp !== undefined ? scrolledProp : scrolledWin
 
   const goSection = (id) => {

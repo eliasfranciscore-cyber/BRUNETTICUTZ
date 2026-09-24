@@ -1986,6 +1986,18 @@ select.input { text-overflow: ellipsis; }
   box-shadow: var(--g-spec), 0 12px 38px rgba(0, 0, 0, 0.55), 0 0 24px var(--gold-glow);
   z-index: -1;
 }
+/* La píldora del navbar es solo un tinte de cristal muy sutil: si detrás
+   pasaba contenido oscuro (una foto, una sección oscura) el texto claro se
+   perdía, y si pasaba contenido claro se perdía el oscuro. El contraste
+   dependía de lo que hubiera scrolleado detrás, no del tema. Un respaldo
+   sólido por tema bajo el tinte hace que SIEMPRE contraste con el texto.
+   Solo .home-nav: la píldora de .workshop-topbar queda como estaba. */
+.home-nav.is-scrolled::before {
+  background-color: rgba(9, 8, 7, 0.74);
+}
+[data-theme="light"] .home-nav.is-scrolled::before {
+  background-color: rgba(255, 253, 248, 0.84);
+}
 .workshop-topbar {
   background: transparent;
   border-bottom: 0;

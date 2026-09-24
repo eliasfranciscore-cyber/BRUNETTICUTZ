@@ -179,6 +179,21 @@
   .site-nav-sheet { display: none; }
 }
 
+/* ------------------------------------------------------------------
+   Banda 900–1040px: desde los 900px (donde deja de haber hamburguesa) la
+   barra lleva los nueve enlaces + acceso interno + "Reservar" y va sin
+   holgura: con el gap fluido de pimp.css (1.5vw) y el tamaño normal de los
+   enlaces, "Reservar" queda pegado o cortado contra el borde derecho.
+   En esa banda se aprieta solo el interlineado y el cuerpo de los enlaces;
+   arriba de 1040px el gap fluido ya da de sobra y no se toca nada. El
+   padding-izq de la marca tampoco se toca: está calzado con la geometría de
+   la píldora (ver comentario más arriba).
+   ------------------------------------------------------------------ */
+@media (min-width: 900px) and (max-width: 1040px) {
+  .home-nav-links { gap: clamp(0.4rem, 0.95vw, 0.85rem); }
+  .home-nav .nav-link { font-size: 0.79rem; letter-spacing: 0.02em; }
+}
+
 /* Botón acceso interno — solo ícono, cuadrado */
 .site-nav-barber-desktop {
   width: 36px;

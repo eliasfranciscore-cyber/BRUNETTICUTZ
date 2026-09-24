@@ -959,11 +959,36 @@
 /* ============================================================
    SERVICIOS
    ============================================================ */
-.brunetti-site .bserv-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+/* Carril horizontal: las tarjetas miden exactamente 1/3 del ancho (menos el
+   gap), así que con 3 servicios o menos no hay nada que scrollear —se ven los
+   3 de entrada— y a partir del 4° el resto queda accesible arrastrando o con
+   las flechas (mismo patrón que .ac-track de Experiencias). */
+.brunetti-site .bserv-grid {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  /* overflow-x:auto obliga a que overflow-y también recorte (no hay forma de
+     dejar visible solo el eje Y): el hover (translateY -6px) y el glow dorado
+     de la tarjeta destacada se cortaban contra ese borde. El padding generoso
+     les da aire y el margin negativo lo compensa para no mover el layout. */
+  padding: 2.6rem 0.4rem 1.6rem;
+  margin: -2.6rem -0.4rem -1.6rem;
+  /* Sin esto el snap alinea cada tarjeta al borde del padding (0.4rem a la
+     izquierda de la columna) y no al borde donde arranca la primera. */
+  scroll-padding-inline: 0.4rem;
+}
+.brunetti-site .bserv-grid::-webkit-scrollbar { display: none; }
+.brunetti-site #servicios .ac-arrows { width: 100%; margin: 0; padding: 0 0 0.6rem; }
 .brunetti-site .bserv {
   position: relative;
   display: flex;
   flex-direction: column;
+  scroll-snap-align: start;
+  flex: 0 0 calc((100% - 2rem) / 3);
+  min-width: 250px;
   padding: 1.7rem;
   border-radius: var(--g-radius);
   background: linear-gradient(150deg, var(--g-tint-strong), var(--g-tint-soft));
@@ -976,11 +1001,13 @@
 .brunetti-site .bserv:hover {
   transform: translateY(-6px);
   border-color: var(--gold-edge);
-  box-shadow: var(--g-spec), 0 22px 50px rgba(0,0,0,0.5), 0 0 40px rgba(201,163,91,0.14);
+  box-shadow: var(--g-spec), 0 22px 50px rgba(0,0,0,0.5), 0 0 80px 10px rgba(201,163,91,0.14);
 }
+/* Glow más ancho y suave (40px → 80px + spread): dentro del carril el recorte
+   residual del borde queda imperceptible. */
 .brunetti-site .bserv.featured {
   border-color: var(--gold-edge);
-  box-shadow: var(--g-spec), var(--g-drop), 0 0 40px rgba(201,163,91,0.16);
+  box-shadow: var(--g-spec), var(--g-drop), 0 0 80px 10px rgba(201,163,91,0.16);
 }
 .brunetti-site .bserv .badge {
   position: absolute;
@@ -1323,6 +1350,7 @@
   gap: 1rem;
   overflow-x: auto;
   scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
   padding: 0.4rem clamp(1rem, 4vw, 3rem) 1.4rem;
   scrollbar-width: none;
 }
@@ -1876,7 +1904,9 @@
   .brunetti-site .bsection--full { min-height: auto; }
   .brunetti-site .babout { grid-template-columns: 1fr; }
   .brunetti-site .babout-figure { max-width: 420px; }
-  .brunetti-site .bserv-grid { grid-template-columns: 1fr; }
+  /* Bajo los 940px no caben 3 tarjetas por fila: carril de 1 tarjeta con un
+     asomo de la siguiente, mismo lenguaje que .ac-card. */
+  .brunetti-site .bserv { flex-basis: 84%; min-width: 0; }
   .brunetti-site .bcontact-grid { grid-template-columns: 1fr; }
   .brunetti-site .location-grid { grid-template-columns: 1fr; }
 }
@@ -2528,6 +2558,20 @@ body.dash-mode .float-theme-toggle { display: none; }
   .float-theme-toggle { bottom: 6.4rem; z-index: 66; }
   /* Espacio para que la barra fija de Reservar (móvil) no tape el contenido/footer */
   .brunetti-site { padding-bottom: 5.6rem; }
+  /* Cuando la barra inferior "Reservar" está montada (body.has-cta-bar, lo
+     pone SiteNav), el toggle baja y se ancla EN esa fila, a la izquierda del
+     botón. Flotando a 6.4rem quedaba a la altura de los CTA de las tarjetas
+     de servicio y les robaba el tap al hacer scroll. Ahora abajo hay una sola
+     fila: [toggle] [Reservar hora ————], y nada tapa el contenido. El bottom
+     suma el mismo env() que la barra (SiteNav.css) para subir junto con el
+     botón sobre el home indicator; los 6px centran el toggle (36px de alto)
+     en el botón. La barra le cede su ancho (66px + aire) con padding-left. */
+  body.has-cta-bar .float-theme-toggle {
+    bottom: calc(0.9rem + 6px + env(safe-area-inset-bottom, 0px));
+  }
+  body.has-cta-bar .site-nav-cta-bar {
+    padding-left: calc(1rem + 66px + 0.55rem);
+  }
 }
 
 /* ============================================================
@@ -2952,6 +2996,16 @@ img.mfooter-wordmark {
 [data-theme="light"] .checkout-success-title { color: #211d15; }
 [data-theme="light"] .checkout-success-text { color: #3a3633; }
 
+/* Textos recortados en degradado dorado (precio de servicio en Home, montos
+   .gold-text, títulos de /style): en claro usan la variante oscura
+   --gold-grad-ink del bloque de abajo. Cualquier regla nueva con
+   background-clip:text debería usarla también. Solo cambia la imagen: el
+   recorte (background-clip) y el color transparente siguen siendo los de
+   cada regla. */
+[data-theme="light"] .gold-text,
+[data-theme="light"] .brunetti-site .bserv .price,
+[data-theme="light"] .ete-gold-text { background-image: var(--gold-grad-ink); }
+
 /* ============================================================
    MODO CLARO — DORADO PROFUNDO (tonos del paquete)
    El dorado pálido (#e7c87e/#c9a14e) es casi ilegible sobre crema, por eso
@@ -2967,6 +3021,12 @@ img.mfooter-wordmark {
   --gold-bright: #8a6a22;
   --gold-deep: #6f5519;
   --gold-grad: linear-gradient(135deg, #d8b25f 0%, #b6892f 50%, #8a6a22 100%);
+  /* Variante del degradado para TEXTO recortado (background-clip:text). El
+     --gold-grad de arriba funciona como FONDO de botón (tinta blanca encima),
+     pero como texto sobre crema su primer tramo (#d8b25f) da 1.81:1 contra
+     #f7f3ea: el precio de cada servicio era lo menos legible de la tarjeta.
+     Este conserva el brillo del dorado y parte en 3.80:1. */
+  --gold-grad-ink: linear-gradient(135deg, #9a7628 0%, #7d5f1e 50%, #5f4816 100%);
   --on-gold: #fffdf6;
   --gold-edge: rgba(160, 124, 46, 0.45);
   --gold-soft: rgba(160, 124, 46, 0.14);

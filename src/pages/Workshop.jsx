@@ -10,6 +10,7 @@ import SiteNav from '../components/SiteNav.jsx'
 import { addLocalEnrollment } from '../enrollmentsStore.js'
 import { Lamp } from '../components/ui/lamp.jsx'
 import { Sparkles } from '../components/ui/sparkles.jsx'
+import { useTheme } from '../components/theme.jsx'
 import { EditableText } from '../components/edit/EditableText.jsx'
 import { Editable } from '../components/edit/Editable.jsx'
 import WKC from '../data/content/workshop.json'
@@ -1125,6 +1126,8 @@ export default function Workshop() {
   const reserve = () => smoothTo("inscribir");
   useSmoothScroll();
   void navigate;
+  // Las partículas son un efecto de fondo oscuro: en claro no se montan.
+  const { theme } = useTheme();
 
   // Precio, fecha y el interruptor de pagos vienen del panel interno (Config →
   // Precios y fechas). WK.meta se lee directo (sin props) desde varios
@@ -1159,7 +1162,7 @@ export default function Workshop() {
         {/* Fondo de partículas moradas para todo el cuerpo del workshop (el hero
             queda fuera, igual que en Home). Color a juego con la lámpara morada. */}
         <div className="bru-sparkles-zone">
-          <Sparkles className="bru-sparkles--bg" color="180, 131, 243" />
+          {theme !== 'light' && <Sparkles className="bru-sparkles--bg" color="180, 131, 243" />}
           <Transform />
           <QuoteBlock />
           <FeatureRow data={WK.experiencia} contentKey="experiencia" />

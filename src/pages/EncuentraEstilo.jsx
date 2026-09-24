@@ -316,9 +316,10 @@ export default function EncuentraEstilo() {
       <div className="ete" data-theme={theme}>
         <div className="ete-shell">
           <Hero />
-          {/* Fondo de partículas doradas para el cuerpo (hero fuera). */}
+          {/* Fondo de partículas doradas para el cuerpo (hero fuera). Es un
+              efecto de fondo oscuro: en claro no se monta. */}
           <div className="bru-sparkles-zone">
-            <Sparkles className="bru-sparkles--bg" color="201, 161, 78" />
+            {theme !== 'light' && <Sparkles className="bru-sparkles--bg" color="201, 161, 78" />}
             <Visagismo onReserveService={reserveService} />
             <Galeria />
             <CtaBand onReserveService={reserveService} />
