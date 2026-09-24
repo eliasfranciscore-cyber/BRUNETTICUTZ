@@ -126,36 +126,6 @@
       "norm_label": "logbookingattempt()"
     },
     {
-      "label": "_bridge.js",
-      "file_type": "code",
-      "source_file": "api/_bridge.js",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "api_bridge",
-      "community": 4,
-      "norm_label": "_bridge.js"
-    },
-    {
-      "label": "isBridgeRequest()",
-      "file_type": "code",
-      "source_file": "api/_bridge.js",
-      "source_location": "L27",
-      "_origin": "ast",
-      "id": "api_bridge_isbridgerequest",
-      "community": 4,
-      "norm_label": "isbridgerequest()"
-    },
-    {
-      "label": "normalizePhone()",
-      "file_type": "code",
-      "source_file": "api/_bridge.js",
-      "source_location": "L51",
-      "_origin": "ast",
-      "id": "api_bridge_normalizephone",
-      "community": 4,
-      "norm_label": "normalizephone()"
-    },
-    {
       "label": "_email.js",
       "file_type": "code",
       "source_file": "api/_email.js",
@@ -222,7 +192,7 @@
       "source_location": "L121",
       "_origin": "ast",
       "id": "api_email_sendloyaltycardemail",
-      "community": 140,
+      "community": 4,
       "norm_label": "sendloyaltycardemail()"
     },
     {
@@ -836,10 +806,20 @@
       "norm_label": "availability.js"
     },
     {
+      "label": "isBridgeRequest()",
+      "file_type": "code",
+      "source_file": "api/availability.js",
+      "source_location": "L16",
+      "_origin": "ast",
+      "id": "api_availability_isbridgerequest",
+      "community": 4,
+      "norm_label": "isbridgerequest()"
+    },
+    {
       "label": "businessDateKey()",
       "file_type": "code",
       "source_file": "api/availability.js",
-      "source_location": "L19",
+      "source_location": "L24",
       "_origin": "ast",
       "id": "api_availability_businessdatekey",
       "community": 4,
@@ -849,7 +829,7 @@
       "label": "businessNowMinutes()",
       "file_type": "code",
       "source_file": "api/availability.js",
-      "source_location": "L22",
+      "source_location": "L27",
       "_origin": "ast",
       "id": "api_availability_businessnowminutes",
       "community": 4,
@@ -859,7 +839,7 @@
       "label": "slotMinutes()",
       "file_type": "code",
       "source_file": "api/availability.js",
-      "source_location": "L28",
+      "source_location": "L33",
       "_origin": "ast",
       "id": "api_availability_slotminutes",
       "community": 4,
@@ -869,7 +849,7 @@
       "label": "handler()",
       "file_type": "code",
       "source_file": "api/availability.js",
-      "source_location": "L33",
+      "source_location": "L38",
       "_origin": "ast",
       "id": "api_availability_handler",
       "community": 4,
@@ -916,20 +896,20 @@
       "norm_label": "bookings.js"
     },
     {
-      "label": "BOOKING_STATUSES",
+      "label": "isBridgeRequest()",
       "file_type": "code",
       "source_file": "api/bookings.js",
-      "source_location": "L22",
+      "source_location": "L24",
       "_origin": "ast",
-      "id": "api_bookings_booking_statuses",
+      "id": "api_bookings_isbridgerequest",
       "community": 4,
-      "norm_label": "booking_statuses"
+      "norm_label": "isbridgerequest()"
     },
     {
       "label": "businessDateKey()",
       "file_type": "code",
       "source_file": "api/bookings.js",
-      "source_location": "L27",
+      "source_location": "L33",
       "_origin": "ast",
       "id": "api_bookings_businessdatekey",
       "community": 4,
@@ -939,7 +919,7 @@
       "label": "businessNowMinutes()",
       "file_type": "code",
       "source_file": "api/bookings.js",
-      "source_location": "L30",
+      "source_location": "L36",
       "_origin": "ast",
       "id": "api_bookings_businessnowminutes",
       "community": 4,
@@ -949,67 +929,17 @@
       "label": "DEMO_BOOKINGS",
       "file_type": "code",
       "source_file": "api/bookings.js",
-      "source_location": "L37",
+      "source_location": "L43",
       "_origin": "ast",
       "id": "api_bookings_demo_bookings",
       "community": 4,
       "norm_label": "demo_bookings"
     },
     {
-      "label": "loyaltyForTransition()",
-      "file_type": "code",
-      "source_file": "api/bookings.js",
-      "source_location": "L53",
-      "_origin": "ast",
-      "id": "api_bookings_loyaltyfortransition",
-      "community": 4,
-      "norm_label": "loyaltyfortransition()"
-    },
-    {
-      "label": "isDbId()",
-      "file_type": "code",
-      "source_file": "api/bookings.js",
-      "source_location": "L70",
-      "_origin": "ast",
-      "id": "api_bookings_isdbid",
-      "community": 4,
-      "norm_label": "isdbid()"
-    },
-    {
-      "label": "isRealDate()",
-      "file_type": "code",
-      "source_file": "api/bookings.js",
-      "source_location": "L72",
-      "_origin": "ast",
-      "id": "api_bookings_isrealdate",
-      "community": 4,
-      "norm_label": "isrealdate()"
-    },
-    {
-      "label": "createManualBooking()",
-      "file_type": "code",
-      "source_file": "api/bookings.js",
-      "source_location": "L104",
-      "_origin": "ast",
-      "id": "api_bookings_createmanualbooking",
-      "community": 4,
-      "norm_label": "createmanualbooking()"
-    },
-    {
-      "label": "handleBridgeMode()",
-      "file_type": "code",
-      "source_file": "api/bookings.js",
-      "source_location": "L256",
-      "_origin": "ast",
-      "id": "api_bookings_handlebridgemode",
-      "community": 4,
-      "norm_label": "handlebridgemode()"
-    },
-    {
       "label": "handler()",
       "file_type": "code",
       "source_file": "api/bookings.js",
-      "source_location": "L270",
+      "source_location": "L49",
       "_origin": "ast",
       "id": "api_bookings_handler",
       "community": 4,
@@ -1029,7 +959,7 @@
       "label": "DEMO_CLIENTS",
       "file_type": "code",
       "source_file": "api/clients.js",
-      "source_location": "L11",
+      "source_location": "L10",
       "_origin": "ast",
       "id": "api_clients_demo_clients",
       "community": 4,
@@ -1039,7 +969,7 @@
       "label": "cleanPhone()",
       "file_type": "code",
       "source_file": "api/clients.js",
-      "source_location": "L17",
+      "source_location": "L16",
       "_origin": "ast",
       "id": "api_clients_cleanphone",
       "community": 4,
@@ -1049,37 +979,17 @@
       "label": "validateClient()",
       "file_type": "code",
       "source_file": "api/clients.js",
-      "source_location": "L23",
+      "source_location": "L22",
       "_origin": "ast",
       "id": "api_clients_validateclient",
       "community": 4,
       "norm_label": "validateclient()"
     },
     {
-      "label": "bridgeClientList()",
-      "file_type": "code",
-      "source_file": "api/clients.js",
-      "source_location": "L70",
-      "_origin": "ast",
-      "id": "api_clients_bridgeclientlist",
-      "community": 4,
-      "norm_label": "bridgeclientlist()"
-    },
-    {
-      "label": "handleBridgeClients()",
-      "file_type": "code",
-      "source_file": "api/clients.js",
-      "source_location": "L96",
-      "_origin": "ast",
-      "id": "api_clients_handlebridgeclients",
-      "community": 4,
-      "norm_label": "handlebridgeclients()"
-    },
-    {
       "label": "handler()",
       "file_type": "code",
       "source_file": "api/clients.js",
-      "source_location": "L148",
+      "source_location": "L32",
       "_origin": "ast",
       "id": "api_clients_handler",
       "community": 4,
@@ -6272,7 +6182,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_clientmodal",
-      "community": 7,
+      "community": 20,
       "norm_label": "clientmodal.jsx"
     },
     {
@@ -6282,7 +6192,7 @@
       "source_location": "L15",
       "_origin": "ast",
       "id": "src_components_clientmodal_clientmodal",
-      "community": 7,
+      "community": 20,
       "norm_label": "clientmodal()"
     },
     {
@@ -6552,7 +6462,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_expensesmodule",
-      "community": 5,
+      "community": 42,
       "norm_label": "expensesmodule.jsx"
     },
     {
@@ -6562,7 +6472,7 @@
       "source_location": "L20",
       "_origin": "ast",
       "id": "src_components_expensesmodule_category_meta",
-      "community": 5,
+      "community": 42,
       "norm_label": "category_meta"
     },
     {
@@ -6572,7 +6482,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "src_components_expensesmodule_expense_categories",
-      "community": 5,
+      "community": 42,
       "norm_label": "expense_categories"
     },
     {
@@ -6582,7 +6492,7 @@
       "source_location": "L30",
       "_origin": "ast",
       "id": "src_components_expensesmodule_metaof",
-      "community": 5,
+      "community": 42,
       "norm_label": "metaof()"
     },
     {
@@ -6592,7 +6502,7 @@
       "source_location": "L32",
       "_origin": "ast",
       "id": "src_components_expensesmodule_monthkey",
-      "community": 5,
+      "community": 42,
       "norm_label": "monthkey()"
     },
     {
@@ -6602,7 +6512,7 @@
       "source_location": "L33",
       "_origin": "ast",
       "id": "src_components_expensesmodule_daysinmonth",
-      "community": 5,
+      "community": 42,
       "norm_label": "daysinmonth()"
     },
     {
@@ -6612,7 +6522,7 @@
       "source_location": "L36",
       "_origin": "ast",
       "id": "src_components_expensesmodule_exportexpensescsv",
-      "community": 5,
+      "community": 42,
       "norm_label": "exportexpensescsv()"
     },
     {
@@ -6622,7 +6532,7 @@
       "source_location": "L49",
       "_origin": "ast",
       "id": "src_components_expensesmodule_expensemodal",
-      "community": 5,
+      "community": 42,
       "norm_label": "expensemodal()"
     },
     {
@@ -6632,7 +6542,7 @@
       "source_location": "L122",
       "_origin": "ast",
       "id": "src_components_expensesmodule_expensesmodule",
-      "community": 5,
+      "community": 42,
       "norm_label": "expensesmodule()"
     },
     {
@@ -6662,7 +6572,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_globalsearch",
-      "community": 17,
+      "community": 42,
       "norm_label": "globalsearch.jsx"
     },
     {
@@ -6672,7 +6582,7 @@
       "source_location": "L17",
       "_origin": "ast",
       "id": "src_components_globalsearch_badgeclass",
-      "community": 17,
+      "community": 42,
       "norm_label": "badgeclass()"
     },
     {
@@ -6682,7 +6592,7 @@
       "source_location": "L19",
       "_origin": "ast",
       "id": "src_components_globalsearch_globalsearch",
-      "community": 17,
+      "community": 42,
       "norm_label": "globalsearch()"
     },
     {
@@ -6722,7 +6632,7 @@
       "source_location": "L1",
       "_origin": "ast",
       "id": "src_components_mercadopagocheckout",
-      "community": 7,
+      "community": 42,
       "norm_label": "mercadopagocheckout.jsx"
     },
     {
@@ -6732,7 +6642,7 @@
       "source_location": "L4",
       "_origin": "ast",
       "id": "src_components_mercadopagocheckout_checkout_items",
-      "community": 7,
+      "community": 42,
       "norm_label": "checkout_items"
     },
     {
@@ -6742,7 +6652,7 @@
       "source_location": "L12",
       "_origin": "ast",
       "id": "src_components_mercadopagocheckout_mercadopagocheckout",
-      "community": 7,
+      "community": 42,
       "norm_label": "mercadopagocheckout()"
     },
     {
@@ -7372,7 +7282,7 @@
       "source_location": "L14",
       "_origin": "ast",
       "id": "src_components_ui_brandmark",
-      "community": 139,
+      "community": 17,
       "norm_label": "brandmark()"
     },
     {
@@ -7682,7 +7592,7 @@
       "source_location": "L78",
       "_origin": "ast",
       "id": "src_data_clp",
-      "community": 7,
+      "community": 42,
       "norm_label": "clp()"
     },
     {
@@ -7702,7 +7612,7 @@
       "source_location": "L80",
       "_origin": "ast",
       "id": "src_data_barberbyid",
-      "community": 7,
+      "community": 20,
       "norm_label": "barberbyid()"
     },
     {
@@ -10259,7 +10169,7 @@
       "label": "Native iOS App",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L323",
+      "source_location": "L304",
       "_origin": "ast",
       "id": "claude_native_ios_app",
       "community": 6,
@@ -10269,7 +10179,7 @@
       "label": "graphify",
       "file_type": "document",
       "source_file": "CLAUDE.md",
-      "source_location": "L337",
+      "source_location": "L318",
       "_origin": "ast",
       "id": "claude_graphify",
       "community": 6,
@@ -14653,7 +14563,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/bookings.js",
-      "source_location": "L365",
+      "source_location": "L139",
       "weight": 1.0,
       "source": "api_bookings_handler",
       "target": "api_auth_readsession"
@@ -14697,7 +14607,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/availability.js",
-      "source_location": "L45",
+      "source_location": "L50",
       "weight": 1.0,
       "source": "api_availability_handler",
       "target": "api_auth_requireinternal"
@@ -14741,7 +14651,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/bookings.js",
-      "source_location": "L280",
+      "source_location": "L56",
       "weight": 1.0,
       "source": "api_bookings_handler",
       "target": "api_auth_requireinternal"
@@ -14763,7 +14673,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L227",
+      "source_location": "L108",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_auth_requireinternal"
@@ -14949,195 +14859,10 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/bookings.js",
-      "source_location": "L427",
+      "source_location": "L257",
       "weight": 1.0,
       "source": "api_bookings_handler",
       "target": "api_bookingaudit_logbookingattempt"
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "api/availability.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "source": "api_availability",
-      "target": "api_bridge",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "api/bookings.js",
-      "source_location": "L15",
-      "weight": 1.0,
-      "source": "api_bookings",
-      "target": "api_bridge",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "api/_bridge.js",
-      "source_location": "L27",
-      "weight": 1.0,
-      "source": "api_bridge",
-      "target": "api_bridge_isbridgerequest",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "api/_bridge.js",
-      "source_location": "L51",
-      "weight": 1.0,
-      "source": "api_bridge",
-      "target": "api_bridge_normalizephone",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports_from",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "api/clients.js",
-      "source_location": "L9",
-      "weight": 1.0,
-      "source": "api_clients",
-      "target": "api_bridge",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "api/availability.js",
-      "source_location": "L4",
-      "weight": 1.0,
-      "source": "api_availability",
-      "target": "api_bridge_isbridgerequest",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "api/availability.js",
-      "source_location": "L41",
-      "weight": 1.0,
-      "source": "api_availability_handler",
-      "target": "api_bridge_isbridgerequest"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "api/bookings.js",
-      "source_location": "L15",
-      "weight": 1.0,
-      "source": "api_bookings",
-      "target": "api_bridge_isbridgerequest",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "api/bookings.js",
-      "source_location": "L257",
-      "weight": 1.0,
-      "source": "api_bookings_handlebridgemode",
-      "target": "api_bridge_isbridgerequest",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "api/bookings.js",
-      "source_location": "L303",
-      "weight": 1.0,
-      "source": "api_bookings_handler",
-      "target": "api_bridge_isbridgerequest"
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "api/clients.js",
-      "source_location": "L9",
-      "weight": 1.0,
-      "source": "api_clients",
-      "target": "api_bridge_isbridgerequest",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "api/clients.js",
-      "source_location": "L97",
-      "weight": 1.0,
-      "source": "api_clients_handlebridgeclients",
-      "target": "api_bridge_isbridgerequest",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "api/bookings.js",
-      "source_location": "L15",
-      "weight": 1.0,
-      "source": "api_bookings",
-      "target": "api_bridge_normalizephone",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "api/bookings.js",
-      "source_location": "L109",
-      "weight": 1.0,
-      "source": "api_bookings_createmanualbooking",
-      "target": "api_bridge_normalizephone",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "imports",
-      "context": "import",
-      "confidence": "EXTRACTED",
-      "source_file": "api/clients.js",
-      "source_location": "L9",
-      "weight": 1.0,
-      "source": "api_clients",
-      "target": "api_bridge_normalizephone",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "api/clients.js",
-      "source_location": "L88",
-      "weight": 1.0,
-      "source": "api_clients_bridgeclientlist",
-      "target": "api_bridge_normalizephone",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "api/clients.js",
-      "source_location": "L111",
-      "weight": 1.0,
-      "source": "api_clients_handlebridgeclients",
-      "target": "api_bridge_normalizephone",
-      "confidence_score": 1.0
     },
     {
       "relation": "imports_from",
@@ -15438,7 +15163,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/bookings.js",
-      "source_location": "L500",
+      "source_location": "L330",
       "weight": 1.0,
       "source": "api_bookings_handler",
       "target": "api_email_sendbookingconfirmationemail"
@@ -15460,7 +15185,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L311",
+      "source_location": "L192",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_email_sendloyaltycardemail"
@@ -15982,7 +15707,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L165",
+      "source_location": "L46",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_loyaltybridge_isloyaltybridgeconfigured"
@@ -16189,12 +15914,12 @@
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
       "source_file": "api/bookings.js",
-      "source_location": "L56",
+      "source_location": "L437",
       "weight": 1.0,
-      "source": "api_bookings_loyaltyfortransition",
-      "target": "api_loyaltybridge_creditstar",
-      "confidence_score": 1.0
+      "source": "api_bookings_handler",
+      "target": "api_loyaltybridge_creditstar"
     },
     {
       "relation": "imports",
@@ -16213,21 +15938,10 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/bookings.js",
-      "source_location": "L623",
+      "source_location": "L440",
       "weight": 1.0,
       "source": "api_bookings_handler",
       "target": "api_loyaltybridge_revertstar"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "api/bookings.js",
-      "source_location": "L60",
-      "weight": 1.0,
-      "source": "api_bookings_loyaltyfortransition",
-      "target": "api_loyaltybridge_revertstar",
-      "confidence_score": 1.0
     },
     {
       "relation": "imports",
@@ -16246,7 +15960,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/bookings.js",
-      "source_location": "L575",
+      "source_location": "L403",
       "weight": 1.0,
       "source": "api_bookings_handler",
       "target": "api_loyaltybridge_redeemfreecut"
@@ -16268,7 +15982,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/bookings.js",
-      "source_location": "L583",
+      "source_location": "L411",
       "weight": 1.0,
       "source": "api_bookings_handler",
       "target": "api_loyaltybridge_cancelredeem"
@@ -16290,7 +16004,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L221",
+      "source_location": "L102",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_loyaltybridge_loyaltyfor"
@@ -16312,7 +16026,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L294",
+      "source_location": "L175",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_loyaltybridge_loyaltyforphones"
@@ -16334,7 +16048,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L185",
+      "source_location": "L66",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_loyaltybridge_sharetoken"
@@ -16356,7 +16070,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L199",
+      "source_location": "L80",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_loyaltybridge_applepassbytes"
@@ -16378,7 +16092,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L191",
+      "source_location": "L72",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_loyaltybridge_googlesaveurl"
@@ -16400,7 +16114,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L211",
+      "source_location": "L92",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_loyaltybridge_tarjetainfo"
@@ -16422,7 +16136,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L244",
+      "source_location": "L125",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_loyaltybridge_walletstats"
@@ -16444,7 +16158,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L250",
+      "source_location": "L131",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_loyaltybridge_walletcampaigns"
@@ -16466,7 +16180,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L333",
+      "source_location": "L214",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_loyaltybridge_sendwalletcampaign"
@@ -16623,20 +16337,9 @@
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
-      "source_file": "api/bookings.js",
-      "source_location": "L218",
-      "weight": 1.0,
-      "source": "api_bookings_createmanualbooking",
-      "target": "api_notion_syncbookingtonotion",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/bookings.js",
-      "source_location": "L509",
+      "source_location": "L181",
       "weight": 1.0,
       "source": "api_bookings_handler",
       "target": "api_notion_syncbookingtonotion"
@@ -16658,7 +16361,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/bookings.js",
-      "source_location": "L598",
+      "source_location": "L427",
       "weight": 1.0,
       "source": "api_bookings_handler",
       "target": "api_notion_updatenotionbookingstatus"
@@ -16880,20 +16583,9 @@
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
-      "source_file": "api/bookings.js",
-      "source_location": "L262",
-      "weight": 1.0,
-      "source": "api_bookings_handlebridgemode",
-      "target": "api_ratelimit_clientip",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/bookings.js",
-      "source_location": "L340",
+      "source_location": "L116",
       "weight": 1.0,
       "source": "api_bookings_handler",
       "target": "api_ratelimit_clientip"
@@ -16915,7 +16607,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L166",
+      "source_location": "L47",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_ratelimit_clientip"
@@ -16959,7 +16651,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/bookings.js",
-      "source_location": "L340",
+      "source_location": "L116",
       "weight": 1.0,
       "source": "api_bookings_handler",
       "target": "api_ratelimit_ratelimit"
@@ -16981,7 +16673,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L171",
+      "source_location": "L52",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_ratelimit_ratelimit"
@@ -17076,7 +16768,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/availability.js",
-      "source_location": "L91",
+      "source_location": "L96",
       "weight": 1.0,
       "source": "api_availability_handler",
       "target": "api_slots_blocksforduration"
@@ -17096,20 +16788,9 @@
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
-      "source_file": "api/bookings.js",
-      "source_location": "L166",
-      "weight": 1.0,
-      "source": "api_bookings_createmanualbooking",
-      "target": "api_slots_blocksforduration",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/bookings.js",
-      "source_location": "L469",
+      "source_location": "L165",
       "weight": 1.0,
       "source": "api_bookings_handler",
       "target": "api_slots_blocksforduration"
@@ -17142,7 +16823,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/availability.js",
-      "source_location": "L91",
+      "source_location": "L96",
       "weight": 1.0,
       "source": "api_availability_handler",
       "target": "api_slots_slotsforbooking"
@@ -17162,20 +16843,9 @@
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
-      "source_file": "api/bookings.js",
-      "source_location": "L167",
-      "weight": 1.0,
-      "source": "api_bookings_createmanualbooking",
-      "target": "api_slots_slotsforbooking",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/bookings.js",
-      "source_location": "L470",
+      "source_location": "L166",
       "weight": 1.0,
       "source": "api_bookings_handler",
       "target": "api_slots_slotsforbooking"
@@ -17206,20 +16876,9 @@
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
-      "source_file": "api/bookings.js",
-      "source_location": "L171",
-      "weight": 1.0,
-      "source": "api_bookings_createmanualbooking",
-      "target": "api_slots_busyslotsforbarberdate",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/bookings.js",
-      "source_location": "L475",
+      "source_location": "L168",
       "weight": 1.0,
       "source": "api_bookings_handler",
       "target": "api_slots_busyslotsforbarberdate"
@@ -17449,7 +17108,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/availability.js",
-      "source_location": "L19",
+      "source_location": "L24",
       "weight": 1.0,
       "source": "api_availability",
       "target": "api_availability_businessdatekey",
@@ -17459,7 +17118,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/availability.js",
-      "source_location": "L22",
+      "source_location": "L27",
       "weight": 1.0,
       "source": "api_availability",
       "target": "api_availability_businessnowminutes",
@@ -17469,7 +17128,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/availability.js",
-      "source_location": "L33",
+      "source_location": "L38",
       "weight": 1.0,
       "source": "api_availability",
       "target": "api_availability_handler",
@@ -17479,7 +17138,17 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/availability.js",
-      "source_location": "L28",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "api_availability",
+      "target": "api_availability_isbridgerequest",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "api/availability.js",
+      "source_location": "L33",
       "weight": 1.0,
       "source": "api_availability",
       "target": "api_availability_slotminutes",
@@ -17490,7 +17159,18 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/availability.js",
-      "source_location": "L96",
+      "source_location": "L46",
+      "weight": 1.0,
+      "source": "api_availability_handler",
+      "target": "api_availability_isbridgerequest",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "api/availability.js",
+      "source_location": "L101",
       "weight": 1.0,
       "source": "api_availability_handler",
       "target": "api_availability_businessdatekey",
@@ -17501,7 +17181,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/availability.js",
-      "source_location": "L97",
+      "source_location": "L102",
       "weight": 1.0,
       "source": "api_availability_handler",
       "target": "api_availability_businessnowminutes",
@@ -17512,7 +17192,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/availability.js",
-      "source_location": "L100",
+      "source_location": "L105",
       "weight": 1.0,
       "source": "api_availability_handler",
       "target": "api_availability_slotminutes",
@@ -17542,17 +17222,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/bookings.js",
-      "source_location": "L22",
-      "weight": 1.0,
-      "source": "api_bookings",
-      "target": "api_bookings_booking_statuses",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "api/bookings.js",
-      "source_location": "L27",
+      "source_location": "L33",
       "weight": 1.0,
       "source": "api_bookings",
       "target": "api_bookings_businessdatekey",
@@ -17562,7 +17232,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/bookings.js",
-      "source_location": "L30",
+      "source_location": "L36",
       "weight": 1.0,
       "source": "api_bookings",
       "target": "api_bookings_businessnowminutes",
@@ -17572,17 +17242,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/bookings.js",
-      "source_location": "L104",
-      "weight": 1.0,
-      "source": "api_bookings",
-      "target": "api_bookings_createmanualbooking",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "api/bookings.js",
-      "source_location": "L37",
+      "source_location": "L43",
       "weight": 1.0,
       "source": "api_bookings",
       "target": "api_bookings_demo_bookings",
@@ -17592,17 +17252,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/bookings.js",
-      "source_location": "L256",
-      "weight": 1.0,
-      "source": "api_bookings",
-      "target": "api_bookings_handlebridgemode",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "api/bookings.js",
-      "source_location": "L270",
+      "source_location": "L49",
       "weight": 1.0,
       "source": "api_bookings",
       "target": "api_bookings_handler",
@@ -17612,30 +17262,10 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/bookings.js",
-      "source_location": "L70",
+      "source_location": "L24",
       "weight": 1.0,
       "source": "api_bookings",
-      "target": "api_bookings_isdbid",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "api/bookings.js",
-      "source_location": "L72",
-      "weight": 1.0,
-      "source": "api_bookings",
-      "target": "api_bookings_isrealdate",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "api/bookings.js",
-      "source_location": "L53",
-      "weight": 1.0,
-      "source": "api_bookings",
-      "target": "api_bookings_loyaltyfortransition",
+      "target": "api_bookings_isbridgerequest",
       "confidence_score": 1.0
     },
     {
@@ -17672,33 +17302,22 @@
       "confidence_score": 1.0
     },
     {
-      "relation": "references",
+      "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
       "source_file": "api/bookings.js",
-      "source_location": "L110",
-      "weight": 1.0,
-      "source": "api_bookings_createmanualbooking",
-      "target": "api_bookings_booking_statuses"
-    },
-    {
-      "relation": "references",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "api/bookings.js",
-      "source_location": "L589",
+      "source_location": "L79",
       "weight": 1.0,
       "source": "api_bookings_handler",
-      "target": "api_bookings_booking_statuses"
+      "target": "api_bookings_isbridgerequest",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/bookings.js",
-      "source_location": "L421",
+      "source_location": "L251",
       "weight": 1.0,
       "source": "api_bookings_handler",
       "target": "api_bookings_businessdatekey",
@@ -17709,7 +17328,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/bookings.js",
-      "source_location": "L434",
+      "source_location": "L264",
       "weight": 1.0,
       "source": "api_bookings_handler",
       "target": "api_bookings_businessnowminutes",
@@ -17719,86 +17338,9 @@
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
-      "source_file": "api/bookings.js",
-      "source_location": "L244",
-      "weight": 1.0,
-      "source": "api_bookings_createmanualbooking",
-      "target": "api_bookings_loyaltyfortransition",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "api/bookings.js",
-      "source_location": "L604",
-      "weight": 1.0,
-      "source": "api_bookings_handler",
-      "target": "api_bookings_loyaltyfortransition",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "api/bookings.js",
-      "source_location": "L142",
-      "weight": 1.0,
-      "source": "api_bookings_createmanualbooking",
-      "target": "api_bookings_isdbid",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "api/bookings.js",
-      "source_location": "L126",
-      "weight": 1.0,
-      "source": "api_bookings_createmanualbooking",
-      "target": "api_bookings_isrealdate",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "api/bookings.js",
-      "source_location": "L262",
-      "weight": 1.0,
-      "source": "api_bookings_handlebridgemode",
-      "target": "api_bookings_createmanualbooking",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "api/bookings.js",
-      "source_location": "L367",
-      "weight": 1.0,
-      "source": "api_bookings_handler",
-      "target": "api_bookings_createmanualbooking",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "api/bookings.js",
-      "source_location": "L272",
-      "weight": 1.0,
-      "source": "api_bookings_handler",
-      "target": "api_bookings_handlebridgemode",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/bookings.js",
-      "source_location": "L686",
+      "source_location": "L525",
       "weight": 1.0,
       "source": "api_bookings_handler",
       "target": "api_push_notifyall"
@@ -17809,7 +17351,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/bookings.js",
-      "source_location": "L494",
+      "source_location": "L324",
       "weight": 1.0,
       "source": "api_bookings_handler",
       "target": "api_push_notifybarber"
@@ -17818,17 +17360,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/clients.js",
-      "source_location": "L70",
-      "weight": 1.0,
-      "source": "api_clients",
-      "target": "api_clients_bridgeclientlist",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "api/clients.js",
-      "source_location": "L17",
+      "source_location": "L16",
       "weight": 1.0,
       "source": "api_clients",
       "target": "api_clients_cleanphone",
@@ -17838,7 +17370,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/clients.js",
-      "source_location": "L11",
+      "source_location": "L10",
       "weight": 1.0,
       "source": "api_clients",
       "target": "api_clients_demo_clients",
@@ -17848,17 +17380,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/clients.js",
-      "source_location": "L96",
-      "weight": 1.0,
-      "source": "api_clients",
-      "target": "api_clients_handlebridgeclients",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "api/clients.js",
-      "source_location": "L148",
+      "source_location": "L32",
       "weight": 1.0,
       "source": "api_clients",
       "target": "api_clients_handler",
@@ -17868,7 +17390,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "api/clients.js",
-      "source_location": "L23",
+      "source_location": "L22",
       "weight": 1.0,
       "source": "api_clients",
       "target": "api_clients_validateclient",
@@ -17880,7 +17402,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "api/clients.js",
-      "source_location": "L436",
+      "source_location": "L317",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_clients_demo_clients"
@@ -17890,7 +17412,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/clients.js",
-      "source_location": "L179",
+      "source_location": "L60",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_clients_cleanphone",
@@ -17901,7 +17423,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/clients.js",
-      "source_location": "L25",
+      "source_location": "L24",
       "weight": 1.0,
       "source": "api_clients_validateclient",
       "target": "api_clients_cleanphone",
@@ -17912,32 +17434,10 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "api/clients.js",
-      "source_location": "L398",
+      "source_location": "L279",
       "weight": 1.0,
       "source": "api_clients_handler",
       "target": "api_clients_validateclient",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "api/clients.js",
-      "source_location": "L104",
-      "weight": 1.0,
-      "source": "api_clients_handlebridgeclients",
-      "target": "api_clients_bridgeclientlist",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "api/clients.js",
-      "source_location": "L150",
-      "weight": 1.0,
-      "source": "api_clients_handler",
-      "target": "api_clients_handlebridgeclients",
       "confidence_score": 1.0
     },
     {
@@ -35720,7 +35220,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CLAUDE.md",
-      "source_location": "L337",
+      "source_location": "L318",
       "weight": 1.0,
       "source": "claude_claude_md",
       "target": "claude_graphify",
@@ -35740,7 +35240,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "CLAUDE.md",
-      "source_location": "L323",
+      "source_location": "L304",
       "weight": 1.0,
       "source": "claude_claude_md",
       "target": "claude_native_ios_app",
@@ -39678,5 +39178,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "d82ef7db37078bb8c6ed185f0ccb4d3f5025aa13"
+  "built_at_commit": "d7e4d946ddbefc63ecd80dc44dcb527c427a64ef"
 }
