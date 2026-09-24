@@ -157,9 +157,6 @@ export default function Dashboard() {
   const [walletSendingId, setWalletSendingId] = useState(null)
   const [editSvcId, setEditSvcId] = useState(null)
   const [deleteSvc, setDeleteSvc] = useState(null)
-  // Alta de barbero (sección Equipo, oculta con BRUNETTI_ONLY). Sin clave por
-  // defecto: el servidor exige una contraseña válida (api/barbers.js).
-  const [barberDraft, setBarberDraft] = useState({ name: "", code: "", role: "Barbero", tier: "general", password: "", canViewFinance: false, canManageTeam: false, canEditServices: false, canManageBlocks: true })
   // Preferencias de navegación (persisten por dispositivo): qué módulos se ven y
   // qué 4 atajos van en el dock. Se aplican al nav/dock reales.
   const [navSettings, setNavSettings] = useState(() => { try { return JSON.parse(localStorage.getItem("ps_nav_settings") || "{}") } catch { return {} } })
@@ -217,7 +214,6 @@ export default function Dashboard() {
   const barberId = barber?.id ?? null
   const canViewFinance = admin || Boolean(barber?.canViewFinance)
   const canEditServices = admin || Boolean(barber?.canEditServices)
-  const canManageTeam = admin || Boolean(barber?.canManageTeam)
   // Cobrar (monto + medio) al completar: acá lo hace el mismo barbero.
   const canCharge = true
   const canBlockAgenda = admin || barber?.canManageBlocks !== false
@@ -240,11 +236,6 @@ export default function Dashboard() {
   const has = (id) => id === "config" || accessibleNav.some(([n]) => n === id)
   // Preferencia personal de visibilidad (config → módulos visibles).
   const personalNav = accessibleNav.filter(([id]) => ALWAYS_NAV.includes(id) || navSettings[id] !== false)
-  // ── Modo "solo Brunetti" ──────────────────────────────────────────────
-  // BRUNETTI_ONLY = true oculta la sección "Equipo" en Config (gestión multi-barbero).
-  // Todos los demás módulos (Finanzas, Clientes, Servicios, etc.) siguen visibles.
-  // Para reactivar Equipo: BRUNETTI_ONLY = false.
-  const BRUNETTI_ONLY = true
   const visibleNav = personalNav
   // Atajos del dock: los 4 elegidos, sólo si son accesibles/visibles.
   const dockItems = dockShortcuts.map((id) => visibleNav.find((n) => n[0] === id)).filter(Boolean).slice(0, 4)
@@ -1020,26 +1011,6 @@ export default function Dashboard() {
     setFinanceMovementModal(null)
   }
 
-  const saveBarber = async (payload) => {
-    if (!payload.name || !payload.code) return
-    const method = payload.id ? "PATCH" : "POST"
-    const res = await fetch("/api/barbers", { method, headers: authHeaders({ "Content-Type": "application/json" }), body: JSON.stringify(payload) }).catch(() => null)
-    const json = res ? await res.json().catch(() => ({})) : {}
-    const saved = json.barber || { ...payload, id: payload.id || Date.now(), active: payload.active !== false }
-    setBarbers((items) => payload.id ? items.map((item) => item.id === saved.id ? { ...item, ...payload, ...saved } : item) : [...items, { ...saved, ...payload, active: true }])
-    if (!payload.id) setBarberDraft({ name: "", code: "", role: "Barbero", tier: "general", password: "", canViewFinance: false, canManageTeam: false, canEditServices: false, canManageBlocks: true })
-  }
-
-  const updateBarberLocal = (id, patch) => {
-    setBarbers((items) => items.map((item) => item.id === id ? { ...item, ...patch } : item))
-  }
-
-  const deleteBarber = async (target) => {
-    if (!target?.id) return
-    setBarbers((items) => items.filter((item) => item.id !== target.id))
-    fetch(`/api/barbers?id=${target.id}`, { method: "DELETE", headers: authHeaders() }).catch(() => {})
-  }
-
   const exportCSV = (type) => {
     const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`
     const toCSV = (headers, rows) => [headers.join(","), ...rows.map((r) => r.map(esc).join(","))].join("\n")
@@ -1783,21 +1754,17 @@ export default function Dashboard() {
      (lo lee scratchpad/sync/tools/ctx-contract.mjs). */
   const dash = {
     // Sesión y armazón
-    BRUNETTI_ONLY,
     admin,
     authHeaders,
     barber,
-    barberDraft,
     barberOf,
     barbers,
     canBlockAgenda,
     canCharge,
     canEditServices,
-    canManageTeam,
     canViewFinance,
     configSection,
     dayLabel,
-    deleteBarber,
     dockItems,
     dockShortcuts,
     has,
@@ -1811,14 +1778,11 @@ export default function Dashboard() {
     pushToast,
     refreshAll,
     refreshing,
-    saveBarber,
     scopeAll: false,
     scopeBarber: null,
     scopeBarberId: "all",
     searchParams,
     setBarber,
-    setBarberDraft,
-    setBarbers,
     setConfigSection,
     setDockShortcuts,
     setNavSettings,
@@ -1827,7 +1791,6 @@ export default function Dashboard() {
     setToasts,
     tab,
     toasts,
-    updateBarberLocal,
     visibleNav,
     // Reservas
     applyClientLoyalty,

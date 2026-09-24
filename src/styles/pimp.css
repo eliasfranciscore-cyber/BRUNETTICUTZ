@@ -136,31 +136,8 @@ input, select, textarea { font: inherit; }
 }
 
 /* ---------- Monograma / logo ---------- */
-.emblem {
-  position: relative;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  background:
-    radial-gradient(circle at 50% 30%, #181715, #050504 72%);
-  border: 1.5px solid var(--gold-line);
-  box-shadow: inset 0 0 0 4px rgba(0, 0, 0, 0.6), inset 0 0 0 5px rgba(201, 161, 78, 0.22);
-  flex-shrink: 0;
-}
-.emblem::after {
-  content: "";
-  position: absolute;
-  inset: 7%;
-  border-radius: 999px;
-  border: 1px solid rgba(201, 161, 78, 0.5);
-}
-.emblem span {
-  font-family: var(--font-black);
-  color: var(--ink);
-  line-height: 1;
-  transform: translateY(2%);
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6);
-}
+
+
 .brandmark {
   display: inline-flex;
   align-items: center;
@@ -238,7 +215,7 @@ input, select, textarea { font: inherit; }
   box-shadow: var(--shadow);
 }
 .card-line { border-top: 1px solid var(--gold-line); }
-.hair { border: 0; border-top: 1px solid var(--hair); margin: 0; }
+
 
 .chip {
   display: inline-flex;
@@ -255,25 +232,7 @@ input, select, textarea { font: inherit; }
 .chip-gold { border-color: var(--gold-line); color: var(--gold-lt); background: rgba(201,161,78,0.07); }
 
 /* placeholder media */
-.ph {
-  position: relative;
-  overflow: hidden;
-  background:
-    repeating-linear-gradient(135deg, rgba(255,255,255,0.035) 0 2px, transparent 2px 11px),
-    linear-gradient(160deg, #1a1a18, #0c0c0b);
-  border: 1px solid var(--hair);
-  display: grid;
-  place-items: center;
-}
-.ph small {
-  font-family: var(--font-display);
-  font-size: 0.64rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--muted-2);
-  text-align: center;
-  padding: 0 1rem;
-}
+
 
 /* fields */
 .field { display: grid; gap: 0.45rem; }
@@ -335,7 +294,7 @@ select.input { text-overflow: ellipsis; }
 .animate-up { animation: fadeUp 0.7s cubic-bezier(.2,.7,.3,1) both; }
 .animate-in { animation: fadeIn 0.6s ease both; }
 .animate-scale { animation: scaleIn 0.5s cubic-bezier(.2,.7,.3,1) both; }
-.float { animation: floatY 5s ease-in-out infinite; }
+
 
 /* reveal / stagger por transición (transform only) — siempre visibles */
 .reveal { transform: translateY(16px); transition: transform 0.7s cubic-bezier(.2,.7,.3,1); }
@@ -357,26 +316,7 @@ select.input { text-overflow: ellipsis; }
 }
 
 .hidden { display: none !important; }
-.spin { animation: spinSlow 18s linear infinite; }
-.skel {
-  background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.09) 37%, rgba(255,255,255,0.04) 63%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s infinite;
-}
 
-.glowing-card {
-  isolation: isolate;
-}
-.glowing-card::after {
-  content: "";
-  position: absolute;
-  inset: -40% -20%;
-  z-index: -1;
-  background: linear-gradient(90deg, transparent, rgba(230, 205, 144, 0.16), rgba(255, 255, 255, 0.08), transparent);
-  filter: blur(12px);
-  animation: glowSweep 5.5s linear infinite;
-  pointer-events: none;
-}
 
 .gallery-carousel {
   position: relative;
@@ -475,473 +415,33 @@ select.input { text-overflow: ellipsis; }
   color: var(--muted);
   font-size: .72rem;
 }
-.admin-row {
-  display: grid;
-  grid-template-columns: minmax(190px, 1.5fr) repeat(3, minmax(100px, auto));
-  gap: .7rem;
-  align-items: center;
-  padding: .75rem;
-  border: 1px solid var(--hair);
-  border-radius: var(--r-sm);
-  background: rgba(255,255,255,.02);
-}
-.admin-row strong,
-.settings-grid strong {
-  display: block;
-  color: var(--ink);
-  font-size: .9rem;
-}
-.admin-row span,
-.settings-grid span {
-  display: block;
-  color: var(--muted);
-  font-size: .74rem;
-  margin-top: .2rem;
-}
-.service-row {
-  grid-template-columns: minmax(180px, 1.5fr) 110px 90px auto auto;
-}
-.admin-form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: .7rem;
-  align-items: center;
-}
+
+
 /* Las inputs nunca deben desbordar su celda (en iOS el <input type=date> tiene
    un ancho intrínseco grande y se montaba sobre la columna vecina). */
-.admin-form-grid > .input { width: 100%; min-width: 0; box-sizing: border-box; }
-/* El botón de registrar ocupa toda la fila, no una sola columna. */
-.admin-form-grid > .btn-block { grid-column: 1 / -1; }
-@media (max-width: 560px) {
-  /* En móvil, formulario en una sola columna: evita superposiciones. */
-  .admin-form-grid { grid-template-columns: 1fr; }
-}
-.settings-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: .8rem;
-}
-.settings-grid > div {
-  border: 1px solid var(--hair);
-  border-radius: var(--r-sm);
-  padding: 1rem;
-  background: rgba(0,0,0,.2);
-}
-.ops-settings-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: .8rem;
-}
-.ops-settings-grid label {
-  display: grid;
-  gap: .45rem;
-  color: var(--muted);
-  font-size: .72rem;
-}
-.ops-settings-grid label > span {
-  font-family: var(--font-display);
-  letter-spacing: .12em;
-  text-transform: uppercase;
-}
 
-.barber-create-grid {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr .8fr .8fr auto;
-  gap: .7rem;
-  align-items: center;
-}
-.barber-permissions {
-  display: grid;
-  gap: .75rem;
-}
-.barber-permission-row {
-  display: grid;
-  grid-template-columns: minmax(260px, 1.2fr) minmax(260px, 1fr) auto;
-  gap: .8rem;
-  align-items: center;
-  padding: .85rem;
-  border: 1px solid var(--hair);
-  border-radius: var(--r-sm);
-  background: rgba(255,255,255,.02);
-}
-.barber-permission-row.is-disabled {
-  opacity: .62;
-}
-.barber-identity {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr;
-  gap: .55rem;
-}
-.permission-switches {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(76px, 1fr));
-  gap: .45rem;
-}
-.switch-line {
-  display: inline-flex;
-  align-items: center;
-  gap: .4rem;
-  padding: .48rem .55rem;
-  border: 1px solid var(--hair);
-  border-radius: 999px;
-  color: var(--muted);
-  background: rgba(0,0,0,.18);
-  font-size: .72rem;
-}
-.switch-line input {
-  accent-color: var(--gold);
-}
-.switch-line:has(input:checked) {
-  color: var(--gold-lt);
-  border-color: var(--gold-line);
-  background: rgba(201,161,78,.07);
-}
-.barber-actions {
-  display: flex;
-  gap: .45rem;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-}
-.status-select {
-  width: 100%;
-  border: 1px solid var(--hair-2);
-  border-radius: 999px;
-  padding: .42rem .55rem;
-  font-size: .72rem;
-  text-transform: capitalize;
-  outline: none;
-}
-.status-select:focus {
-  border-color: var(--gold-line);
-  box-shadow: 0 0 0 3px var(--gold-glow);
-}
-.clients-workspace {
-  display: grid;
-  grid-template-columns: minmax(360px, 1.35fr) minmax(300px, .9fr);
-  gap: 1.1rem;
-  align-items: start;
-}
-.client-search {
-  display: flex;
-  align-items: center;
-  gap: .55rem;
-  border: 1px solid var(--hair);
-  border-radius: var(--r-sm);
-  background: rgba(0,0,0,.28);
-  padding: .7rem .85rem;
-  margin-bottom: .8rem;
-  color: var(--muted);
-}
-.client-search input {
-  width: 100%;
-  border: 0;
-  outline: none;
-  background: transparent;
-  color: var(--ink);
-  font-size: .88rem;
-}
-.client-list,
-.history-list {
-  display: grid;
-  gap: .55rem;
-}
-.client-row {
-  display: grid;
-  grid-template-columns: minmax(180px, 1.5fr) 90px 120px auto;
-  gap: .7rem;
-  align-items: center;
-  width: 100%;
-  text-align: left;
-  border: 1px solid var(--hair);
-  border-radius: var(--r-sm);
-  background: rgba(255,255,255,.02);
-  padding: .78rem;
-}
-.client-row.is-selected,
-.client-row:hover {
-  border-color: var(--gold-line);
-  background: rgba(201,161,78,.06);
-}
+/* El botón de registrar ocupa toda la fila, no una sola columna. */
+
+
 /* Encabezado de columnas: mismo grid que .client-row para que alinee, oculto
    en móvil (ahí el card de 2 líneas ya se entiende sin cabecera). */
-.client-table-head { display: none; }
-@media (min-width: 1024px) {
-  .client-table-head {
-    display: grid;
-    grid-template-columns: minmax(180px, 1.5fr) 90px 120px auto;
-    gap: .7rem;
-    padding: 0 .78rem .4rem;
-  }
-  .client-table-head button {
-    background: none;
-    border: 0;
-    padding: 0;
-    text-align: left;
-    display: flex;
-    align-items: center;
-    gap: .2rem;
-    font-family: var(--font-display);
-    font-size: .66rem;
-    letter-spacing: .07em;
-    text-transform: uppercase;
-    color: var(--muted);
-    cursor: pointer;
-  }
-  .client-table-head button:hover,
-  .client-table-head button.is-sorted { color: var(--gold-lt); }
-  /* Filas más compactas y acción de editar que solo aparece al pasar el
-     mouse: en desktop no hace falta un botón siempre visible por fila. */
-  .client-row { padding: .58rem .78rem; }
-  .client-row-edit { opacity: 0; transition: opacity .15s ease; }
-  .client-row:hover .client-row-edit,
-  .client-row:focus-within .client-row-edit { opacity: 1; }
-}
-.client-row strong,
-.client-profile strong,
-.history-row strong {
-  display: block;
-  color: var(--ink);
-  font-size: .88rem;
-}
-.client-row span,
-.client-profile span,
-.history-row span {
-  display: block;
-  color: var(--muted);
-  font-size: .72rem;
-  margin-top: .18rem;
-}
-.client-detail {
-  display: grid;
-  gap: .9rem;
-}
-.client-profile {
-  display: flex;
-  gap: .8rem;
-  align-items: center;
-}
-.client-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
-  background: var(--gold-grad);
-  color: #1a1407;
-  font-family: var(--font-display);
-  font-weight: 700;
-}
-.client-kpis {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: .55rem;
-}
-.client-kpis > div {
-  border: 1px solid var(--hair);
-  border-radius: var(--r-sm);
-  background: rgba(0,0,0,.2);
-  padding: .72rem;
-}
-.client-kpis strong {
-  color: var(--gold-lt);
-  font-family: var(--font-display);
-  font-size: .92rem;
-}
-.client-kpis span {
-  color: var(--muted);
-  font-size: .68rem;
-}
-.history-row {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: .6rem;
-  align-items: center;
-  border: 1px solid var(--hair);
-  border-radius: var(--r-sm);
-  padding: .72rem;
-  background: rgba(255,255,255,.02);
-}
-.empty-state {
-  border: 1px dashed var(--hair-2);
-  border-radius: var(--r-sm);
-  color: var(--muted);
-  padding: 1rem;
-  text-align: center;
-  font-size: .82rem;
-}
 
-.agenda-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .7rem;
-  margin-bottom: .9rem;
-  color: var(--muted);
-  font-size: .74rem;
-}
-.week-picker {
-  display: flex;
-  gap: .45rem;
-  align-items: center;
-  flex-wrap: wrap;
-}
-.agenda-week-summary {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(120px, 1fr));
-  gap: .6rem;
-  margin-bottom: .9rem;
-}
-.agenda-week-summary > div {
-  border: 1px solid var(--hair);
-  border-radius: var(--r-sm);
-  padding: .8rem;
-  background: rgba(0,0,0,.18);
-}
-.agenda-week-summary strong {
-  display: block;
-  color: var(--gold-lt);
-  font-family: var(--font-display);
-  font-size: .94rem;
-}
-.agenda-week-summary span {
-  display: block;
-  color: var(--muted);
-  font-size: .7rem;
-  margin-top: .15rem;
-}
-.agenda-legend span {
-  display: inline-flex;
-  align-items: center;
-  gap: .35rem;
-}
-.agenda-legend i {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  border: 1px solid var(--hair-2);
-}
-.agenda-legend i.free { background: rgba(255,255,255,.06); }
-.agenda-legend i.blocked { background: rgba(255,255,255,.02); }
-.agenda-legend i.booked { background: rgba(201,161,78,.22); border-color: var(--gold-line); }
-.agenda-grid {
-  display: grid;
-  grid-template-columns: 64px repeat(6, minmax(112px, 1fr));
-  gap: .42rem;
-  min-width: 820px;
-}
-.agenda-day-head {
-  text-align: center;
-  color: var(--ink-soft);
-  font-family: var(--font-display);
-  font-size: .78rem;
-  font-weight: 600;
-  padding: .15rem 0 .45rem;
-}
-.agenda-day-head span {
-  display: block;
-  color: var(--muted-2);
-  font-size: .66rem;
-  font-weight: 400;
-  margin-top: .1rem;
-}
-.agenda-time {
-  color: var(--muted-2);
-  font-size: .72rem;
-  display: flex;
-  align-items: center;
-}
-.agenda-slot {
-  min-height: 48px;
-  border-radius: var(--r-sm);
-  border: 1px solid var(--hair);
-  background: rgba(255,255,255,.025);
-  color: var(--ink-soft);
-  font-size: .72rem;
-  transition: transform .15s ease, border-color .15s ease, background .15s ease;
-}
-.agenda-slot.free:hover {
-  transform: translateY(-1px);
-  border-color: var(--gold-line);
-  background: rgba(201,161,78,.07);
-}
-.agenda-slot.blocked {
-  background: rgba(0,0,0,.34);
-  color: var(--muted-2);
-  text-decoration: line-through;
-}
-.agenda-slot.blocked:hover {
-  border-color: var(--hair-2);
-  color: var(--ink-soft);
-  text-decoration: none;
-}
-.agenda-slot.booked {
-  border-color: var(--gold-line);
-  background: rgba(201,161,78,.14);
-  color: var(--gold-lt);
-  cursor: not-allowed;
-}
 
 @media (max-width: 760px) {
   .stage::before { animation: none; }
   .gallery-stage { min-height: 420px; }
   .carousel-arrow { width: 38px; height: 38px; }
   .account-stats { grid-template-columns: 1fr; }
-  .admin-row,
-  .service-row {
-    grid-template-columns: 1fr;
-    align-items: stretch;
-  }
-  .barber-create-grid,
-  .barber-permission-row,
-  .barber-identity,
-  .permission-switches,
-  .clients-workspace,
-  .client-row,
-  .history-row {
-    grid-template-columns: 1fr;
-  }
-  .client-kpis {
-    grid-template-columns: 1fr;
-  }
-  .barber-actions {
-    justify-content: stretch;
-  }
-  .barber-actions > * {
-    flex: 1;
-    justify-content: center;
-  }
-  .agenda-week-summary {
-    grid-template-columns: 1fr 1fr;
-  }
-  .agenda-grid {
-    grid-template-columns: 58px repeat(6, 104px);
-    min-width: 690px;
-  }
-  .agenda-slot {
-    min-height: 42px;
-    font-size: .68rem;
-  }
+  
+  
+  
+  
+  
+  
+  
+  
 }
 
-@media (max-width: 560px) {
-  /* Clientes: cada fila apilaba nombre/visitas/total/Editar en 4 líneas
-     (~150px). :has() aísla el rediseño a la fila de Clientes (única con
-     .client-row-edit) sin tocar el otro consumidor de .client-row
-     (EnrollmentsPanel, que sigue apilado — su contenido no tiene botón). */
-  .client-row:has(.client-row-edit) {
-    grid-template-columns: 1fr 1fr auto;
-    grid-template-areas: "who who edit" "visits total edit";
-    gap: .15rem .6rem;
-    padding: .65rem .8rem;
-  }
-  .client-row:has(.client-row-edit) > *:nth-child(1) { grid-area: who; }
-  .client-row:has(.client-row-edit) > *:nth-child(2) { grid-area: visits; }
-  .client-row:has(.client-row-edit) > *:nth-child(3) { grid-area: total; }
-  .client-row-edit {
-    grid-area: edit; width: 44px; height: 44px; padding: 0;
-    justify-content: center; align-self: center;
-  }
-  .client-row-edit .btn-label { display: none; }
-}
 
 /* ---------- Public home refresh ---------- */
 /* Navbar FIJO al viewport (no sticky): el sticky se rompía/escondía en iOS
@@ -1191,18 +691,8 @@ select.input { text-overflow: ellipsis; }
   opacity: .6;
 }
 /* Barbero destacado (Brunetti): siempre arriba, ancho completo y con más espacio. */
-.home-barber-card.is-featured {
-  grid-column: 1 / -1;
-  padding: 2rem 1.6rem;
-  gap: 1rem;
-  background: linear-gradient(150deg, rgba(201, 161, 78, 0.08), rgba(11, 11, 10, 0.55));
-  border-color: var(--gold-line);
-}
-.home-barber-card.is-featured .home-barber-avatar {
-  width: 128px;
-  height: 128px;
-  border-color: var(--gold-line);
-}
+
+
 .workshop-teaser {
   max-width: 1160px;
   margin-inline: auto;
@@ -1370,12 +860,7 @@ select.input { text-overflow: ellipsis; }
 .workshop-page {
   min-height: 100vh;
 }
-.brand-link {
-  background: none;
-  border: 0;
-  padding: 0;
-  text-align: left;
-}
+
 .workshop-topbar {
   position: sticky;
   top: 0;
@@ -1778,40 +1263,8 @@ select.input { text-overflow: ellipsis; }
   color: var(--gold-lt);
   box-shadow: inset 2px 0 0 var(--gold);
 }
-.dashboard-sidebar-footer {
-  margin-top: auto;
-  display: grid;
-  gap: .5rem;
-}
-.dashboard-user-card {
-  padding: .8rem;
-  display: flex;
-  align-items: center;
-  gap: .6rem;
-}
-.dashboard-user-avatar {
-  width: 34px;
-  height: 34px;
-  border-radius: 999px;
-  background: var(--gold-grad);
-  display: grid;
-  place-items: center;
-  font-size: .9rem;
-  font-weight: 700;
-  color: #1a1407;
-  flex-shrink: 0;
-}
-.dashboard-logout {
-  display: flex;
-  align-items: center;
-  gap: .6rem;
-  padding: .68rem .8rem;
-  border-radius: 10px;
-  border: 1px solid var(--hair);
-  background: transparent;
-  color: var(--muted);
-  font-size: .82rem;
-}
+
+
 .dashboard-main {
   padding: 1.4rem;
   overflow-y: auto;
@@ -1830,20 +1283,8 @@ select.input { text-overflow: ellipsis; }
   animation: dashTabIn 0.12s cubic-bezier(.2,.7,.3,1) both;
 }
 @keyframes dashTabIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-.dashboard-main-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.4rem;
-  flex-wrap: wrap;
-  gap: .8rem;
-}
-.dashboard-main-actions {
-  display: flex;
-  gap: .5rem;
-  align-items: center;
-  flex-wrap: wrap;
-}
+
+
 .dashboard-panel {
   background: linear-gradient(170deg, rgba(28,28,25,.9), rgba(11,11,10,.92));
 }
@@ -1927,13 +1368,11 @@ select.input { text-overflow: ellipsis; }
     align-items: flex-start;
   }
   .workshop-topbar-actions,
-  .home-hero-actions,
-  .dashboard-main-actions {
+.home-hero-actions {
     width: 100%;
   }
   .workshop-topbar-actions > *,
-  .home-hero-actions > *,
-  .dashboard-main-actions > * {
+.home-hero-actions > * {
     flex: 1;
   }
   .workshop-include-grid,
@@ -1963,14 +1402,8 @@ select.input { text-overflow: ellipsis; }
     width: 74px;
     height: 74px;
   }
-  .home-barber-card.is-featured {
-    grid-column: 1 / -1;
-    padding: 1.5rem 1.1rem;
-  }
-  .home-barber-card.is-featured .home-barber-avatar {
-    width: 104px;
-    height: 104px;
-  }
+  
+  
   .workshop-price-card strong {
     font-size: 2.25rem;
   }
@@ -2200,9 +1633,7 @@ select.input { text-overflow: ellipsis; }
 [data-theme="light"] .dashboard-panel {
   background: linear-gradient(170deg, #ffffff, #f7f4ec);
 }
-[data-theme="light"] .agenda-slot { background: rgba(0,0,0,0.025); color: var(--ink-soft); }
-[data-theme="light"] .agenda-slot.blocked { background: rgba(0,0,0,0.06); color: var(--muted); }
-[data-theme="light"] .status-select option { color: #1a1817; background: #fff; }
+
 
 /* ============================================================
    PIMP MARK — wordmark dorado (Brunetticutz), altura fija y ancho auto
@@ -2214,7 +1645,7 @@ select.input { text-overflow: ellipsis; }
   flex-shrink: 0;
 }
 .pimp-mark.lg { height: 64px; }
-.pimp-mark.xl { height: 96px; }
+
 
 /* ============================================================
    DASHBOARD V2 — sidebar fills vertical, header chip + dock
@@ -2254,24 +1685,7 @@ select.input { text-overflow: ellipsis; }
   transition: border-color .2s ease;
 }
 .dashboard-topbar.is-scrolled { border-bottom-color: var(--border); }
-.dashboard-topbar-left { display: flex; align-items: center; gap: 0.65rem; min-width: 0; }
-.dashboard-topbar-title { display: grid; gap: 2px; min-width: 0; }
-.dashboard-topbar-title strong {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 0.98rem;
-  letter-spacing: 0.01em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.dashboard-topbar-title small {
-  color: var(--muted);
-  font-size: 0.68rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-.dashboard-topbar-actions { display: flex; align-items: center; gap: 0.45rem; }
+
 
 .theme-toggle {
   width: 38px;
@@ -2287,144 +1701,12 @@ select.input { text-overflow: ellipsis; }
 .theme-toggle:hover { color: var(--gold-lt); border-color: var(--gold-line); }
 [data-theme="light"] .theme-toggle { background: rgba(0,0,0,0.025); color: var(--ink-soft); }
 
-.user-chip {
-  position: relative;
-}
-.user-chip-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: 999px;
-  border: 1px solid var(--gold-line);
-  background: var(--gold-grad);
-  color: #1a1407;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 0.92rem;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  box-shadow: 0 8px 20px -8px rgba(201,161,78,0.55);
-}
-.user-chip-pop {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 0.5rem);
-  min-width: 220px;
-  padding: 0.55rem;
-  border-radius: 14px;
-  background: var(--pop-bg);
-  border: 1px solid var(--border-strong);
-  box-shadow: var(--pop-shadow);
-  backdrop-filter: blur(20px);
-  display: grid;
-  gap: 0.25rem;
-  z-index: 60;
-}
-.user-chip-pop .user-pop-name {
-  padding: 0.4rem 0.6rem 0.55rem;
-  border-bottom: 1px solid var(--border);
-  display: grid;
-  gap: 2px;
-}
-.user-chip-pop .user-pop-name strong { font-size: 0.9rem; }
-.user-chip-pop .user-pop-name span { font-size: 0.7rem; color: var(--muted); }
-.user-pop-item {
-  display: flex;
-  align-items: center;
-  gap: 0.55rem;
-  padding: 0.6rem 0.65rem;
-  border-radius: 10px;
-  border: 0;
-  background: transparent;
-  color: var(--on-surface);
-  font-size: 0.85rem;
-  text-align: left;
-  cursor: pointer;
-}
-.user-pop-item:hover { background: rgba(201,161,78,0.10); color: var(--gold-lt); }
-[data-theme="light"] .user-pop-item:hover { color: #5a4314; }
 
-.notif-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  height: 38px;
-  padding: 0 0.75rem;
-  border-radius: 999px;
-  border: 1px solid var(--border-strong);
-  background: rgba(255,255,255,0.04);
-  color: var(--ink-soft);
-  font-size: 0.8rem;
-}
-[data-theme="light"] .notif-pill { background: rgba(0,0,0,0.03); }
-.notif-pill:disabled { opacity: .6; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-.notif-chip { position: relative; }
-.notif-chip-pop {
-  position: absolute;
-  right: 0;
-  top: calc(100% + 0.5rem);
-  width: 280px;
-  max-width: 88vw;
-  padding: 0.55rem;
-  border-radius: 14px;
-  background: var(--pop-bg);
-  border: 1px solid var(--border-strong);
-  box-shadow: var(--pop-shadow);
-  backdrop-filter: blur(20px);
-  display: grid;
-  gap: 0.2rem;
-  z-index: 60;
-  max-height: 340px;
-  overflow-y: auto;
-}
-.notif-chip-pop .notif-pop-head {
-  padding: 0.3rem 0.6rem 0.5rem;
-  border-bottom: 1px solid var(--border);
-  font-size: 0.72rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
-  font-weight: 600;
-}
-.notif-chip-pop .notif-pop-empty {
-  padding: 1rem 0.6rem;
-  font-size: 0.82rem;
-  color: var(--muted);
-  text-align: center;
-}
-.notif-pop-item {
-  display: grid;
-  gap: 2px;
-  padding: 0.55rem 0.65rem;
-  border-radius: 10px;
-  border: 0;
-  background: transparent;
-  color: var(--on-surface);
-  text-align: left;
-  cursor: pointer;
-}
-.notif-pop-item:hover { background: rgba(201,161,78,0.10); }
-.notif-pop-item .notif-pop-title { font-size: 0.85rem; font-weight: 600; }
-.notif-pop-item .notif-pop-body { font-size: 0.78rem; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.notif-pop-item .notif-pop-time { font-size: 0.68rem; color: var(--muted); margin-top: 1px; }
 
 /* Burger (mobile only) */
-.burger-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  border: 1px solid var(--border-strong);
-  background: rgba(255,255,255,0.04);
-  display: none;
-  place-items: center;
-  color: var(--ink-soft);
-}
-[data-theme="light"] .burger-btn { background: rgba(0,0,0,0.03); }
-@media (max-width: 1024px) {
-  .burger-btn { display: grid; }
-}
+
 
 /* ============================================================
    MOBILE DOCK (iOS pill) + nav drawer
@@ -2481,15 +1763,7 @@ select.input { text-overflow: ellipsis; }
   transition: transform 0.2s;
 }
 .mobile-dock-center:active { transform: scale(0.94); }
-.mobile-dock-badge {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: #d99a8f;
-}
+
 @media (max-width: 1024px) {
   .mobile-dock { display: inline-flex; }
   /* Espacio inferior para que el dock flotante no tape el contenido final
@@ -2498,68 +1772,10 @@ select.input { text-overflow: ellipsis; }
 }
 
 /* Full menu sheet (triggered by center button) */
-.dock-sheet-scrim {
-  position: fixed;
-  inset: 0;
-  z-index: 90;
-  background: rgba(0,0,0,0.55);
-  backdrop-filter: blur(8px);
-  display: none;
-}
-.dock-sheet-scrim.is-open { display: block; }
-.dock-sheet {
-  position: fixed;
-  left: 50%;
-  bottom: calc(0.85rem + 70px);
-  transform: translateX(-50%);
-  z-index: 100;
-  width: min(420px, calc(100vw - 1.4rem));
-  padding: 1rem;
-  border-radius: 26px;
-  background: var(--pop-bg);
-  border: 1px solid var(--border-strong);
-  box-shadow: var(--pop-shadow);
-  backdrop-filter: blur(28px) saturate(180%);
-  display: none;
-}
-.dock-sheet.is-open { display: block; animation: dockSheetIn 0.22s cubic-bezier(.2,.7,.3,1); }
+
+
 @keyframes dockSheetIn { from { transform: translate(-50%, 12px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
-.dock-sheet-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
-}
-.dock-sheet-item {
-  display: grid;
-  gap: 0.45rem;
-  justify-items: center;
-  padding: 0.85rem 0.5rem;
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  color: var(--on-surface);
-  text-align: center;
-  font-size: 0.74rem;
-  cursor: pointer;
-  transition: transform 0.15s, background 0.2s, border-color 0.2s;
-}
-.dock-sheet-item:hover { border-color: var(--gold-line); }
-.dock-sheet-item.is-active {
-  background: rgba(201,161,78,0.16);
-  border-color: var(--gold-line);
-  color: var(--gold-lt);
-}
-[data-theme="light"] .dock-sheet-item.is-active { color: #5a4314; }
-.dock-sheet-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 14px;
-  background: rgba(201,161,78,0.10);
-  display: grid;
-  place-items: center;
-  color: var(--gold-lt);
-}
-[data-theme="light"] .dock-sheet-icon { color: #5a4314; }
+
 
 /* Hide old mobile sidebar top-tabs on small screens — we use dock instead */
 @media (max-width: 1024px) {
@@ -2570,366 +1786,23 @@ select.input { text-overflow: ellipsis; }
 /* ============================================================
    CONFIG PANEL V2 — segmented tabs + permission cards
    ============================================================ */
-.cfg-tabs {
-  display: flex;
-  gap: 0.3rem;
-  padding: 0.3rem;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  width: fit-content;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-}
-.cfg-tab {
-  border: 0;
-  background: transparent;
-  color: var(--on-surface-soft);
-  padding: 0.55rem 1rem;
-  border-radius: 999px;
-  font-size: 0.78rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-.cfg-tab.is-active {
-  background: var(--gold-grad);
-  color: #1a1407;
-  font-weight: 600;
-}
-.cfg-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 0.8rem;
-}
-.cfg-card {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: 16px;
-  padding: 1rem;
-  display: grid;
-  gap: 0.7rem;
-}
-.cfg-card header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-.cfg-card header h4 {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 0.95rem;
-}
-.cfg-card .cfg-id {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-.cfg-avatar {
-  width: 38px;
-  height: 38px;
-  border-radius: 999px;
-  background: var(--gold-grad);
-  color: #1a1407;
-  display: grid;
-  place-items: center;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 0.9rem;
-}
-.cfg-perms {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.4rem;
-}
-.cfg-perm {
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.5rem 0.6rem;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  color: var(--on-surface-soft);
-  font-size: 0.74rem;
-  cursor: pointer;
-}
-.cfg-perm input { accent-color: var(--gold); }
-.cfg-perm:has(input:checked) {
-  border-color: var(--gold-line);
-  background: rgba(201,161,78,0.10);
-  color: var(--gold-lt);
-}
-[data-theme="light"] .cfg-perm:has(input:checked) { color: #5a4314; }
-.cfg-row-actions {
-  display: flex;
-  gap: 0.4rem;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-}
+
 
 /* ============================================================
    CLIENTES V2 — search + cards
    ============================================================ */
-.clients-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 0.7rem;
-}
-.client-card {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  border-radius: 14px;
-  padding: 0.9rem;
-  display: grid;
-  gap: 0.55rem;
-  text-align: left;
-  cursor: pointer;
-  transition: transform 0.15s, border-color 0.2s, background 0.2s;
-}
-.client-card:hover, .client-card.is-selected {
-  transform: translateY(-2px);
-  border-color: var(--gold-line);
-  background: linear-gradient(160deg, var(--surface), rgba(201,161,78,0.06));
-}
-.client-card-head {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-.client-card-name { font-weight: 600; font-size: 0.92rem; }
-.client-card-sub { color: var(--muted); font-size: 0.72rem; }
-.client-card-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.35rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--border);
-}
-.client-card-stat strong {
-  display: block;
-  font-family: var(--font-display);
-  color: var(--gold-lt);
-  font-size: 0.88rem;
-}
-[data-theme="light"] .client-card-stat strong { color: #5a4314; }
-.client-card-stat span {
-  color: var(--muted);
-  font-size: 0.62rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
+
 
 /* ============================================================
    CONFIG PANEL — Santa Julieta two-column settings
    ============================================================ */
-.cfg-shell {
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  gap: 0;
-  min-height: calc(100vh - 64px);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  overflow: hidden;
-  background: var(--surface);
-}
 
-.cfg-nav {
-  border-right: 1px solid var(--border);
-  padding: 1.4rem 0;
-  display: flex;
-  flex-direction: column;
-  gap: .15rem;
-  background: var(--shell-bg);
-}
-
-.cfg-nav-head {
-  font-size: .66rem;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--muted-2);
-  font-family: var(--font-display);
-  padding: 0 1.2rem .6rem;
-  margin: 0;
-}
-
-.cfg-nav-item {
-  display: flex;
-  align-items: center;
-  gap: .7rem;
-  padding: .7rem 1.2rem;
-  background: none;
-  border: none;
-  color: var(--ink-soft);
-  font-size: .84rem;
-  cursor: pointer;
-  border-radius: 0;
-  transition: background .15s, color .15s;
-  text-align: left;
-  width: 100%;
-}
-.cfg-nav-item:hover { background: rgba(255,255,255,0.04); color: var(--ink); }
-.cfg-nav-item.is-active { background: rgba(201,161,78,0.1); color: var(--gold-lt); border-right: 2px solid var(--gold); }
-
-.cfg-content {
-  padding: 2rem 2rem 3rem;
-  overflow-y: auto;
-}
-
-.cfg-content-title {
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0 0 1.6rem;
-  padding-bottom: .9rem;
-  border-bottom: 1px solid var(--border);
-  letter-spacing: -.01em;
-}
-
-.cfg-card {
-  background: var(--shell-bg);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 1.3rem 1.4rem;
-}
-
-.cfg-card-head {
-  font-size: .72rem;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--muted);
-  font-family: var(--font-display);
-  margin: 0 0 1.1rem;
-}
-
-.cfg-setting-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: .75rem 0;
-  border-bottom: 1px solid var(--border);
-}
-.cfg-setting-row:last-child { border-bottom: none; }
-
-.cfg-setting-label { font-size: .88rem; font-weight: 500; color: var(--ink); }
-.cfg-setting-sub { font-size: .74rem; color: var(--muted); margin-top: .18rem; }
-
-.cfg-form-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: .75rem;
-}
-
-.cfg-field label {
-  display: block;
-  font-size: .72rem;
-  letter-spacing: .1em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: .35rem;
-  font-family: var(--font-display);
-}
-
-.cfg-theme-preview {
-  display: flex;
-  gap: 1rem;
-  margin-top: 1.2rem;
-}
-.cfg-theme-tile {
-  flex: 1;
-  cursor: pointer;
-  border-radius: 12px;
-  border: 2px solid var(--border);
-  overflow: hidden;
-  transition: border-color .2s;
-}
-.cfg-theme-tile.is-active { border-color: var(--gold); }
-.cfg-theme-tile span { display: block; text-align: center; font-size: .78rem; color: var(--muted); padding: .4rem; }
-.cfg-theme-thumb { height: 80px; }
-.cfg-theme-thumb.dark { background: linear-gradient(135deg,#111110,#1d1d1b); }
-.cfg-theme-thumb.light { background: linear-gradient(135deg,#f6f5f3,#e8e6e2); }
-
-.cfg-barber-row {
-  padding: 1rem;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: rgba(255,255,255,0.02);
-  display: grid;
-  gap: .75rem;
-}
-.cfg-barber-row.is-disabled { opacity: .5; }
-.cfg-barber-head { display: flex; align-items: center; gap: .8rem; }
-.cfg-barber-avatar {
-  width: 36px; height: 36px; border-radius: 50%;
-  background: var(--gold-grad); color: #000;
-  font-weight: 700; font-size: .95rem;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-}
-.cfg-perm-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .5rem;
-}
-.cfg-perm-chip {
-  display: flex;
-  align-items: center;
-  gap: .4rem;
-  padding: .35rem .7rem;
-  border-radius: 999px;
-  border: 1px solid var(--hair-2);
-  font-size: .76rem;
-  color: var(--muted);
-  cursor: pointer;
-  user-select: none;
-}
-.cfg-perm-chip input[type=checkbox] { accent-color: var(--gold); width: 13px; height: 13px; }
-.cfg-perm-chip:has(input:checked) { border-color: var(--gold-line); color: var(--gold-lt); background: rgba(201,161,78,0.08); }
 
 /* PIN pad */
-.pin-pad {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: .5rem;
-  max-width: 240px;
-}
-.pin-key {
-  padding: .9rem;
-  background: var(--shell-bg);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  font-size: 1.1rem;
-  font-family: var(--font-display);
-  font-weight: 600;
-  color: var(--ink);
-  cursor: pointer;
-  transition: background .12s;
-}
-.pin-key:hover { background: rgba(255,255,255,0.07); }
-.pin-key:active { background: rgba(201,161,78,0.15); }
+
 
 /* Mobile: cfg-shell stacks vertically */
-@media (max-width: 768px) {
-  .cfg-shell { grid-template-columns: 1fr; border-radius: 12px; }
-  .cfg-nav { flex-direction: row; overflow-x: auto; padding: .6rem .8rem; gap: .3rem; border-right: none; border-bottom: 1px solid var(--border); }
-  .cfg-nav-head { display: none; }
-  .cfg-nav-item { padding: .55rem .9rem; border-radius: 999px; white-space: nowrap; border-right: none !important; }
-  .cfg-nav-item.is-active { background: rgba(201,161,78,0.15); border: 1px solid var(--gold-line); }
-  .cfg-nav-item svg { display: none; }
-  .cfg-content { padding: 1.2rem 1rem 2rem; }
-  .cfg-content-title { font-size: 1.1rem; margin-bottom: 1.1rem; }
-  .cfg-form-grid { grid-template-columns: 1fr; }
-}
 
-[data-theme="light"] .cfg-nav { background: #f0ede8; }
-[data-theme="light"] .cfg-nav-item.is-active { color: #7a5c1a; background: rgba(201,161,78,0.14); }
-[data-theme="light"] .cfg-card { background: #fff; border-color: #ddd; }
-[data-theme="light"] .cfg-barber-row { background: #f9f8f6; }
-[data-theme="light"] .cfg-perm-chip { border-color: #ccc; color: #666; }
-[data-theme="light"] .cfg-theme-tile { border-color: #ddd; }
-[data-theme="light"] .pin-key { background: #f3f2f0; border-color: #ddd; }
 
 /* ============================================================
    MOBILE IMPROVEMENTS — hide title, compact layouts
@@ -2972,41 +1845,20 @@ select.input { text-overflow: ellipsis; }
     min-height: calc(48px);
     gap: .3rem;
   }
-  .dashboard-topbar-title { display: none; }
-  .dashboard-topbar-left { gap: .4rem; }
-  .dashboard-topbar-left .pimp-mark { height: 32px; }
-  .burger-btn { padding: .4rem; }
-  .notif-pill { font-size: .7rem; gap: .2rem; padding: .3rem .6rem; }
-  .user-chip-btn { width: 32px; height: 32px; font-size: .8rem; }
+  
+  
+  
+  
+  
+  
 
   /* Agenda mobile: collapse the week grid into vertical list per day */
-  .agenda-grid {
-    display: grid !important;
-    grid-template-columns: 48px 1fr !important;
-    gap: .35rem .5rem !important;
-    width: 100% !important;
-    min-width: 0 !important;
-  }
-  .agenda-grid > div:first-child { display: none !important; }
-  .agenda-day-head { display: none !important; }
-  .agenda-time {
-    font-size: .72rem !important;
-    color: var(--muted) !important;
-    padding: .4rem 0 !important;
-    text-align: right !important;
-    grid-column: 1 !important;
-    align-self: center;
-  }
-  .agenda-slot {
-    padding: .55rem .7rem !important;
-    font-size: .75rem !important;
-    min-height: 34px !important;
-    border-radius: 8px !important;
-    grid-column: 2 !important;
-    width: 100% !important;
-    box-sizing: border-box;
-  }
-  .agenda-week-summary { grid-template-columns: repeat(2, 1fr); gap: .4rem; }
+  
+  
+  
+  
+  
+  
 
   /* Kill horizontal scroll wrappers */
   .dashboard-panel > div[style*="overflow-x: auto"],
@@ -3037,7 +1889,7 @@ select.input { text-overflow: ellipsis; }
     display: none !important;
   }
 
-  .status-select { width: 100% !important; padding: .5rem !important; }
+  
 }
 
 @media (max-width: 480px) {
@@ -3051,8 +1903,8 @@ select.input { text-overflow: ellipsis; }
   /* Stats cards inline */
   [style*="gridTemplateColumns: repeat(auto-fit"] { grid-template-columns: 1fr !important; }
 
-  .cfg-content-title { font-size: 1.05rem; margin-bottom: .8rem; }
-  .cfg-form-grid { grid-template-columns: 1fr; gap: .5rem; }
+  
+  
   
   /* Stats cards */
   .card.dashboard-panel { padding: .9rem !important; }
@@ -3066,170 +1918,20 @@ select.input { text-overflow: ellipsis; }
    izquierda, un panel de "reservas del día" a la derecha — antes esa
    información solo existía saltando al tab Reservas, y el espacio a la
    derecha de la grilla quedaba vacío. En <1024px sigue apilado (1 columna). */
-.agenda-layout { display: grid; gap: 1.1rem; align-items: start; }
-@media (min-width: 1024px) {
-  .agenda-layout { grid-template-columns: 1.6fr 1fr; }
-}
-.agenda-day-panel { display: grid; gap: .55rem; }
-.agenda-day-booking {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: .6rem;
-  padding: .55rem .7rem;
-  border-radius: 10px;
-  border: 1px solid var(--hair);
-  background: rgba(255,255,255,.02);
-  cursor: pointer;
-  transition: border-color .15s, background .15s, transform .1s ease-out;
-  text-align: left;
-}
-.agenda-day-booking:hover { border-color: var(--gold-line); background: rgba(201,161,78,.06); }
-.agenda-day-booking:active { transform: scale(.98); }
-.agenda-day-booking .adb-time { font-family: var(--font-display); font-weight: 700; font-size: .82rem; color: var(--gold-lt); }
-.agenda-day-booking .adb-info { min-width: 0; display: grid; }
-.agenda-day-booking .adb-info strong { font-size: .84rem; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.agenda-day-booking .adb-info span { font-size: .72rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.agenda-controls {
-  display: grid;
-  gap: .7rem;
-  min-width: 0;
-}
-.agenda-control { display: grid; gap: .35rem; min-width: 0; }
-.agenda-control span {
-  font-size: .68rem;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--muted);
-  font-family: var(--font-display);
-}
-.agenda-control .input { width: 100%; }
+
 
 /* Acciones rápidas: bloquear/habilitar bloques completos del día. */
-.agenda-bulk-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .5rem;
-}
-.agenda-bulk-actions .btn { flex: 1 1 120px; min-width: 0; white-space: nowrap; }
-.agenda-bulk-actions .agenda-cal-wrap { flex: 0 0 auto; }
 
-
-.agenda-day-list {
-  display: grid;
-  gap: .5rem;
-  margin-top: .8rem;
-}
-.agenda-day-slot {
-  display: grid;
-  grid-template-columns: 60px 1fr auto;
-  align-items: center;
-  gap: .8rem;
-  padding: .85rem 1rem;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--ink-soft);
-  cursor: pointer;
-  text-align: left;
-  font-size: .9rem;
-  transition: border-color .15s, background .15s;
-}
-.agenda-day-slot:hover { border-color: var(--gold-line); }
-.agenda-day-slot.blocked {
-  background: rgba(255,255,255,0.02);
-  color: var(--muted);
-}
-.agenda-day-slot.booked {
-  background: rgba(201,161,78,0.08);
-  border-color: var(--gold-line);
-  cursor: not-allowed;
-  color: var(--gold-lt);
-}
-.agenda-day-slot-time {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1rem;
-  color: var(--ink);
-}
-[data-theme="light"] .agenda-day-slot.booked { color: #7a5c1a; }
-[data-theme="light"] .agenda-day-slot-time { color: #1a1817; }
-
-.agenda-day-slot-state {
-  font-size: .82rem;
-  color: var(--muted);
-}
-.agenda-day-slot.free .agenda-day-slot-state { color: #9fd0a0; font-weight: 500; }
-.agenda-day-slot.blocked .agenda-day-slot-state { color: var(--muted-2); }
-
-.agenda-day-slot-toggle {
-  width: 42px;
-  height: 24px;
-  border-radius: 12px;
-  background: var(--hair-2);
-  position: relative;
-  transition: background .2s;
-  flex-shrink: 0;
-}
-.agenda-day-slot-toggle > span {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: #fff;
-  transition: left .2s;
-  box-shadow: 0 1px 3px rgba(0,0,0,.3);
-}
-.agenda-day-slot-toggle.is-on { background: var(--gold); }
-.agenda-day-slot-toggle.is-on > span { left: 20px; }
 
 /* ============================================================
    AGENDA TILE GRID — MAÑANA / TARDE interactive tiles
    ============================================================ */
-.agenda-period { margin-top: 1rem; }
-.agenda-period-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .6rem;
-  margin: 0 0 .5rem .25rem;
-}
-.agenda-period-title {
-  font-family: var(--font-display);
-  font-size: .7rem;
-  font-weight: 700;
-  letter-spacing: .12em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin: 0;
-}
-.agenda-period-toggle {
-  font-family: var(--font-display);
-  font-size: .66rem;
-  font-weight: 600;
-  letter-spacing: .04em;
-  padding: .28rem .6rem;
-  border-radius: 999px;
-  border: 1px solid var(--hair-2);
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-  transition: border-color .15s, color .15s, background .15s, transform .1s ease-out;
-}
-.agenda-period-toggle:hover { border-color: var(--gold-line); color: var(--gold-lt); }
-.agenda-period-toggle:active { transform: scale(.95); }
-.agenda-period-toggle.is-blocked { border-color: var(--gold-line); color: var(--gold-lt); background: rgba(201,161,78,.08); }
+
+
 /* Baldosas: hora + etiqueta de estado apiladas a la izquierda (antes solo
    mostraban la hora centrada). auto-fill minmax(84px,1fr) en vez de columnas
    fijas de 74px para que el tag quepa sin desbordar. */
-.agenda-tile-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
-  gap: .4rem;
-  justify-content: start;
-}
+
 .agenda-tile {
   display: flex;
   flex-direction: column;
@@ -3248,41 +1950,34 @@ select.input { text-overflow: ellipsis; }
   -webkit-tap-highlight-color: transparent;
   user-select: none;
 }
-.agenda-tile-h { font-family: var(--font-display); font-size: .84rem; font-weight: 700; line-height: 1; }
-.agenda-tile-tag { font-size: .6rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; opacity: .85; line-height: 1; }
+
+
 .agenda-tile:active:not(:disabled) { transform: scale(.96); }
 .agenda-tile.free {
   background: var(--gold-soft);
   border-color: var(--gold-edge);
   color: var(--ink);
 }
-.agenda-tile.free .agenda-tile-tag { color: var(--gold-bright); }
+
 .agenda-tile.blocked {
   background: var(--hair-2);
   border-color: transparent;
   color: var(--muted);
 }
-.agenda-tile.blocked .agenda-tile-tag { color: var(--muted); }
+
 .agenda-tile.booked {
   background: var(--gold-grad);
   border-color: var(--gold-edge);
   color: var(--on-gold);
   opacity: 1;
 }
-.agenda-tile.booked .agenda-tile-tag { color: var(--on-gold); opacity: .8; }
+
 .agenda-tile:disabled { cursor: not-allowed; }
 
 /* El picker de horarios del modal Nueva reserva reutiliza .agenda-tile pero
    solo muestra la hora centrada (sin tag apilado) — evita que la inversión de
    layout de arriba lo rompa visualmente. */
-.psn-newbk-slots .agenda-tile {
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  min-height: auto;
-  padding: .55rem .3rem;
-}
-.psn-newbk-slots .agenda-tile .agenda-tile-tag { display: none; }
+
 
 /* Fix "Semana actual" / chip-gold visibility in light mode */
 [data-theme="light"] .chip-gold {
@@ -3299,109 +1994,30 @@ select.input { text-overflow: ellipsis; }
 @keyframes ag-pop { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
 @keyframes ag-toast { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) {
-  .agenda-cal, .agenda-toast { animation: none !important; }
+  .agenda-toast { animation: none !important; }
 }
 
 /* Cabecera propia del módulo (kicker + buscador local) */
-.agenda-topline { display: flex; align-items: center; justify-content: space-between; gap: .8rem; flex-wrap: wrap; }
-.agenda-kicker { font-family: var(--font-display); font-size: .68rem; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: var(--gold-bright); }
-.agenda-kicker-hero { display: block; margin-bottom: .2rem; }
-.agenda-search { position: relative; display: flex; align-items: center; gap: .5rem; width: min(280px, 100%); padding: .5rem .8rem; border-radius: 999px; border: 1px solid var(--hair-2); background: rgba(255,255,255,.02); color: var(--muted); }
-.agenda-search svg { flex-shrink: 0; }
-.agenda-search-input { flex: 1; min-width: 0; border: 0; background: none; color: var(--ink); font: inherit; font-size: .82rem; outline: none; }
-.agenda-search-input::placeholder { color: var(--muted); }
-.agenda-search-clear { display: grid; place-items: center; border: 0; background: none; color: var(--muted); cursor: pointer; flex-shrink: 0; }
-.agenda-search-clear:hover { color: var(--ink); }
-[data-theme="light"] .agenda-search { background: rgba(0,0,0,.02); }
-@media (max-width: 560px) {
-  /* El topbar global ya trae logo/título: este kicker (no el de dentro del
-     hero, "AGENDA DE BRUNETTI") queda redundante y le resta una línea a la
-     agenda antes del contenido real. */
-  .agenda-topline > .agenda-kicker { display: none; }
-  .agenda-search { width: 100%; min-height: 44px; }
-}
+
 
 /* Chip "Próximo" del hero */
-.agenda-next-chip { display: inline-flex; align-items: center; gap: .35rem; margin-top: .35rem; padding: .28rem .65rem; border-radius: 999px; background: var(--gold-soft); color: var(--gold-bright); font-size: .72rem; font-weight: 500; }
+
 
 /* Botón calendario — ahora vive en .agenda-bulk-actions, junto a "Esta
    semana"/"Siguiente" (ver .daypick más abajo para la franja de días). */
-.agenda-cal-wrap { position: relative; flex-shrink: 0; }
-.agenda-cal-btn { padding: .55rem .65rem; }
-.agenda-bulk-row { align-items: center; }
-.agenda-drag-hint { font-size: .72rem; color: var(--muted); margin-left: auto; align-self: center; white-space: nowrap; }
-@media (max-width: 560px) { .agenda-drag-hint { display: none; } }
+
 
 /* Toggle de vista Bloques / Línea */
-.agenda-view-toggle { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; border: 1px solid var(--hair-2); background: var(--hair); flex: 0 0 auto; }
-.agenda-view-tab { border: 0; background: none; padding: .4rem .75rem; border-radius: 999px; font-family: var(--font-display); font-size: .72rem; color: var(--muted); cursor: pointer; transition: background .15s, color .15s; white-space: nowrap; }
-.agenda-view-tab:hover { color: var(--ink); }
-.agenda-view-tab.is-on { background: var(--card, var(--panel)); color: var(--gold-bright); box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+
 
 /* Vista Línea (timeline) */
-.agenda-timeline { display: grid; gap: .3rem; }
-.agenda-tl-row { display: grid; grid-template-columns: 46px 3px 1fr; align-items: stretch; gap: .7rem; padding: .5rem 0; cursor: default; }
-.agenda-tl-row.booked { cursor: pointer; }
-.agenda-tl-time { font-family: var(--font-display); font-size: .74rem; font-weight: 600; color: var(--muted); padding-top: .3rem; }
-.agenda-tl-rail { border-radius: 3px; background: var(--hair-2); }
-.agenda-tl-rail.free { background: var(--gold-edge); }
-.agenda-tl-rail.booked { background: var(--gold-bright); }
-.agenda-tl-card { flex: 1; display: flex; align-items: center; justify-content: space-between; gap: .6rem; min-height: 40px; padding: .5rem .8rem; border-radius: 12px; background: rgba(255,255,255,.02); border: 1px solid var(--hair); }
-.agenda-tl-row.booked .agenda-tl-card { background: var(--gold-soft); border-color: var(--gold-edge); transition: border-color .15s, transform .1s; }
-.agenda-tl-row.booked:hover .agenda-tl-card { border-color: var(--gold-bright); }
-.agenda-tl-row.booked:active .agenda-tl-card { transform: scale(.99); }
-.agenda-tl-info { display: grid; gap: .1rem; min-width: 0; }
-.agenda-tl-info strong { font-size: .84rem; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.agenda-tl-info span { font-size: .72rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.agenda-tl-empty { font-size: .78rem; color: var(--muted); }
-.agenda-tl-badge { font-size: .64rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; padding: .2rem .5rem; border-radius: 999px; background: var(--hair-2); color: var(--muted); flex-shrink: 0; }
-.agenda-tl-badge.is-gold { background: var(--gold-soft); color: var(--gold-bright); }
-@media (max-width: 560px) {
-  .agenda-tl-row { grid-template-columns: 40px 3px 1fr; gap: .5rem; }
-  .agenda-tl-time { font-size: .68rem; }
-}
+
 
 /* Date-picker propio de Agenda */
-.agenda-cal {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  z-index: 120;
-  width: min(320px, calc(100vw - 2rem));
-  padding: .9rem;
-  border-radius: 16px;
-  border: 1px solid var(--hair-2);
-  background: var(--pop-bg, var(--panel));
-  box-shadow: var(--pop-shadow, 0 18px 50px rgba(0,0,0,.5));
-  animation: ag-pop .18s cubic-bezier(.2,.7,.3,1) both;
-}
-.agenda-cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .7rem; font-family: var(--font-display); font-size: .82rem; font-weight: 600; color: var(--ink); }
-.agenda-cal-head button { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 999px; border: 1px solid var(--hair-2); background: none; color: var(--ink-soft); cursor: pointer; }
-.agenda-cal-head button:hover { border-color: var(--gold-line); color: var(--gold-bright); }
-.agenda-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
-.agenda-cal-dow { text-align: center; font-size: .62rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding-bottom: .3rem; }
-.agenda-cal-day { aspect-ratio: 1; display: grid; place-items: center; border: 0; border-radius: 9px; background: none; color: var(--ink-soft); font-size: .78rem; cursor: pointer; transition: background .12s, color .12s; }
-.agenda-cal-day:hover:not(:disabled) { background: var(--hair); color: var(--ink); }
-.agenda-cal-day:disabled { color: var(--muted-2); opacity: .35; cursor: not-allowed; }
-.agenda-cal-day.is-today { color: var(--gold-bright); font-weight: 700; }
-.agenda-cal-day.is-sel { background: var(--gold-grad); color: var(--on-gold); font-weight: 700; }
-@media (max-width: 480px) { .agenda-cal { right: 50%; transform: translateX(50%); } }
+
 
 /* Modal de detalle de reserva */
-.agenda-detail { text-align: left; width: min(460px, 100%); display: grid; gap: 1rem; }
-.agenda-detail-status { justify-self: start; }
-.agenda-detail-client { display: flex; align-items: center; gap: .8rem; }
-.agenda-detail-avatar { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: var(--gold-grad); color: var(--on-gold); font-family: var(--font-display); font-size: 1.15rem; font-weight: 700; flex-shrink: 0; }
-.agenda-detail-client strong { display: block; font-size: 1.02rem; color: var(--ink); }
-.agenda-detail-tag { font-size: .76rem; color: var(--muted); }
-.agenda-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; }
-.agenda-detail-cell { padding: .7rem .8rem; border-radius: 12px; background: rgba(255,255,255,.02); border: 1px solid var(--hair); }
-.agenda-detail-cell span { display: block; font-size: .64rem; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: .2rem; }
-.agenda-detail-cell b { font-family: var(--font-display); font-size: .92rem; color: var(--ink); }
-.agenda-detail-actions { display: grid; gap: .55rem; }
-.agenda-detail-cancel { color: var(--red); border-color: rgba(217,154,143,.35); }
-.agenda-detail-cancel:hover { border-color: var(--red); background: rgba(217,154,143,.08); }
-[data-theme="light"] .agenda-detail-cell { background: #fff; }
+
 
 /* Toasts */
 .agenda-toasts { position: fixed; bottom: 22px; right: 22px; z-index: 200; display: flex; flex-direction: column; gap: 10px; }
@@ -3411,112 +2027,14 @@ select.input { text-overflow: ellipsis; }
 /* ============================================================
    CONFIG V2 — list screen + detail screen with back button
    ============================================================ */
-.cfg-list-screen {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 1.2rem;
-}
-.cfg-list-screen .cfg-nav-head {
-  font-size: .72rem;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: var(--muted-2);
-  font-family: var(--font-display);
-  margin: 0 0 1rem;
-  padding: 0 .3rem;
-}
-.cfg-list { display: grid; gap: .35rem; }
-.cfg-list-item {
-  display: grid;
-  grid-template-columns: 36px 1fr auto;
-  align-items: center;
-  gap: .9rem;
-  padding: .85rem 1rem;
-  border-radius: 12px;
-  border: 1px solid transparent;
-  background: var(--shell-bg);
-  cursor: pointer;
-  color: var(--ink);
-  text-align: left;
-  transition: border-color .15s, background .15s;
-}
-.cfg-list-item:hover {
-  border-color: var(--gold-line);
-  background: rgba(201,161,78,0.04);
-}
-.cfg-list-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: rgba(201,161,78,0.1);
-  color: var(--gold-lt);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-[data-theme="light"] .cfg-list-icon { color: #7a5c1a; }
-.cfg-list-label {
-  font-size: .92rem;
-  font-weight: 500;
-  font-family: var(--font-display);
-}
 
-.cfg-detail-screen {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  overflow: hidden;
-}
-.cfg-back {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  padding: .8rem 1.2rem;
-  background: var(--shell-bg);
-  border: none;
-  border-bottom: 1px solid var(--border);
-  cursor: pointer;
-  font-size: .85rem;
-  color: var(--ink-soft);
-  width: 100%;
-  text-align: left;
-  font-family: var(--font-display);
-  font-weight: 500;
-}
-.cfg-back:hover { color: var(--gold-lt); }
-
-.cfg-detail-screen .cfg-content { padding: 1.4rem 1.4rem 2rem; }
 
 /* Config: lista + detalle lado a lado en desktop ("secciones colapsables" —
    la lista de ajustes queda siempre visible, no hace falta volver a
    navegar a pantalla completa para pasar de una sección a otra). En
    móvil, :has() oculta la lista mientras hay una sección abierta, igual
    que el comportamiento anterior de navegación a pantalla completa. */
-.cfg-split { display: grid; gap: 1.1rem; align-items: start; }
-@media (max-width: 1023px) {
-  .cfg-split:has(.cfg-detail-screen) .cfg-list-screen { display: none; }
-}
-@media (min-width: 1024px) {
-  /* Especificidad (0,2,0) para ganarle a ".dashboard-main > .animate-in"
-     (misma especificidad, pero esa regla es genérica para todos los tabs
-     y quedaría definida antes en la hoja de estilos). */
-  .dashboard-main > .cfg-split { grid-template-columns: 300px 1fr; }
-  .cfg-split .cfg-list-screen { position: sticky; top: 1rem; }
-}
-.cfg-search { display: flex; align-items: center; gap: .5rem; padding: .5rem .8rem; margin-bottom: .8rem; border-radius: 10px; border: 1px solid var(--hair-2); background: rgba(255,255,255,.02); color: var(--muted); }
-.cfg-search input { background: none; border: 0; outline: none; color: var(--ink); font-family: var(--font-body); font-size: .85rem; width: 100%; }
-.cfg-list-item.is-active { border-color: var(--gold-line); background: rgba(201,161,78,.08); }
-.cfg-list-item.is-active .cfg-list-label { color: var(--gold-lt); }
 
-@media (max-width: 480px) {
-  .agenda-controls { grid-template-columns: minmax(0, 1fr); }
-  .agenda-day-slot { grid-template-columns: 52px 1fr 42px; padding: .75rem .85rem; }
-  .agenda-day-slot-time { font-size: .92rem; }
-  .agenda-day-slot-state { font-size: .76rem; }
-  .cfg-list-screen { padding: .9rem; }
-  .cfg-detail-screen .cfg-content { padding: 1rem .9rem 1.5rem; }
-}
 
 /* ============================================================
    Reservar — paso "Fecha y hora" (responsive)
@@ -3653,7 +2171,7 @@ select.input { text-overflow: ellipsis; }
   }
   /* Rieles horizontales intencionales: que un fling lateral fuerte no se
      encadene hacia un gesto de navegación de página (swipe-back de iOS). */
-  .psn-status-seg, .psn-inbox-filters, .cfg-nav, .dashboard-nav, .fin-mov-scroll {
+  .dashboard-nav {
     overscroll-behavior-x: contain;
   }
 }
@@ -3672,30 +2190,22 @@ select.input { text-overflow: ellipsis; }
 
   /* Dos chips de 38px con área de 44px se solapan ~1px por lado con el
      gap original de .45rem. */
-  .dashboard-topbar-actions { gap: .5rem; }
+  
 
-  .theme-toggle, .burger-btn, .notif-pill, .user-chip-btn,
-  .agenda-search-clear, .psn-search-clear,
-  .psn-res-quick button, .psn-res-quick a { position: relative; }
-  .theme-toggle::after, .burger-btn::after, .notif-pill::after, .user-chip-btn::after,
-  .agenda-search-clear::after, .psn-search-clear::after,
-  .psn-res-quick button::after, .psn-res-quick a::after {
+  .theme-toggle { position: relative; }
+  .theme-toggle::after {
     content: ""; position: absolute; left: 50%; top: 50%;
     width: max(100%, 44px); height: max(100%, 44px); transform: translate(-50%, -50%);
   }
 
   /* Estos sí crecen de verdad: a 24-28px no se leen como tocables. */
-  .agenda-view-tab { min-height: 36px; padding: .5rem .85rem; }
-  .agenda-period-toggle { min-height: 36px; padding: .45rem .75rem; }
-  .psn-status-seg button, .psn-seg button, .psn-view-toggle button { min-height: 38px; }
-  .psn-res-status, .psn-barber-filter,
-  .input, .client-search, .agenda-search,
-  .psn-inbox-search, .global-search-field { min-height: 44px; }
+  
+  
+  
+  .input { min-height: 44px; }
 
   /* iOS hace zoom automático al enfocar un input con font-size < 16px. */
-  .input, .agenda-search-input, .client-search input,
-  .psn-inbox-search input, .global-search-field input,
-  .psn-res-status, .psn-barber-filter { font-size: 16px; }
+  .input { font-size: 16px; }
 }
 
 /* ============================================================
