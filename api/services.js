@@ -192,11 +192,14 @@ export default async function handler(req, res) {
       if (!id) return res.status(400).json({ ok: false, error: "id requerido" })
       // Materializa nombre/precio en las reservas históricas antes de borrar:
       // el FK bookings.service_id no tiene ON DELETE y no queremos perder el
-      // historial (COALESCE respeta un custom_price ya congelado).
+      // historial (COALESCE respeta un custom_price ya congelado, y el precio
+      // de catálogo congelado al completar: sin él, borrar el servicio le
+      // ponía el precio de HOY a una atención cobrada con el de antes).
+      // price_snapshot por to_jsonb: esta ruta no corre la migración.
       await sql`
         UPDATE bookings SET
           custom_service = COALESCE(bookings.custom_service, s.name),
-          custom_price = COALESCE(bookings.custom_price, s.price),
+          custom_price = COALESCE(bookings.custom_price, (to_jsonb(bookings)->>'price_snapshot')::int, s.price),
           service_id = NULL
         FROM services s
         WHERE bookings.service_id = ${id} AND s.id = ${id}
