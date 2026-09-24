@@ -89,6 +89,79 @@ export function readPayment(body) {
   return { collected: n, method, ref: cleanRef }
 }
 
+/* 30% en productos desde las 5 estrellas: es un beneficio permanente del
+   programa de PimpStudio (su loyaltySummary lo expone como
+   productDiscountReady), no un canje — no consume estrellas. La venta en mesón
+   (POST /api/bookings?mode=sale) solo lo aplica si el puente confirma el
+   saldo en el momento; el navegador nunca decide el descuento. */
+export const PRODUCT_DISCOUNT_STARS = 5
+export const PRODUCT_DISCOUNT_PCT = 30
+
+/* ---------------------------------------------------------------------------
+   Caja del día (GET /api/bookings?mode=cash)
+   El arqueo: cuánto entró, por qué medio. Función pura para poder probarla
+   sin base.
+
+     bookings  filas de la lista del panel de ESE día (canceladas se ignoran)
+     sales     ventas de producto pagadas del día ({ total, paymentMethod, items })
+     online    resultado de onlineSales() para el día (o null)
+
+   Reglas, por reserva:
+     · pago por confirmar (completada sin cobro)  → byMethod.pendiente, al
+       precio que corresponde. Es plata que ya cuenta pero todavía no se sabe
+       por dónde entró: NO suma a `collected`.
+     · con cobro registrado                       → su medio, por lo cobrado.
+     · pendiente / confirmada / en curso sin cobro → `pending` (por cobrar).
+     · completada vieja sin completed_at ni cobro (de antes de registrar el
+       cobro) → no entra al arqueo: el sistema no sabe si ni cómo se pagó.
+   Las ventas de producto entran al MISMO byMethod (a la caja no le consta si
+   la plata vino de un corte o de una cera), y lo online de Mercado Pago va en
+   su propia línea `online`, aparte del "mercadopago" cobrado en el mesón: son
+   dos plata distintas.
+   collected = suma de byMethod sin `pendiente`. */
+export const CASH_METHODS = [...PAYMENT_METHODS, "pendiente", "online"]
+
+export function summarizeCash({ bookings = [], sales = [], online = null } = {}) {
+  const byMethod = Object.fromEntries(CASH_METHODS.map((m) => [m, 0]))
+  const methodOf = (m) => (PAYMENT_METHODS.includes(m) ? m : "efectivo")
+  let servicesCollected = 0
+  let pending = 0
+  let toConfirm = 0
+  let toConfirmCount = 0
+  for (const row of bookings) {
+    if (row.status === "cancelada") continue
+    const price = Number(row.price || 0)
+    if (row.paymentPending) {
+      byMethod.pendiente += price
+      toConfirm += price
+      toConfirmCount += 1
+      continue
+    }
+    if (row.paidAmount != null) {
+      const paid = Number(row.paidAmount) || 0
+      byMethod[methodOf(row.paymentMethod)] += paid
+      servicesCollected += paid
+      continue
+    }
+    if (row.status !== "completada") pending += price
+  }
+
+  let productsCollected = 0
+  let productsCount = 0
+  for (const sale of sales) {
+    if (sale.status && sale.status !== "pagada") continue
+    const total = Number(sale.total) || 0
+    byMethod[methodOf(sale.paymentMethod)] += total
+    productsCollected += total
+    for (const item of Array.isArray(sale.items) ? sale.items : []) productsCount += Number(item.qty) || 0
+  }
+
+  const onlineCollected = Number(online?.total) || 0
+  byMethod.online = onlineCollected
+  const collected = CASH_METHODS.filter((m) => m !== "pendiente").reduce((n, m) => n + byMethod[m], 0)
+  return { collected, servicesCollected, productsCollected, productsCount, onlineCollected, pending, toConfirm, toConfirmCount, byMethod }
+}
+
 /* ---------------------------------------------------------------------------
    Ventas online (Mercado Pago Checkout Pro)
    Lo que entró por la web: pedidos de Essentials pagados (shop_orders) e
