@@ -39,7 +39,8 @@ export function catalogHref(course) { // eslint-disable-line no-unused-vars
    no de una copia para que el temario sembrado sea el mismo que el que se
    vende (y el editor visual lo puede cambiar). Cada módulo es una sección
    ("Módulo N · título") y cada lección queda en BORRADOR (sin video
-   todavía: el backend crea todo con published:false y sales_open:false).
+   todavía: el backend crea todo con published:false y sales_open:false),
+   con la descripción de su módulo como texto.
 
    La lección 1.3 era "Cómo usar Skool…": acá ya no es Skool, así que si el
    JSON todavía la trae con ese nombre se siembra como "Cómo usar la Academy
@@ -93,13 +94,20 @@ export function brunettiSeedCourse(modules) {
     priceOnline: BRUNETTI_METODO.priceOnline,
     pricePresencial: null,
     access: 'compra',
-    sections: (modules || []).map((mod, i) => ({
-      title: `Módulo ${i + 1} · ${String(mod?.t || '').trim()}`,
-      lessons: (mod?.lessons || [])
-        .map(lessonTitle)
-        .filter(Boolean)
-        .map((title) => ({ title })),
-    })),
+    sections: (modules || []).map((mod, i) => {
+      // Texto de cada lección: la descripción de su módulo, la misma de la
+      // página de venta. Una lección sin video ni texto no se puede publicar
+      // (admin-lesson-save), y el curso se abre con el temario completo
+      // mientras los videos se van subiendo.
+      const about = String(mod?.d || '').trim()
+      return {
+        title: `Módulo ${i + 1} · ${String(mod?.t || '').trim()}`,
+        lessons: (mod?.lessons || [])
+          .map(lessonTitle)
+          .filter(Boolean)
+          .map((title) => (about ? { title, body: about } : { title })),
+      }
+    }),
   }
 }
 
