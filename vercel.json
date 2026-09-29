@@ -5,6 +5,7 @@
   "rewrites": [
     { "source": "/api/register-client", "destination": "/api/clients?mode=register" },
     { "source": "/api/csp-report", "destination": "/api/push?job=csp-report" },
+    { "source": "/api/academy", "destination": "/api/services?scope=academy" },
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/((?!assets/).*)", "destination": "/index.html" }
   ],
@@ -17,7 +18,13 @@
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
         { "key": "Strict-Transport-Security", "value": "max-age=63072000" },
-        { "key": "Content-Security-Policy-Report-Only", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://*.public.blob.vercel-storage.com https://images.unsplash.com https://img.youtube.com; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://va.vercel-scripts.com; frame-src https://www.youtube-nocookie.com https://player.vimeo.com; media-src 'self'; worker-src 'self'; manifest-src 'self'; frame-ancestors 'self'; form-action 'self'; base-uri 'self'; object-src 'none'; report-uri /api/csp-report" }
+        { "key": "Content-Security-Policy-Report-Only", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://*.public.blob.vercel-storage.com https://images.unsplash.com https://img.youtube.com https://i.ytimg.com; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://va.vercel-scripts.com; frame-src https://www.youtube-nocookie.com https://player.vimeo.com; media-src 'self'; worker-src 'self'; manifest-src 'self'; frame-ancestors 'self'; form-action 'self'; base-uri 'self'; object-src 'none'; report-uri /api/csp-report" }
+      ]
+    },
+    {
+      "source": "/cursos/(.*)",
+      "headers": [
+        { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://*.public.blob.vercel-storage.com https://i.ytimg.com https://lh3.googleusercontent.com; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://va.vercel-scripts.com; frame-src https://www.youtube-nocookie.com; worker-src 'self'; manifest-src 'self'; media-src 'self' blob:; frame-ancestors 'self'; form-action 'self'; base-uri 'self'; object-src 'none'; upgrade-insecure-requests" }
       ]
     },
     {

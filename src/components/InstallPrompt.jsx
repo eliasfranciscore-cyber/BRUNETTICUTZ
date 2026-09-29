@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Icon } from './ui.jsx'
 import { installState, promptInstall, rememberDismissal, shouldAutoPromptInstall, onInstallStateChange } from '../installPrompt.js'
+import { ACADEMY_BASE } from '../academy/hostConfig.js'
 
 /* Aviso para instalar la app en la pantalla de inicio.
 
@@ -11,16 +12,27 @@ import { installState, promptInstall, rememberDismissal, shouldAutoPromptInstall
    dentro del navegador de Instagram/WhatsApp la opción ni siquiera aparece en
    el menú, así que primero hay que salir a Safari.
 
-   `audience` sólo cambia el texto, y acá existe uno solo: el del barbero.
-   La app instalada de brunetticutz.cl es el panel (start_url /panel en el
-   manifest; ver PWALaunchRouter en src/App.jsx), así que a un cliente que
-   la instalara lo dejaría en el login del barbero. Si algún día se abre a
-   clientes, su texto va acá. */
+   `audience` cambia el texto (y el link que se copia). Hay dos:
+   - barber: el panel. La app instalada de brunetticutz.cl arranca en /panel
+     (start_url del manifest).
+   - student: el alumno de la Brunetti Academy (lo abre OnboardingWidget,
+     código compartido con PimpStudio). Es la MISMA app instalada:
+     PWALaunchRouter (src/App.jsx) manda a /cursos/comunidad a quien tiene
+     sesión de alumno y no de barbero, así que el alumno no cae en el login
+     del panel.
+   A un cliente de reservas no se le ofrece instalar: lo dejaría en el login
+   del barbero. Si algún día se abre a clientes, su texto va acá. */
 
 const COPY = {
   barber: {
     title: 'Tu agenda a un toque',
     body: 'Instala el panel en tu pantalla de inicio para abrir tus reservas al instante y recibir los avisos de cada hora nueva.',
+    path: '/panel',
+  },
+  student: {
+    title: 'La Academy a un toque',
+    body: 'Deja la Brunetti Academy en tu pantalla de inicio: entras directo a la comunidad, sigues tus clases donde las dejaste y recibes los avisos de la Academy.',
+    path: `${ACADEMY_BASE}/comunidad`,
   },
 }
 
@@ -67,11 +79,11 @@ export default function InstallPrompt({ audience = 'barber', open, onClose }) {
     onClose?.()
   }
 
-  // El link del panel, no la portada: pegado en Safari, deja al barbero
-  // directo en su login para instalar desde ahí.
+  // El link de su sección, no la portada: pegado en Safari, deja al barbero
+  // en su login (y al alumno en su comunidad) para instalar desde ahí.
   const copyLink = async () => {
     try {
-      await navigator.clipboard.writeText(`${window.location.origin}/panel`)
+      await navigator.clipboard.writeText(`${window.location.origin}${copy.path || '/panel'}`)
       setCopied(true)
     } catch (e) {
       setCopied(false)

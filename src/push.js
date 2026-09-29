@@ -75,6 +75,14 @@ function authHeaders(extra = {}) {
   return token ? { ...extra, Authorization: `Bearer ${token}` } : extra
 }
 
+// ¿La Brunetti Academy usa la suscripción de este navegador? Lo marca
+// src/academy/push.js al activar los avisos del alumno. Hay UNA suscripción
+// por dispositivo (un solo service worker con scope "/"), así que el panel y
+// la Academy comparten el mismo endpoint — cada uno lo guarda en su tabla.
+function academyPushEnabled() {
+  try { return localStorage.getItem("ps_academy_push_enabled") === "1" } catch { return false }
+}
+
 /* Activa las notificaciones para el barbero autenticado. Devuelve un objeto
    de estado para reflejar en la UI. Solo notifica al usuario del barbero. */
 export async function enablePush(barber) {
@@ -203,7 +211,11 @@ export async function disablePush(barber) {
         headers: authHeaders({ "Content-Type": "application/json" }),
         body: JSON.stringify({ endpoint: sub.endpoint, barberId: barber?.id }),
       }).catch(() => {})
-      await sub.unsubscribe().catch(() => {})
+      // Si la Academy tiene sus avisos activos en este dispositivo, solo se
+      // borra la fila del barbero en el servidor: dar de baja la suscripción
+      // del navegador mataría también los avisos del alumno (Bruno suele ser
+      // las dos cosas en el mismo teléfono).
+      if (!academyPushEnabled()) await sub.unsubscribe().catch(() => {})
     }
   }
   return { ok: true }

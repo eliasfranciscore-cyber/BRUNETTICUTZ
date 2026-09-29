@@ -1,3 +1,4 @@
+import crypto from "crypto"
 import { neon } from "@neondatabase/serverless"
 import { requireInternal } from "./_auth.js"
 import { clientIp } from "./_rateLimit.js"
@@ -13,7 +14,10 @@ import { clientIp } from "./_rateLimit.js"
      autocompletar de las atenciones "en curso" que ya terminaron. Vive acá
      (en vez de en su propio archivo api/) porque el plan Hobby de Vercel
      topa a 12 funciones serverless por deployment — no se agrega un cron
-     ni un endpoint nuevo para eso.
+     ni un endpoint nuevo para eso. Tercera tanda (solo con CRON_SECRET
+     configurado): la de Brunetti Academy (runAcademyJob en _academyCron.js).
+   GET ?job=academy (CRON_SECRET obligatorio): corre SOLO la tanda de la
+     Academy, a mano; &force=1 salta sus filtros por hora.
    notifyBarber(barberId, payload, { log }): envía un push SOLO al barbero
      indicado; con log:false no lo deja en la campana del panel.
 
@@ -156,6 +160,43 @@ function normalizeCspReports(raw) {
   if (Array.isArray(parsed)) return parsed
   if (parsed && parsed["csp-report"]) return [parsed["csp-report"]]
   return parsed ? [parsed] : []
+}
+
+/* Comparación del CRON_SECRET en tiempo constante (mismo patrón que
+   isBridgeRequest en _bridge.js): con `!==` el tiempo de respuesta dice
+   cuántos caracteres del principio coinciden. Se comparan los SHA-256 porque
+   timingSafeEqual exige largos iguales. El resultado es idéntico al `!==` que
+   había (mismo header exacto aceptado), solo cambia el tiempo — importa desde
+   que el job también dispara la tanda de la Academy, que envía contraseñas
+   temporales por correo. */
+function cronAuthorized(req, secret) {
+  const auth = String(req.headers?.authorization || "")
+  const given = crypto.createHash("sha256").update(auth).digest()
+  const expected = crypto.createHash("sha256").update(`Bearer ${secret}`).digest()
+  return crypto.timingSafeEqual(given, expected)
+}
+
+function santiagoHourNow() {
+  return Number(new Intl.DateTimeFormat("en-US", { timeZone: BUSINESS_TZ, hour: "numeric", hourCycle: "h23" }).format(new Date()))
+}
+
+/* Tanda de Brunetti Academy (runAcademyJob en _academyCron.js, código
+   compartido con PimpStudio): migración aditiva de sus tablas, pedidos de
+   Mercado Pago que quedaron pendientes, credenciales que no salieron,
+   recordatorios de eventos, resumen de actividad y limpieza. Con su propio
+   presupuesto de tiempo (7 s).
+
+   Import dinámico: el código de la Academy no debe cargarse (ni poder
+   romper) el resto del job si falla al importar. Nunca lanza: un error queda
+   en `academyError` y el job responde como siempre. */
+async function runAcademy(sql, { force = false } = {}) {
+  try {
+    const { runAcademyJob } = await import("./_academyCron.js")
+    return { academy: await runAcademyJob(sql, { budgetMs: 7000, hourSantiago: santiagoHourNow(), force }) }
+  } catch (err) {
+    console.error("push reminders job (academy) error:", err?.message || err)
+    return { academyError: true }
+  }
 }
 
 let webpushModule = null
@@ -332,8 +373,7 @@ export default async function handler(req, res) {
   if (req.method === "GET" && req.query?.job === "reminders") {
     const secret = process.env.CRON_SECRET
     if (secret) {
-      const auth = req.headers.authorization || ""
-      if (auth !== `Bearer ${secret}`) return res.status(401).json({ ok: false, error: "unauthorized" })
+      if (!cronAuthorized(req, secret)) return res.status(401).json({ ok: false, error: "unauthorized" })
     }
     // Primero el recordatorio (lo que el cron existe para hacer, y lo que
     // vence a la hora), después el autocompletar. Las dos tandas se aíslan:
@@ -351,8 +391,35 @@ export default async function handler(req, res) {
       reminderError = err
     }
     const autoComplete = sql ? await runAutoComplete(sql) : {}
-    if (reminderError) return res.status(500).json({ ok: false, error: "reminder job failed", ...autoComplete })
-    return res.json({ ok: true, sent60, ...autoComplete })
+    // La Academy va al final y FUERA de reminderError, igual que el
+    // autocompletar: el cron existe para los recordatorios de reservas, y un
+    // 500 por esta tanda haría que cron-job.org marque el job como caído (y
+    // termine desactivándolo). SOLO con CRON_SECRET configurado: sin secreto
+    // este job queda abierto a cualquiera (así es desde siempre para los
+    // recordatorios), y esta tanda manda contraseñas temporales por correo —
+    // no puede quedar a un GET anónimo de distancia.
+    const academy = sql && process.env.CRON_SECRET ? await runAcademy(sql) : {}
+    if (reminderError) return res.status(500).json({ ok: false, error: "reminder job failed", ...autoComplete, ...academy })
+    return res.json({ ok: true, sent60, ...autoComplete, ...academy })
+  }
+
+  // Solo la tanda de la Academy, para correrla a mano o forzarla (&force=1
+  // salta los filtros por hora de runAcademyJob). A diferencia de
+  // ?job=reminders, acá el secreto es OBLIGATORIO: sin CRON_SECRET
+  // configurado responde 401 — la tanda manda contraseñas temporales.
+  if (req.method === "GET" && req.query?.job === "academy") {
+    const secret = process.env.CRON_SECRET
+    if (!secret || !cronAuthorized(req, secret)) return res.status(401).json({ ok: false, error: "unauthorized" })
+    let sql
+    try {
+      sql = neon(process.env.DATABASE_URL)
+    } catch (err) {
+      console.error("push academy job error:", err?.message || err)
+      return res.status(500).json({ ok: false, error: "academy job failed" })
+    }
+    const out = await runAcademy(sql, { force: req.query?.force === "1" })
+    if (out.academyError) return res.status(500).json({ ok: false, error: "academy job failed" })
+    return res.json({ ok: true, academy: out.academy })
   }
 
   const session = requireInternal(req, res)

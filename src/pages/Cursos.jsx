@@ -10,11 +10,28 @@ import MercadoPagoCheckout from '../components/MercadoPagoCheckout.jsx'
 import { EditableText } from '../components/edit/EditableText.jsx'
 import { Editable } from '../components/edit/Editable.jsx'
 import CURSOS from '../data/content/cursos.json'
+import { hasSession } from '../academy/session.js'
+import { r } from '../academy/routes.js'
+import { ACADEMY_BRAND } from '../academy/hostConfig.js'
 
 /* ================================================================
    CURSOS BRUNETTI — Formación en visagismo & barbería
-   Flujo: usuario ve módulos → paga vía Mercado Pago → accede a Skool
+   Flujo: usuario ve módulos → paga vía Mercado Pago → le llega por correo
+   su acceso a la Brunetti Academy (/cursos/ingreso) con el curso adentro.
+
+   Es la página pública (índice) de la Academy: la monta
+   src/pages/academy/AcademyRoot.jsx a través de src/academy/host.jsx
+   (PublicLanding). Las entradas a la app del miembro (/cursos/ingreso,
+   /cursos/comunidad) son navegaciones DURAS: /cursos/(.+) tiene su propio
+   CSP y un documento conserva el CSP con el que cargó.
    ================================================================ */
+
+// Con sesión de alumno, a su comunidad; si no, al ingreso.
+function goToAcademy() {
+  window.location.assign(hasSession() ? r.comunidad : r.ingreso)
+}
+
+const INSTAGRAM = ACADEMY_BRAND.instagram || 'brunetticutz'
 
 // La duración de cada lección es dato fijo (no editable por texto libre); el
 // título de la lección y del módulo sí viven en cursos.json y llegan por índice.
@@ -46,8 +63,21 @@ export default function Cursos() {
   const [openIdx, setOpenIdx] = useState(-1)
   // Las partículas son un efecto de fondo oscuro: en claro no se montan.
   const { theme } = useTheme()
+  // ¿Este navegador ya tiene sesión de alumno? Cambia el texto del acceso.
+  const [member] = useState(() => hasSession())
 
   useBrunettiFx(rootRef, { parallax: false })
+
+  // Deep link /cursos#inscripcion (o #terminos): el "Comprar" de un curso
+  // bloqueado dentro de la Academy (host.jsx → catalogHref) llega con
+  // navegación dura, y el navegador intenta el ancla antes de que esta página
+  // (un chunk diferido) exista. Se baja a mano cuando ya está montada.
+  useEffect(() => {
+    const id = String(window.location.hash || '').replace(/^#/, '')
+    if (id !== 'inscripcion' && id !== 'terminos') return
+    const t = setTimeout(() => scrollToId(id), 250)
+    return () => clearTimeout(t)
+  }, [])
 
   const goHomeSection = (section) => navigate('/', { state: { section } })
   const goAnchor = (id) => scrollToId(id)
@@ -156,11 +186,22 @@ export default function Cursos() {
               <p className="kicker"><EditableText file="cursos" path="checkout.kicker">{CURSOS.checkout.kicker}</EditableText></p>
               <h2><EditableText file="cursos" path="checkout.h2" as="span">{CURSOS.checkout.h2}</EditableText></h2>
               <p><EditableText file="cursos" path="checkout.body" as="span">{CURSOS.checkout.body}</EditableText></p>
+              {/* Para quien ya pagó (o vuelve por el link del correo): un <a>
+                  común, o sea navegación DURA — /cursos/(.+) tiene su propio
+                  CSP y no se entra con el router. */}
+              <p style={{ marginTop: '0.9rem', fontSize: '0.92rem' }}>
+                {member ? 'Ya eres parte. ' : '¿Ya compraste? '}
+                <a href={member ? r.comunidad : r.ingreso} style={{ color: 'inherit', textDecoration: 'underline', fontWeight: 600 }}>
+                  Entra a la Academy
+                </a>
+              </p>
             </div>
 
             <MercadoPagoCheckout />
           </div>
         </section>
+
+        <TermsSection />
         </div>
       </main>
 
@@ -169,13 +210,78 @@ export default function Cursos() {
         links={[
           [() => goAnchor('curriculum'), 'Programa'],
           [() => goAnchor('inscripcion'), 'Acceder'],
+          [goToAcademy, 'Entrar a la Academy'],
           [() => goHomeSection('visagismo'), 'Visagismo'],
           [() => navigate('/workshop'), 'Workshop'],
+          [() => goAnchor('terminos'), 'Términos y privacidad'],
           [() => goHomeSection('contacto'), 'Contacto'],
         ]}
         onPrimary={() => goAnchor('inscripcion')}
         primaryLabel="Acceder al curso"
       />
     </div>
+  )
+}
+
+/* ---------------- Términos y aviso de privacidad (#terminos) ----------------
+   Lo que acepta el checkbox del formulario de compra. Texto fijo a propósito
+   (no pasa por cursos.json ni por el editor visual): es lo que la persona
+   aceptó, no copy de marketing. Mismo contenido que el de la Academy de
+   PimpStudio, con Brunetti como responsable. */
+const TERMS = [
+  {
+    tag: 'Compra',
+    title: 'Qué compras',
+    items: [
+      'Un pago único con Mercado Pago. No es una suscripción: no hay cobros mensuales.',
+      'Acceso de por vida a las lecciones del curso dentro de la Brunetti Academy, más la comunidad.',
+      'Tu acceso es personal: la cuenta es tuya y no se comparte.',
+      'Si hay un problema con tu compra, escríbenos. Los reembolsos se hacen por Mercado Pago y cierran el acceso al curso.',
+      'En la comunidad rigen sus reglas (respeto, nada de spam). Quien no las cumpla puede perder su cuenta.',
+    ],
+  },
+  {
+    tag: 'Privacidad',
+    title: 'Qué hacemos con tus datos',
+    items: [
+      ['Responsable:', 'Brunetti (brunetticutz.cl).'],
+      ['Qué datos:', 'nombre, correo, teléfono si lo das y los datos de tu compra. Dentro de la Academy, lo que publiques, tu avance y tus mensajes.'],
+      ['Para qué:', 'crear tu cuenta y darte acceso, enviarte tu contraseña y los avisos de la Academy, gestionar pagos y reembolsos, darte soporte y cuidar la comunidad. No vendemos tus datos ni te mandamos publicidad por correo.'],
+      ['Quién más los procesa (encargados):', 'Neon (base de datos), Vercel (sitio e imágenes), Resend (envío de correos), Google (YouTube, para reproducir las lecciones) y Mercado Pago (el pago; tus datos de tarjeta nunca pasan por nosotros).'],
+      ['Tus derechos:', `puedes pedir acceso, corrección o eliminación de tus datos. Dentro de la Academy, en Ajustes, descargas tus datos o eliminas tu cuenta; también puedes escribirnos a @${INSTAGRAM} en Instagram.`],
+    ],
+  },
+]
+
+const CHECK_ICON = (<svg viewBox="0 0 24 24" width="16" height="16"><circle cx="12" cy="12" r="9" /><path d="M9 12l2 2 4-4" /></svg>)
+
+function TermsSection() {
+  return (
+    <section className="bsection" id="terminos">
+      <div className="bwrap">
+        <div className="bhead center" data-reveal>
+          <p className="kicker">Antes de comprar</p>
+          <h2>Términos y aviso de privacidad</h2>
+        </div>
+        {/* Reusa la tarjeta del checkout (dos columnas que pasan a una en el
+            teléfono) para no sumar CSS nuevo a la página. */}
+        <div className="checkout-card" data-reveal>
+          {TERMS.map((block, i) => (
+            <div className="checkout-info" key={block.tag} style={i === TERMS.length - 1 ? { borderRight: 'none', borderBottom: 'none' } : undefined}>
+              <p className="checkout-label">{block.tag}</p>
+              <h3 className="checkout-title">{block.title}</h3>
+              <ul className="checkout-list">
+                {block.items.map((it) => (
+                  <li key={Array.isArray(it) ? it[0] : it}>
+                    {CHECK_ICON}
+                    {Array.isArray(it) ? <span><b>{it[0]}</b> {it[1]}</span> : it}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   )
 }

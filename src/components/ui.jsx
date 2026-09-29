@@ -94,6 +94,20 @@ export const ICONS = {
   play: "M7 4.5v15l12-7.5z",
   camera: "M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1zM12 10.5a3.5 3.5 0 1 0 0 7a3.5 3.5 0 1 0 0-7",
   sparkles: "M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8zM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z",
+  /* Íconos que la Brunetti Academy le pasa al kit del panel (Button icon=,
+     IconButton, ActionMenu, Chip…), copiados tal cual de PimpStudio
+     (docs/academy/PORTABLE.md §3). El kit dibuja con este mapa: si falta un
+     nombre cae en `spark` y el botón se ve con un ícono que no dice nada. */
+  upload: "M12 15V3M7 8l5-5 5 5M5 21h14",
+  message: "M7.9 20A9 9 0 1 0 4 16.1L2 22z",
+  book: "M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20",
+  userPlus: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM19 8v6M22 11h-6",
+  video: "M16 10.5l5-3v9l-5-3zM3 7h11a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z",
+  globe: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z",
+  flag: "M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7",
+  at: "M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.9 7.9",
+  // Pestaña Academy del menú del panel (y "Abrir Academy").
+  graduation: "M22 10L12 5 2 10l10 5 10-5zM6 12v5c3 3 9 3 12 0v-5M22 10v6",
 }
 
 export function Icon({ name, size = 20, stroke = 1.6, color = "currentColor", style }) {

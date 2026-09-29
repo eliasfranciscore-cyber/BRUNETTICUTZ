@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="es">
   <head>
-    <!-- Cache-bust 2026-09-24. Los headers de vercel.json (HSTS y la CSP nueva)
+    <!-- Cache-bust 2026-09-29 (script inline del tema → /boot.js). Antes: 2026-09-24. Los headers de vercel.json (HSTS y la CSP nueva)
          viajan solo en la respuesta 200: un 304 NO los reenvía, así que quien
          ya tenía este HTML cacheado seguiría con los de antes. Cambiar los bytes
          de este archivo fuerza un ETag nuevo y con él un 200 con los headers
@@ -40,27 +40,12 @@
          de Santiago. Así iOS no pinta las barras sup/inf con el color del tema
          contrario al que se ve en pantalla. -->
     <meta name="theme-color" content="#080807" />
-    <script>
-      // Tema inicial sin flash: respeta elección manual; si no, hora de Santiago (claro de día, oscuro de noche).
-      (function () {
-        try {
-          var t;
-          if (localStorage.getItem('ps_theme_manual') === '1') { t = localStorage.getItem('ps_theme') || 'dark'; }
-          else {
-            var h = parseInt(new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', hour: 'numeric', hour12: false }).format(new Date()), 10) % 24;
-            t = (h >= 7 && h < 19) ? 'light' : 'dark';
-          }
-          document.documentElement.setAttribute('data-theme', t);
-          var bg = t === 'light' ? '#f7f3ea' : '#080807';
-          var m = document.querySelector('meta[name="theme-color"]');
-          if (m) m.setAttribute('content', bg);
-          // Fija el color de raíz desde el primer paint (iOS lo muestrea para
-          // la barra de estado → evita banda oscura sobre página clara).
-          document.documentElement.style.backgroundColor = bg;
-          if (document.body) document.body.style.backgroundColor = bg;
-        } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
-      })();
-    </script>
+    <!-- Tema inicial sin flash (+ ruta de arranque del documento): /boot.js,
+         síncrono a propósito — tiene que correr antes del primer paint. Vive
+         en un archivo y no inline porque /cursos/(.+) (la Brunetti Academy)
+         lleva un CSP sin 'unsafe-inline' en script-src (ver vercel.json y
+         public/boot.js). -->
+    <script src="/boot.js"></script>
   </head>
   <body>
     <div id="root"></div>

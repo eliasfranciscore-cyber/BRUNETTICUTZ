@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:mock": "VITE_DEV_MOCKS=1 vite",
     "edit": "node scripts/dev-editor.mjs",
     "build": "vite build",
     "preview": "vite preview",

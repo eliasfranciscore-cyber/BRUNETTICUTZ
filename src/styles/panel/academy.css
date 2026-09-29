@@ -1,0 +1,121 @@
+/* ============================================================
+   ACADEMY — CSS propio de la pestaña del panel (src/pages/panel/AcademyTab.jsx
+   y src/pages/panel/academy/*). Solo tokens --pn-* y clases pn-aca-*; las
+   primitivas (Card, DataTable, Sheet…) viven en panel.css y acá solo se
+   complementan. El CSS de la Academy de los miembros es otro (aca-*, en
+   src/styles/academy/), y el del catálogo público es academy.css (academy-*).
+   ============================================================ */
+
+/* Segmentado de secciones: en el celular se desliza en vez de apretarse. */
+.pn-aca-tabs { max-width: 100%; }
+
+/* ---- Resumen: avance por curso ---- */
+.pn-aca-progress { display: inline-flex; align-items: center; gap: 10px; width: min(180px, 38vw); }
+.pn-aca-progress .pn-bar { flex: 1 1 auto; }
+.pn-aca-progress b { font-size: var(--pn-fs-sm); color: var(--pn-text-2); min-width: 3ch; text-align: right; }
+
+/* ---- Miembros ---- */
+.pn-aca-search { flex: 1 1 260px; min-width: 0; max-width: 420px; }
+@media (max-width: 640px) { .pn-aca-search { max-width: none; } }
+
+.pn-aca-person { display: inline-flex; align-items: center; gap: 10px; min-width: 0; }
+.pn-aca-person > span:last-child { display: grid; gap: 2px; min-width: 0; }
+.pn-aca-person b { font-weight: 600; color: var(--pn-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 28ch; }
+.pn-aca-person small { font-size: var(--pn-fs-xs); color: var(--pn-text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 32ch; }
+.pn-aca-person small.pn-warn-text { color: var(--pn-warn); }
+
+.pn-aca-cell-actions { width: 44px; text-align: right; }
+.pn-aca-clamp {
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; max-width: 30ch; line-height: 1.35;
+}
+.pn-aca-confirm-extra { width: 100%; margin: 4px 0 12px; text-align: left; border-radius: var(--pn-r); background: var(--pn-card-2); overflow: hidden; }
+
+/* ---- Reordenar ↑↓ ---- */
+.pn-aca-reorder { display: inline-flex; gap: 2px; padding: 2px; border-radius: 999px; background: var(--pn-card-2); border: 1px solid var(--pn-line); }
+.pn-aca-reorder button {
+  width: 36px; height: 36px; border: 0; border-radius: 999px; background: transparent;
+  color: var(--pn-text-2); display: grid; place-items: center; cursor: pointer;
+}
+.pn-aca-reorder button:hover:not(:disabled) { background: var(--pn-hover); color: var(--pn-text); }
+.pn-aca-reorder button:disabled { opacity: .3; cursor: default; }
+@media (pointer: coarse) { .pn-aca-reorder button { width: 40px; height: 40px; } }
+
+/* ---- Cursos ---- */
+.pn-aca-chips { display: inline-flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; align-items: center; }
+.pn-aca-price { font-weight: 650; font-size: var(--pn-fs-sm); color: var(--pn-text); }
+@media (max-width: 640px) {
+  .pn-aca-chips { flex-direction: column; align-items: flex-end; gap: 4px; }
+}
+
+.pn-aca-section .pn-card-head { padding-bottom: 6px; }
+.pn-aca-add-lesson {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: calc(100% - 32px); margin: 6px 16px 10px; min-height: 48px;
+  border: 1px dashed var(--pn-line-2); border-radius: var(--pn-r);
+  background: transparent; color: var(--pn-text-2); font: inherit; font-size: var(--pn-fs-sm); cursor: pointer;
+}
+.pn-aca-add-lesson:hover { background: var(--pn-hover); color: var(--pn-text); }
+
+/* Miniatura 16:9 de YouTube en la fila de la lección. */
+.pn-thumb.pn-aca-lesson-thumb { width: 64px; height: 36px; border-radius: 8px; }
+.pn-row.has-lead:has(.pn-aca-lesson-thumb) { --pn-row-inset: 92px; }
+
+/* Portada: vista previa + URL + subir. */
+.pn-aca-cover { display: grid; grid-template-columns: 168px minmax(0, 1fr); gap: 12px; align-items: start; }
+.pn-aca-cover-preview {
+  aspect-ratio: 1.9 / 1; border-radius: var(--pn-r-sm); overflow: hidden;
+  display: grid; place-items: center; background: var(--pn-card-2); border: 1px solid var(--pn-line); color: var(--pn-text-3);
+}
+.pn-aca-cover.is-square .pn-aca-cover-preview { aspect-ratio: 1 / 1; }
+.pn-aca-cover-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pn-aca-cover-controls { display: grid; gap: 8px; min-width: 0; }
+@media (max-width: 640px) {
+  .pn-aca-cover { grid-template-columns: minmax(0, 1fr); }
+  .pn-aca-cover-preview { max-width: 260px; }
+}
+
+/* Video reconocido (lección / bienvenida). */
+.pn-aca-video {
+  display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 12px; align-items: center;
+  padding: 10px; border-radius: var(--pn-r); background: var(--pn-card-2); border: 1px solid var(--pn-line);
+}
+.pn-aca-video img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--pn-r-sm); display: block; background: var(--pn-card-3); }
+.pn-aca-video > div { display: grid; gap: 4px; min-width: 0; }
+.pn-aca-video b { font-size: var(--pn-fs-sm); color: var(--pn-text); }
+.pn-aca-video small { font-size: var(--pn-fs-xs); color: var(--pn-text-3); }
+.pn-aca-video a { font-size: var(--pn-fs-sm); color: var(--pn-info); text-decoration: none; }
+.pn-aca-video a:hover { text-decoration: underline; }
+.pn-aca-video.is-sm { grid-template-columns: 160px; padding: 6px; justify-self: start; }
+@media (max-width: 420px) { .pn-aca-video { grid-template-columns: 120px minmax(0, 1fr); } }
+
+/* Filas nombre + enlace + quitar (recursos de la lección, enlaces del grupo). */
+.pn-aca-resource { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr) auto; gap: 8px; align-items: center; }
+.pn-aca-resource .pn-field-error { grid-column: 1 / -1; }
+@media (max-width: 640px) {
+  .pn-aca-resource { grid-template-columns: minmax(0, 1fr) auto; }
+  .pn-aca-resource > input:first-child { grid-column: 1 / -1; }
+}
+
+/* ---- Pedidos ---- */
+.pn-aca-ref { display: grid; gap: 2px; font-variant-numeric: tabular-nums; font-size: var(--pn-fs-xs); }
+.pn-aca-ref small { color: var(--pn-text-3); }
+
+/* ---- Ajustes ---- */
+.pn-aca-color { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; }
+.pn-aca-color input[type="color"] {
+  width: 44px; height: 44px; padding: 0; border: 1px solid var(--pn-line-2); border-radius: 12px;
+  background: var(--pn-card-2); cursor: pointer;
+}
+.pn-aca-color input[type="color"]::-webkit-color-swatch-wrapper { padding: 4px; }
+.pn-aca-color input[type="color"]::-webkit-color-swatch { border: 0; border-radius: 8px; }
+/* El texto del mosaico es blanco con sombra: el color lo elige el dueño y
+   puede ser claro u oscuro. */
+.pn-aca-color-tile {
+  width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center;
+  color: #fff; font: 700 var(--pn-fs-sm)/1 var(--font-display); text-shadow: 0 1px 2px rgba(0, 0, 0, .45);
+  border: 1px solid var(--pn-line);
+}
+.pn-aca-levels { display: grid; gap: 12px; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 900px) { .pn-aca-levels { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 420px) { .pn-aca-levels { grid-template-columns: minmax(0, 1fr); } }

@@ -5,14 +5,29 @@ import { ThemeProvider, FloatingThemeToggle } from './components/theme.jsx'
 import EditProvider from './components/edit/EditProvider.jsx'
 import OverridesProvider from './components/edit/OverridesProvider.jsx'
 import { FEATURES } from './features.js'
+import { ACADEMY_BASE } from './academy/hostConfig.js'
+import { r as academyRoutes, isUnderBase as inAcademy } from './academy/routes.js'
 
 // ── Ruteo de lanzamiento de la PWA instalada (iOS "Agregar a inicio") ──────
 // iOS Safari ignora con frecuencia el start_url del manifest y abre la PWA en
-// la última URL vista al instalarla (normalmente la landing "/"). Para que el
-// barbero entre SIEMPRE directo a su acceso, en modo standalone redirigimos el
-// primer arranque: si hay sesión válida → /panel, si no → /ingreso.
+// la última URL vista al instalarla (normalmente la landing "/"). Para que
+// cada uno entre SIEMPRE directo a lo suyo, en modo standalone redirigimos el
+// primer arranque: barbero con sesión → /panel; alumno de la Academy (sin
+// sesión de barbero) → su comunidad; nadie → /ingreso.
 // Sólo se aplica una vez por sesión de la app (sessionStorage), para no romper
 // el botón "Ver web" ni la navegación interna posterior.
+function launchTarget() {
+  // El barbero va primero: Bruno suele ser las dos cosas (dueño de la Academy
+  // y barbero), y su día a día es el panel.
+  try {
+    if (localStorage.getItem('ps_barber')) return '/panel'
+    if (localStorage.getItem('ps_academy_token')) return academyRoutes.path('/comunidad')
+  } catch {
+    // storage bloqueado: login de barbero, como sin sesión
+  }
+  return '/ingreso'
+}
+
 function isStandaloneLaunch() {
   if (typeof window === 'undefined') return false
   return window.navigator.standalone === true ||
@@ -26,10 +41,18 @@ function PWALaunchRouter() {
     if (!isStandaloneLaunch()) return
     if (sessionStorage.getItem('ps_pwa_routed') === '1') return
     sessionStorage.setItem('ps_pwa_routed', '1')
-    // Sólo intervenimos si la app abre en la landing (caso del arranque iOS).
-    if (location.pathname !== '/') return
-    const hasSession = !!localStorage.getItem('ps_barber')
-    navigate(hasSession ? '/panel' : '/ingreso', { replace: true })
+    const target = launchTarget()
+    // Intervenimos si la app abre en la landing (caso del arranque iOS) o en
+    // /panel sin sesión de barbero siendo alumno: el start_url del manifest es
+    // /panel (Android sí lo respeta), y ahí un alumno caería en el login de
+    // barberos. Con sesión de barbero, /panel queda tal cual.
+    const atLanding = location.pathname === '/'
+    const studentAtPanel = location.pathname === '/panel' && inAcademy(target)
+    if (!atLanding && !studentAtPanel) return
+    // La Academy (<base>/(.+)) tiene su propio CSP (más estricto): el CSP de un
+    // documento queda fijo al cargarlo, así que se entra con navegación dura.
+    if (inAcademy(target)) { window.location.replace(target); return }
+    navigate(target, { replace: true })
   }, [])
   return null
 }
@@ -42,7 +65,12 @@ const Account = lazy(() => import('./pages/Account.jsx'))
 const BarberLogin = lazy(() => import('./pages/BarberLogin.jsx'))
 const Dashboard = lazy(() => import('./pages/Dashboard.jsx'))
 const Workshop = lazy(() => import('./pages/Workshop.jsx'))
-const Cursos = lazy(() => import('./pages/Cursos.jsx'))
+// Cursos: la página de venta (/cursos) + páginas de acceso + app del alumno de
+// la Brunetti Academy, todo bajo ACADEMY_BASE/* (src/academy/hostConfig.js;
+// ver src/pages/academy/AcademyRoot.jsx, cuyo índice es src/pages/Cursos.jsx
+// vía host.jsx). La landing y la app del miembro son chunks distintos: un
+// visitante no descarga la app.
+const AcademyRoot = lazy(() => import('./pages/academy/AcademyRoot.jsx'))
 const EncuentraEstilo = lazy(() => import('./pages/EncuentraEstilo.jsx'))
 const Essentials = lazy(() => import('./pages/Essentials.jsx'))
 const EssentialsGracias = lazy(() => import('./pages/EssentialsGracias.jsx'))
@@ -69,7 +97,7 @@ export default function App() {
             <Routes>
               <Route path="/"         element={<Home />} />
               <Route path="/workshop" element={<Workshop />} />
-              <Route path="/cursos"   element={<Cursos />} />
+              <Route path={`${ACADEMY_BASE}/*`} element={<AcademyRoot />} />
               <Route path="/style"    element={<EncuentraEstilo />} />
               <Route path="/essentials" element={<Essentials />} />
               <Route path="/essentials/gracias" element={<EssentialsGracias />} />

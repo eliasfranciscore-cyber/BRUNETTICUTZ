@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { PanelShell, PanelTopbar } from '../components/panel/Shell.jsx'
-import { InlineAlert } from '../components/panel/index.js'
+import { InlineAlert, SkeletonRows } from '../components/panel/index.js'
 import { BARBERS, CLIENTS, EXPENSES, SERVICES, TODAY_BOOKINGS, barberById, isAdminUser, cleanPhone, CLP, santiagoDateKey } from '../data.js'
 import { FEATURES } from '../features.js'
 import { addLocalBooking, mergeBookings, readLocalBookings } from '../bookingsStore.js'
@@ -32,6 +32,12 @@ import ConfigTab from './panel/ConfigTab.jsx'
 import MarketingTab from './panel/MarketingTab.jsx'
 import CajaTab from './panel/CajaTab.jsx'
 import FinanceMovementSheet from './panel/FinanceMovementSheet.jsx'
+import { ACADEMY_VISIBLE } from '../academy/hostConfig.js'
+// Academy va en su propio chunk: es la pestaña más pesada y solo la abre un
+// admin (Bruno). Existe solo con ACADEMY_VISIBLE (src/academy/hostConfig.js):
+// acá buildNav es también la lista del deep link ?tab=, así que en false
+// desaparecen el menú y /panel?tab=academy a la vez.
+const AcademyTab = lazy(() => import('./panel/AcademyTab.jsx'))
 
 /* Catálogo de pestañas del panel: [id, ícono, rótulo, grupo]. El grupo
    ('dia' | 'negocio', ver NAV_GROUPS en components/panel/Shell.jsx) ordena el
@@ -54,6 +60,9 @@ function buildNav({ admin, canViewFinance, canEditServices }) {
     ...(canEditServices ? [["servicios", "cut", "Servicios", "negocio"]] : []),
     ...(admin ? [["essentials", "gift", "Essentials", "negocio"]] : []),
     ["marketing",     "megaphone", "Marketing",     "negocio"],
+    // Brunetti Academy (/cursos): miembros, cursos, grupos y pedidos. Solo
+    // admin; el backend igual vuelve a exigir admin en cada modo admin-*.
+    ...(admin && ACADEMY_VISIBLE ? [["academy", "graduation", "Academy", "negocio"]] : []),
     ["config",        "settings",  "Ajustes",       null],
   ]
 }
@@ -2212,6 +2221,13 @@ export default function Dashboard() {
 
         {/* MARKETING */}
         {tab === "marketing" && <MarketingTab ctx={dash} />}
+
+        {/* ACADEMY (solo admin; carga diferida) */}
+        {tab === "academy" && admin && (
+          <Suspense fallback={<SkeletonRows rows={4} />}>
+            <AcademyTab ctx={dash} />
+          </Suspense>
+        )}
       </main>
 
       {/* Instalar el panel en la pantalla de inicio. Va acá y no en el login

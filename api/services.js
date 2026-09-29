@@ -62,6 +62,23 @@ export default async function handler(req, res) {
   // funciones.
   if (req.query.scope === "shop") return handleProducts(req, res)
   if (req.query.scope === "inventory") return handleInventory(req, res)
+  // Brunetti Academy (/api/academy → rewrite a ?scope=academy, ver
+  // vercel.json). Va en esta función y no en un archivo api/ nuevo por el
+  // tope de 12 funciones del plan Hobby. import() DINÁMICO a propósito: un
+  // import estático que fallara al cargar tumbaría también el catálogo que
+  // usa /reservar (y la app de iOS). Así, lo peor que puede pasar es que solo
+  // /api/academy responda 503.
+  if (req.query.scope === "academy") {
+    let handleAcademy
+    try {
+      ;({ handleAcademy } = await import("./_academy.js"))
+    } catch (err) {
+      console.error("academy: no cargó el router:", err?.message || err)
+      res.setHeader("Cache-Control", "private, no-store")
+      return res.status(503).json({ ok: false, error: "La Academy no está disponible en este momento.", code: "unavailable" })
+    }
+    return handleAcademy(req, res)
+  }
 
   try {
     const sql = neon(process.env.DATABASE_URL)

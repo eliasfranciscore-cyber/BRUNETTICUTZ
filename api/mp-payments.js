@@ -9,6 +9,17 @@
    GET   /api/mp-payments?panel=1&summary=1&from=&to=
                                               (panel interno: "Ventas online" agregadas por rango)
 
+   Brunetti Academy (/cursos) comparte este endpoint en tres puntos, siempre
+   con import() dinámico de api/_academyProvision.js (código compartido con
+   PimpStudio, docs/academy/PORTABLE.md), para que un error al cargar la
+   Academy nunca tumbe Cursos/Workshop/Essentials:
+     POST {kind:'course', …}          → handleCourseCheckout
+     GET  ?status=1&ref=aca-<32 hex>  → handleCourseStatus
+     webhook con external_reference "aca-…" → handleAcademyPayment
+   El resto de este archivo no cambia: las inscripciones viejas de 'cursos'
+   (external_reference en base64) siguen entrando por handleEnrollmentPaid,
+   que es lo que necesitan los reintentos de pagos anteriores.
+
    Fuentes soportadas: 'cursos', 'workshop' (precio fijo, sin carrito) y
    'essentials' (carrito de productos, valida precio/stock contra la DB).
    El sandbox vs producción lo decide Mercado Pago automáticamente según el
@@ -309,6 +320,16 @@ async function ensureShopOrderColumnsSafely(sql) {
    CHECKOUT: crear preferencia de pago en Mercado Pago
    ============================================================ */
 async function handleCheckout(req, res) {
+  // Curso de Brunetti Academy: su orden (academy_orders), su precio (de la
+  // base, congelado en la orden) y su validación viven en
+  // _academyProvision.js. Va antes de validar `source` porque no trae uno.
+  // Los guardas son los mismos que le pone PimpStudio a su checkout: Mercado
+  // Pago configurado y 10 intentos por IP cada 5 minutos. El límite usa el
+  // contador propio de la Academy (academy_rate_limits, sin DDL en este
+  // camino y falla abierto): el rateLimit de _rateLimit.js corre un
+  // CREATE TABLE en cada llamada, y en el checkout no se corre DDL.
+  if (req.body?.kind === 'course') return handleAcademyCheckout(req, res)
+
   const { source, name, email, phone, edition, items } = req.body || {}
 
   if (!SOURCES.includes(source)) {
@@ -380,6 +401,30 @@ async function handleCheckout(req, res) {
   }
 }
 
+async function handleAcademyCheckout(req, res) {
+  if (!process.env.MP_ACCESS_TOKEN) {
+    return res.status(503).json({ ok: false, error: 'El pago en línea todavía no está habilitado' })
+  }
+  let academy
+  let limits
+  try {
+    ;[academy, limits] = await Promise.all([import('./_academyProvision.js'), import('./_academyLimits.js')])
+  } catch (err) {
+    console.error('academy checkout: no cargó el módulo:', err?.message || err)
+    return res.status(503).json({ ok: false, error: 'La Academy no está disponible en este momento.', code: 'unavailable' })
+  }
+  try {
+    const sql = neon(process.env.DATABASE_URL)
+    const allowed = await limits.rateLimit(sql, `aca-checkout-ip:${limits.clientIp(req)}`, { max: 10, windowSeconds: 300 })
+    if (!allowed) return res.status(429).json({ ok: false, error: 'Demasiados intentos. Espera unos minutos.' })
+    return await academy.handleCourseCheckout(sql, req, res)
+  } catch (err) {
+    console.error('academy checkout error:', err?.message || err)
+    if (res.headersSent) return
+    return res.status(500).json({ ok: false, error: 'No se pudo iniciar el pago' })
+  }
+}
+
 /* Valida el carrito de Essentials contra la DB (precio y stock reales, nunca
    confiar en lo que manda el cliente) y crea la orden en estado 'pending'
    antes de pedirle la preferencia a Mercado Pago. */
@@ -431,6 +476,22 @@ async function buildEssentialsOrder({ name, phone, email, items }) {
    STATUS: consulta de solo lectura para la UI (no escribe DB)
    ============================================================ */
 async function handleStatus(req, res) {
+  // Orden de un curso de la Academy (vuelta de Mercado Pago a
+  // /cursos/gracias): vive en academy_orders y se consulta por su ref
+  // aleatoria, no por payment_id. handleCourseStatus lee req.query.ref y solo
+  // devuelve lo que el comprador ya sabe (correo enmascarado).
+  const ref = String(req.query.ref || '')
+  if (/^aca-[a-f0-9]{32}$/.test(ref)) {
+    try {
+      const academy = await import('./_academyProvision.js')
+      return await academy.handleCourseStatus(neon(process.env.DATABASE_URL), req, res)
+    } catch (err) {
+      console.error('academy status error:', err?.message || err)
+      if (res.headersSent) return
+      return res.status(503).json({ ok: false, error: 'No se pudo consultar la orden' })
+    }
+  }
+
   const paymentId = req.query.payment_id
   if (!paymentId) return res.status(400).json({ error: 'Missing payment_id' })
 
@@ -468,11 +529,24 @@ async function handleWebhook(req, res) {
       amount: payment.transaction_amount,
     })
 
+    const ref = String(payment.external_reference || '')
+
+    // Cursos de la Academy (ref "aca-…"): va ANTES del filtro de "aprobado"
+    // porque la Academy también actúa sobre los otros estados (un reembolso o
+    // un contracargo le quita el acceso; un rechazo anula la orden). Se confía
+    // solo en `payment`, que se acaba de pedir a Mercado Pago con nuestro
+    // token, nunca en el body del aviso (este webhook no valida x-signature).
+    // Si el módulo no carga, cae al catch de abajo: 500 y Mercado Pago
+    // reintenta (y el cron de la Academy concilia la orden igual).
+    if (ref.startsWith('aca-')) {
+      const academy = await import('./_academyProvision.js')
+      return await academy.handleAcademyPayment(neon(process.env.DATABASE_URL), payment, String(paymentId), res)
+    }
+
     if (payment.status !== 'approved') {
       return res.status(200).json({ received: true })
     }
 
-    const ref = String(payment.external_reference || '')
     const sql = neon(process.env.DATABASE_URL)
 
     if (ref.startsWith('essentials-')) {

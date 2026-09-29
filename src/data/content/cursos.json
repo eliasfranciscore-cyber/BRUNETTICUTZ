@@ -41,11 +41,11 @@
     "modules": [
       {
         "t": "Bienvenida",
-        "d": "Quién soy y qué vas a lograr aquí — el método, la comunidad y cómo aprovechar Skool.",
+        "d": "Quién soy y qué vas a lograr aquí — el método, la comunidad y cómo aprovechar la Academy.",
         "lessons": [
           "Mi historia como barbero — por qué creé esto",
           "Qué vas a lograr en esta comunidad",
-          "Cómo usar Skool en 3 minutos (en español)"
+          "Cómo usar la Academy en 3 minutos"
         ]
       },
       {
@@ -101,6 +101,6 @@
   "checkout": {
     "kicker": "Acceso inmediato",
     "h2": "Empieza Hoy Mismo.",
-    "body": "Un pago único. Acceso de por vida a los 6 módulos en la comunidad Brunetti en Skool."
+    "body": "Un pago único. Acceso de por vida a los 6 módulos en la Brunetti Academy."
   }
 }

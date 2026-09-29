@@ -4,6 +4,23 @@ import react from '@vitejs/plugin-react'
 // `vite` (serve). Sin la variable no registra nada. Ver scripts/dev-mock.
 import devMockPlugin from './scripts/dev-mock/index.mjs'
 
+/* Mock de la API de la Brunetti Academy (docs/academy/SPEC.md §13,
+   docs/academy/PORTABLE.md): SOLO con VITE_DEV_MOCKS=1 (`npm run dev:mock`
+   o la config "dev-mock" de .claude/launch.json). Sin la variable ni
+   siquiera se importa, así `npm run dev` y `vite build` quedan exactamente
+   como antes.
+   scripts/dev-mock/academy/ es código COMPARTIDO con PimpStudio (lo copia
+   scripts/academy-sync.mjs); lo propio de acá está en
+   scripts/dev-mock/academy/host.mjs (base /cursos, checkout en
+   /api/mp-payments, marca, barbero 6).
+   El import es con una URL armada en tiempo de ejecución a propósito: así
+   esbuild no lo empaqueta dentro del config y Node carga los archivos del
+   mock tal cual (sus import.meta.url, rutas relativas y el top-level await
+   de host.mjs siguen valiendo). */
+const academyDevMock = process.env.VITE_DEV_MOCKS === '1'
+  ? (await import(new URL('./scripts/dev-mock/academy/index.mjs', import.meta.url).href)).default()
+  : null
+
 // A dónde vuelve el navegador después de pagar. Essentials tiene su propia
 // página de gracias (igual que los back_urls de api/mp-payments.js).
 const SOURCE_PATHS = { cursos: '/cursos', workshop: '/workshop', essentials: '/essentials/gracias' }
@@ -68,10 +85,17 @@ const mockMpPlugin = {
 }
 
 export default defineConfig({
-  // El mock de API va ANTES que el de Mercado Pago: con VITE_DEV_MOCKS=1
-  // contesta él (también el checkout); sin la variable pasa todo de largo y
-  // el mock de Mercado Pago sigue funcionando como siempre.
-  plugins: [react(), devMockPlugin({ returnPaths: SOURCE_PATHS }), mockMpPlugin],
+  // Orden de los middlewares = orden de los plugins (todos se montan en el
+  // pre-hook de configureServer):
+  //   1. academyDevMock (solo VITE_DEV_MOCKS=1): /api/academy, el checkout de
+  //      cursos en /api/mp-payments (POST kind:'course' y GET ?status=1&ref=aca-…)
+  //      y /api/__mock/academy/*. Lo demás sigue con next() — un POST que no es
+  //      de un curso se re-emite con el mismo body para el mock de abajo — y
+  //      /api/__mock/reset y /state los contestan los dos (cada uno lo suyo).
+  //   2. devMockPlugin (solo VITE_DEV_MOCKS=1): el resto de /api/* de acá,
+  //      incluido el checkout de Workshop/Essentials.
+  //   3. mockMpPlugin: sin la variable, el Mercado Pago de siempre.
+  plugins: [react(), academyDevMock, devMockPlugin({ returnPaths: SOURCE_PATHS }), mockMpPlugin].filter(Boolean),
   server: {
     port: parseInt(process.env.PORT) || 5173,
     strictPort: false,

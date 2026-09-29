@@ -487,6 +487,57 @@ Lo que `bridge-manual` agrega sobre la del panel, todo bajo `bridge: true` (el a
 
 **Cupo de funciones:** este proyecto está en **11/12** Serverless Functions (tope del plan Hobby) — `register-client` se plegó en `clients.js?mode=register` (con un rewrite en `vercel.json` para que la app iOS, que sigue llamando a `/api/register-client`, no se entere), dejando un cupo libre. Aun así **no conviene agregar un archivo nuevo a `api/`** salvo que sea imprescindible: todo lo nuevo va como `?mode=` dentro de un endpoint existente (fidelidad como `?mode=wallet-*` en `api/clients.js`, reseñas/ajustes como `?mode=me|settings|shop-settings|reviews|review` en `api/barbers.js`, etc.), y la lógica compartida en archivos con prefijo `_` (que Vercel no cuenta).
 
+## Brunetti Academy (`/cursos`, desde 2026-09-29)
+
+Academia de miembros tipo Skool, **idéntica** a la de PimpStudio (`pimpstudio.cl/academy`, allá
+oculta): la página pública de `/cursos` (`Cursos.jsx`) sigue siendo la portada y la app de alumnos
+vive en `/cursos/*` con Comunidad, Cursos, Calendario, Miembros, Clasificación, Acerca de, chat
+directo, Grupos (generaciones con chat grupal), notificaciones, niveles 1–9 y eventos. Pago único
+por curso con Mercado Pago → acceso de por vida. Contrato completo en
+[`docs/academy/SPEC.md`](docs/academy/SPEC.md).
+
+- **Módulo portable, no se edita acá**: el código compartido (`api/_academy*.js`, `api/_webpush.js`,
+  `src/academy/**`, `src/pages/academy/**`, `src/components/academy/**`, `src/styles/academy/**`,
+  la pestaña `AcademyTab` del panel, `scripts/dev-mock/academy/**`, `docs/academy/**`) se copia
+  desde PimpStudio con `node scripts/academy-sync.mjs ../BRUNETTICUTZ` (ejecutado desde el repo de
+  PimpStudio). Un cambio se hace allá y se sincroniza; si se edita acá, el próximo sync lo pisa.
+  Lo propio de este sitio son **4 archivos del host**: `api/_academyHost.js` (marca, `/cursos`,
+  `sessionInfo`, webhook, `requireBarberAdmin`, `notifyStaff`), `src/academy/hostConfig.js`,
+  `src/academy/host.jsx` y `scripts/dev-mock/academy/host.mjs`, más los puntos de enganche
+  listados en [`docs/academy/PORTABLE.md`](docs/academy/PORTABLE.md).
+- **Sin función nueva** (seguimos en 11/12): `/api/academy` es un rewrite a
+  `/api/services?scope=academy`, que carga `api/_academy.js` con `import()` dinámico — si la
+  Academy no carga, el catálogo de `/reservar` sigue andando.
+- **Sesiones de alumno SEPARADAS de las del barbero** (regla crítica): token `m1.<payload>.<mac>`
+  firmado en `api/_academySession.js` con una llave derivada por HKDF de `PS_SESSION_SECRET` y el
+  `sessionInfo` de este sitio (`brunetticutz:academy:member:v1`, no se cambia nunca en
+  producción: desloguea a todos los alumnos). `readSession` de `api/_auth.js` exige exactamente
+  2 partes, compara en tiempo constante y rechaza cualquier `typ` que no sea `barber` (los tokens
+  viejos sin `typ` siguen valiendo). Nunca firmar un alumno con `createSession`.
+- **Admin de la Academy** = `requireBarberAdmin` del host: token de barbero con `exp` y
+  `admin: true`, **y** la fila de `barbers` existe, está activa y cumple la regla de admin de
+  siempre (nombre/usuario/rol). "Abrir Academy" desde la pestaña del panel entra como propietario.
+- **Mismo origen que el panel** (el token de Bruno vive en este localStorage): `/cursos/(.*)` tiene
+  su propio `Content-Security-Policy` **enforced** y sin `'unsafe-inline'` en `script-src`
+  (`vercel.json`), el mismo de PimpStudio; el resto del sitio sigue con el `Report-Only` global.
+- **Pago**: todo por `api/mp-payments.js`, que desvía a `api/_academyProvision.js` en tres puntos:
+  `POST {kind:'course'}` (con Mercado Pago configurado y 10 intentos por IP cada 5 min),
+  `GET ?status=1&ref=aca-<32hex>` y el webhook cuando `external_reference` empieza con `aca-`
+  (**antes** del filtro de "aprobado": un reembolso revoca el acceso). El webhook crea la cuenta y
+  el acceso en un solo statement y manda usuario + contraseña temporal una sola vez aunque Mercado
+  Pago repita el aviso. Las inscripciones viejas de `source: 'cursos'` (base64) siguen entrando
+  como siempre. Tablas `academy_*` (sección al final de `db/schema.sql`), migradas solas por
+  `ensureAcademyTables` (nunca desde el checkout, el webhook ni el login público).
+- **Cron**: tercera tanda de `GET /api/push?job=reminders` (después del autocompletar, fuera del
+  500 de los recordatorios, solo con `CRON_SECRET`): conciliación de pedidos, credenciales
+  pendientes, recordatorios de eventos, resumen de actividad y limpieza. `?job=academy`
+  (`CRON_SECRET` obligatorio, `&force=1`) la corre sola. Los avisos al panel van a los barberos
+  admin (fila propia en `notifications` + `notifyBarber` sin log), nunca por `notifyAll`.
+- **Push**: `public/sw.js` abre cada aviso en su sección — los del panel exactamente como antes
+  (`/panel`), los de la Academy en `/cursos/...`.
+- **Probar sin base**: `VITE_DEV_MOCKS=1 npm run dev` también monta el mock de la Academy
+  (`scripts/dev-mock/academy/`, alumnos de prueba con contraseña `academy123`).
+
 ## Native iOS App
 
 `ios/BrunettiCutz/` is a native SwiftUI companion app (barber dashboard client), separate from the web PWA above. It talks to the same `/api` backend.
