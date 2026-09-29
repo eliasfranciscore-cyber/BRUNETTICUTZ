@@ -29,7 +29,7 @@ export const HOST = {
   basePath: '/academy',                    // '/cursos'
   defaultSiteUrl: 'https://pimpstudio.cl', // 'https://brunetticutz.cl'
   sessionInfo: 'pimpstudio:academy:member:v1', // 'brunetticutz:academy:member:v1'  (HKDF info: llaves distintas por sitio)
-  statementDescriptor: 'PIMP ACADEMY',     // 'BRUNETTI ACADEMY'
+  statementDescriptor: 'PIMP ACADEMY',     // 'BRUNETTI'  (Mercado Pago: hasta 13 caracteres)
   mpNotificationPath: '/api/mp-webhook',   // '/api/mp-payments?webhook=1'
   brand: { name: 'Pimp Studio Academy', short: 'Academy', initials: 'PA', siteName: 'Pimp Studio',
            emailFromName: 'Pimp Studio Academy', logoPath: '/assets/pimpstudio-icon-192.png', color: '#1c1c1c',

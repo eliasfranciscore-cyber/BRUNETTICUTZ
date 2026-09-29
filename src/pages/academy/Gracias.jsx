@@ -19,7 +19,10 @@ import '../../styles/academy/app.css'
    Como el webhook puede tardar unos segundos, mientras siga `pendiente` se
    vuelve a preguntar cada 2,5 s, hasta 10 veces. Después se ofrece
    "Actualizar" en vez de decir "no se pagó", que sería mentirle a alguien
-   que acaba de pagar. El acceso (usuario + contraseña temporal) llega por
+   que acaba de pagar. La única excepción: si Mercado Pago volvió diciendo
+   que el pago fue rechazado o abandonado (collection_status), no se le pide
+   que espere ni se le dice "no hace falta pagar de nuevo" — se le ofrece
+   reintentar. Ese parámetro solo cambia el mensaje, nunca da acceso. El acceso (usuario + contraseña temporal) llega por
    correo: acá solo se muestra a qué correo (enmascarado).
 
    El botón de entrar es navegación dura: esta página puede haberse abierto
@@ -63,6 +66,16 @@ export default function Gracias() {
       return ''
     }
   })
+  // Pista de la URL de vuelta de Mercado Pago (la escribe cualquiera: solo
+  // decide el mensaje de una orden que el servidor todavía ve pendiente).
+  const [notPaidHint] = useState(() => {
+    try {
+      const q = new URLSearchParams(window.location.search)
+      return ['rejected', 'cancelled', 'null'].includes(q.get('collection_status') || q.get('status') || '')
+    } catch {
+      return false
+    }
+  })
   const [order, setOrder] = useState(undefined) // undefined = cargando, null = no existe
   const [error, setError] = useState(null)
   const [tries, setTries] = useState(0)
@@ -100,12 +113,12 @@ export default function Gracias() {
   // Mientras siga pendiente (o la consulta falló por red), reintentar.
   useEffect(() => {
     if (!ref || tries >= MAX_TRIES) return undefined
-    if (!(status === 'pendiente' || (order === undefined && error))) return undefined
+    if (!((status === 'pendiente' && !notPaidHint) || (order === undefined && error))) return undefined
     const t = setTimeout(() => setTries((n) => n + 1), INTERVAL_MS)
     return () => clearTimeout(t)
-  }, [ref, status, order, error, tries])
+  }, [ref, status, order, error, tries, notPaidHint])
 
-  const waiting = tries < MAX_TRIES && (status === 'pendiente' || order === undefined)
+  const waiting = tries < MAX_TRIES && (order === undefined || (status === 'pendiente' && !notPaidHint))
   const stillPending = status === 'pendiente'
   const email = order?.emailMasked || ''
   const courseTitle = order?.course?.title || ''
@@ -188,6 +201,17 @@ export default function Gracias() {
     return (
       <AuthShell title="Estamos revisando tu pago" subtitle="El pago llegó, pero necesitamos confirmarlo a mano. Te escribimos apenas esté listo (normalmente el mismo día)." footer={footer}>
         <div className="aca-auth-form">{receipt}</div>
+      </AuthShell>
+    )
+  }
+
+  if (stillPending && notPaidHint) {
+    return (
+      <AuthShell title="El pago no se completó" subtitle="Mercado Pago no aprobó el pago, así que no se te cobró. Puedes intentarlo de nuevo con otro medio de pago." footer={footer}>
+        <div className="aca-auth-form">
+          {receipt}
+          <Button variant="primary" size="lg" block onClick={() => window.location.assign(r.catalog)}>Intentar de nuevo</Button>
+        </div>
       </AuthShell>
     )
   }

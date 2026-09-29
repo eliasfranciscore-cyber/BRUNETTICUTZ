@@ -24,7 +24,11 @@ export const HOST = {
   basePath: "/cursos",
   defaultSiteUrl: "https://brunetticutz.cl",
   sessionInfo: "brunetticutz:academy:member:v1",
-  statementDescriptor: "BRUNETTI ACADEMY",
+  // Texto de la cartola: Mercado Pago documenta hasta 13 caracteres
+  // (Checkout Pro → "Descripción en la factura"). "BRUNETTI ACADEMY" (16) se
+  // salía del contrato; "BRUNETTI" es el mismo que ya manda en producción el
+  // checkout de siempre (api/mp-payments.js) con este MP_ACCESS_TOKEN.
+  statementDescriptor: "BRUNETTI",
   // El webhook de Mercado Pago de este sitio es el de siempre
   // (api/mp-payments.js), que reparte por external_reference: "aca-…" va a
   // la Academy, lo demás sigue por Cursos/Workshop/Essentials.

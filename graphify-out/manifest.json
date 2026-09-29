@@ -1315,8 +1315,8 @@
     "semantic_hash": ""
   },
   "src/components/MercadoPagoCheckout.jsx": {
-    "mtime": 1790694444.2212698,
-    "ast_hash": "7c7e7f993ecfcff9ecfc63a01898f0d7",
+    "mtime": 1790702254.6118593,
+    "ast_hash": "f5b5b5494aadd039a1c0ba59308d5053",
     "semantic_hash": ""
   },
   "src/components/NewEnrollmentModal.jsx": {
@@ -2725,8 +2725,8 @@
     "semantic_hash": ""
   },
   "api/_academyHost.js": {
-    "mtime": 1790693738.058213,
-    "ast_hash": "3eee5715fdf98b384fa81bc4c3e22a37",
+    "mtime": 1790724656.261449,
+    "ast_hash": "ba439ed6e64ad67439760952a32e22c7",
     "semantic_hash": ""
   },
   "api/_academyHttp.js": {
@@ -2830,8 +2830,8 @@
     "semantic_hash": ""
   },
   "scripts/dev-mock/academy/host.mjs": {
-    "mtime": 1790694809.302358,
-    "ast_hash": "1326bd377244707b4f604f024dd15fd8",
+    "mtime": 1790702254.6125772,
+    "ast_hash": "e960d2a2081038f08c3aa57db74fdba3",
     "semantic_hash": ""
   },
   "scripts/dev-mock/academy/index.mjs": {
@@ -2885,8 +2885,8 @@
     "semantic_hash": ""
   },
   "src/academy/host.jsx": {
-    "mtime": 1790693936.6392689,
-    "ast_hash": "02645ebc001005d4d25a21a9037f532e",
+    "mtime": 1790723672.139718,
+    "ast_hash": "e2d0b43f2aa2aa4bd5266a8605a0c4ea",
     "semantic_hash": ""
   },
   "src/academy/hostConfig.js": {
@@ -3260,8 +3260,8 @@
     "semantic_hash": ""
   },
   "src/pages/academy/LeccionPage.jsx": {
-    "mtime": 1790693390.432524,
-    "ast_hash": "69d8b99778207aa54439fa632be5130e",
+    "mtime": 1790702254.7752602,
+    "ast_hash": "a208766c45bc48afe43d801a957ee304",
     "semantic_hash": ""
   },
   "src/pages/academy/PerfilPage.jsx": {
