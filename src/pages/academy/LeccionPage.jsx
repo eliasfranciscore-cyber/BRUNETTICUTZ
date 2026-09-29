@@ -222,7 +222,16 @@ export default function LeccionPage() {
                   setQueryData(lessonKey, (d) => (d?.lesson?.id === id ? { ...d, lesson: { ...d.lesson, positionSec: pos } } : d))
                 }}
               />
-            ) : null}
+            ) : (
+              // Lección publicada antes de tener su video (el curso se abre a la
+              // venta con el temario completo y los videos se van subiendo):
+              // un aviso en el lugar del video, no un hueco.
+              <div className="aca-lsoon" role="note">
+                <span className="aca-lsoon-ico" aria-hidden="true"><Icon name="video" size={22} /></span>
+                <p className="aca-lsoon-title">El video de esta lección se publica pronto</p>
+                <p className="aca-lsoon-text">Mientras, deja tus preguntas en los comentarios: las respondemos acá mismo.</p>
+              </div>
+            )}
 
             <header className="aca-lhead">
               <div className="aca-lhead-text">

@@ -69,9 +69,10 @@ export const BRUNETTI_METODO = {
   // imágenes de /assets/). No el recorte del hero, que sin fondo se ve vacío
   // dentro de una tarjeta.
   coverUrl: '/assets/bruno-hero.jpg',
-  // Precio de lanzamiento de siempre. Viaja en el seed, pero el curso nace
-  // sin publicar y con las ventas cerradas: se abre desde el panel.
-  priceOnline: 9990,
+  // El precio con el que se vende hoy en /cursos (el `cursos_price` de
+  // Ajustes, $16.990 desde septiembre de 2026). Viaja en el seed, pero el
+  // curso nace sin publicar y con las ventas cerradas: se abre desde el panel.
+  priceOnline: 16990,
 }
 
 const ACADEMY_HOWTO = 'Cómo usar la Academy en 3 minutos'

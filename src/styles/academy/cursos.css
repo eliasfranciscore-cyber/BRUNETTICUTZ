@@ -393,6 +393,21 @@ a.aca-lrow:focus-visible { outline: 2px solid var(--aca-cur-link); outline-offse
 .aca-ldone.is-on { border-color: color-mix(in srgb, var(--aca-cur-green) 45%, transparent); color: var(--aca-cur-green); }
 .aca-ldone.is-on .aca-ldone-ico { background: var(--aca-cur-green); border-color: var(--aca-cur-green); color: var(--aca-cur-on-green); }
 
+.aca-lsoon {
+  aspect-ratio: 16 / 9; width: 100%; border-radius: var(--aca-cur-radius);
+  border: 1px dashed var(--aca-cur-line); background: var(--aca-cur-soft);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; padding: 24px; text-align: center; color: var(--aca-cur-muted);
+}
+.aca-lsoon-ico {
+  width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--aca-cur-surface); border: 1px solid var(--aca-cur-line); color: var(--aca-cur-text-2);
+  margin-bottom: 4px;
+}
+.aca-lsoon-title { margin: 0; font-size: 1rem; font-weight: 600; color: var(--aca-cur-text); }
+.aca-lsoon-text { margin: 0; font-size: .875rem; line-height: 1.5; max-width: 42ch; }
+@media (max-width: 560px) { .aca-lsoon { aspect-ratio: auto; min-height: 180px; } }
+
 .aca-lbody {
   font-size: 1rem; line-height: 1.65; color: var(--aca-cur-text); white-space: pre-line; overflow-wrap: anywhere;
 }

@@ -32,5 +32,5 @@ export const MOCK_HOST = {
     return [metodoBrunetti]
   },
   // Mismo precio que el curso real de /cursos (src/academy/host.jsx).
-  courseCfg: { 'brunetti-metodo': { price_online: 9990 } },
+  courseCfg: { 'brunetti-metodo': { price_online: 16990 } },
 }

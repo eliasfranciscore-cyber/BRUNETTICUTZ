@@ -110,7 +110,7 @@ export default function MercadoPagoCheckout() {
   const [error, setError] = useState(null) // null | { text, login? }
   const [redirecting, setRedirecting] = useState(false)
   const [returnStatus, setReturnStatus] = useState(null) // null | 'checking' | 'paid' | 'pending' | 'failed'
-  const [settingsPrice, setSettingsPrice] = useState(9990) // respaldo: Ajustes → Precios y fechas
+  const [settingsPrice, setSettingsPrice] = useState(16990) // respaldo: Ajustes → Precios y fechas (cursos_price en producción)
 
   const course = catalog.course
   const catalogPrice = course && course.published ? validPrice(course.priceOnline) : null
