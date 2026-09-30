@@ -98,10 +98,10 @@ export default function App() {
               <Route path="/"         element={<Home />} />
               <Route path="/workshop" element={<Workshop />} />
               <Route path={`${ACADEMY_BASE}/*`} element={<AcademyRoot />} />
-              <Route path="/style"    element={<EncuentraEstilo />} />
+              <Route path="/style"    element={FEATURES.tuEstilo ? <EncuentraEstilo /> : <Navigate to="/" replace />} />
               <Route path="/essentials" element={<Essentials />} />
               <Route path="/essentials/gracias" element={<EssentialsGracias />} />
-              <Route path="/encuentra-tu-estilo" element={<Navigate to="/style" replace />} />
+              <Route path="/encuentra-tu-estilo" element={<Navigate to={FEATURES.tuEstilo ? '/style' : '/'} replace />} />
               <Route path="/login"    element={<Login />} />
               <Route path="/reservar" element={<Booking />} />
               <Route path="/cuenta"   element={<Account />} />

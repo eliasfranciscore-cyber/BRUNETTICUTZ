@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Icon } from './ui.jsx'
+import { FEATURES } from '../features.js'
 import './SiteNav.css'
 
 /* Navbar global del sitio. Persiste en todas las páginas (Home, Workshop, ...).
@@ -23,6 +24,13 @@ const NAV = [
   ["essentials","Essentials"],
   ["contacto",  "Contacto"],
 ]
+// Secciones ocultas a los clientes (ver FEATURES): fuera del menú.
+const HIDDEN = {
+  visagismo: !FEATURES.visagismo,
+  sobre: !FEATURES.sobreBruno,
+  style: !FEATURES.tuEstilo,
+}
+const LINKS = NAV.filter(([id]) => !HIDDEN[id])
 
 export default function SiteNav({ onSection, scrolled: scrolledProp }) {
   const navigate = useNavigate()
@@ -105,7 +113,7 @@ export default function SiteNav({ onSection, scrolled: scrolledProp }) {
           />
         </a>
         <nav className="home-nav-links">
-          {NAV.map(([id, label]) => (
+          {LINKS.map(([id, label]) => (
             <button
               key={id}
               onClick={() => handleNav(id)}
@@ -135,7 +143,7 @@ export default function SiteNav({ onSection, scrolled: scrolledProp }) {
       {menuOpen && <div className="site-nav-backdrop" onClick={() => setMenuOpen(false)} />}
 
       <div className={`site-nav-sheet ${menuOpen ? "is-open" : ""}`} role="menu">
-        {NAV.map(([id, label]) => (
+        {LINKS.map(([id, label]) => (
           <button
             key={id}
             role="menuitem"

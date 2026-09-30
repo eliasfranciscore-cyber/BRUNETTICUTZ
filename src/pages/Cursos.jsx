@@ -9,6 +9,7 @@ import { useTheme } from '../components/theme.jsx'
 import MercadoPagoCheckout from '../components/MercadoPagoCheckout.jsx'
 import { EditableText } from '../components/edit/EditableText.jsx'
 import { Editable } from '../components/edit/Editable.jsx'
+import { FEATURES } from '../features.js'
 import CURSOS from '../data/content/cursos.json'
 import { hasSession } from '../academy/session.js'
 import { r } from '../academy/routes.js'
@@ -211,11 +212,11 @@ export default function Cursos() {
           [() => goAnchor('curriculum'), 'Programa'],
           [() => goAnchor('inscripcion'), 'Acceder'],
           [goToAcademy, 'Entrar a la Academy'],
-          [() => goHomeSection('visagismo'), 'Visagismo'],
+          FEATURES.visagismo && [() => goHomeSection('visagismo'), 'Visagismo'],
           [() => navigate('/workshop'), 'Workshop'],
           [() => goAnchor('terminos'), 'Términos y privacidad'],
           [() => goHomeSection('contacto'), 'Contacto'],
-        ]}
+        ].filter(Boolean)}
         onPrimary={() => goAnchor('inscripcion')}
         primaryLabel="Acceder al curso"
       />

@@ -23,4 +23,12 @@ export const FEATURES = {
   singleDay: true,        // servicios de un solo día
   reviews: true,          // reseñas (/resena y tarjeta en Resumen)
   passwordReset: true,    // restablecer contraseña por correo y bloqueo del servidor
+
+  /* Secciones de la web pública, ocultas a los clientes desde el 2026-09-30.
+     Apagada, una sección no se dibuja en la landing ni aparece en el menú
+     (SiteNav) ni en los footers; /style (y /encuentra-tu-estilo) redirige a
+     la portada. Para volver a mostrarla basta con ponerla en true. */
+  visagismo: false,       // sección "Visagismo" de la landing
+  sobreBruno: false,      // sección "Sobre Bruno" de la landing
+  tuEstilo: false,        // "Encuentra tu estilo": teaser de la landing y página /style
 }

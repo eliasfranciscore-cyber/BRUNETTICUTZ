@@ -9,6 +9,7 @@ import { InteractiveSelector } from '../components/ui/interactive-selector.jsx'
 import { Sparkles } from '../components/ui/sparkles.jsx'
 import { useTheme } from '../components/theme.jsx'
 import { CLP } from '../data.js'
+import { FEATURES } from '../features.js'
 import { EditableText, EditContext } from '../components/edit/EditableText.jsx'
 import { Editable } from '../components/edit/Editable.jsx'
 import HERO from '../data/content/home-hero.json'
@@ -344,6 +345,7 @@ export default function Home() {
         </div>
 
         {/* ============ VISAGISMO ============ */}
+        {FEATURES.visagismo && (
         <section id="visagismo" className="bsection bsection--full">
           <div className="bwrap">
             <div className="bhead center" data-reveal>
@@ -366,8 +368,10 @@ export default function Home() {
             />
           </div>
         </section>
+        )}
 
         {/* ============ ENCUENTRA TU ESTILO (teaser → /style) ============ */}
+        {FEATURES.tuEstilo && (
         <section className="bsection" id="estilo-teaser">
           <div className="bwrap">
             <div className="bteaser" data-reveal="scale">
@@ -386,8 +390,10 @@ export default function Home() {
             </div>
           </div>
         </section>
+        )}
 
         {/* ============ SOBRE BRUNO ============ */}
+        {FEATURES.sobreBruno && (
         <section id="sobre" className="bsection">
           <div className="bwrap babout">
             <div data-reveal="left">
@@ -412,6 +418,7 @@ export default function Home() {
             </div>
           </div>
         </section>
+        )}
 
         {/* ============ SERVICIOS ============ */}
         <section id="servicios" className="bsection">
@@ -617,13 +624,13 @@ export default function Home() {
       <ModuleFooter
         logoSrc="/assets/brunetti-hero-wordmark.webp"
         links={[
-          [() => navTo('visagismo'), 'Visagismo'],
+          FEATURES.visagismo && [() => navTo('visagismo'), 'Visagismo'],
           [() => navTo('servicios'), 'Servicios'],
-          [goStyle, 'Encuentra tu estilo'],
+          FEATURES.tuEstilo && [goStyle, 'Encuentra tu estilo'],
           [goCursos, 'Cursos'],
           [goWorkshop, 'Workshop'],
           [() => navTo('contacto'), 'Contacto'],
-        ]}
+        ].filter(Boolean)}
         onPrimary={goReserve}
         primaryLabel="Reservar hora"
       />
