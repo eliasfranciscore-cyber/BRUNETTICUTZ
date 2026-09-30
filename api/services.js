@@ -8,7 +8,7 @@ const STATIC_SERVICES = [
   { id: 6,  name: "Corte de cabello",               price: 15990, min: 60,  cat: "general",  tne: true,  active: false, desc: "Corte completo de principio a fin: largo, forma y terminación. El indicado si es tu primera vez." },
   { id: 7,  name: "Corte + perfilado de barba",     price: 22990, min: 75,  cat: "general",  tne: true,  active: false, desc: "Corte completo más perfilado de barba, todo en la misma sesión." },
   { id: 8,  name: "Perfilado de barba",             price: 11990, min: 45,  cat: "general",  tne: true,  active: false, desc: "Solo barba: perfilado, contornos y arreglo. No incluye corte de pelo." },
-  { id: 9,  name: "Solo fade",                      price: 11990,  min: 40,  cat: "general",  tne: true,  desc: "Solo mantención de un fade ya hecho. No es un corte completo: si es tu primera vez acá, elige Corte de cabello." },
+  { id: 9,  name: "Solo fade",                      price: 11990,  min: 40,  cat: "general",  tne: true,  showOnHome: false, desc: "Solo mantención de un fade ya hecho. No es un corte completo: si es tu primera vez acá, elige Corte de cabello." },
   { id: 10, name: "Asesoría de Imagen · Visagista", price: 49990, min: 120, cat: "premium",  tne: false, desc: "Análisis de tu fisonomía para definir el estilo que te favorece y cómo llevarlo." },
   { id: 11, name: "Corte de cabello",               price: 19990, min: 60,  cat: "premium",  tne: false, desc: "Corte completo de principio a fin: largo, forma y terminación. El indicado si es tu primera vez." },
   { id: 12, name: "Corte de cabello y barba",       price: 29990, min: 90,  cat: "premium",  tne: false, desc: "Corte completo y barba perfilada, con terminación de detalle." },
@@ -51,6 +51,7 @@ function staticServices({ includeInactive }) {
       active: service.active !== false,
       featured: service.featured === true,
       onlyOnDate: null,
+      showOnHome: service.showOnHome !== false,
       ...(includeInactive ? { loyaltyEligible: service.loyaltyEligible !== false } : {}),
     }))
     .filter((service) => includeInactive || service.active)
@@ -89,7 +90,7 @@ export default async function handler(req, res) {
         const session = requireInternal(req, res)
         if (!session) return
       }
-      /* featured / only_on_date / loyalty_eligible se leen por to_jsonb: esta
+      /* featured / only_on_date / loyalty_eligible / show_on_home se leen por to_jsonb: esta
          lectura no corre la migración (la corren POST y PATCH) y da NULL si la
          columna todavía no existe, así que el catálogo nunca depende de ella.
 
@@ -108,14 +109,16 @@ export default async function handler(req, res) {
             SELECT id, name, price, duration_min as min, category as cat, tne_eligible as tne, description as desc, active,
                    COALESCE((to_jsonb(s)->>'featured')::boolean, false) AS featured,
                    to_jsonb(s)->>'only_on_date' AS "onlyOnDate",
-                   COALESCE((to_jsonb(s)->>'loyalty_eligible')::boolean, true) AS "loyaltyEligible"
+                   COALESCE((to_jsonb(s)->>'loyalty_eligible')::boolean, true) AS "loyaltyEligible",
+                   COALESCE((to_jsonb(s)->>'show_on_home')::boolean, true) AS "showOnHome"
             FROM services s
             ORDER BY id
           `
         : await sql`
             SELECT id, name, price, duration_min as min, category as cat, tne_eligible as tne, description as desc, active,
                    COALESCE((to_jsonb(s)->>'featured')::boolean, false) AS featured,
-                   to_jsonb(s)->>'only_on_date' AS "onlyOnDate"
+                   to_jsonb(s)->>'only_on_date' AS "onlyOnDate",
+                   COALESCE((to_jsonb(s)->>'show_on_home')::boolean, true) AS "showOnHome"
             FROM services s
             WHERE s.active = true
               AND ((to_jsonb(s)->>'only_on_date') IS NULL
@@ -159,14 +162,14 @@ export default async function handler(req, res) {
       const onlyOnDate = readOnlyOnDate(body)
       if (onlyOnDate.error) return res.status(400).json({ ok: false, error: onlyOnDate.error })
       await ensureServiceColumns(sql)
-      // Defaults de un servicio nuevo: no destacado, todos los días y "Suma
-      // estrella" (como todo el catálogo hasta hoy).
+      // Defaults de un servicio nuevo: no destacado, todos los días, "Suma
+      // estrella" y en el home (como todo el catálogo hasta hoy).
       const [service] = await sql`
-        INSERT INTO services (id, name, price, duration_min, category, tne_eligible, description, active, featured, only_on_date, loyalty_eligible)
+        INSERT INTO services (id, name, price, duration_min, category, tne_eligible, description, active, featured, only_on_date, loyalty_eligible, show_on_home)
         VALUES ((SELECT COALESCE(MAX(id), 0) + 1 FROM services), ${String(name).trim()}, ${Number(price)}, ${Number(min)}, ${cat}, ${Boolean(tne)}, ${String(desc || "").trim()}, true,
-                ${body.featured === true}, ${onlyOnDate.value}::date, ${body.loyaltyEligible !== false})
+                ${body.featured === true}, ${onlyOnDate.value}::date, ${body.loyaltyEligible !== false}, ${body.showOnHome !== false})
         RETURNING id, name, price, duration_min as min, category as cat, tne_eligible as tne, description as desc, active,
-                  featured, only_on_date::text AS "onlyOnDate", loyalty_eligible AS "loyaltyEligible"
+                  featured, only_on_date::text AS "onlyOnDate", loyalty_eligible AS "loyaltyEligible", show_on_home AS "showOnHome"
       `
       return res.json({ ok: true, service })
     }
@@ -175,7 +178,8 @@ export default async function handler(req, res) {
       const body = req.body || {}
       const { id, name, price, min, cat, tne, desc, active } = body
       if (!id) return res.status(400).json({ ok: false, error: "id requerido" })
-      /* Los tres campos nuevos solo se escriben si la llave vino en el body
+      /* Los campos nuevos (featured, onlyOnDate, loyaltyEligible,
+         showOnHome) solo se escriben si la llave vino en el body
          (hasOwnProperty), con CASE WHEN y un booleano: la app de iOS y el
          panel viejo mandan el servicio sin ellos y no se los pueden resetear,
          y con un COALESCE no habría forma de BORRAR la fecha de un servicio
@@ -184,6 +188,7 @@ export default async function handler(req, res) {
       if (onlyOnDate.error) return res.status(400).json({ ok: false, error: onlyOnDate.error })
       const touchFeatured = has(body, "featured") && typeof body.featured === "boolean"
       const touchLoyalty = has(body, "loyaltyEligible") && typeof body.loyaltyEligible === "boolean"
+      const touchHome = has(body, "showOnHome") && typeof body.showOnHome === "boolean"
       await ensureServiceColumns(sql)
       const [service] = await sql`
         UPDATE services SET
@@ -196,10 +201,11 @@ export default async function handler(req, res) {
           active = COALESCE(${typeof active === "boolean" ? active : null}, active),
           featured = CASE WHEN ${touchFeatured}::boolean THEN ${body.featured === true}::boolean ELSE featured END,
           only_on_date = CASE WHEN ${onlyOnDate.touched}::boolean THEN ${onlyOnDate.value}::date ELSE only_on_date END,
-          loyalty_eligible = CASE WHEN ${touchLoyalty}::boolean THEN ${body.loyaltyEligible === true}::boolean ELSE loyalty_eligible END
+          loyalty_eligible = CASE WHEN ${touchLoyalty}::boolean THEN ${body.loyaltyEligible === true}::boolean ELSE loyalty_eligible END,
+          show_on_home = CASE WHEN ${touchHome}::boolean THEN ${body.showOnHome === true}::boolean ELSE show_on_home END
         WHERE id = ${Number(id)}
         RETURNING id, name, price, duration_min as min, category as cat, tne_eligible as tne, description as desc, active,
-                  featured, only_on_date::text AS "onlyOnDate", loyalty_eligible AS "loyaltyEligible"
+                  featured, only_on_date::text AS "onlyOnDate", loyalty_eligible AS "loyaltyEligible", show_on_home AS "showOnHome"
       `
       return res.json({ ok: true, service })
     }

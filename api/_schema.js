@@ -159,8 +159,11 @@ export const ensureClientColumns = once(async (sql) => {
    only_on_date      servicio de un solo día: solo se ofrece y se agenda esa
                      fecha. NULL = todos los días (el resto del catálogo).
    loyalty_eligible  "Suma estrella". Arranca en true para todo el catálogo:
-                     hoy todo suma, y apagarlo es una decisión por servicio. */
-const SERVICE_COLUMNS = ["featured", "only_on_date", "loyalty_eligible"]
+                     hoy todo suma, y apagarlo es una decisión por servicio.
+   show_on_home      "En el home": sale en la vitrina de servicios de la
+                     landing. Arranca en true (hoy salen todos); en false el
+                     servicio solo se ve al reservar. */
+const SERVICE_COLUMNS = ["featured", "only_on_date", "loyalty_eligible", "show_on_home"]
 export const ensureServiceColumns = once(async (sql) => {
   const present = await presentColumns(sql, "services", SERVICE_COLUMNS)
   if (present.size < SERVICE_COLUMNS.length) {
@@ -168,7 +171,8 @@ export const ensureServiceColumns = once(async (sql) => {
       ALTER TABLE services
         ADD COLUMN IF NOT EXISTS featured         BOOLEAN NOT NULL DEFAULT false,
         ADD COLUMN IF NOT EXISTS only_on_date     DATE,
-        ADD COLUMN IF NOT EXISTS loyalty_eligible BOOLEAN NOT NULL DEFAULT true
+        ADD COLUMN IF NOT EXISTS loyalty_eligible BOOLEAN NOT NULL DEFAULT true,
+        ADD COLUMN IF NOT EXISTS show_on_home     BOOLEAN NOT NULL DEFAULT true
     `
   }
 })

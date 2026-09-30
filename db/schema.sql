@@ -285,10 +285,13 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS profession TEXT;
 --                     acredita estrella (loyaltyForTransition) y la reserva no
 --                     sale en GET /api/bookings?mode=bridge-completed, para
 --                     que el repaso de PimpStudio tampoco la acredite.
+--   show_on_home      "En el home": sale en la vitrina de servicios de la
+--                     landing. En false solo se ve al reservar (/reservar).
 ALTER TABLE services
   ADD COLUMN IF NOT EXISTS featured         BOOLEAN NOT NULL DEFAULT false,
   ADD COLUMN IF NOT EXISTS only_on_date     DATE,
-  ADD COLUMN IF NOT EXISTS loyalty_eligible BOOLEAN NOT NULL DEFAULT true;
+  ADD COLUMN IF NOT EXISTS loyalty_eligible BOOLEAN NOT NULL DEFAULT true,
+  ADD COLUMN IF NOT EXISTS show_on_home     BOOLEAN NOT NULL DEFAULT true;
 
 -- Movimientos manuales de Finanzas (ensureExpenseColumns): la misma tabla
 -- guarda gastos e ingresos. Default 'gasto' porque las filas existentes son

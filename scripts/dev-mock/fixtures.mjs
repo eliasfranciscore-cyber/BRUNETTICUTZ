@@ -70,6 +70,7 @@ export function createState(now = new Date()) {
     loyaltyEligible: s.id !== 16,
     featured: s.id === 11 || s.id === 12,
     onlyOnDate: null,
+    showOnHome: s.id !== 9,
     ...s,
   }))
 

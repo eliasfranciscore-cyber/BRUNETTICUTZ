@@ -73,14 +73,15 @@ function pickFeaturedId(list) {
 }
 
 // Vitrina del Home a partir de /api/services (solo activos, sin los de día
-// único). Primero los que el barbero marcó "Destacado" en el panel
+// único y sin los que tienen apagado "En el home" en el panel —showOnHome—,
+// que se siguen reservando en /reservar). Primero los que el barbero marcó "Destacado" en el panel
 // (svc.featured), en el orden en que llegan; si no marcó ninguno, el de
 // pickFeaturedId. Después el resto agrupado por categoría (HOME_CAT_ORDER),
 // manteniendo el orden de la API dentro de cada una. Van todos: sin tope
 // desde el 2026-09-30. La insignia es UNA sola tarjeta —la primera—, aunque
 // haya varios destacados: el resto va igual adelante, pero sin el badge.
 function curateHomeServices(list) {
-  const active = list.filter((s) => s && s.active !== false)
+  const active = list.filter((s) => s && s.active !== false && s.showOnHome !== false)
   if (!active.length) return []
   const flagged = active.filter((s) => s.featured === true)
   const leadIds = new Set(flagged.length ? flagged.map((s) => s.id) : [pickFeaturedId(active)])

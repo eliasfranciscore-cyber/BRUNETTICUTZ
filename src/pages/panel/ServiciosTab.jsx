@@ -44,6 +44,7 @@ function svcMeta(svc, showCat) {
   if (showCat) parts.push(catLabel(svc.cat))
   if (FEATURES.singleDay && svc.onlyOnDate) parts.push(`solo el ${fmtDate(svc.onlyOnDate, 'dm')}`)
   if (FEATURES.serviceLoyalty && svc.loyaltyEligible === false) parts.push('sin estrella')
+  if (svc.showOnHome === false) parts.push('fuera del home')
   return parts.join(' · ')
 }
 
@@ -166,8 +167,6 @@ function ServiceSheet({ open, isEdit, service, admin, draft, onDraftChange, onCl
     onClose()
   }
 
-  const showToggles = isEdit || FEATURES.featuredServices || FEATURES.serviceLoyalty
-
   return (
     <Sheet
       open={open}
@@ -237,36 +236,40 @@ function ServiceSheet({ open, isEdit, service, admin, draft, onDraftChange, onCl
           <Note icon="alert">Esa fecha ya pasó: el servicio no se muestra al reservar hasta que le pongas otra o la quites.</Note>
         )}
 
-        {showToggles && (
-          <div className="pn-card is-flush pn-svc-toggles">
-            <List>
-              {isEdit && (
-                <ToggleRow
-                  title="Publicado"
-                  description={published ? 'Visible al reservar' : 'Oculto: no aparece al reservar'}
-                  checked={published}
-                  onChange={(v) => patch({ active: v })}
-                />
-              )}
-              {FEATURES.featuredServices && (
-                <ToggleRow
-                  title="Destacado"
-                  description="Sale en «Los más pedidos», arriba de las categorías al reservar, y primero en los servicios del home."
-                  checked={Boolean(value.featured)}
-                  onChange={(v) => patch({ featured: v })}
-                />
-              )}
-              {FEATURES.serviceLoyalty && (
-                <ToggleRow
-                  title="Suma estrella"
-                  description="Si está apagado, esta atención no suma estrella en la tarjeta de fidelidad."
-                  checked={loyaltyOn}
-                  onChange={(v) => patch({ loyaltyEligible: v })}
-                />
-              )}
-            </List>
-          </div>
-        )}
+        <div className="pn-card is-flush pn-svc-toggles">
+          <List>
+            {isEdit && (
+              <ToggleRow
+                title="Publicado"
+                description={published ? 'Visible al reservar' : 'Oculto: no aparece al reservar'}
+                checked={published}
+                onChange={(v) => patch({ active: v })}
+              />
+            )}
+            {FEATURES.featuredServices && (
+              <ToggleRow
+                title="Destacado"
+                description="Sale en «Los más pedidos», arriba de las categorías al reservar, y primero en los servicios del home."
+                checked={Boolean(value.featured)}
+                onChange={(v) => patch({ featured: v })}
+              />
+            )}
+            {FEATURES.serviceLoyalty && (
+              <ToggleRow
+                title="Suma estrella"
+                description="Si está apagado, esta atención no suma estrella en la tarjeta de fidelidad."
+                checked={loyaltyOn}
+                onChange={(v) => patch({ loyaltyEligible: v })}
+              />
+            )}
+            <ToggleRow
+              title="En el home"
+              description="Sale en los servicios de la portada. Apagado, solo se ve al reservar."
+              checked={value.showOnHome !== false}
+              onChange={(v) => patch({ showOnHome: v })}
+            />
+          </List>
+        </div>
       </div>
     </Sheet>
   )

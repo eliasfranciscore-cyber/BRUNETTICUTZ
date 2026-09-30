@@ -626,7 +626,7 @@ function servicesApi(c) {
   const a = needSession(c); if (a) return a
   const pick = (src) => {
     const out = {}
-    for (const k of ['name', 'price', 'min', 'cat', 'desc', 'tne', 'active', 'featured', 'onlyOnDate', 'loyaltyEligible']) {
+    for (const k of ['name', 'price', 'min', 'cat', 'desc', 'tne', 'active', 'featured', 'onlyOnDate', 'loyaltyEligible', 'showOnHome']) {
       if (Object.prototype.hasOwnProperty.call(src, k)) out[k] = k === 'price' || k === 'min' ? Number(src[k]) : src[k]
     }
     if (out.onlyOnDate !== undefined && out.onlyOnDate !== null && !isRealDate(out.onlyOnDate)) return null
@@ -635,7 +635,7 @@ function servicesApi(c) {
   if (method === 'POST') {
     const data = pick(body)
     if (!data || !data.name || !data.price || !data.min) return E(400, 'Datos incompletos')
-    const service = { id: ++st.seq.service, cat: 'general', desc: '', tne: false, active: true, featured: false, onlyOnDate: null, loyaltyEligible: true, ...data }
+    const service = { id: ++st.seq.service, cat: 'general', desc: '', tne: false, active: true, featured: false, onlyOnDate: null, loyaltyEligible: true, showOnHome: true, ...data }
     st.services.push(service)
     return OK({ service })
   }
