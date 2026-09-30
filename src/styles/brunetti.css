@@ -1062,6 +1062,21 @@
 }
 .brunetti-site .bserv.featured .book { background: var(--gold-grad); color: var(--on-gold); border-color: var(--gold-bright); }
 .brunetti-site .bserv.featured .book:hover { filter: brightness(1.06); }
+/* Escritorio: todos los servicios a la vista, 3 por fila, sin carril ni
+   flechas (desde el 2026-09-30, con la landing más corta hay espacio). La
+   última fila, si queda incompleta, va centrada. Bajo los 940px sigue el
+   carril deslizable de arriba. */
+@media (min-width: 941px) {
+  .brunetti-site .bserv-grid {
+    flex-wrap: wrap;
+    justify-content: center;
+    overflow: visible;
+    scroll-snap-type: none;
+    padding: 0;
+    margin: 0;
+  }
+  .brunetti-site #servicios .ac-arrows { display: none; }
+}
 
 /* ============================================================
    CURSOS TEASER

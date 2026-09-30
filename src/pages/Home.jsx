@@ -64,9 +64,6 @@ const CAT_TAG = { premium: 'Premium', quimico: 'Color', general: 'Corte' }
 // Orden de las categorías en la vitrina, después de los destacados. Una
 // categoría que no esté acá va al final, en el orden en que llega.
 const HOME_CAT_ORDER = ['premium', 'general', 'quimico']
-// Tope de tarjetas en el carril: la landing es una vitrina, no el catálogo
-// completo (ese se ve entero en /reservar).
-const HOME_SERVICES_MAX = 9
 
 // Criterio de respaldo para la insignia cuando ningún servicio viene marcado
 // como destacado desde el panel: el primer premium, o si no hay ninguno, el
@@ -79,8 +76,8 @@ function pickFeaturedId(list) {
 // único). Primero los que el barbero marcó "Destacado" en el panel
 // (svc.featured), en el orden en que llegan; si no marcó ninguno, el de
 // pickFeaturedId. Después el resto agrupado por categoría (HOME_CAT_ORDER),
-// manteniendo el orden de la API dentro de cada una. Máximo
-// HOME_SERVICES_MAX. La insignia es UNA sola tarjeta —la primera—, aunque
+// manteniendo el orden de la API dentro de cada una. Van todos: sin tope
+// desde el 2026-09-30. La insignia es UNA sola tarjeta —la primera—, aunque
 // haya varios destacados: el resto va igual adelante, pero sin el badge.
 function curateHomeServices(list) {
   const active = list.filter((s) => s && s.active !== false)
@@ -97,7 +94,7 @@ function curateHomeServices(list) {
     .map((s, i) => ({ s, i }))
     .sort((a, b) => rank(a.s) - rank(b.s) || a.i - b.i)
     .map(({ s }) => s)
-  const curated = [...lead, ...rest].slice(0, HOME_SERVICES_MAX)
+  const curated = [...lead, ...rest]
   const badgeId = curated[0]?.id
   return curated.map((svc) => toDisplayService(svc, badgeId))
 }
@@ -428,8 +425,9 @@ export default function Home() {
               <h2><EditableText file="home-servicios" path="h2" as="span">{SERVICIOS_INTRO.h2}</EditableText></h2>
               <p><EditableText file="home-servicios" path="body" as="span">{SERVICIOS_INTRO.body}</EditableText></p>
             </div>
-            {/* Con 3 o menos las tarjetas llenan el ancho y no hay nada que
-                scrollear: las flechas solo aparecen desde la 4ª. */}
+            {/* Flechas del carril de móvil (bajo 940px). En escritorio las
+                tarjetas van en grilla, todas a la vista, y el CSS las oculta.
+                Con 3 o menos no hay nada que scrollear. */}
             {services.length > 3 && (
               <div className="ac-arrows">
                 <button className="ac-arrow" type="button" aria-label="Servicio anterior" onClick={() => scrollTrack(-1, servTrackRef, '.bserv')}>
