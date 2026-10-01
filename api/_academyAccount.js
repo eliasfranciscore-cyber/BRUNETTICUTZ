@@ -29,7 +29,8 @@ import {
 import { rateLimit, checkLock, registerFailure, clearFailures } from "./_academyLimits.js"
 import { sendAcademyEmail, sendAcademyResetEmail, sendAcademyEmailChangeEmail, sendAcademyEmailChangedNotice } from "./_academyEmail.js"
 import { HOST, siteUrl } from "./_academyHost.js"
-import { loadMe, touchSeen } from "./_academyAuth.js"
+import { loadMe, touchSeen, linkedMemberIds } from "./_academyAuth.js"
+import { SITE, ownsDb } from "./_academyDb.js"
 import { HttpError, getSettings, normalizePrefs, DEFAULT_PREFS, runInBackground, pgCode, isAdminRole } from "./_academyHttp.js"
 import { normalizeEmail, cleanText, cleanLine, safeUrl, isImageUrl, slugify, maskEmail, syntheticOwnerEmail } from "./_academyText.js"
 
@@ -863,9 +864,14 @@ async function ownerSession(ctx) {
   if (!Number.isInteger(barberId) || barberId <= 0) throw new HttpError(403, "Sesión del panel sin barbero asociado.", "forbidden")
   const b = { name: barber.name, email: barber.email }
 
+  // Vínculo por (sitio, barbero) en academy_staff_links; la columna vieja
+  // academy_members.barber_id solo vale en el sitio dueño de la base.
+  const legacy = ownsDb()
+  const links = await linkedMemberIds(sql, barberId)
   let [row] = await sql`
     SELECT id, role, status, session_version, must_change_password
-    FROM academy_members WHERE barber_id = ${barberId}
+    FROM academy_members
+    WHERE id = ANY(${links}::int[]) OR (${legacy}::boolean AND barber_id = ${barberId})
     ORDER BY (role = 'propietario') DESC, id LIMIT 1
   `
   if (!row) {
@@ -881,8 +887,8 @@ async function ownerSession(ctx) {
     const candidates = [...new Set([normalizeEmail(b.email), syntheticOwnerEmail(barberId)].filter(Boolean))]
     for (const email of candidates) {
       const [ins] = await sql`
-        INSERT INTO academy_members (email_norm, email, name, role, status, source, barber_id, must_change_password)
-        VALUES (${email}, ${email}, ${name}, ${role}, 'activo', 'propietario', ${barberId}, false)
+        INSERT INTO academy_members (email_norm, email, name, role, status, source, must_change_password, home_site)
+        VALUES (${email}, ${email}, ${name}, ${role}, 'activo', 'propietario', false, ${SITE})
         ON CONFLICT (email_norm) DO NOTHING
         RETURNING id, role, status, session_version, must_change_password
       `
@@ -896,6 +902,15 @@ async function ownerSession(ctx) {
       // uno en Ajustes.
       console.error("[academy:owner-session] handle:", err?.code || err?.message || err)
     }
+  }
+  if (!links.length) {
+    // El vínculo explícito, también para una fila vieja con barber_id: así
+    // sigue valiendo el día que este sitio pase a usar una base ajena.
+    await sql`
+      INSERT INTO academy_staff_links (site, barber_id, member_id)
+      VALUES (${SITE}, ${barberId}, ${row.id})
+      ON CONFLICT (site, barber_id) DO NOTHING
+    `.catch((err) => console.error("[academy:owner-session] vínculo:", err?.code || err?.message || err))
   }
   if (row.status !== "activo") throw new HttpError(403, "Tu cuenta de la Academy está desactivada.", "inactive")
 

@@ -489,21 +489,36 @@ Lo que `bridge-manual` agrega sobre la del panel, todo bajo `bridge: true` (el a
 
 ## Brunetti Academy (`/cursos`, desde 2026-09-29)
 
-Academia de miembros tipo Skool, **idéntica** a la de PimpStudio (`pimpstudio.cl/academy`, allá
-oculta): la página pública de `/cursos` (`Cursos.jsx`) sigue siendo la portada y la app de alumnos
-vive en `/cursos/*` con Comunidad, Cursos, Calendario, Miembros, Clasificación, Acerca de, chat
-directo, Grupos (generaciones con chat grupal), notificaciones, niveles 1–9 y eventos. Pago único
-por curso con Mercado Pago → acceso de por vida. Contrato completo en
-[`docs/academy/SPEC.md`](docs/academy/SPEC.md).
+Academia de miembros tipo Skool. **Desde 2026-10-01 es LA MISMA Academy que
+`pimpstudio.cl/academy`**: misma base de datos, mismos cursos, alumnos, pagos, comunidad y chat, y
+la misma vitrina pública. `/cursos` es la vitrina compartida (`src/pages/academy/Vitrina.jsx`; la
+página propia `Cursos.jsx` y su `MercadoPagoCheckout.jsx` se retiraron) y la app de alumnos vive en
+`/cursos/*` con Comunidad, Cursos, Calendario, Miembros, Clasificación, Acerca de, chat directo,
+Grupos, notificaciones, niveles 1–9 y eventos. Pago único por curso con Mercado Pago (el de ESTE
+sitio) → acceso de por vida, en los dos sitios. Contrato completo en
+[`docs/academy/SPEC.md`](docs/academy/SPEC.md) y [`docs/academy/PORTABLE.md`](docs/academy/PORTABLE.md) §0.
+
+- **Base compartida**: las tablas `academy_*` que usa este sitio son las de la base de
+  **PimpStudio**, vía **`ACADEMY_DATABASE_URL`** (= la `DATABASE_URL` de PimpStudio, en Vercel);
+  lo demás (barberos, reservas, la campana del panel) sigue en la `DATABASE_URL` de acá
+  (`api/_academyDb.js`: `academySql` / `hostSql`). Sin esa variable la Academy vuelve a la base
+  de acá, donde quedaron las tablas viejas como respaldo. Las órdenes cobradas acá llevan
+  `site = 'brunetticutz'` y solo las concilia este sitio; los alumnos que compran o se invitan acá
+  quedan con `home_site = 'brunetticutz'` y sus correos automáticos salen de acá. Push a un
+  teléfono suscrito en pimpstudio.cl y "Verificar pago" de un pedido cobrado allá van por el
+  puente (`api/_academyPeer.js`, modos `bridge-*`, `PIMPSTUDIO_BRIDGE_SECRET` +
+  `PIMPSTUDIO_API_BASE`). El barbero 6 (Bruno) está vinculado a la cuenta propietaria de la
+  Academy por `academy_staff_links ('brunetticutz', 6)`: la misma que usa en PimpStudio.
 
 - **Módulo portable, no se edita acá**: el código compartido (`api/_academy*.js`, `api/_webpush.js`,
   `src/academy/**`, `src/pages/academy/**`, `src/components/academy/**`, `src/styles/academy/**`,
   la pestaña `AcademyTab` del panel, `scripts/dev-mock/academy/**`, `docs/academy/**`) se copia
   desde PimpStudio con `node scripts/academy-sync.mjs ../BRUNETTICUTZ` (ejecutado desde el repo de
   PimpStudio). Un cambio se hace allá y se sincroniza; si se edita acá, el próximo sync lo pisa.
-  Lo propio de este sitio son **4 archivos del host**: `api/_academyHost.js` (marca, `/cursos`,
-  `sessionInfo`, webhook, `requireBarberAdmin`, `notifyStaff`), `src/academy/hostConfig.js`,
-  `src/academy/host.jsx` y `scripts/dev-mock/academy/host.mjs`, más los puntos de enganche
+  Lo propio de este sitio son **5 archivos del host**: `api/_academyHost.js` (marca, `/cursos`,
+  `sessionInfo`, webhook, `requireBarberAdmin`, `notifyStaff`, `peer`), `src/academy/hostConfig.js`,
+  `src/academy/host.jsx`, `src/academy/hostLanding.jsx` (menú, pie e íconos de la vitrina) y
+  `scripts/dev-mock/academy/host.mjs`, más los puntos de enganche
   listados en [`docs/academy/PORTABLE.md`](docs/academy/PORTABLE.md).
 - **Sin función nueva** (seguimos en 11/12): `/api/academy` es un rewrite a
   `/api/services?scope=academy`, que carga `api/_academy.js` con `import()` dinámico — si la
@@ -511,7 +526,9 @@ por curso con Mercado Pago → acceso de por vida. Contrato completo en
 - **Sesiones de alumno SEPARADAS de las del barbero** (regla crítica): token `m1.<payload>.<mac>`
   firmado en `api/_academySession.js` con una llave derivada por HKDF de `PS_SESSION_SECRET` y el
   `sessionInfo` de este sitio (`brunetticutz:academy:member:v1`, no se cambia nunca en
-  producción: desloguea a todos los alumnos). `readSession` de `api/_auth.js` exige exactamente
+  producción: desloguea a todos los alumnos). Con la base compartida la llave suma la huella de
+  esa base (`academyDbTag()`): al conectarla, los tokens de la base anterior —con ids que ya no
+  son los mismos— dejaron de valer solos. `readSession` de `api/_auth.js` exige exactamente
   2 partes, compara en tiempo constante y rechaza cualquier `typ` que no sea `barber` (los tokens
   viejos sin `typ` siguen valiendo). Nunca firmar un alumno con `createSession`.
 - **Admin de la Academy** = `requireBarberAdmin` del host: token de barbero con `exp` y
@@ -526,8 +543,9 @@ por curso con Mercado Pago → acceso de por vida. Contrato completo en
   (**antes** del filtro de "aprobado": un reembolso revoca el acceso). El webhook crea la cuenta y
   el acceso en un solo statement y manda usuario + contraseña temporal una sola vez aunque Mercado
   Pago repita el aviso. Las inscripciones viejas de `source: 'cursos'` (base64) siguen entrando
-  como siempre. Tablas `academy_*` (sección al final de `db/schema.sql`), migradas solas por
-  `ensureAcademyTables` (nunca desde el checkout, el webhook ni el login público).
+  como siempre. Tablas `academy_*` (sección al final de `db/schema.sql`, viven en la base de
+  PimpStudio), migradas solas por `ensureAcademyTables` (nunca desde el checkout, el webhook ni el
+  login público). El tope de 10 intentos del checkout cuenta en esa misma base.
 - **Cron**: tercera tanda de `GET /api/push?job=reminders` (después del autocompletar, fuera del
   500 de los recordatorios, solo con `CRON_SECRET`): conciliación de pedidos, credenciales
   pendientes, recordatorios de eventos, resumen de actividad y limpieza. `?job=academy`

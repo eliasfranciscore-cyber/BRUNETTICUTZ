@@ -28,6 +28,14 @@
    recordatorios de 1 h, que con una ventana tan ancha como el intervalo del
    cron tienen UNA sola pasada para salir.
 
+   Dos sitios, una Academy (api/_academyDb.js): cada sitio corre esta tanda
+   con su cron, sobre la MISMA base, y atiende solo lo suyo — las órdenes que
+   cobró su Mercado Pago, y los correos, avisos y push de los miembros cuyo
+   home_site es él (salen con su marca y sus enlaces). Los recordatorios se
+   reclaman por (evento, ocurrencia, tipo, sitio): cada miembro recibe uno
+   solo, del sitio de su cuenta. La limpieza es idempotente y la pueden
+   correr los dos.
+
    Nunca lanza: devuelve un resumen. Los imports son dinámicos para que un
    módulo roto de otro dominio no impida que este archivo cargue (y porque
    varios importan push.js, que es quien nos importa a nosotros). Los dos
@@ -36,6 +44,7 @@
 
 import { HOST, siteUrl } from "./_academyHost.js"
 import { isSyntheticOwnerEmail } from "./_academyText.js"
+import { SITE, ownsDb, academySql } from "./_academyDb.js"
 
 const BUSINESS_TZ = "America/Santiago"
 // Páginas de la Academy en este sitio (https://pimpstudio.cl/academy).
@@ -151,11 +160,14 @@ function wantsEventEmail(m) {
    vez por tanda y solo si hacen falta. */
 async function audienceFor(sql, ev, row, cache) {
   if (!cache.members) {
+    // Solo los miembros de ESTE sitio: los del otro reciben el aviso de su
+    // propio cron, con su marca y sus enlaces.
     cache.members = await sql`
       SELECT id, role, name, email, email_norm, prefs,
              (last_seen_at IS NULL OR last_seen_at < NOW() - interval '24 hours') AS away
         FROM academy_members
        WHERE status = 'activo' AND deleted_at IS NULL
+         AND (home_site = ${SITE} OR (home_site IS NULL AND ${ownsDb()}::boolean))
        ORDER BY id`
   }
   const access = ev.normalizeAccess(row.access)
@@ -215,6 +227,7 @@ async function sendEventReminders(sql, { hour, phase, out }) {
     SELECT event_id, kind, to_char(occurrence_start AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS occ
       FROM academy_event_reminders
      WHERE event_id = ANY(${[...new Set(due.map((d) => d.row.id))]}::int[])
+       AND (site = ${SITE} OR (site = '' AND ${ownsDb()}::boolean))
        AND occurrence_start >= ${ev.isoNoMs(lo - MIN_MS)}::timestamptz
        AND occurrence_start <= ${ev.isoNoMs(hi + MIN_MS)}::timestamptz`
   const already = new Set(sentRows.map((r) => `${r.event_id}|${r.kind}|${r.occ}`))
@@ -229,12 +242,13 @@ async function sendEventReminders(sql, { hour, phase, out }) {
     if (phase.left() < MIN_LEFT.reminder) { out.stoppedEarly = true; break }
     const { row, kind, ts, iso } = item
 
-    // Reclamo por la PK (event_id, occurrence_start, kind): si dos pasadas se
-    // cruzan (el cron y un ?job=academy&force=1 a mano), solo una avisa.
+    // Reclamo por la PK (event_id, occurrence_start, kind, site): si dos
+    // pasadas de este sitio se cruzan (el cron y un ?job=academy&force=1 a
+    // mano), solo una avisa. El otro sitio reclama lo suyo con su clave.
     const [claimed] = await sql`
-      INSERT INTO academy_event_reminders (event_id, occurrence_start, kind)
-      VALUES (${row.id}, ${iso}::timestamptz, ${kind})
-      ON CONFLICT (event_id, occurrence_start, kind) DO NOTHING
+      INSERT INTO academy_event_reminders (event_id, occurrence_start, kind, site)
+      VALUES (${row.id}, ${iso}::timestamptz, ${kind}, ${SITE})
+      ON CONFLICT (event_id, occurrence_start, kind, site) DO NOTHING
       RETURNING event_id`
     if (!claimed) continue
 
@@ -266,7 +280,7 @@ async function sendEventReminders(sql, { hour, phase, out }) {
       // ocurrencia sigue en la ventana.
       console.error("[academy:cron] recordatorio", row.id, kind, err?.message || err)
       out.errors.push(`recordatorio ${row.id}/${kind}`)
-      await Promise.resolve(sql`DELETE FROM academy_event_reminders WHERE event_id = ${row.id} AND occurrence_start = ${iso}::timestamptz AND kind = ${kind}`)
+      await Promise.resolve(sql`DELETE FROM academy_event_reminders WHERE event_id = ${row.id} AND occurrence_start = ${iso}::timestamptz AND kind = ${kind} AND site = ${SITE}`)
         .catch(() => {})
       continue
     }
@@ -328,6 +342,7 @@ async function sendActivityDigest(sql, { phase, out }) {
              GREATEST(COALESCE(m.activity_email_at, '-infinity'::timestamptz), NOW() - interval '7 days') AS since
         FROM academy_members m
        WHERE m.status = 'activo' AND m.deleted_at IS NULL
+         AND (m.home_site = ${SITE} OR (m.home_site IS NULL AND ${ownsDb()}::boolean))
          AND COALESCE(m.prefs->'notif'->>'email', 'true') <> 'false'
          AND (m.last_seen_at IS NULL OR m.last_seen_at < NOW() - interval '2 hours')
          AND (m.activity_email_at IS NULL OR m.activity_email_at < NOW() - interval '24 hours')
@@ -434,8 +449,11 @@ async function cleanup(sql, { phase, out }) {
 
 /* ── Orquestador ───────────────────────────────────────────────────────── */
 
-export async function runAcademyJob(sql, { budgetMs = 7000, hourSantiago, force = false } = {}) {
+export async function runAcademyJob(hostDb, { budgetMs = 7000, hourSantiago, force = false } = {}) {
   const t0 = Date.now()
+  // El host pasa SU base; la Academy puede vivir en la del otro sitio.
+  let sql = null
+  try { sql = academySql(hostDb) } catch { sql = null }
   const budget = Math.max(500, Math.min(60000, Number(budgetMs) || 7000))
   const deadline = t0 + budget
   let hour = Number(hourSantiago)

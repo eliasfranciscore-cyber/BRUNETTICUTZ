@@ -89,6 +89,10 @@ export default function PedidosSection({ api, ctx, reloadKey }) {
   )
 
   const product = (o) => [titleOf(o.course), MODALITY[o.modality] || o.modality, titleOf(o.cohort)].filter(Boolean).join(' · ')
+  // La Academy es una sola en los dos sitios, pero cada pedido se cobró con
+  // el Mercado Pago del sitio donde se compró. "Verificar pago" funciona igual
+  // desde cualquiera de los dos paneles (va por el puente).
+  const where = (o) => o.siteLabel || ''
 
   return (
     <div className="pn-stack is-lg">
@@ -121,6 +125,7 @@ export default function PedidosSection({ api, ctx, reloadKey }) {
               { key: 'date', label: 'Fecha', nowrap: true, muted: true, render: (o) => fmtWhenTime(o.paidAt || o.createdAt) },
               { key: 'buyer', label: 'Comprador', render: buyer },
               { key: 'course', label: 'Curso', render: (o) => <span className="pn-aca-clamp">{product(o)}</span> },
+              { key: 'site', label: 'Sitio', nowrap: true, muted: true, render: where },
               { key: 'amount', label: 'Monto', num: true, strong: true, render: (o) => CLP(o.amount) },
               { key: 'status', label: 'Estado', nowrap: true, render: (o) => <StatusChip map={ORDER_STATUS} value={o.status} /> },
               { key: 'ref', label: 'Referencia', muted: true, render: (o) => <span className="pn-aca-ref" title={o.ref}>{String(o.ref || '').slice(0, 12)}…{o.mpPaymentId ? <small>MP {o.mpPaymentId}</small> : null}</span> },
@@ -128,7 +133,7 @@ export default function PedidosSection({ api, ctx, reloadKey }) {
             ]}
             mobile={(o) => ({
               title: `${o.name} · ${CLP(o.amount)}`,
-              subtitle: `${product(o)} · ${fmtWhenTime(o.paidAt || o.createdAt)}${o.emailMismatch && o.mpPayerEmail ? ` · pagó con ${o.mpPayerEmail}` : ''}`,
+              subtitle: `${product(o)} · ${fmtWhenTime(o.paidAt || o.createdAt)}${where(o) ? ` · ${where(o)}` : ''}${o.emailMismatch && o.mpPayerEmail ? ` · pagó con ${o.mpPayerEmail}` : ''}`,
               trailing: <StatusChip map={ORDER_STATUS} value={o.status} />,
               actions: verifyButton(o),
               chevron: false,

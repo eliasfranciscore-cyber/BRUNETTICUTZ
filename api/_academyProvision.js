@@ -31,6 +31,12 @@
      un curso con el correo de otra persona no puede dejarla afuera.
    - Correos y pushes son best-effort: si fallan, el webhook responde 200 y el
    cron reintenta las credenciales. Solo un error de base responde 500.
+   - Base compartida (api/_academyDb.js): las tablas son de los dos sitios,
+     pero una orden se cobra con el Mercado Pago del sitio que la creó
+     (academy_orders.site) y solo ese sitio la concilia. Quien compra queda
+     con home_site = ese sitio: sus correos automáticos salen de ahí. Los
+     puntos de entrada del host (checkout, estado, webhook) pasan su `sql` y
+     acá se cambia por el de la Academy; el aviso al panel usa el del host.
 
    Prefijo `_`: no cuenta como función serverless (tope 12 del plan Hobby). */
 
@@ -39,6 +45,8 @@ import * as mp from "./_academyMp.js"
 import * as academyEmail from "./_academyEmail.js"
 import { generateTempPassword, hashPasswordAsync } from "./_academyPassword.js"
 import { HOST, siteUrl, notifyStaff } from "./_academyHost.js"
+import { SITE, ownsDb, siteIs, academySql, hostSql } from "./_academyDb.js"
+import { siteLabel } from "./_academyPeer.js"
 import { HttpError, getSettings, memberPublicFromRow, levelFor } from "./_academyHttp.js"
 import { cleanText, slugify } from "./_academyText.js"
 
@@ -195,8 +203,9 @@ function parseCheckout(body) {
   return { slug, modality, cohortId, name, email, emailNorm: normEmail(email), phone: digits.length === 9 ? digits : null }
 }
 
-export async function handleCourseCheckout(sql, req, res) {
+export async function handleCourseCheckout(hostDb, req, res) {
   res.setHeader("Cache-Control", "no-store")
+  const sql = academySql(hostDb)
   const input = parseCheckout(req.body)
   if (input.error) return res.status(400).json({ ok: false, error: input.error, ...(input.code ? { code: input.code } : {}) })
   const { slug, modality, cohortId, name, email, emailNorm, phone } = input
@@ -233,12 +242,12 @@ export async function handleCourseCheckout(sql, req, res) {
     const ref = `aca-${crypto.randomBytes(16).toString("hex")}`
     const [order] = await sql`
       INSERT INTO academy_orders
-        (public_ref, course_id, cohort_id, modality, title_snapshot, amount, name, email, email_norm, phone, user_id, status)
+        (public_ref, course_id, cohort_id, modality, title_snapshot, amount, name, email, email_norm, phone, user_id, status, site)
       SELECT ${ref}, c.id, k.id, ${modality}::text, c.title,
              CASE WHEN ${modality}::text = 'online' THEN c.price_online ELSE c.price_presencial END,
              ${name}, ${email}, ${emailNorm}, ${phone}::text,
              (SELECT u.id FROM users u WHERE ${phone}::text IS NOT NULL AND u.phone = ${phone}::text ORDER BY u.id LIMIT 1),
-             'pendiente'
+             'pendiente', ${SITE}
       FROM academy_courses c
       LEFT JOIN academy_cohorts k
         ON k.id = ${cohortId}::int AND k.course_id = c.id AND k.archived_at IS NULL
@@ -329,7 +338,7 @@ function claimHeal(ref) {
 
 async function readOrderStatus(sql, ref) {
   const [row] = await sql`
-    SELECT o.status, o.amount, o.modality, o.email, o.title_snapshot, c.slug,
+    SELECT o.status, o.amount, o.modality, o.email, o.title_snapshot, c.slug, o.site,
            EXTRACT(EPOCH FROM (NOW() - o.created_at))::int AS age_sec
     FROM academy_orders o JOIN academy_courses c ON c.id = o.course_id
     WHERE o.public_ref = ${ref}
@@ -337,14 +346,16 @@ async function readOrderStatus(sql, ref) {
   return row || null
 }
 
-export async function handleCourseStatus(sql, req, res) {
+export async function handleCourseStatus(hostDb, req, res) {
   res.setHeader("Cache-Control", "no-store")
+  const sql = academySql(hostDb)
   const ref = String(req.query?.ref || "")
   if (!REF_RE.test(ref)) return res.status(400).json({ ok: false, error: "Referencia inválida" })
   try {
     let order = await readOrderStatus(sql, ref)
     if (!order) return res.status(404).json({ ok: false, error: "Orden no encontrada" })
-    if (order.status === "pendiente" && Number(order.age_sec) > 20 && mpReady() && claimHeal(ref)) {
+    // Solo se autocura una orden cobrada con el Mercado Pago de ESTE sitio.
+    if (order.status === "pendiente" && Number(order.age_sec) > 20 && siteIs(order.site) && mpReady() && claimHeal(ref)) {
       try {
         await reconcileOrder(sql, ref)
         order = (await readOrderStatus(sql, ref)) || order
@@ -375,9 +386,9 @@ export async function handleCourseStatus(sql, req, res) {
    validó la firma x-signature): `payment` es la verdad, no el body del aviso.
    Error de base → 500 (Mercado Pago reintenta y la conciliación del cron
    también lo cubre). Correo o push que fallan → 200. */
-export async function handleAcademyPayment(sql, payment, paymentId, res) {
+export async function handleAcademyPayment(hostDb, payment, paymentId, res) {
   try {
-    const result = await applyPayment(sql, payment, { paymentId })
+    const result = await applyPayment(academySql(hostDb), payment, { paymentId })
     return res.json({ ok: true, ...result })
   } catch (err) {
     logErr("webhook", err)
@@ -411,7 +422,7 @@ const REVIEW_TEXT = {
 async function loadOrder(sql, ref) {
   const [row] = await sql`
     SELECT id, public_ref, course_id, cohort_id, modality, title_snapshot, amount, name, email, email_norm,
-           status, mp_payment_id, paid_at, refunded_at
+           status, mp_payment_id, paid_at, refunded_at, site
     FROM academy_orders WHERE public_ref = ${ref}
   `
   return row || null
@@ -544,10 +555,10 @@ async function approvedPayment(sql, order, payment, pid) {
              paid_amount = ${paidAmount}::int, mp_payer_email = ${payerEmail}, live_mode = ${live}::boolean,
              updated_at = NOW()
        WHERE public_ref = ${order.public_ref} AND status IN ('pendiente', 'anulada') AND paid_at IS NULL
-      RETURNING id, course_id, cohort_id, name, email, email_norm, phone
+      RETURNING id, course_id, cohort_id, name, email, email_norm, phone, site
     ), m AS (
-      INSERT INTO academy_members (email_norm, email, name, phone, status, role, source, must_change_password)
-      SELECT email_norm, email, name, phone, 'activo', 'miembro', 'pago', true FROM o
+      INSERT INTO academy_members (email_norm, email, name, phone, status, role, source, must_change_password, home_site)
+      SELECT email_norm, email, name, phone, 'activo', 'miembro', 'pago', true, COALESCE(site, ${SITE}) FROM o
       ON CONFLICT (email_norm) DO UPDATE
         SET status = CASE WHEN academy_members.status = 'cancelado' THEN 'activo' ELSE academy_members.status END,
             updated_at = NOW()
@@ -949,6 +960,8 @@ export async function reconcileOrder(sql, ref, { timeoutMs } = {}) {
   if (!REF_RE.test(String(ref || ""))) return { found: false }
   const order = await loadOrder(sql, ref)
   if (!order) return { found: false }
+  // Cobrada con el Mercado Pago del otro sitio: acá no se puede consultar.
+  if (!siteIs(order.site)) return { found: true, action: "otro_sitio", site: order.site, status: order.status }
   if (!mpReady()) return { found: true, action: "sin_mercadopago", status: order.status }
 
   const payments = await mpApi().searchPayments(ref, timeoutMs ? { timeoutMs } : undefined)
@@ -989,6 +1002,7 @@ export async function reconcileAcademyOrders(sql, { limit = 10, budgetMs = 8000,
       const pending = await sql`
         SELECT public_ref FROM academy_orders
         WHERE status = 'pendiente' AND created_at < NOW() - interval '5 minutes' AND created_at > NOW() - interval '3 days'
+          AND (site = ${SITE} OR (site IS NULL AND ${ownsDb()}::boolean))
         ORDER BY updated_at ASC, id ASC
         LIMIT ${cap}
       `
@@ -1006,6 +1020,7 @@ export async function reconcileAcademyOrders(sql, { limit = 10, budgetMs = 8000,
     const expired = await sql`
       UPDATE academy_orders SET status = 'anulada', updated_at = NOW()
       WHERE status = 'pendiente' AND created_at <= NOW() - interval '3 days'
+        AND (site = ${SITE} OR (site IS NULL AND ${ownsDb()}::boolean))
       RETURNING id
     `
     out.expired = expired.length
@@ -1038,6 +1053,7 @@ export async function retryPendingCredentials(sql, { limit = 5, deadline = Date.
              WHERE g.member_id = m.id AND g.state = 'activa') AS courses
     FROM academy_members m
     WHERE m.status = 'activo' AND m.role <> 'propietario' AND m.password_set_at IS NULL
+      AND (m.home_site = ${SITE} OR (m.home_site IS NULL AND ${ownsDb()}::boolean))
       AND m.credentials_sent_at IS NULL AND m.credentials_attempts < 5
       AND (m.credentials_retry_at IS NULL OR m.credentials_retry_at <= NOW())
       AND (m.credentials_claimed_at IS NULL OR m.credentials_claimed_at < NOW() - interval '10 minutes')
@@ -1082,8 +1098,8 @@ export async function provisionManualGrant(sql, { name, email, courseIds = [], c
 
   const [row] = await sql`
     WITH m AS (
-      INSERT INTO academy_members (email_norm, email, name, status, role, source, must_change_password, granted_by)
-      VALUES (${emailNorm}, ${String(email).trim()}, ${displayName}, 'activo', 'miembro', ${memberSource}, true, ${grantedBy}::int)
+      INSERT INTO academy_members (email_norm, email, name, status, role, source, must_change_password, granted_by, home_site)
+      VALUES (${emailNorm}, ${String(email).trim()}, ${displayName}, 'activo', 'miembro', ${memberSource}, true, ${grantedBy}::int, ${SITE})
       ON CONFLICT (email_norm) DO UPDATE
         SET status = CASE WHEN academy_members.status = 'cancelado' AND academy_members.deleted_at IS NULL
                           THEN 'activo' ELSE academy_members.status END,
@@ -1275,7 +1291,8 @@ async function alertIfDuplicateCourse(sql, { memberId, courseId, grantId, title 
 export async function alertAdmins(sql, { title, body, tag }) {
   const send = typeof deps.notifyStaff === "function" ? deps.notifyStaff : notifyStaff
   try {
-    return Number(await send(sql, { title, body, url: PANEL_URL, tag })) || 0
+    // La campana y los barberos son del sitio, no de la Academy compartida.
+    return Number(await send(hostSql(sql), { title, body, url: PANEL_URL, tag })) || 0
   } catch (err) {
     logErr("aviso al panel", err)
     return 0
@@ -1297,7 +1314,7 @@ export async function memberAdminRows(sql, ids) {
   if (!list.length) return map
   const rows = await sql`
     SELECT m.id, m.handle, m.name, m.avatar_url, m.role, m.bio, m.location, m.links,
-           m.email, m.phone, m.status, m.source, m.must_change_password,
+           m.email, m.phone, m.status, m.source, m.must_change_password, m.home_site,
            (m.password_set_at IS NOT NULL) AS password_set,
            to_char(m.joined_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS joined_at,
            CASE WHEN m.prefs -> 'privacy' -> 'hideActivity' = 'true'::jsonb THEN NULL
@@ -1349,6 +1366,10 @@ export async function memberAdminRows(sql, ids) {
       bannedAt: r.banned_at || null,
       grants: Array.isArray(r.grants) ? r.grants : [],
       cohorts: Array.isArray(r.cohorts) ? r.cohorts : [],
+      // Sitio de su cuenta (donde compró o lo invitaron): de ahí salen sus
+      // correos automáticos. NULL = antes de la base compartida.
+      homeSite: r.home_site || null,
+      homeSiteLabel: siteLabel(r.home_site || (ownsDb() ? SITE : HOST.peer?.key)),
     })
   }
   return map

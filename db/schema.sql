@@ -479,6 +479,7 @@ CREATE TABLE IF NOT EXISTS academy_members (
   last_sync_at TIMESTAMPTZ,
   activity_email_at TIMESTAMPTZ,
   barber_id INT REFERENCES barbers(id) ON DELETE SET NULL,
+  home_site VARCHAR(20),
   granted_by INT,
   prefs JSONB NOT NULL DEFAULT '{}'::jsonb,
   joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -600,6 +601,7 @@ CREATE TABLE IF NOT EXISTS academy_orders (
   paid_amount INT,
   refunded_at TIMESTAMPTZ,
   refund_reason TEXT,
+  site VARCHAR(20),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -788,7 +790,8 @@ CREATE TABLE IF NOT EXISTS academy_event_reminders (
   occurrence_start TIMESTAMPTZ NOT NULL,
   kind VARCHAR(4) NOT NULL CHECK (kind IN ('24h','1h')),
   sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  PRIMARY KEY (event_id, occurrence_start, kind)
+  site VARCHAR(20) NOT NULL DEFAULT '',
+  PRIMARY KEY (event_id, occurrence_start, kind, site)
 );
 
 CREATE TABLE IF NOT EXISTS academy_push_subscriptions (
@@ -797,6 +800,7 @@ CREATE TABLE IF NOT EXISTS academy_push_subscriptions (
   endpoint TEXT NOT NULL UNIQUE,
   p256dh TEXT NOT NULL,
   auth TEXT NOT NULL,
+  site VARCHAR(20),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -814,7 +818,8 @@ CREATE TABLE IF NOT EXISTS academy_email_log (
   day DATE NOT NULL,
   kind VARCHAR(24) NOT NULL,
   n INT NOT NULL DEFAULT 0,
-  PRIMARY KEY (day, kind)
+  site VARCHAR(20) NOT NULL DEFAULT '',
+  PRIMARY KEY (day, kind, site)
 );
 
 -- Límites por ventana (rl:<llave>) y bloqueo de login (lk:<llave>) de
@@ -828,6 +833,25 @@ CREATE TABLE IF NOT EXISTS academy_rate_limits (
   locked_until TIMESTAMPTZ,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Base compartida entre pimpstudio.cl/academy y brunetticutz.cl/cursos
+-- (2026-10-01, api/_academyDb.js): barbero del panel de un sitio → su cuenta
+-- de la Academy, por (sitio, id) — el #6 de un sitio no es el #6 del otro.
+CREATE TABLE IF NOT EXISTS academy_staff_links (
+  site VARCHAR(20) NOT NULL,
+  barber_id INT NOT NULL,
+  member_id INT NOT NULL REFERENCES academy_members(id) ON DELETE CASCADE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (site, barber_id)
+);
+
+-- Bases creadas antes de la base compartida (lo mismo que hace solo
+-- ensureAcademyColumns de api/_academySchema.js):
+ALTER TABLE academy_members ADD COLUMN IF NOT EXISTS home_site VARCHAR(20);
+ALTER TABLE academy_orders ADD COLUMN IF NOT EXISTS site VARCHAR(20);
+ALTER TABLE academy_push_subscriptions ADD COLUMN IF NOT EXISTS site VARCHAR(20);
+-- (academy_email_log y academy_event_reminders cambian además de llave
+-- primaria: eso lo hace el código, en una transacción, solo si falta.)
 
 -- Índices secundarios (en el código van cada uno en su try/catch).
 CREATE INDEX IF NOT EXISTS idx_aca_likes_author_created ON academy_likes (author_id, created_at);

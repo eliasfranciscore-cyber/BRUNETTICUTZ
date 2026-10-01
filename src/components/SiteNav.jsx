@@ -91,7 +91,8 @@ export default function SiteNav({ onSection, scrolled: scrolledProp }) {
       if (el) { window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 64, behavior: "smooth" }); return }
     }
     if (isCursos) {
-      const el = document.getElementById("inscripcion")
+      // /cursos es la vitrina compartida de la Academy: baja al catálogo.
+      const el = document.getElementById("cursos")
       if (el) { window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 64, behavior: "smooth" }); return }
     }
     navigate("/login")

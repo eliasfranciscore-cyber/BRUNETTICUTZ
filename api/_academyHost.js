@@ -48,6 +48,16 @@ export const HOST = {
     supportWhatsapp: null,
   },
   defaultLinks: [{ title: "Reserva tu hora", url: "https://brunetticutz.cl/reservar" }],
+  // El otro sitio de la MISMA Academy (pimpstudio.cl/academy). La base de la
+  // Academy es la de allá: este proyecto se conecta con ACADEMY_DATABASE_URL
+  // (api/_academyDb.js). El puente (api/_academyPeer.js) es solo para lo que
+  // no se comparte: los push a teléfonos suscritos allá y verificar pagos
+  // cobrados con su Mercado Pago. Misma variable que ya usa el puente de
+  // fidelidad (api/_loyaltyBridge.js).
+  peer: {
+    key: "pimpstudio",
+    apiBase: () => process.env.PIMPSTUDIO_API_BASE || "https://pimpstudio.cl",
+  },
 }
 
 /* SITE_URL sin barra final, o el dominio de este sitio. Es la misma

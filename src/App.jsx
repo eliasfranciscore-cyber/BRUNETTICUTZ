@@ -67,8 +67,8 @@ const Dashboard = lazy(() => import('./pages/Dashboard.jsx'))
 const Workshop = lazy(() => import('./pages/Workshop.jsx'))
 // Cursos: la página de venta (/cursos) + páginas de acceso + app del alumno de
 // la Brunetti Academy, todo bajo ACADEMY_BASE/* (src/academy/hostConfig.js;
-// ver src/pages/academy/AcademyRoot.jsx, cuyo índice es src/pages/Cursos.jsx
-// vía host.jsx). La landing y la app del miembro son chunks distintos: un
+// ver src/pages/academy/AcademyRoot.jsx, cuyo índice es la vitrina compartida
+// con pimpstudio.cl/academy, src/pages/academy/Vitrina.jsx, vía host.jsx). La landing y la app del miembro son chunks distintos: un
 // visitante no descarga la app.
 const AcademyRoot = lazy(() => import('./pages/academy/AcademyRoot.jsx'))
 const EncuentraEstilo = lazy(() => import('./pages/EncuentraEstilo.jsx'))

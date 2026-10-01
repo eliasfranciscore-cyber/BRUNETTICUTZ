@@ -187,6 +187,7 @@ export default function MemberAdminSheet({ open, member, onClose, onChanged }) {
         <dl className="aca-mas-dl">
           {m.phone && (<><dt>Teléfono</dt><dd>+56 {m.phone}</dd></>)}
           {m.joinedAt && (<><dt>Se unió</dt><dd>{fmtDay(m.joinedAt)}</dd></>)}
+          {m.homeSiteLabel && (<><dt>Se registró en</dt><dd>{m.homeSiteLabel}</dd></>)}
           <dt>Último ingreso</dt><dd>{m.lastLoginAt ? fmtDayTime(m.lastLoginAt) : 'Nunca'}</dd>
           <dt>Correo de acceso</dt><dd>{m.credentialsSentAt ? `Enviado el ${fmtDayTime(m.credentialsSentAt)}` : 'Sin enviar'}</dd>
         </dl>

@@ -31,6 +31,8 @@ import { generateResetToken } from "./_academyPassword.js"
 import { rateLimit } from "./_academyLimits.js"
 import { sendAcademyEmail, academyEmailsToday, sendAcademyResetEmail } from "./_academyEmail.js"
 import { HOST, siteUrl } from "./_academyHost.js"
+import { SITE } from "./_academyDb.js"
+import { callPeer, siteLabel } from "./_academyPeer.js"
 import {
   provisionManualGrant, claimAndSendCredentials, rearmCredentials, revokeGrant, reconcileOrder,
   memberAdminRows, loadMemberAdmin, normEmail, isValidEmail, cleanName,
@@ -576,7 +578,7 @@ async function adminRevoke(ctx) {
    si todavía no hay grant, de la cuenta con ese correo. */
 function queryOrders(sql, { status = null, ref = null, limit = PAGE_SIZE, offset = 0 }) {
   return sql`
-    SELECT o.public_ref, o.modality, o.title_snapshot, o.amount, o.name, o.email, o.email_norm, o.phone, o.status,
+    SELECT o.public_ref, o.modality, o.title_snapshot, o.amount, o.name, o.email, o.email_norm, o.phone, o.status, o.site,
            o.mp_payment_id, o.mp_payer_email, o.mp_last_status, o.paid_amount, o.refund_reason, o.live_mode,
            to_char(o.paid_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS paid_at,
            to_char(o.refunded_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS refunded_at,
@@ -617,6 +619,10 @@ function orderAdmin(r) {
     refundReason: r.refund_reason || null,
     liveMode: r.live_mode == null ? null : Boolean(r.live_mode),
     createdAt: ISO(r.created_at),
+    // En qué sitio se cobró (cada uno con su Mercado Pago). NULL = antes de
+    // la base compartida, del dueño de la base.
+    site: r.site || null,
+    siteLabel: r.site ? siteLabel(r.site) : null,
     memberId: r.member_id == null ? null : Number(r.member_id),
     // El que pagó en Mercado Pago no es el correo de la cuenta: normal si
     // pagó otro (un regalo), sospechoso si no. El panel lo marca.
@@ -664,6 +670,18 @@ async function adminVerifyOrder(ctx) {
     if (isDbError(err)) throw err
     console.error("[academy:admin-verify-order] Mercado Pago:", err?.status || "", err?.message || err)
     throw new HttpError(502, "No pudimos consultar Mercado Pago. Intenta de nuevo en un rato.", "mp_error")
+  }
+  if (result?.found && result.action === "otro_sitio") {
+    // Se cobró con el Mercado Pago del otro sitio: que lo consulte él (la
+    // orden y el acceso viven en la base compartida, así que al volver se
+    // lee igual que si se hubiera verificado acá).
+    const peer = await callPeer("bridge-verify-order", { ref }, { timeoutMs: 8500 })
+    if (!peer.ok) {
+      const where = siteLabel(result.site)
+      if (peer.status === 404 && peer.data?.code === "not_found") throw new HttpError(404, "Pedido no encontrado", "not_found")
+      throw new HttpError(502, `Este pedido se pagó en ${where} y no pudimos consultarlo desde acá. Intenta de nuevo, o verifícalo desde el panel de ${where}.`, "otro_sitio")
+    }
+    result = { found: true, ...(peer.data?.result || {}) }
   }
   if (!result?.found) throw new HttpError(404, "Pedido no encontrado", "not_found")
   if (result.action === "sin_mercadopago") {

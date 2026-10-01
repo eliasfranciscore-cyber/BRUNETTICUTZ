@@ -18,9 +18,16 @@
      moderator   miembro propietario/admin/moderador, o barbero admin
      admin       miembro propietario/admin, o barbero admin
      owner       SOLO barbero admin del panel (owner-session)
+     peer        SOLO el otro sitio de la Academy, servidor a servidor, con el
+                 secreto del puente (api/_academyPeer.js). Sin él, el modo
+                 responde 404: para cualquier otro no existe.
    La verificación del barbero es del host (requireBarberAdmin de
    api/_academyHost.js → { barberId, name, email }): este archivo no conoce
    las sesiones del panel.
+
+   Bases (api/_academyDb.js): `sql` es la de la Academy, compartida por los
+   dos sitios; el barbero se verifica contra la base PROPIA del sitio
+   (hostSql), porque los barberos de un sitio no existen en la del otro.
 
    Contrato con los handlers (`export const handlers = { 'modo': fn }`):
      ctx = { sql, req, res, query, body, member, admin, barber, ip }
@@ -35,8 +42,9 @@
    ensureAcademyTables() lo corre ESTE router antes de `me` y de todo modo
    admin/moderator/owner; los handlers nunca lo llaman. */
 
-import { neon } from "@neondatabase/serverless"
 import { requireBarberAdmin } from "./_academyHost.js"
+import { academySql, hostSql } from "./_academyDb.js"
+import { isPeerRequest } from "./_academyPeer.js"
 import { clientIp } from "./_academyLimits.js"
 import { HttpError, pgCode } from "./_academyHttp.js"
 import { requireMember, requireAcademyAdmin, requireModerator } from "./_academyAuth.js"
@@ -49,6 +57,7 @@ const notifyMod = () => import("./_academyNotify.js")
 const chat = () => import("./_academyChat.js")
 const events = () => import("./_academyEvents.js")
 const adminMod = () => import("./_academyAdmin.js")
+const bridge = () => import("./_academyBridge.js")
 
 const GET = ["GET"]
 const POST = ["POST"]
@@ -158,6 +167,10 @@ export const MODE_OWNERS = Object.freeze({
   "admin-import-grant": m(adminMod, "admin", POST),
   "admin-settings": m(adminMod, "admin", ["GET", "POST"]),
   "admin-stats": m(adminMod, "admin", GET),
+
+  // Puente con el otro sitio de la Academy — _academyBridge.js
+  "bridge-push": m(bridge, "peer", POST),
+  "bridge-verify-order": m(bridge, "peer", POST),
 })
 
 // Modos que disparan ensureAcademyTables antes del handler.
@@ -219,7 +232,9 @@ export async function handleAcademy(req, res) {
   const mode = String(req.query?.mode || "")
   // hasOwn: que "__proto__" o "constructor" no se lean como modos.
   const entry = Object.prototype.hasOwnProperty.call(MODE_OWNERS, mode) ? MODE_OWNERS[mode] : null
-  if (!entry) return reply(res, 404, { ok: false, error: "Modo no reconocido" })
+  // Un modo del puente sin el secreto es, para quien llama, un modo que no
+  // existe: mismo 404, antes de mirar el método o tocar la base.
+  if (!entry || (entry.auth === "peer" && !isPeerRequest(req))) return reply(res, 404, { ok: false, error: "Modo no reconocido" })
   if (!entry.methods.includes(req.method)) {
     res.setHeader("Allow", entry.methods.join(", "))
     return reply(res, 405, { ok: false, error: "Método no permitido" })
@@ -227,13 +242,13 @@ export async function handleAcademy(req, res) {
 
   let sql = sqlOverride
   if (!sql) {
-    if (!process.env.DATABASE_URL) return reply(res, 503, { ok: false, error: "La Academy no está disponible en este momento.", code: "unavailable" })
     try {
-      sql = neon(process.env.DATABASE_URL)
+      sql = academySql()
     } catch (err) {
       console.error("[academy] neon():", err?.message || err)
-      return reply(res, 503, { ok: false, error: "La Academy no está disponible en este momento.", code: "unavailable" })
+      sql = null
     }
+    if (!sql) return reply(res, 503, { ok: false, error: "La Academy no está disponible en este momento.", code: "unavailable" })
   }
 
   const ctx = {
@@ -255,6 +270,7 @@ export async function handleAcademy(req, res) {
        necesita las tablas de la Academy para verificarse. */
     switch (entry.auth) {
       case "public":
+      case "peer": // el secreto ya se verificó arriba
         break
       case "member":
       case "member-pwc": {
@@ -276,7 +292,7 @@ export async function handleAcademy(req, res) {
         // requireBarberAdmin ya rechaza los tokens de barbero sin `exp`
         // (emitidos antes de que existiera y que no vencen nunca): uno de
         // esos, filtrado, no debe poder abrir la Academy como propietario.
-        const barber = await requireBarberAdmin(sql, req, res)
+        const barber = await requireBarberAdmin(hostSql(sql), req, res)
         if (!barber) return
         ctx.barber = barber
         ctx.admin = { memberId: null, barberId: barber.barberId, role: "propietario" }

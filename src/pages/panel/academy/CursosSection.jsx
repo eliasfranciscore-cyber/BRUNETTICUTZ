@@ -226,7 +226,7 @@ export default function CursosSection({ api, ctx, reloadKey }) {
         message={!seed
           ? (seedFailed ? 'No se pudieron preparar los cursos iniciales. Recarga la página e intenta de nuevo.' : 'Preparando los cursos iniciales…')
           : summary.courses
-          ? `Se crean ${summary.courses} cursos con ${summary.sections} secciones y ${summary.lessons} lecciones, todo en borrador y sin precio.${summary.skipped ? ` ${summary.skipped} ya existen y se saltan.` : ''} Después agregas los videos y publicas.`
+          ? `Se ${summary.courses === 1 ? 'crea 1 curso' : `crean ${summary.courses} cursos`} con ${summary.sections} secciones y ${summary.lessons} lecciones, todo en borrador y sin precio.${summary.skipped ? ` ${summary.skipped} ya existen y se saltan.` : ''} Después agregas los videos y publicas.`
           : 'Los cursos iniciales ya están cargados. Si aprietas igual, no se duplica nada.'}
         confirmLabel="Cargar"
         busy={seeding || (!seed && !seedFailed)}

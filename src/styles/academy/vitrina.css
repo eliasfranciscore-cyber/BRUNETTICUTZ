@@ -1,0 +1,1119 @@
+/* ============================================================
+   ACADEMY — vitrina pública (<base>: /academy en PimpStudio, /cursos
+   en BrunettiCutz). Código compartido entre los dos sitios
+   (scripts/academy-sync.mjs).
+   Reusa los tokens globales (--gold*, --g-*, --ink, --muted…) que los
+   dos sitios definen igual, y el chrome de compra de essentials.css
+   (FAB, scrim, modal, drawer), que trae cada sitio por
+   src/academy/hostLanding.jsx. Acá va solo lo propio de la Academy:
+   hero con datos, tarjetas de curso, acordeón de malla, y lo que el
+   essentials.css de algún sitio no trae (formulario del cajón).
+   ============================================================ */
+
+/* Formulario de compra del cajón (BrunettiCutz no lo tiene en su
+   essentials.css; mismo valor que el de PimpStudio). */
+.academy-page .essentials-checkout-fields { display: grid; gap: .45rem; margin-bottom: .7rem; }
+
+.academy-page .btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+.academy-page .btn:disabled::before { display: none; }
+
+/* ---------- HERO ---------- */
+.brunetti-site .academy-hero {
+  padding: clamp(7.5rem, 14vh, 10rem) 0 clamp(2.8rem, 6vw, 4.2rem);
+  position: relative;
+  overflow: hidden;
+}
+.brunetti-site .academy-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(1100px 640px at 22% -12%, rgba(196, 164, 92, 0.13), transparent 62%);
+}
+.academy-hero-inner { text-align: center; max-width: 720px; margin: 0 auto; }
+.academy-hero-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2.1rem, 5.4vw, 3.5rem);
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  text-wrap: balance;
+  background: linear-gradient(180deg, #fff 35%, #d5d5d5);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+[data-theme="light"] .academy-hero-title {
+  background: linear-gradient(180deg, var(--ink) 35%, var(--gold-dp));
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+.academy-hero-sub {
+  margin: 1.1rem 0 0;
+  color: var(--muted);
+  font-size: 1.03rem;
+  line-height: 1.62;
+  text-wrap: pretty;
+}
+.academy-hero-flag {
+  margin: 1.9rem auto 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  max-width: 560px;
+  text-align: left;
+  padding: 0.62rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--gold-line);
+  background: var(--g-tint);
+  color: var(--gold-lt);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+.academy-hero-flag svg { flex: none; }
+@media (max-width: 560px) {
+  .academy-hero-flag { border-radius: var(--g-radius); align-items: flex-start; }
+}
+
+/* Entrada de quien ya tiene sesión de alumno en este dispositivo: en el
+   flujo del héroe, bajo el texto (nunca sticky: se montaba sobre el
+   título al bajar). */
+.academy-hero-actions {
+  margin: 1.7rem 0 0;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+.academy-hero-actions .btn { gap: 0.5rem; }
+.academy-hero-actions + .academy-hero-flag { margin-top: 1.2rem; }
+
+/* ---------- INSTAGRAM DE ACADEMY ---------- */
+/* Cuenta propia de la Academy, distinta de la de cada barbería. */
+.academy-hero-ig {
+  margin: 1.1rem auto 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--hair-2);
+  background: transparent;
+  color: var(--ink);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+.academy-hero-ig:hover {
+  border-color: var(--gold-line);
+  background: var(--g-tint);
+  transform: translateY(-1px);
+}
+.academy-hero-ig svg { flex: none; color: var(--gold); }
+.academy-hero-ig em {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 0.78rem;
+  color: var(--muted-2);
+  padding-left: 0.6rem;
+  border-left: 1px solid var(--hair);
+}
+@media (max-width: 520px) {
+  /* En pantalla angosta el subtítulo parte el pill en dos líneas y se ve
+     roto; el arroba solo ya dice a dónde va. */
+  .academy-hero-ig em { display: none; }
+}
+
+/* ---------- FRANJA DE DATOS ---------- */
+/* Va scopeada con .brunetti-site a propósito: este div también lleva la
+   clase .bwrap, y `.brunetti-site .bwrap { margin: 0 auto }` (0,2,0) le
+   ganaba a `.academy-stats` (0,1,0). El shorthand anulaba el margin-top y
+   la franja quedaba PEGADA al aviso de "inscripciones abren pronto" — cero
+   px entre el borde de la píldora y el de la franja. Mismo cuidado para
+   cualquier regla nueva sobre un elemento que comparta .bwrap. */
+.brunetti-site .academy-stats {
+  margin-top: clamp(2.8rem, 6vw, 4rem);
+  display: grid;
+  /* --n = cuántos datos trae (2 a 4, según lo publicado). */
+  grid-template-columns: repeat(var(--n, 4), 1fr);
+  gap: 1px;
+  background: var(--hair);
+  border: 1px solid var(--hair);
+  border-radius: var(--g-radius);
+  overflow: hidden;
+}
+/* Scopeada igual que la regla base: los media queries NO suman especificidad,
+   así que `.academy-stats` a secas (0,1,0) perdía contra `.brunetti-site
+   .academy-stats` (0,2,0) y la franja se quedaba en cuatro columnas en el
+   teléfono, con "100% con certificado" cortado por el borde. */
+@media (max-width: 720px) {
+  .brunetti-site .academy-stats { grid-template-columns: repeat(min(2, var(--n, 4)), 1fr); }
+  /* Con tres datos, el último ocupa la fila entera en vez de dejar un hueco. */
+  .brunetti-site .academy-stats .academy-stat:last-child:nth-child(odd) { grid-column: 1 / -1; }
+}
+.academy-stat {
+  display: grid;
+  justify-items: center;
+  gap: 0.25rem;
+  padding: 1.15rem 0.7rem;
+  background: var(--g-tint-soft);
+  text-align: center;
+}
+.academy-stat svg { color: var(--gold); }
+.academy-stat b {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.academy-stat span { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted-2); }
+
+/* ---------- MODALIDADES ---------- */
+.academy-modes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.2rem;
+  margin-top: 2rem;
+}
+@media (max-width: 860px) { .academy-modes-grid { grid-template-columns: 1fr; } }
+.academy-mode-card {
+  padding: 1.7rem 1.6rem 1.8rem;
+  border-radius: var(--g-radius-lg);
+  border: 1px solid var(--g-edge);
+  background: linear-gradient(150deg, var(--g-tint-strong), var(--g-tint-soft));
+  box-shadow: var(--g-spec), var(--g-drop-sm);
+}
+.academy-mode-tag {
+  display: inline-block;
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 0.32rem 0.7rem;
+  border-radius: 999px;
+  background: var(--gold-grad);
+  color: #161616;
+}
+.academy-mode-tag.is-online { background: none; border: 1px solid var(--gold-line); color: var(--gold-lt); }
+.academy-mode-card h3 {
+  margin: 0.9rem 0 0.5rem;
+  font-family: var(--font-display);
+  font-size: 1.22rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.academy-mode-card > p { margin: 0 0 1.1rem; color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
+.academy-mode-card ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+.academy-mode-card li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+.academy-mode-card li svg { flex: none; margin-top: 2px; color: var(--gold); }
+
+/* ---------- CONTROLES (modalidad + filtro) ---------- */
+.academy-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 1.8rem 0 1.6rem;
+}
+.academy-toggle {
+  display: inline-flex;
+  padding: 4px;
+  gap: 4px;
+  border-radius: 999px;
+  border: 1px solid var(--hair-2);
+  background: var(--fill-track, var(--g-tint-soft));
+}
+.academy-toggle button {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.52rem 1.2rem;
+  font-family: var(--font-display);
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.25s, color 0.25s;
+}
+.academy-toggle button.is-on { background: var(--gold-grad); color: var(--on-gold, #161616); }
+.academy-filters { display: flex; flex-wrap: wrap; gap: 0.45rem; }
+.academy-filters button {
+  border: 1px solid var(--hair-2);
+  background: transparent;
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 0.44rem 0.9rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, background 0.2s;
+}
+.academy-filters button:hover { color: var(--ink); border-color: var(--gold-line); }
+.academy-filters button.is-on { background: var(--g-tint-strong); border-color: var(--gold-line); color: var(--gold-lt); font-weight: 600; }
+/* En claro, --g-tint-strong es un velo casi blanco sobre fondo casi blanco:
+   el filtro activo quedaba indistinguible de los demás. */
+[data-theme="light"] .academy-filters button.is-on {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg);
+}
+
+/* ---------- GRILLA DE CURSOS ---------- */
+.academy-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.4rem;
+}
+@media (max-width: 1040px) { .academy-grid { grid-template-columns: repeat(2, 1fr); gap: 1.1rem; } }
+@media (max-width: 640px)  { .academy-grid { grid-template-columns: 1fr; } }
+
+.academy-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--g-radius);
+  overflow: hidden;
+  background: linear-gradient(150deg, var(--g-tint-strong), var(--g-tint-soft));
+  border: 1px solid var(--g-edge);
+  box-shadow: var(--g-spec), var(--g-drop-sm);
+  transition: transform 0.4s var(--ease-out), border-color 0.3s, box-shadow 0.3s;
+  animation: essentialsCardIn 0.6s var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 0.06s);
+}
+@media (prefers-reduced-motion: reduce) { .academy-card { animation: none; } }
+.academy-card:hover {
+  transform: translateY(-6px);
+  border-color: var(--gold-line);
+  box-shadow: var(--g-spec), var(--g-drop), 0 0 40px rgba(196, 164, 92, 0.12);
+}
+
+.academy-card-media {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--panel);
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+/* Las fotos son retratos verticales: centrado, el recorte apaisado cae en
+   la boca. Se sube el encuadre para dejar a la vista el pelo, que es lo
+   que el curso enseña. */
+.academy-img-front,
+.academy-img-back {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 22%;
+  transition: opacity 0.5s ease, transform 0.7s ease;
+}
+.academy-img-back { opacity: 0; }
+.academy-card:hover .academy-img-back,
+.academy-card:focus-within .academy-img-back { opacity: 1; }
+.academy-card:hover .academy-img-front { opacity: 0; }
+.academy-card-media:active .academy-img-back { opacity: 1; }
+.academy-card-media:active .academy-img-front { opacity: 0; }
+/* Velo inferior: los títulos de nivel/disciplina van sobre foto. */
+.academy-card-media::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 62%;
+  background: linear-gradient(180deg, transparent, rgba(6, 6, 8, 0.72));
+  pointer-events: none;
+}
+.academy-level,
+.academy-card-track {
+  position: absolute;
+  z-index: 3;
+  font-size: 0.63rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #fff;
+}
+.academy-level {
+  top: 13px;
+  left: 14px;
+  padding: 0.3rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  background: rgba(8, 8, 10, 0.5);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+/* Va SIEMPRE sobre el velo oscuro de la foto, así que no sigue al tema:
+   en claro, --gold-lt es un dorado oscuro y desaparecía contra el velo. */
+.academy-card-track { bottom: 13px; left: 14px; color: #e4cf9d; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55); }
+.academy-card .essentials-badge { top: 13px; right: 14px; left: auto; }
+
+.academy-card-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 1.25rem 1.25rem 1.35rem;
+}
+.academy-name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.16rem;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.24;
+}
+.academy-tagline {
+  margin: 0.3rem 0 0.6rem;
+  color: var(--gold);
+  font-size: 0.79rem;
+  letter-spacing: 0.02em;
+}
+.academy-desc {
+  margin: 0 0 1rem;
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+.academy-card-meta { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.1rem; }
+.academy-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34rem;
+  font-size: 0.72rem;
+  color: var(--muted);
+  border: 1px solid var(--hair-2);
+  border-radius: 999px;
+  padding: 0.28rem 0.6rem;
+  white-space: nowrap;
+}
+.academy-chip svg { color: var(--gold); flex: none; }
+
+.academy-card-foot {
+  margin-top: auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+.academy-card-actions { display: flex; gap: 0.4rem; }
+.academy-card-actions .btn.is-added { border-color: var(--gold-line); color: var(--gold-lt); }
+
+/* ---------- PRECIO ---------- */
+.academy-price-block { display: flex; flex-direction: column; line-height: 1.15; }
+.academy-price {
+  font-family: var(--font-display);
+  font-size: 1.22rem;
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.academy-price.is-pending { color: var(--gold-lt); font-size: 1.02rem; letter-spacing: 0.01em; }
+.academy-price-note { font-size: 0.68rem; color: var(--muted-2); margin-top: 0.15rem; }
+.academy-price-block.is-lg .academy-price { font-size: 1.5rem; }
+.academy-price-block.is-lg .academy-price.is-pending { font-size: 1.2rem; }
+
+/* ---------- MODAL DE CURSO ---------- */
+.academy-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 191;
+  margin: auto;
+  width: min(780px, 94vw);
+  max-height: 90vh;
+  height: fit-content;
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--g-radius-lg);
+  overflow: hidden;
+  background: var(--panel);
+  border: 1px solid var(--g-edge);
+  box-shadow: var(--shadow);
+}
+.academy-modal-head { position: relative; flex: none; }
+.academy-modal-head img {
+  width: 100%;
+  height: clamp(150px, 26vh, 230px);
+  object-fit: cover;
+  object-position: center 28%;
+  display: block;
+}
+.academy-modal-head::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(6, 6, 8, 0) 0%, rgba(6, 6, 8, 0.52) 42%, rgba(6, 6, 8, 0.9) 100%);
+}
+.academy-modal-head-text {
+  position: absolute;
+  inset: auto 0 0 0;
+  z-index: 2;
+  padding: 1.3rem 1.6rem;
+}
+.academy-modal-track {
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold-lt);
+  font-weight: 700;
+}
+/* Dentro de la cabecera el kicker va sobre la foto, no sobre el panel: en
+   claro, --gold-lt es un dorado oscuro y se perdía contra el velo. En el
+   perfil la misma clase sí sigue al tema, porque ahí el fondo es el panel. */
+.academy-modal-head .academy-modal-track { color: #e4cf9d; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6); }
+.academy-modal-head-text h3 {
+  margin: 0.4rem 0 0.2rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 3.4vw, 1.75rem);
+  font-weight: 600;
+  color: #fff;
+  line-height: 1.15;
+}
+.academy-modal-head-text p { margin: 0; color: rgba(255, 255, 255, 0.72); font-size: 0.86rem; }
+
+.academy-modal-body { flex: 1; overflow-y: auto; padding: 1.4rem 1.6rem 1.6rem; }
+.academy-modal-toggle { margin-bottom: 1.1rem; }
+.academy-modal-long { margin: 0 0 1.2rem; color: var(--muted); font-size: 0.93rem; line-height: 1.65; }
+
+.academy-modal-meta {
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0.9rem 1rem;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.6rem 1rem;
+  border-radius: var(--g-radius);
+  border: 1px solid var(--hair-2);
+  background: var(--g-tint-soft);
+}
+@media (max-width: 560px) { .academy-modal-meta { grid-template-columns: 1fr; } }
+.academy-modal-meta li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.82rem;
+  color: var(--ink);
+  line-height: 1.4;
+}
+.academy-modal-meta li svg { flex: none; margin-top: 2px; color: var(--gold); }
+
+.academy-block { margin-bottom: 1.5rem; }
+.academy-block h4 {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0 0 0.75rem;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 600;
+}
+.academy-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+.academy-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  font-size: 0.87rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.academy-list li svg { flex: none; margin-top: 3px; color: var(--gold); }
+
+/* ---------- ACORDEÓN DE MALLA ---------- */
+.academy-malla {
+  border: 1px solid var(--hair-2);
+  border-radius: var(--g-radius);
+  overflow: hidden;
+}
+.academy-day + .academy-day { border-top: 1px solid var(--hair); }
+.academy-day > button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.85rem 1rem;
+  background: transparent;
+  border: 0;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.2s;
+}
+.academy-day > button:hover { background: var(--g-tint-soft); }
+.academy-day.is-open > button { background: var(--g-tint); }
+.academy-day > button > svg:last-child { flex: none; color: var(--gold); }
+.academy-day-n {
+  flex: none;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+  width: 1.7rem;
+}
+/* flex:1 en el título es lo que ALINEA la columna de la derecha. Antes el
+   espacio libre se repartía entre dos `margin-left:auto` (el estado y el
+   signo +), así que "Próximamente" aterrizaba en un x distinto en cada fila
+   según cuánto midiera el título. */
+.academy-day-title { flex: 1; min-width: 0; font-size: 0.89rem; font-weight: 600; line-height: 1.3; }
+.academy-day-lock {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  white-space: nowrap;
+}
+.academy-day ul {
+  list-style: none;
+  margin: 0;
+  padding: 0.2rem 1rem 1rem 3.5rem;
+  display: grid;
+  gap: 0.42rem;
+}
+.academy-day ul li {
+  position: relative;
+  font-size: 0.84rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+.academy-day ul li::before {
+  content: "";
+  position: absolute;
+  left: -0.95rem;
+  top: 0.55em;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--gold-line);
+}
+.academy-malla-pending {
+  margin: 0;
+  padding: 1rem 1.1rem;
+  border-radius: var(--g-radius);
+  border: 1px dashed var(--hair-2);
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.55;
+}
+.academy-req { margin: 0; font-size: 0.82rem; color: var(--muted-2); line-height: 1.5; }
+.academy-req b { color: var(--muted); }
+
+.academy-modal-foot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 1.6rem;
+  border-top: 1px solid var(--hair-2);
+  background: var(--panel-2, var(--panel));
+}
+.academy-modal-add { white-space: nowrap; }
+@media (max-width: 560px) {
+  .academy-modal-foot { flex-direction: column; align-items: stretch; }
+  .academy-modal-add { width: 100%; justify-content: center; }
+}
+
+.academy-drawer-hours { font-size: 0.76rem; color: var(--muted-2); }
+
+/* ---------- CTA ALUMNOS ---------- */
+.academy-cta-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+  padding: clamp(1.6rem, 4vw, 2.4rem);
+  border-radius: var(--g-radius-lg);
+  border: 1px solid var(--g-edge);
+  background: linear-gradient(150deg, var(--g-tint-strong), var(--g-tint-soft));
+  box-shadow: var(--g-spec), var(--g-drop-sm);
+}
+.academy-cta-inner h2 { margin: 0.5rem 0 0.6rem; font-family: var(--font-display); font-size: clamp(1.3rem, 3vw, 1.7rem); color: var(--ink); }
+.academy-cta-inner p { margin: 0; color: var(--muted); font-size: 0.92rem; line-height: 1.6; max-width: 56ch; }
+.academy-cta-actions { display: grid; gap: 0.6rem; justify-items: start; }
+.academy-cta-hi { font-size: 0.75rem; color: var(--muted-2); }
+
+/* ---------- PRÓXIMAMENTE ---------- */
+/* Lo que ocupa el lugar del catálogo mientras ningún curso está publicado. */
+.academy-hero-flag.is-soon b { color: var(--ink); font-weight: 700; }
+.academy-soon {
+  display: grid;
+  justify-items: center;
+  gap: 0.2rem;
+  max-width: 620px;
+  margin: 0 auto;
+  text-align: center;
+  padding: clamp(2rem, 5vw, 3rem) clamp(1.2rem, 4vw, 2.4rem);
+  border-radius: var(--g-radius-lg);
+  border: 1px solid var(--g-edge);
+  background: linear-gradient(150deg, var(--g-tint-strong), var(--g-tint-soft));
+  box-shadow: var(--g-spec), var(--g-drop-sm);
+}
+.academy-soon > svg { color: var(--gold); margin-bottom: 0.4rem; }
+.academy-soon h2 {
+  margin: 0.3rem 0 0.7rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.6rem, 4vw, 2.2rem);
+  color: var(--ink);
+}
+.academy-soon p:not(.kicker) {
+  margin: 0 0 1.4rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  max-width: 48ch;
+  text-wrap: pretty;
+}
+.academy-grid-empty { text-align: center; color: var(--muted); font-size: 0.9rem; margin: 1rem 0 0; }
+
+/* Un solo programa: la tarjeta centrada, no pegada a la izquierda de una
+   grilla de tres columnas. */
+.academy-grid.is-single { grid-template-columns: minmax(0, 440px); justify-content: center; }
+
+/* ---------- FICHA DEL PROGRAMA (modal) ---------- */
+.academy-modal-soon {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 1.4rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: var(--g-radius);
+  border: 1px solid var(--gold-line);
+  background: var(--g-tint);
+  color: var(--gold-lt);
+  font-size: 0.84rem;
+}
+.academy-modal-soon svg { flex: none; }
+.academy-modal-soon b { color: var(--ink); }
+.academy-block-text { margin: 0; color: var(--muted); font-size: 0.87rem; line-height: 1.6; }
+.academy-block-text + .academy-block-text,
+.academy-eval + .academy-block-text { margin-top: 0.8rem; }
+
+.academy-modules { display: grid; gap: 1.2rem; }
+.academy-module-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+.academy-module-n {
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 700;
+}
+.academy-module-meta { font-size: 0.74rem; color: var(--muted-2); font-variant-numeric: tabular-nums; }
+.academy-module-title {
+  margin: 0.2rem 0 0.35rem;
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+.academy-module-summary { margin: 0 0 0.7rem; font-size: 0.83rem; color: var(--muted); line-height: 1.55; }
+
+.academy-day-detail { padding: 0.1rem 1rem 1rem 3.5rem; display: grid; gap: 0.55rem; }
+.academy-day-detail p { margin: 0; font-size: 0.84rem; color: var(--muted); line-height: 1.5; }
+.academy-day-detail p b { color: var(--ink); font-weight: 600; }
+.academy-day .academy-day-detail ul { padding: 0 0 0 0.95rem; }
+
+.academy-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+.academy-steps li {
+  display: grid;
+  grid-template-columns: 4.2rem 1fr;
+  gap: 0.7rem;
+  align-items: baseline;
+  font-size: 0.85rem;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.academy-steps li b { color: var(--ink); font-weight: 600; }
+.academy-steps-dur {
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--gold);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.academy-eval { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.55rem; }
+.academy-eval li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.25rem 0.8rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.academy-eval li b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.academy-eval li i {
+  grid-column: 1 / -1;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--gold) var(--pct), var(--hair) var(--pct));
+}
+@media (max-width: 620px) {
+  .academy-day-detail { padding-left: 2.6rem; }
+}
+
+/* ============================================================
+   ACCESO DEL ALUMNO (/academy/ingreso)
+   ============================================================ */
+.academy-auth { min-height: 100vh; display: grid; place-items: center; padding: clamp(6.5rem, 13vh, 8.5rem) 1.2rem 5rem; }
+.academy-auth-inner { width: min(460px, 100%); display: grid; gap: 1.2rem; }
+.academy-back {
+  justify-self: start;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+.academy-back:hover { color: var(--ink); }
+.academy-auth-head { display: grid; justify-items: center; gap: 0.6rem; text-align: center; }
+.academy-auth-head h1 { margin: 0.2rem 0 0; font-family: var(--font-display); font-size: clamp(1.5rem, 4.4vw, 2rem); font-weight: 600; color: var(--ink); }
+.academy-auth-head p { margin: 0; color: var(--muted); font-size: 0.88rem; line-height: 1.6; max-width: 40ch; }
+
+.academy-auth-pending {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  padding: 0.75rem 0.95rem;
+  border-radius: var(--g-radius);
+  border: 1px solid var(--gold-line);
+  background: var(--g-tint);
+  color: var(--gold-lt);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+.academy-auth-pending svg { flex: none; margin-top: 2px; }
+
+.academy-auth-card {
+  padding: 1.35rem;
+  display: grid;
+  gap: 1rem;
+  border-radius: var(--g-radius-lg);
+  border: 1px solid var(--g-edge);
+  background: linear-gradient(150deg, var(--g-tint-strong), var(--g-tint-soft));
+  box-shadow: var(--g-spec), var(--g-drop-sm);
+}
+.academy-auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid var(--hair);
+  background: var(--fill-track, var(--g-tint-soft));
+}
+.academy-auth-tabs button {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.6rem;
+  font-family: var(--font-display);
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.25s, color 0.25s;
+}
+.academy-auth-tabs button.is-on { background: var(--gold-grad); color: var(--on-gold, #161616); }
+.academy-auth-card form { display: grid; gap: 0.9rem; }
+.academy-phone {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--fill-card, var(--g-tint-soft));
+  border: 1px solid var(--hair-2);
+  border-radius: 8px;
+  padding: 0 0.8rem;
+}
+.academy-phone > span { color: var(--muted); font-size: 0.95rem; border-right: 1px solid var(--hair); padding-right: 0.6rem; }
+.academy-phone input {
+  flex: 1;
+  background: transparent;
+  border: 0;
+  color: var(--ink);
+  padding: 0.85rem 0;
+  font-size: 1.05rem;
+  letter-spacing: 0.06em;
+  outline: none;
+}
+.academy-auth-err { color: #e0a89c; font-size: 0.8rem; display: flex; align-items: center; gap: 0.4rem; }
+.academy-auth-fine { text-align: center; color: var(--muted-2); font-size: 0.74rem; margin: 0; line-height: 1.55; }
+
+/* ============================================================
+   PERFIL DEL ALUMNO (/academy/perfil)
+   ============================================================ */
+.academy-profile { padding: clamp(6.8rem, 13vh, 8.5rem) 0 4rem; }
+.academy-profile-kicker { display: inline-flex; margin-bottom: 0.85rem; }
+.academy-profile-head {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  flex-wrap: wrap;
+  padding-bottom: 1.4rem;
+  border-bottom: 1px solid var(--hair);
+}
+.academy-avatar {
+  flex: none;
+  width: 62px;
+  height: 62px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--gold-grad);
+  color: #161616;
+  font-family: var(--font-display);
+  font-size: 1.32rem;
+  font-weight: 700;
+}
+.academy-profile-id { flex: 1; min-width: 200px; }
+.academy-profile-id h1 { margin: 0 0 0.25rem; font-family: var(--font-display); font-size: clamp(1.4rem, 3.6vw, 1.9rem); font-weight: 600; color: var(--ink); }
+.academy-profile-id p { margin: 0; color: var(--muted-2); font-size: 0.82rem; }
+.academy-profile-actions { display: flex; gap: 0.45rem; flex-wrap: wrap; }
+
+.academy-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin: 1.4rem 0 1.8rem;
+  padding: 0.95rem 1.1rem;
+  border-radius: var(--g-radius);
+  border: 1px solid var(--gold-line);
+  background: var(--g-tint);
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+.academy-notice svg { flex: none; margin-top: 2px; color: var(--gold-lt); }
+.academy-notice b { color: var(--ink); }
+
+.academy-empty {
+  display: grid;
+  justify-items: center;
+  gap: 0.7rem;
+  text-align: center;
+  padding: 4rem 1rem;
+  color: var(--muted);
+}
+.academy-empty svg { color: var(--gold-line); }
+.academy-empty h2 { margin: 0.4rem 0 0; font-family: var(--font-display); font-size: 1.3rem; color: var(--ink); font-weight: 600; }
+.academy-empty p { margin: 0 0 0.6rem; font-size: 0.9rem; max-width: 42ch; }
+
+.academy-profile-grid {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 1.4rem;
+  align-items: start;
+}
+@media (max-width: 940px) { .academy-profile-grid { grid-template-columns: 1fr; } }
+
+.academy-mycourses { display: grid; gap: 0.6rem; align-content: start; }
+.academy-mycourses h2 {
+  margin: 0 0 0.3rem;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 600;
+}
+.academy-mycourses h2 span { color: var(--muted-2); }
+.academy-mycourse {
+  display: flex;
+  gap: 0.8rem;
+  padding: 0.7rem;
+  text-align: left;
+  border-radius: var(--g-radius);
+  border: 1px solid var(--hair-2);
+  background: var(--g-tint-soft);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.academy-mycourse:hover { border-color: var(--gold-line); }
+.academy-mycourse.is-on { border-color: var(--gold-line); background: var(--g-tint-strong); }
+.academy-mycourse img { width: 58px; height: 58px; flex: none; object-fit: cover; object-position: center 20%; border-radius: 10px; }
+.academy-mycourse-text { display: grid; gap: 0.16rem; min-width: 0; }
+.academy-mycourse-text b { font-size: 0.86rem; color: var(--ink); line-height: 1.25; font-weight: 600; }
+.academy-mycourse-text em { font-style: normal; font-size: 0.73rem; color: var(--muted-2); }
+.academy-status {
+  justify-self: start;
+  margin-top: 0.12rem;
+  font-size: 0.64rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--gold-lt);
+  border: 1px solid var(--gold-line);
+  border-radius: 999px;
+  padding: 0.16rem 0.48rem;
+}
+
+.academy-coursepanel {
+  padding: clamp(1.2rem, 3vw, 1.7rem);
+  border-radius: var(--g-radius-lg);
+  border: 1px solid var(--g-edge);
+  background: linear-gradient(150deg, var(--g-tint-strong), var(--g-tint-soft));
+  box-shadow: var(--g-spec), var(--g-drop-sm);
+}
+.academy-coursepanel-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.academy-coursepanel-head h2 { margin: 0.4rem 0 0.2rem; font-family: var(--font-display); font-size: clamp(1.25rem, 3vw, 1.6rem); font-weight: 600; color: var(--ink); }
+.academy-coursepanel-head p { margin: 0; color: var(--gold); font-size: 0.82rem; }
+.academy-drop {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: none;
+  border: 1px solid var(--hair-2);
+  border-radius: 999px;
+  padding: 0.36rem 0.75rem;
+  font-size: 0.73rem;
+  color: var(--muted-2);
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+.academy-drop:hover { color: #e0a89c; border-color: #e0a89c55; }
+
+.academy-progress { margin: 1.3rem 0 1.2rem; display: grid; gap: 0.45rem; }
+.academy-progress-bar { height: 6px; border-radius: 999px; background: var(--hair); overflow: hidden; }
+.academy-progress-bar span { display: block; height: 100%; border-radius: 999px; background: var(--gold-grad); transition: width 0.5s var(--ease-out); }
+.academy-progress-label { font-size: 0.75rem; color: var(--muted-2); }
+.academy-panel-meta { margin-bottom: 1.5rem; }
+.academy-panel-h {
+  margin: 0 0 0.8rem;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 600;
+}
+/* OJO con los nombres sueltos tipo `is-*`: dentro de .brunetti-site hay
+   reglas globales para `.is-panel`, `.is-title`, `.is-body` y `.is-num`
+   (son del selector interactivo del Home). Esta clase se llamó `is-panel`
+   un rato y heredó de ahí un ::after con degradado negro a pantalla
+   completa: desvanecía las últimas clases de la malla y, peor, se comía
+   los clics del acordeón. Modificadores propios, siempre con prefijo. */
+.academy-malla.academy-malla-panel { background: var(--panel); }
+.academy-day-body { padding-bottom: 0.9rem; }
+.academy-day-body .academy-day-topics { padding-bottom: 0.7rem; }
+.academy-material { display: grid; gap: 0.4rem; padding: 0 1rem 0 3.5rem; }
+.academy-material-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  border: 1px solid var(--hair-2);
+  background: var(--g-tint-soft);
+  font-size: 0.83rem;
+  color: var(--ink);
+}
+.academy-material-row svg { flex: none; color: var(--gold); }
+.academy-material-row em {
+  margin-left: auto;
+  font-style: normal;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted-2);
+  white-space: nowrap;
+}
+.academy-material-row.is-locked { opacity: 0.62; }
+.academy-material-row.is-locked svg { color: var(--muted-2); }
+@media (max-width: 620px) {
+  .academy-day ul { padding-left: 2.6rem; }
+  .academy-material { padding-left: 2.6rem; }
+  /* En un panel de ~320px el rótulo "Próximamente" dejaba el título en 91px
+     y lo partía en tres líneas. El estado no se pierde: sigue en cada fila
+     de material al abrir la clase, y el aviso de arriba ya dice que el curso
+     no ha comenzado. */
+  .academy-day-lock { display: none; }
+}
+
+/* ---------- Móvil: seguir la convención centrada del sitio ----------
+   Bajo 860px, brunetti.css centra TODO el texto de <main>
+   (`.brunetti-site main { text-align: center }`). Las filas flex de esta
+   página no se enteraban: seguían en `row` con space-between, así que la
+   cabecera quedaba con el avatar a la izquierda, el nombre centrado y los
+   botones a la izquierda — tres alineaciones distintas en un mismo bloque.
+   Mismo caso en la cabecera del curso, donde "Soltar cupo" se iba sola a la
+   izquierda. Acá se apilan y se centran para acompañar al texto. */
+@media (max-width: 860px) {
+  .academy-profile-head {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .academy-profile-id { flex: none; min-width: 0; }
+  .academy-profile-actions { justify-content: center; }
+
+  .academy-coursepanel-head { flex-direction: column; align-items: center; }
+  .academy-drop { align-self: center; }
+
+  /* Con el texto centrado, la campana se quedaba sola contra el borde
+     izquierdo de la caja. Apilada queda como un solo bloque. */
+  .academy-notice { flex-direction: column; align-items: center; gap: 0.5rem; }
+  .academy-notice svg { margin-top: 0; }
+
+  /* Los controles del catálogo, por lo mismo: eran lo único pegado a la
+     izquierda en una página centrada. */
+  .academy-controls { justify-content: center; }
+  .academy-filters { justify-content: center; }
+
+  /* El pie de la tarjeta: con el cuerpo centrado, el precio se quedaba
+     solo contra el borde izquierdo mientras los botones iban al medio. */
+  .academy-card-foot { flex-direction: column; align-items: center; gap: 0.9rem; }
+  .academy-card-foot .academy-price-block { align-items: center; }
+  .academy-card-actions { justify-content: center; }
+
+  /* Ícono + texto se centran como una sola unidad, en vez de dejar el
+     ícono pegado al borde con el texto flotando al medio. */
+  .academy-modal-meta li,
+  .academy-material-row { justify-content: center; }
+  .academy-material-row em { margin-left: 0; }
+}
+
+/* Espacio inferior para el CTA flotante móvil (site-nav-cta-bar). */
+@media (max-width: 899px) {
+  .academy-page .mfooter { padding-bottom: 5rem; }
+  .academy-auth { padding-bottom: 7rem; }
+}

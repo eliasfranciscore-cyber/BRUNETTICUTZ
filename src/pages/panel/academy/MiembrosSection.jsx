@@ -469,6 +469,7 @@ function MemberSheet({ open, member, onClose, actions, onRevokeGrant, onOpenProf
             <ListRow title="Usuario" value={m.handle ? `@${m.handle}` : '—'} />
             <ListRow title="Teléfono" value={m.phone ? `+56 ${m.phone}` : '—'} />
             <ListRow title="Origen" value={SOURCE_LABEL[m.source] || m.source || '—'} />
+            {m.homeSiteLabel && <ListRow title="Se registró en" value={m.homeSiteLabel} />}
             <ListRow title="Se unió" value={fmtWhen(m.joinedAt)} />
             <ListRow title="Acceso" value={accessState(m)} />
             {m.lastSeenAt && <ListRow title="Visto por última vez" value={fmtWhen(m.lastSeenAt)} />}

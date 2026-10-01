@@ -11,12 +11,22 @@
    endpoint (una sola suscripción por navegador, ver src/push.js) y está bien:
    el service worker enruta el toque según la `url` del payload.
 
+   Dos sitios, una Academy (api/_academyDb.js): la suscripción queda atada a
+   las VAPID y al service worker del sitio donde se creó (columna `site`).
+   Las de este sitio se mandan acá; las del otro se le piden al otro sitio
+   por el puente (modo bridge-push, api/_academyPeer.js), con la ruta
+   relativa a la Academy para que allá la arme con SU basePath (/academy acá
+   es /cursos allá). `forward: false` (lo usa bridge-push) manda solo las
+   propias: un aviso nunca rebota de vuelta.
+
    Nunca lanza: un aviso que no sale no puede tumbar el mensaje, el
    comentario o el pago que lo disparó.
    ================================================================ */
 
 import { getWebPush, sendToSubscriptions } from "./_webpush.js"
 import { HOST } from "./_academyHost.js"
+import { siteIs } from "./_academyDb.js"
+import { callPeer, peerConfigured } from "./_academyPeer.js"
 
 // Misma validación que aplica public/sw.js al tocar la notificación: ruta
 // relativa, caracteres seguros y sin `//` (que sería una URL a otro host).
@@ -41,22 +51,37 @@ function clip(s, max) {
   return t.length > max ? `${t.slice(0, max - 1)}…` : t
 }
 
-export async function pushToMembers(sql, memberIds, payload = {}) {
+/* Ruta dentro de la Academy, sin el basePath de este sitio: "/chat/5". */
+export function academyPath(url) {
+  const u = cleanUrl(url)
+  return u.slice(BASE.length) || "/comunidad"
+}
+
+/* La misma ruta con el basePath de ESTE sitio; lo que no sea una ruta
+   simple cae en la comunidad. */
+export function pathToUrl(path) {
+  const p = String(path || "")
+  return cleanUrl(p.startsWith("/") && !p.startsWith("//") ? `${BASE}${p}` : "")
+}
+
+export async function pushToMembers(sql, memberIds, payload = {}, { forward = true } = {}) {
   try {
     const list = Array.isArray(memberIds) ? memberIds : [memberIds]
     const ids = [...new Set(list.map(Number).filter((n) => Number.isInteger(n) && n > 0))].slice(0, 2000)
     if (!ids.length) return { ok: true, sent: 0 }
 
-    // Sin VAPID no se consulta la tabla (mismo orden que notifyBarber).
+    // Sin VAPID propias ni puente no hay a quién mandar: no se consulta la
+    // tabla (mismo orden que notifyBarber).
     const webpush = await getWebPush()
-    if (!webpush) return { ok: false, sent: 0, reason: "not-configured" }
+    const canForward = forward && peerConfigured()
+    if (!webpush && !canForward) return { ok: false, sent: 0, reason: "not-configured" }
 
     // Solo miembros activos (un cancelado o expulsado no recibe nada aunque
     // su fila siga ahí) y con el push general encendido en Ajustes. Los
     // interruptores por tipo (likes, comentarios…) los aplica notifyMany antes
     // de llamar acá; este es el interruptor maestro.
     const rows = await sql`
-      SELECT s.id, s.endpoint, s.p256dh, s.auth
+      SELECT s.id, s.endpoint, s.p256dh, s.auth, s.site, s.member_id
       FROM academy_push_subscriptions s
       JOIN academy_members m ON m.id = s.member_id
       WHERE s.member_id = ANY(${ids}::int[])
@@ -74,13 +99,27 @@ export async function pushToMembers(sql, memberIds, payload = {}) {
       url: cleanUrl(payload.url),
       tag: TAG_RE.test(String(payload.tag || "")) ? String(payload.tag) : "aca",
     }
-    const r = await sendToSubscriptions(
-      rows,
-      clean,
-      (row) => sql`DELETE FROM academy_push_subscriptions WHERE id = ${row.id}`.catch(() => {}),
-      { label: "pushToMembers" },
-    )
-    return { ok: true, sent: r.sent, gone: r.gone }
+    const mine = rows.filter((r) => siteIs(r.site))
+    const theirs = canForward ? [...new Set(rows.filter((r) => !siteIs(r.site)).map((r) => Number(r.member_id)))] : []
+
+    const [own, peer] = await Promise.all([
+      mine.length && webpush
+        ? sendToSubscriptions(
+          mine,
+          clean,
+          (row) => sql`DELETE FROM academy_push_subscriptions WHERE id = ${row.id}`.catch(() => {}),
+          { label: "pushToMembers" },
+        )
+        : null,
+      theirs.length
+        ? callPeer("bridge-push", {
+          memberIds: theirs,
+          payload: { title: clean.title, body: clean.body, path: academyPath(clean.url), tag: clean.tag },
+        }, { timeoutMs: 2500 })
+        : null,
+    ])
+    const forwarded = peer?.ok ? Number(peer.data?.sent) || 0 : 0
+    return { ok: true, sent: (own?.sent || 0) + forwarded, gone: own?.gone || 0, forwarded: theirs.length ? Boolean(peer?.ok) : undefined }
   } catch (err) {
     console.error("pushToMembers error:", err?.message || err)
     return { ok: false, sent: 0 }

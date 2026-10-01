@@ -17,6 +17,10 @@
        cuentan igual, pero un alumno que pagó y no puede entrar es peor que
        cualquier otra cosa en esta lista.
 
+   Con la base compartida (api/_academyDb.js) cada sitio manda con SU cuenta
+   de Resend, así que cada uno cuenta su propio cupo: la fila lleva `site`
+   (y '' = filas anteriores, del dueño de la base).
+
    Tipos usados por el resto de la Academy (VARCHAR(24)):
      credentials  acceso con contraseña temporal (crítico)
      already      "ya tienes acceso a <curso>"
@@ -34,6 +38,7 @@
    Prefijo `_`: no cuenta como función serverless. */
 
 import { HOST, siteUrl } from "./_academyHost.js"
+import { SITE, ownsDb } from "./_academyDb.js"
 import { esc } from "./_academyText.js"
 
 export const ACADEMY_EMAIL_DAILY_CAP = 60
@@ -87,20 +92,21 @@ export async function sendAcademyEmail(sql, kind, sendFn, args, { critical = fal
   // cortesía, no contable.) ON CONFLICT sobre la PK (day, kind), nunca un
   // índice parcial.
   let reserved = false
+  const own = ownsDb()
   try {
     const rows = await sql`
       WITH tot AS (
         SELECT COALESCE(SUM(n), 0)::int AS total,
                COALESCE(SUM(n) FILTER (WHERE kind = ANY(${PUBLIC_EMAIL_KINDS}::text[])), 0)::int AS pub
         FROM academy_email_log
-        WHERE day = ${day}::date
+        WHERE day = ${day}::date AND (site = ${SITE} OR (site = '' AND ${own}::boolean))
       )
-      INSERT INTO academy_email_log (day, kind, n)
-      SELECT ${day}::date, ${k}, 1 FROM tot
+      INSERT INTO academy_email_log (day, kind, site, n)
+      SELECT ${day}::date, ${k}, ${SITE}, 1 FROM tot
       WHERE ${critical}::boolean
          OR (tot.total < ${ACADEMY_EMAIL_DAILY_CAP}::int
              AND (NOT ${isPublic}::boolean OR tot.pub < ${ACADEMY_EMAIL_PUBLIC_CAP}::int))
-      ON CONFLICT (day, kind) DO UPDATE SET n = academy_email_log.n + 1
+      ON CONFLICT (day, kind, site) DO UPDATE SET n = academy_email_log.n + 1
       RETURNING n
     `
     reserved = rows.length > 0
@@ -129,7 +135,7 @@ export async function sendAcademyEmail(sql, kind, sendFn, args, { critical = fal
 
   if (reserved && notSent(result)) {
     try {
-      await sql`UPDATE academy_email_log SET n = GREATEST(n - 1, 0) WHERE day = ${day}::date AND kind = ${k}`
+      await sql`UPDATE academy_email_log SET n = GREATEST(n - 1, 0) WHERE day = ${day}::date AND kind = ${k} AND site = ${SITE}`
     } catch {
       // Si no se pudo devolver el cupo, el día queda contado de más: inofensivo.
     }
@@ -137,10 +143,13 @@ export async function sendAcademyEmail(sql, kind, sendFn, args, { critical = fal
   return { ok: Boolean(result?.ok), status: Number(result?.status || 0), reason: result?.reason ?? null }
 }
 
-/* Cuántos correos lleva la Academy hoy (para admin-stats). */
+/* Cuántos correos lleva la Academy hoy desde ESTE sitio (para admin-stats):
+   el cupo es de su cuenta de Resend. */
 export async function academyEmailsToday(sql) {
   const day = santiagoDay(nowFn())
-  const [row] = await sql`SELECT COALESCE(SUM(n), 0)::int AS n FROM academy_email_log WHERE day = ${day}::date`
+  const [row] = await sql`
+    SELECT COALESCE(SUM(n), 0)::int AS n FROM academy_email_log
+    WHERE day = ${day}::date AND (site = ${SITE} OR (site = '' AND ${ownsDb()}::boolean))`
   return { today: Number(row?.n || 0), budget: ACADEMY_EMAIL_DAILY_CAP }
 }
 

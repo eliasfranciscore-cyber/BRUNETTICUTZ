@@ -1,6 +1,6 @@
 /* ACADEMY — configuración del HOST (BrunettiCutz)
    ------------------------------------------------------------------
-   Uno de los 4 archivos propios de cada repo (docs/academy/PORTABLE.md §2):
+   Uno de los 5 archivos propios de cada repo (docs/academy/PORTABLE.md §2):
    `scripts/academy-sync.mjs` NUNCA lo copia. Todo lo que cambia entre
    pimpstudio.cl/academy y brunetticutz.cl/cursos vive acá; el código
    compartido (src/academy/**, src/pages/academy/**, …) lo lee de este

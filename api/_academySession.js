@@ -36,6 +36,7 @@
 
 import crypto from "node:crypto"
 import { HOST, sessionSecret } from "./_academyHost.js"
+import { academyDbTag } from "./_academyDb.js"
 
 const MEMBER_PREFIX = "m1"
 const MEMBER_TTL_MS = 30 * 24 * 60 * 60 * 1000
@@ -43,13 +44,21 @@ const MEMBER_PWC_TTL_MS = 15 * 60 * 1000
 
 /* Llave HKDF memoizada por secreto (un deploy nuevo con otro secreto la
    recalcula). Sin un secreto fuerte (≥16) no hay llave y todo falla
-   CERRADO: no se firma ni se acepta ningún token. */
-let cached = { secret: null, key: null }
+   CERRADO: no se firma ni se acepta ningún token.
+
+   Con la base compartida (api/_academyDb.js) el `info` lleva además la
+   huella de esa base: el sitio que se muda a la base del otro cambia de ids
+   de miembro, y sus tokens viejos (sub = id de la base anterior) tienen que
+   dejar de valer en el mismo deploy. El dueño de la base no cambia nada. */
+let cached = { id: null, key: null }
 function memberKey() {
   const secret = sessionSecret()
   if (!secret || secret.length < 16) return null
-  if (cached.secret !== secret) {
-    cached = { secret, key: Buffer.from(crypto.hkdfSync("sha256", secret, "", HOST.sessionInfo, 32)) }
+  const tag = academyDbTag()
+  const info = tag ? `${HOST.sessionInfo}|db:${tag}` : HOST.sessionInfo
+  const id = `${secret}\u0000${info}`
+  if (cached.id !== id) {
+    cached = { id, key: Buffer.from(crypto.hkdfSync("sha256", secret, "", info, 32)) }
   }
   return cached.key
 }

@@ -40,6 +40,7 @@
 import { HttpError, levelFor, getSettings, isStaffRole, memberMini } from "./_academyHttp.js"
 import { cleanText, cleanLine, safeUrl, isImageUrl } from "./_academyText.js"
 import { pushToMembers } from "./_academyPush.js"
+import { SITE, blobToken } from "./_academyDb.js"
 import { HOST } from "./_academyHost.js"
 
 const MSG_MAX = 4000
@@ -942,12 +943,14 @@ async function pushSubscribe(ctx) {
     throw new HttpError(400, "Suscripción inválida")
   }
   // ON CONFLICT (endpoint): UNIQUE simple. Si el mismo navegador ya estaba a
-  // nombre de otro miembro (cerró sesión y entró otro), pasa a este.
+  // nombre de otro miembro (cerró sesión y entró otro), pasa a este. `site`:
+  // la suscripción es de las VAPID de ESTE sitio (api/_academyPush.js).
   await sql`
-    INSERT INTO academy_push_subscriptions (member_id, endpoint, p256dh, auth)
-    VALUES (${me.id}, ${endpoint}, ${p256dh}, ${auth})
+    INSERT INTO academy_push_subscriptions (member_id, endpoint, p256dh, auth, site)
+    VALUES (${me.id}, ${endpoint}, ${p256dh}, ${auth}, ${SITE})
     ON CONFLICT (endpoint) DO UPDATE
-      SET member_id = EXCLUDED.member_id, p256dh = EXCLUDED.p256dh, auth = EXCLUDED.auth, created_at = NOW()
+      SET member_id = EXCLUDED.member_id, p256dh = EXCLUDED.p256dh, auth = EXCLUDED.auth,
+          site = EXCLUDED.site, created_at = NOW()
   `
   // Tope de 10 dispositivos por miembro: los endpoints viejos que el servicio
   // nunca contestó con 404/410 se acumularían para siempre.
@@ -1078,7 +1081,7 @@ async function serveFile(ctx) {
   try { host = new URL(row.url).hostname } catch { /* URL rota → 404 abajo */ }
   if (!host.endsWith(".blob.vercel-storage.com")) throw new HttpError(404, "Archivo no encontrado")
 
-  const token = process.env.BLOB_READ_WRITE_TOKEN || undefined
+  const token = blobToken() || undefined
   let result = null
   try {
     const { get } = await import("@vercel/blob")

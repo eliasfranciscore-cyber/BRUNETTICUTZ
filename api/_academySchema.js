@@ -74,6 +74,7 @@ const TABLES = [
       last_sync_at TIMESTAMPTZ,
       activity_email_at TIMESTAMPTZ,
       barber_id INT REFERENCES barbers(id) ON DELETE SET NULL,
+      home_site VARCHAR(20),
       granted_by INT,
       prefs JSONB NOT NULL DEFAULT '{}'::jsonb,
       joined_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -195,6 +196,7 @@ const TABLES = [
       paid_amount INT,
       refunded_at TIMESTAMPTZ,
       refund_reason TEXT,
+      site VARCHAR(20),
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )`],
@@ -382,8 +384,9 @@ const TABLES = [
       event_id INT NOT NULL REFERENCES academy_events(id) ON DELETE CASCADE,
       occurrence_start TIMESTAMPTZ NOT NULL,
       kind VARCHAR(4) NOT NULL CHECK (kind IN ('24h','1h')),
+      site VARCHAR(20) NOT NULL DEFAULT '',
       sent_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-      PRIMARY KEY (event_id, occurrence_start, kind)
+      PRIMARY KEY (event_id, occurrence_start, kind, site)
     )`],
   ["academy_push_subscriptions", (sql) => sql`
     CREATE TABLE IF NOT EXISTS academy_push_subscriptions (
@@ -392,6 +395,7 @@ const TABLES = [
       endpoint TEXT NOT NULL UNIQUE,
       p256dh TEXT NOT NULL,
       auth TEXT NOT NULL,
+      site VARCHAR(20),
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )`],
   ["academy_uploads", (sql) => sql`
@@ -408,8 +412,9 @@ const TABLES = [
     CREATE TABLE IF NOT EXISTS academy_email_log (
       day DATE NOT NULL,
       kind VARCHAR(24) NOT NULL,
+      site VARCHAR(20) NOT NULL DEFAULT '',
       n INT NOT NULL DEFAULT 0,
-      PRIMARY KEY (day, kind)
+      PRIMARY KEY (day, kind, site)
     )`],
   // Límites por ventana (rl:<llave>) y bloqueo de login (lk:<llave>) de
   // api/_academyLimits.js. Propia de la Academy: no comparte contador con el
@@ -422,6 +427,19 @@ const TABLES = [
       failures INT NOT NULL DEFAULT 0,
       locked_until TIMESTAMPTZ,
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )`],
+  // Barbero del panel de un sitio → su cuenta en la Academy (owner-session).
+  // Con la base compartida el barbero se identifica por (sitio, id): el #6
+  // de BrunettiCutz no es el #6 de PimpStudio. Reemplaza a
+  // academy_members.barber_id, que queda solo para las filas viejas del
+  // sitio dueño de la base (api/_academyAuth.js).
+  ["academy_staff_links", (sql) => sql`
+    CREATE TABLE IF NOT EXISTS academy_staff_links (
+      site VARCHAR(20) NOT NULL,
+      barber_id INT NOT NULL,
+      member_id INT NOT NULL REFERENCES academy_members(id) ON DELETE CASCADE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (site, barber_id)
     )`],
 ]
 
@@ -446,6 +464,51 @@ const INDEXES = [
 
 export const ACADEMY_INDEXES = INDEXES.map(([name]) => name)
 
+/* Columnas agregadas después de crear las tablas (la base compartida entre
+   los dos sitios, 2026-10-01; ver api/_academyDb.js). Una sola consulta a
+   information_schema dice cuáles faltan, y solo esas corren. Las que cambian
+   la llave primaria (para que los dos sitios tengan su propio cupo de correo
+   y su propio reclamo de recordatorios) van en una transacción: o queda la
+   columna con la llave nueva, o nada. '' = fila anterior, del dueño de la
+   base. Mismas definiciones que TABLES, que ya las trae para una base nueva. */
+const COLUMNS = [
+  ["academy_members", "home_site", (sql) => [sql`ALTER TABLE academy_members ADD COLUMN IF NOT EXISTS home_site VARCHAR(20)`]],
+  ["academy_orders", "site", (sql) => [sql`ALTER TABLE academy_orders ADD COLUMN IF NOT EXISTS site VARCHAR(20)`]],
+  ["academy_push_subscriptions", "site", (sql) => [sql`ALTER TABLE academy_push_subscriptions ADD COLUMN IF NOT EXISTS site VARCHAR(20)`]],
+  ["academy_email_log", "site", (sql) => [
+    sql`ALTER TABLE academy_email_log ADD COLUMN IF NOT EXISTS site VARCHAR(20) NOT NULL DEFAULT ''`,
+    sql`ALTER TABLE academy_email_log DROP CONSTRAINT IF EXISTS academy_email_log_pkey`,
+    sql`ALTER TABLE academy_email_log ADD PRIMARY KEY (day, kind, site)`,
+  ]],
+  ["academy_event_reminders", "site", (sql) => [
+    sql`ALTER TABLE academy_event_reminders ADD COLUMN IF NOT EXISTS site VARCHAR(20) NOT NULL DEFAULT ''`,
+    sql`ALTER TABLE academy_event_reminders DROP CONSTRAINT IF EXISTS academy_event_reminders_pkey`,
+    sql`ALTER TABLE academy_event_reminders ADD PRIMARY KEY (event_id, occurrence_start, kind, site)`,
+  ]],
+]
+
+/* Corre las columnas que falten. Devuelve los nombres "tabla.columna" que
+   agregó. Un fallo se registra y se reintenta en el próximo ensure (no se
+   memoiza: ensureAcademyTables olvida la promesa si esto lanza). */
+export async function ensureAcademyColumns(sql) {
+  const tables = [...new Set(COLUMNS.map(([t]) => t))]
+  const rows = await sql`
+    SELECT table_name, column_name FROM information_schema.columns
+    WHERE table_schema = current_schema() AND table_name = ANY(${tables}::text[])
+  `
+  const have = new Set(rows.map((r) => `${r.table_name}.${r.column_name}`))
+  const present = new Set(rows.map((r) => r.table_name))
+  const added = []
+  for (const [table, column, build] of COLUMNS) {
+    // Una tabla que no existe la acaba de crear (o la va a crear) TABLES, ya
+    // con la columna.
+    if (!present.has(table) || have.has(`${table}.${column}`)) continue
+    await sql.transaction(build(sql))
+    added.push(`${table}.${column}`)
+  }
+  return added
+}
+
 /* Qué tablas de `names` existen ya → Set. Una sola consulta. */
 export async function presentTables(sql, names) {
   const list = Array.isArray(names) ? names.map(String) : []
@@ -465,6 +528,7 @@ export const ensureAcademyTables = once(async (sql) => {
   if (missing.length) {
     await sql.transaction(missing.map(([, build]) => build(sql)))
   }
+  const columns = await ensureAcademyColumns(sql)
 
   const createdIndexes = []
   let existing = new Set()
@@ -473,7 +537,7 @@ export const ensureAcademyTables = once(async (sql) => {
     existing = new Set(rows.map((r) => r.indexname))
   } catch (err) {
     console.error("[academy:schema] no se pudo leer pg_indexes:", err?.message || err)
-    return { created: missing.map(([n]) => n), indexes: createdIndexes }
+    return { created: missing.map(([n]) => n), columns, indexes: createdIndexes }
   }
   for (const [name, build] of INDEXES) {
     if (existing.has(name)) continue
@@ -484,5 +548,5 @@ export const ensureAcademyTables = once(async (sql) => {
       console.error(`[academy:schema] índice ${name}:`, err?.message || err)
     }
   }
-  return { created: missing.map(([n]) => n), indexes: createdIndexes }
+  return { created: missing.map(([n]) => n), columns, indexes: createdIndexes }
 })

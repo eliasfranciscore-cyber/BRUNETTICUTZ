@@ -407,15 +407,18 @@ async function handleAcademyCheckout(req, res) {
   }
   let academy
   let limits
+  let db
   try {
-    ;[academy, limits] = await Promise.all([import('./_academyProvision.js'), import('./_academyLimits.js')])
+    ;[academy, limits, db] = await Promise.all([import('./_academyProvision.js'), import('./_academyLimits.js'), import('./_academyDb.js')])
   } catch (err) {
     console.error('academy checkout: no cargó el módulo:', err?.message || err)
     return res.status(503).json({ ok: false, error: 'La Academy no está disponible en este momento.', code: 'unavailable' })
   }
   try {
     const sql = neon(process.env.DATABASE_URL)
-    const allowed = await limits.rateLimit(sql, `aca-checkout-ip:${limits.clientIp(req)}`, { max: 10, windowSeconds: 300 })
+    // El contador vive con las tablas de la Academy, que pueden estar en la
+    // base de PimpStudio (ACADEMY_DATABASE_URL, api/_academyDb.js).
+    const allowed = await limits.rateLimit(db.academySql(sql), `aca-checkout-ip:${limits.clientIp(req)}`, { max: 10, windowSeconds: 300 })
     if (!allowed) return res.status(429).json({ ok: false, error: 'Demasiados intentos. Espera unos minutos.' })
     return await academy.handleCourseCheckout(sql, req, res)
   } catch (err) {

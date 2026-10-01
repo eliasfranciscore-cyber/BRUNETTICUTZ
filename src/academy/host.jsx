@@ -4,11 +4,12 @@ import { ACADEMY_BASE } from './hostConfig.js'
 /* ============================================================
    ACADEMY — piezas del HOST con React (BrunettiCutz)
 
-   Uno de los 4 archivos propios de cada repo (docs/academy/PORTABLE.md §2):
+   Uno de los 5 archivos propios de cada repo (docs/academy/PORTABLE.md §2):
    `scripts/academy-sync.mjs` NUNCA lo copia. Los datos puros van en
    hostConfig.js; acá solo lo que necesita React o los datos del sitio.
 
-     PublicLanding             la página pública de <base> (venta del curso)
+     PublicLanding             la página pública de <base> (catálogo y compra):
+                               la vitrina compartida, idéntica en los dos sitios
      await buildSeedPayload()  cuerpo de admin-seed ("Cargar cursos iniciales")
      catalogHref(course)       a dónde manda "Comprar" un curso bloqueado
 
@@ -17,17 +18,19 @@ import { ACADEMY_BASE } from './hostConfig.js'
    carga recién dentro de buildSeedPayload(), que solo corre en el panel.
    ============================================================ */
 
-// /cursos sin sesión: la página de venta de siempre (hero, temario y compra),
-// ahora cobrando el curso de la Academy. PimpStudio: ../pages/Academy.jsx
-export const PublicLanding = lazy(() => import('../pages/Cursos.jsx'))
+// /cursos sin sesión: la vitrina de la Academy, la MISMA que pimpstudio.cl/academy
+// (código compartido; el menú, el pie y la marca salen de hostLanding.jsx).
+// Desde 2026-10-01 la Academy es una sola, con una sola base: la página de venta
+// propia del Método Brunetti (src/pages/Cursos.jsx) quedó fuera.
+export const PublicLanding = lazy(() => import('../pages/academy/Vitrina.jsx'))
 
-/* "Comprar" de un curso bloqueado dentro de la app. Acá hay un solo curso a
-   la venta y su formulario vive en la sección #inscripcion de la landing,
-   así que cualquier curso manda ahí. Es navegación dura: la landing (/cursos)
-   y la app (/cursos/…) tienen CSP distintos (SPEC §7.1). El parámetro queda
-   por el contrato de PORTABLE.md §2 (PimpStudio sí lo usa). */
-export function catalogHref(course) { // eslint-disable-line no-unused-vars
-  return `${ACADEMY_BASE}#inscripcion`
+/* "Comprar" de un curso bloqueado dentro de la app: el ancla del catálogo
+   público (#curso-<id de courses.js>; si el curso no viene de ahí, el slug).
+   Es navegación dura: el catálogo (/cursos) y la app (/cursos/…) tienen CSP
+   distintos (SPEC §7.1). Igual que en PimpStudio. */
+export function catalogHref(course) {
+  const key = course?.catalogId || course?.slug || ''
+  return key ? `${ACADEMY_BASE}#curso-${encodeURIComponent(key)}` : ACADEMY_BASE
 }
 
 /* ============================================================

@@ -21,6 +21,7 @@
 
 import { readMemberToken, hasMemberBearer } from "./_academySession.js"
 import { requireBarberAdmin } from "./_academyHost.js"
+import { SITE, ownsDb, hostSql } from "./_academyDb.js"
 import { memberPublicFromRow, normalizePrefs, levelFor, getSettings, isStaffRole, isAdminRole, pgCode } from "./_academyHttp.js"
 
 function deny(res, status, error, code) {
@@ -81,12 +82,29 @@ export async function requireMember(sql, req, res, { allowPwc = false } = {}) {
   }
 }
 
+/* Miembros vinculados a ESTE barbero de ESTE sitio (academy_staff_links).
+   Con la base compartida el vínculo lleva el sitio: el barbero #6 de
+   BrunettiCutz no es el #6 de PimpStudio. Si la tabla todavía no existe
+   (42P01: ensureAcademyTables corre después de la autenticación) no hay
+   vínculos nuevos y vale solo el viejo (abajo). */
+export async function linkedMemberIds(sql, barberId) {
+  try {
+    const rows = await sql`SELECT member_id FROM academy_staff_links WHERE site = ${SITE} AND barber_id = ${barberId}`
+    return rows.map((r) => Number(r.member_id)).filter((n) => Number.isInteger(n) && n > 0)
+  } catch (err) {
+    if (pgCode(err) === "42P01") return []
+    throw err
+  }
+}
+
 /* Barbero admin del panel → rol dentro de la Academy.
-   El barbero ya está verificado como admin contra la base
+   El barbero ya está verificado como admin contra la base de SU sitio
    (requireBarberAdmin del host → { barberId, name, email }).
-   Su rol acá es el de la fila de academy_members vinculada por barber_id
-   (la crea owner-session: la primera vez que un admin abre la Academy desde
-   el panel queda como propietario). Si no tiene fila vinculada:
+   Su rol acá es el de la fila de academy_members vinculada a él: por
+   academy_staff_links (site, barber_id), o —solo en el sitio dueño de la
+   base, donde barbers es la misma tabla— por la columna vieja
+   academy_members.barber_id. La crea owner-session: la primera vez que un
+   admin abre la Academy desde el panel. Si no tiene fila vinculada:
      - si la Academy todavía no tiene propietario → 'propietario' (es quien
        la va a abrir; sin esto el panel no podría configurar nada antes del
        primer "Abrir Academy");
@@ -94,13 +112,16 @@ export async function requireMember(sql, req, res, { allowPwc = false } = {}) {
    Un error que no sea "la tabla no existe" falla cerrado (503). */
 async function barberAcademyRole(sql, res, barber) {
   const barberId = Number(barber.barberId)
+  const legacy = ownsDb()
   let rows = []
+  let links = []
   try {
+    links = await linkedMemberIds(sql, barberId)
     rows = await sql`
       SELECT id, role, status, barber_id
       FROM academy_members
-      WHERE barber_id = ${barberId} OR role = 'propietario'
-      ORDER BY (barber_id = ${barberId}) DESC NULLS LAST, id
+      WHERE role = 'propietario' OR id = ANY(${links}::int[]) OR (${legacy}::boolean AND barber_id = ${barberId})
+      ORDER BY (id = ANY(${links}::int[]) OR (${legacy}::boolean AND barber_id = ${barberId})) DESC, id
       LIMIT 5
     `
   } catch (err) {
@@ -111,7 +132,8 @@ async function barberAcademyRole(sql, res, barber) {
     }
     rows = []
   }
-  const linked = rows.find((r) => Number(r.barber_id) === barberId && r.status === "activo")
+  const isLinked = (r) => links.includes(Number(r.id)) || (legacy && Number(r.barber_id) === barberId)
+  const linked = rows.find((r) => isLinked(r) && r.status === "activo")
   const ownerExists = rows.some((r) => r.role === "propietario")
   let role
   if (linked && isAdminRole(linked.role)) role = linked.role
@@ -129,7 +151,7 @@ export async function requireAcademyAdmin(sql, req, res) {
     if (!isAdminRole(member.role)) return deny(res, 403, "Esto es solo para administradores de la Academy.", "forbidden")
     return { memberId: member.id, barberId: null, role: member.role, member, barber: null }
   }
-  const barber = await requireBarberAdmin(sql, req, res)
+  const barber = await requireBarberAdmin(hostSql(sql), req, res)
   if (!barber) return null
   return barberAcademyRole(sql, res, barber)
 }
@@ -143,7 +165,7 @@ export async function requireModerator(sql, req, res) {
     if (!isStaffRole(member.role)) return deny(res, 403, "Esto es solo para el equipo de la Academy.", "forbidden")
     return { memberId: member.id, barberId: null, role: member.role, member, barber: null }
   }
-  const barber = await requireBarberAdmin(sql, req, res)
+  const barber = await requireBarberAdmin(hostSql(sql), req, res)
   if (!barber) return null
   return barberAcademyRole(sql, res, barber)
 }

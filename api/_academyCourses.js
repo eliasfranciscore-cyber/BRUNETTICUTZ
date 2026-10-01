@@ -31,6 +31,7 @@
 import { HttpError, levelFor, pointsFor } from "./_academyHttp.js"
 import { safeUrl, isImageUrl, parseYouTubeId, cleanText, slugify } from "./_academyText.js"
 import { mpConfigured } from "./_academyMp.js"
+import { blobToken } from "./_academyDb.js"
 
 /* ── Constantes ─────────────────────────────────────────────────────────── */
 
@@ -618,7 +619,7 @@ async function saveProgress(ctx) {
 /* Público y cacheado en el borde 5 min: la vitrina /academy no debe despertar
    Neon por cada visita. Si la base falla (o las tablas todavía no existen,
    42P01), se responde el respaldo vacío y la página sigue con los datos
-   estáticos de src/data/courses.js, con todos los precios en null = no se
+   estáticos de src/academy/courses.js, con todos los precios en null = no se
    vende (SPEC §0.4). Ese respaldo se cachea menos, para que al volver la
    base el catálogo real aparezca rápido. */
 async function getCatalog(ctx) {
@@ -1152,7 +1153,7 @@ async function adminReorder(ctx) {
   return {}
 }
 
-/* Carga inicial de cursos (el panel arma el payload desde src/data/courses.js
+/* Carga inicial de cursos (el panel arma el payload desde src/academy/courses.js
    + Método Brunetti). Idempotente por slug: un curso que ya existe se salta
    ENTERO, sin tocar sus secciones ni lecciones, para que apretar el botón dos
    veces —o después de haber editado a mano— no duplique ni pise nada. También
@@ -1386,7 +1387,7 @@ async function upload(ctx) {
   const memberId = member?.id || admin?.memberId || null
   if (!memberId && !admin?.barberId) throw new HttpError(401, "Sesión de Academy requerida", "auth")
 
-  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+  if (!blobToken()) {
     throw new HttpError(503, "La subida de imágenes no está disponible por ahora", "unavailable")
   }
 
@@ -1466,7 +1467,7 @@ async function upload(ctx) {
       access: priv ? "private" : "public",
       contentType: type.mime,
       addRandomSuffix: true,
-      token: process.env.BLOB_READ_WRITE_TOKEN,
+      token: blobToken(),
     })
   } catch (err) {
     console.error("[academy:upload] blob:", err?.message || err)

@@ -919,6 +919,19 @@ Prefix `aca-` for all academy member-app classes (the catalog keeps `academy-*`)
 ## 15. Deviations log
 (Agents append here via their final report; the orchestrator merges.)
 
+- **2026-10-01 — Una Academy, una base, dos sitios.** pimpstudio.cl/academy y brunetticutz.cl/cursos
+  comparten las tablas `academy_*` (en la base de PimpStudio; BrunettiCutz entra con
+  `ACADEMY_DATABASE_URL`) y la vitrina (`src/pages/academy/Vitrina.jsx`). Nuevo: `api/_academyDb.js`
+  (`academySql`, `hostSql`, `SITE`, `ownsDb`, `siteIs`, `academyDbTag`, `blobToken`),
+  `api/_academyPeer.js` (puente servidor a servidor con `PIMPSTUDIO_BRIDGE_SECRET`),
+  `api/_academyBridge.js` (modos `bridge-push`, `bridge-verify-order`, auth `peer` → 404 sin
+  secreto), tabla `academy_staff_links (site, barber_id) → member_id` (reemplaza a
+  `academy_members.barber_id`, que solo vale en el sitio dueño de la base) y columnas `site` /
+  `home_site` en `academy_orders`, `academy_push_subscriptions`, `academy_members`,
+  `academy_email_log` y `academy_event_reminders` (estas dos con PK nueva que incluye `site`).
+  Cada sitio concilia sus órdenes, manda sus push (y pide al otro los de teléfonos suscritos allá),
+  cuenta su cupo de correo y avisa a sus miembros (`home_site`). Ver `docs/academy/PORTABLE.md` §0.
+
 ## 16. Cross-module exports (exact names — implement/consume exactly these)
 
 | Export | File (owner) | Signature / contract |
@@ -950,6 +963,7 @@ Prefix `aca-` for all academy member-app classes (the catalog keeps `academy-*`)
 - `_academyChat.js`: chats, chat, chat-start, chat-send, chat-read, chats-read-all, chat-mute, chat-mark-unread, block, blocks, sync, push-subscribe, push-unsubscribe, cohorts, cohort, file, admin-cohort-save, admin-cohort-members, admin-cohort-archive
 - `_academyEvents.js`: events, event, admin-event-save, admin-event-delete
 - `_academyAdmin.js`: admin-members, admin-invite, admin-member-update, admin-resend-access, admin-password-link, admin-grant, admin-revoke, admin-orders, admin-verify-order, admin-import-grant, admin-settings (GET+POST), admin-stats
+- `_academyBridge.js` (auth `peer`, desde 2026-10-01): bridge-push, bridge-verify-order
 
 Auth per mode = the "auth" column in §5 tables (`pwc` = member with `allowPwc`). `admin-settings` accepts GET and POST.
 

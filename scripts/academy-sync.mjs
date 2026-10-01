@@ -4,9 +4,9 @@
      node scripts/academy-sync.mjs ../BRUNETTICUTZ           # copia
      node scripts/academy-sync.mjs ../BRUNETTICUTZ --dry     # solo muestra qué cambiaría
 
-   Copia el set compartido tal cual y NUNCA toca los 4 archivos del host de destino
+   Copia el set compartido tal cual y NUNCA toca los 5 archivos del host de destino
    (api/_academyHost.js, src/academy/hostConfig.js, src/academy/host.jsx,
-   scripts/dev-mock/academy/host.mjs). Borra en el destino los archivos compartidos que ya
+   src/academy/hostLanding.jsx, scripts/dev-mock/academy/host.mjs). Borra en el destino los archivos compartidos que ya
    no existen acá (para que un archivo renombrado no quede huérfano). Al final revisa que el
    código compartido no importe nada del repo fuera de la lista permitida: si algo se coló,
    lo avisa y termina con código 1 (se copió igual, pero hay que arreglarlo antes del build). */
@@ -42,6 +42,7 @@ const HOST_FILES = new Set([
   'api/_academyHost.js',
   'src/academy/hostConfig.js',
   'src/academy/host.jsx',
+  'src/academy/hostLanding.jsx',
   'scripts/dev-mock/academy/host.mjs',
 ])
 const IGNORE = (rel) => / 2\.[a-z]+$/.test(rel) || rel.includes('.DS_Store') // copias de conflicto de iCloud
@@ -88,7 +89,7 @@ const ALLOWED = [
   /^react(-dom|-router-dom)?(\/|$)/, /^@neondatabase\/serverless$/, /^@vercel\/blob/, /^web-push$/, /^node:/,
 ]
 const ALLOWED_LOCAL = [
-  'api/_academyHost.js', 'src/academy/hostConfig.js', 'src/academy/host.jsx', 'scripts/dev-mock/academy/host.mjs',
+  'api/_academyHost.js', 'src/academy/hostConfig.js', 'src/academy/host.jsx', 'src/academy/hostLanding.jsx', 'scripts/dev-mock/academy/host.mjs',
   'src/components/panel/index.js', 'src/components/panel/hooks.js', 'src/components/theme.jsx', 'src/data.js',
   'src/installPrompt.js', 'src/components/InstallPrompt.jsx',
 ]
