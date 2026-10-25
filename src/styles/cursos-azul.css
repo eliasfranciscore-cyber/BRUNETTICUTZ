@@ -1,0 +1,74 @@
+/* ============================================================
+   AZUL DE CURSOS (#0B129E) — la paleta de la formación de este sitio.
+
+   La usan /cursos (la vitrina de la Academy, raíz .academy-page; la
+   importa src/academy/hostLanding.jsx) y /metodo (.metodo-page,
+   src/pages/Metodo.jsx). El resto del sitio sigue dorado: acá solo se
+   remapean, bajo esas dos raíces, los mismos tokens --gold* que usan
+   brunetti.css, pimp.css y las hojas de cada página, igual que
+   .cursos-page hace en brunetti.css.
+
+   Especificidad: `.brunetti-site.x` (0,2,0) gana a las reglas de
+   `.brunetti-site` (0,1,0) y el bloque claro (0,3,0) gana al oscuro.
+   ============================================================ */
+
+/* En oscuro, --gold es el acento de íconos y rótulos (las hojas lo usan
+   como color de primer plano): #0b129e puro sobre negro no se lee
+   (~1,6:1), así que va un azul medio y el #0b129e queda en los degradados
+   de botón. */
+.brunetti-site.academy-page,
+.brunetti-site.metodo-page {
+  --gold: #7a82f2;
+  --gold-lt: #8b93f5;
+  --gold-bright: #8b93f5;
+  --gold-deep: #070a66;
+  --gold-dp: #070a66;
+  --gold-edge: rgba(107, 116, 240, 0.45);
+  --gold-soft: rgba(107, 116, 240, 0.14);
+  --gold-line: rgba(107, 116, 240, 0.38);
+  --gold-glow: rgba(107, 116, 240, 0.22);
+  --gold-grad: linear-gradient(135deg, #6b74f0 0%, #0b129e 52%, #070a66 100%);
+  --gold-grad-ink: linear-gradient(135deg, #c3c7fb 0%, #8b93f5 55%, #6b74f0 100%);
+  --shadow-gold: 0 16px 40px -18px rgba(11, 18, 158, 0.75);
+  --on-gold: #ffffff;
+  /* El brillo ambiental de .brunetti-site::before mezcla --amb-warm (dorado). */
+  --amb-warm: oklch(0.52 0.2 268);
+  background:
+    radial-gradient(1200px 700px at 80% -10%, rgba(43, 51, 201, 0.16), transparent 60%),
+    linear-gradient(180deg, #0a0a09 0%, #070706 100%);
+}
+/* En claro el azul claro no contrasta sobre la crema: acentos en azul
+   profundo, como hace .cursos-page. */
+[data-theme="light"] .brunetti-site.academy-page,
+[data-theme="light"] .brunetti-site.metodo-page {
+  --gold: #0b129e;
+  --gold-lt: #2f39c9;
+  --gold-bright: #2f39c9;
+  --gold-grad: linear-gradient(135deg, #4a53e0 0%, #0b129e 55%, #070a66 100%);
+  --gold-grad-ink: linear-gradient(135deg, #2f39c9 0%, #0b129e 60%, #070a66 100%);
+  --gold-edge: rgba(11, 18, 158, 0.32);
+  --gold-soft: rgba(11, 18, 158, 0.09);
+  --gold-line: rgba(11, 18, 158, 0.28);
+  --gold-glow: rgba(11, 18, 158, 0.14);
+  --on-gold: #ffffff;
+  /* El fondo oscuro de arriba taparía el ::before crema del tema claro. */
+  background: none;
+}
+
+/* Dorados escritos a mano en brunetti.css, pimp.css y SiteNav.css → azul */
+.brunetti-site.academy-page .bhead h2,
+.brunetti-site.metodo-page .bhead h2 {
+  background: linear-gradient(180deg, #fff 35%, #aab0f7);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+/* En claro, `.bsection p` (#3a3633) le gana al rótulo de cada sección:
+   quedaba gris. */
+[data-theme="light"] .brunetti-site.academy-page .bhead .kicker,
+[data-theme="light"] .brunetti-site.metodo-page .bhead .kicker { color: var(--gold-bright); }
+.brunetti-site.academy-page .btn-gold:hover,
+.brunetti-site.metodo-page .btn-gold:hover { box-shadow: 0 22px 48px -18px rgba(43, 51, 201, 0.75); }
+.brunetti-site.academy-page .site-nav-burger:hover,
+.brunetti-site.metodo-page .site-nav-burger:hover { background: rgba(107, 116, 240, 0.1); }
+.brunetti-site.academy-page .site-nav-sheet,
+.brunetti-site.metodo-page .site-nav-sheet { border-color: rgba(107, 116, 240, 0.28); }

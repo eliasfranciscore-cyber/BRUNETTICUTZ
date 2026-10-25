@@ -11,9 +11,8 @@ import './SiteNav.css'
    - Secciones (Servicios/Barberos/Nosotros/Ubicación): scroll en Home,
      o navegan a "/" y Home hace scroll a la sección (location.state.section).
    - "Workshop" siempre enruta a /workshop (es una página más).
-   - "Método" enruta a /metodo, la página de venta del Método Brunetti. La
-     vitrina de la Academy (/cursos) no está en el menú: se llega por enlace
-     y desde "Entrar a la Academy" al pie de /metodo.
+   - "Cursos" enruta a /cursos (la vitrina de la Academy) y "Método" a
+     /metodo, la página de venta del Método Brunetti. Los dos van a la vista.
    - Reservar: en workshop "Reservar asiento" (→ formulario #inscribir);
      en el resto "Reservar hora en la agenda" (→ /login). */
 const NAV = [
@@ -22,6 +21,7 @@ const NAV = [
   ["sobre",     "Sobre Bruno"],
   ["servicios", "Servicios"],
   ["style",     "Tu estilo"],
+  ["cursos",    "Cursos"],
   ["metodo",    "Método"],
   ["workshop",  "Workshop"],
   ["essentials","Essentials"],
@@ -80,6 +80,7 @@ export default function SiteNav({ onSection, scrolled: scrolledProp }) {
   const handleNav = (id) => {
     setMenuOpen(false)
     if (id === "workshop") navigate("/workshop")
+    else if (id === "cursos") navigate("/cursos")
     else if (id === "metodo") navigate("/metodo")
     else if (id === "style") navigate("/style")
     else if (id === "essentials") navigate("/essentials")
@@ -118,7 +119,7 @@ export default function SiteNav({ onSection, scrolled: scrolledProp }) {
         >
           <img
             className="site-nav-brand-word"
-            src={isWorkshop ? "/assets/brunetti-workshop-wordmark.webp" : isCursos ? "/assets/brunetti-cursos-wordmark.webp" : "/assets/brunetti-hero-wordmark.webp"}
+            src={isWorkshop ? "/assets/brunetti-workshop-wordmark.webp" : isCursos || isMetodo ? "/assets/brunetti-cursos-wordmark.webp" : "/assets/brunetti-hero-wordmark.webp"}
             alt="Brunetticutz"
           />
         </a>
@@ -128,7 +129,7 @@ export default function SiteNav({ onSection, scrolled: scrolledProp }) {
               key={id}
               onClick={() => handleNav(id)}
               className="nav-link"
-              style={(id === "workshop" && isWorkshop) || (id === "metodo" && isMetodo) || (id === "style" && isStyle) || (id === "essentials" && isEssentials) ? { color: "var(--gold-lt)" } : undefined}
+              style={(id === "workshop" && isWorkshop) || (id === "cursos" && isCursos) || (id === "metodo" && isMetodo) || (id === "style" && isStyle) || (id === "essentials" && isEssentials) ? { color: "var(--gold-lt)" } : undefined}
             >
               {label}
             </button>
@@ -158,7 +159,7 @@ export default function SiteNav({ onSection, scrolled: scrolledProp }) {
             key={id}
             role="menuitem"
             onClick={() => handleNav(id)}
-            className={(id === "workshop" && isWorkshop) || (id === "metodo" && isMetodo) || (id === "style" && isStyle) || (id === "essentials" && isEssentials) ? "is-active" : ""}
+            className={(id === "workshop" && isWorkshop) || (id === "cursos" && isCursos) || (id === "metodo" && isMetodo) || (id === "style" && isStyle) || (id === "essentials" && isEssentials) ? "is-active" : ""}
           >
             {label}
           </button>

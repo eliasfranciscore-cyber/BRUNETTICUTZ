@@ -490,9 +490,9 @@ Lo que `bridge-manual` agrega sobre la del panel, todo bajo `bridge: true` (el a
 
 ## Método Brunetti (`/metodo`, desde 2026-10-25)
 
-Página de venta propia del Método Brunetti, armada a partir del informe "Método Brunetti: diagnóstico y pivotes" (oct-2026, peldaños 1–3: mensaje, proceso, precio). `/cursos` sigue siendo la vitrina compartida de la Academy (no se edita acá); el Método se vende en `/metodo`, que el menú ("Método"), el home y `catalogHref()` (`src/academy/host.jsx`) apuntan ahí.
+Página de venta propia del Método Brunetti, armada a partir del informe "Método Brunetti: diagnóstico y pivotes" (oct-2026, peldaños 1–3: mensaje, proceso, precio). `/cursos` sigue siendo la vitrina compartida de la Academy (no se edita acá); el Método se vende en `/metodo`, al que apuntan el home, `catalogHref()` (`src/academy/host.jsx`) y el ítem "Método" del menú. "Cursos" (`/cursos`) también sigue en el menú y en el pie del home: los dos van a la vista.
 
-- **Página:** `src/pages/Metodo.jsx` + `src/styles/metodo.css`. Texto en `src/data/content/metodo.json` (editable con `npm run edit`), comportamiento en `src/data/metodo.js` (`METODO_COURSE`, `TARGET_CUT_PRICE`, `FREE_LESSON`). Las pruebas del hero son ítems del JSON con `enabled`; **Viggo está apagado** hasta tener su texto.
+- **Página:** `src/pages/Metodo.jsx` + `src/styles/metodo.css`. Desde 2026-10-25 va con el **estilo de Cursos**, no dorada: la paleta azul de `src/styles/cursos-azul.css` (la misma de `/cursos`), el wordmark azul en el menú y el pie, y la gramática del diseño "Curso primero" de la vitrina (héroe en dos columnas, paneles partidos por filetes y la lección gratis en una franja azul de lado a lado). Texto en `src/data/content/metodo.json` (editable con `npm run edit`), comportamiento en `src/data/metodo.js` (`METODO_COURSE`, `TARGET_CUT_PRICE`, `FREE_LESSON`). Las pruebas del hero son ítems del JSON con `enabled`; **Viggo está apagado** hasta tener su texto.
 - **Precio a la vista:** sale del catálogo público de la Academy (`useAcademyCatalog`, `priceOnline`/`salesOpen` del curso `brunetti-metodo`), nunca escrito en la página. La tarjeta ancla "Método + Workshop" suma ese precio y el del Workshop (`/api/mp-payments?settings=1`) y se consulta por WhatsApp.
 - **Pago:** el mismo de la Academy (`checkoutApi` → `/api/mp-payments` `kind:'course'` → Mercado Pago → `/cursos/gracias`), con la misma clave `ps_academy_checkout` en `sessionStorage`. No se tocó código compartido.
 - **Lección de muestra (lead):** nombre + WhatsApp + correo → `POST /api/enrollments` con `source: 'metodo'` (tercera fuente, junto a `cursos`/`workshop`), `utm` (columna nueva, `ensureEnrollmentColumns`) y tope de 8 POST públicos por IP cada 10 min (`rateLimit`; con sesión del panel no hay tope). Push "Nuevo interesado · Método". El correo con el enlace (`sendMetodoLessonEmail`) sale **solo si la página ya tiene el video** (`lessonEmail: true`, o sea `FREE_LESSON.videoId` lleno). **Falta el ID de YouTube de la lección 19**: mientras esté vacío, el interesado ve "te llega por WhatsApp" y se le escribe desde Panel → Inscripciones (filtro "Método", chip dorado, "Llegó desde" con el UTM, WhatsApp con mensaje propio).
@@ -535,9 +535,9 @@ sitio) → acceso de por vida, en los dos sitios. Contrato completo en
   `scripts/dev-mock/academy/host.mjs`, más los puntos de enganche
   listados en [`docs/academy/PORTABLE.md`](docs/academy/PORTABLE.md).
 - **La marca de `/cursos` va en el host, no en la vitrina**: `hostLanding.jsx` importa
-  `src/styles/cursos-vitrina.css` (propio de este sitio, scopeado a `.academy-page`), que pone el
-  azul de Cursos (#0B129E; la vitrina se monta sin `.cursos-page` y sin esto salía dorada) y el
-  diseño "Curso primero" (2026-10-25): héroe bajo, el curso justo después, "Cómo se cursa" en un
+  `src/styles/cursos-azul.css` (la paleta azul de Cursos, #0B129E, compartida con `/metodo`; la
+  vitrina se monta sin `.cursos-page` y sin esto salía dorada) y `src/styles/cursos-vitrina.css`
+  (propio de este sitio, scopeado a `.academy-page`) con el diseño "Curso primero" (2026-10-25): héroe bajo, el curso justo después, "Cómo se cursa" en un
   panel, la Academy en una franja azul y los términos en letra chica. El orden lo cambia CSS
   (`order`), no el JSX. Las partículas del fondo van azules por el `Sparkles` que exporta el host.
 - **Sin función nueva** (seguimos en 11/12): `/api/academy` es un rewrite a

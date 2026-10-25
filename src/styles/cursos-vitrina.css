@@ -11,9 +11,9 @@
    1. Paleta AZUL #0B129E. El azul de Cursos vivía bajo .cursos-page
       (brunetti.css), pero la vitrina se monta con
       `brunetti-site academy-page`: sin esa clase heredaba el dorado del
-      sitio. Se remapean los mismos tokens --gold* para el oscuro y el
-      claro, más los dorados escritos a mano en vitrina.css,
-      essentials.css y SiteNav.css.
+      sitio. Los tokens están en cursos-azul.css (la misma paleta de
+      /metodo); acá van los dorados escritos a mano en vitrina.css y
+      essentials.css.
    2. Diseño "Curso primero" (elegido 2026-10-25): héroe más bajo, el
       curso justo debajo, "Cómo se cursa" en un solo panel, la Academy en
       una franja azul de lado a lado y los términos como letra chica. Con
@@ -25,54 +25,10 @@
    para ganarles sin depender del orden de carga de los chunks.
    ============================================================ */
 
-/* ---------- 1. PALETA ---------- */
-/* En oscuro, --gold es el acento de íconos y rótulos (vitrina.css lo usa
-   como color de primer plano): #0b129e puro sobre negro no se lee
-   (~1,6:1), así que va un azul medio y el #0b129e queda en los degradados
-   de botón. */
-.brunetti-site.academy-page {
-  --gold: #7a82f2;
-  --gold-lt: #8b93f5;
-  --gold-bright: #8b93f5;
-  --gold-deep: #070a66;
-  --gold-dp: #070a66;
-  --gold-edge: rgba(107, 116, 240, 0.45);
-  --gold-soft: rgba(107, 116, 240, 0.14);
-  --gold-line: rgba(107, 116, 240, 0.38);
-  --gold-glow: rgba(107, 116, 240, 0.22);
-  --gold-grad: linear-gradient(135deg, #6b74f0 0%, #0b129e 52%, #070a66 100%);
-  --gold-grad-ink: linear-gradient(135deg, #c3c7fb 0%, #8b93f5 55%, #6b74f0 100%);
-  --shadow-gold: 0 16px 40px -18px rgba(11, 18, 158, 0.75);
-  --on-gold: #ffffff;
-  /* El brillo ambiental de .brunetti-site::before mezcla --amb-warm (dorado). */
-  --amb-warm: oklch(0.52 0.2 268);
-  background:
-    radial-gradient(1200px 700px at 80% -10%, rgba(43, 51, 201, 0.16), transparent 60%),
-    linear-gradient(180deg, #0a0a09 0%, #070706 100%);
-}
-/* En claro el azul claro no contrasta sobre la crema: acentos en azul
-   profundo, como hace .cursos-page. (0,3,0) gana a la regla de arriba. */
-[data-theme="light"] .brunetti-site.academy-page {
-  --gold: #0b129e;
-  --gold-lt: #2f39c9;
-  --gold-bright: #2f39c9;
-  --gold-grad: linear-gradient(135deg, #4a53e0 0%, #0b129e 55%, #070a66 100%);
-  --gold-grad-ink: linear-gradient(135deg, #2f39c9 0%, #0b129e 60%, #070a66 100%);
-  --gold-edge: rgba(11, 18, 158, 0.32);
-  --gold-soft: rgba(11, 18, 158, 0.09);
-  --gold-line: rgba(11, 18, 158, 0.28);
-  --gold-glow: rgba(11, 18, 158, 0.14);
-  --on-gold: #ffffff;
-  /* El fondo oscuro de arriba taparía el ::before crema del tema claro. */
-  background: none;
-}
-
-/* Dorados escritos a mano en las hojas compartidas → azul */
-.brunetti-site.academy-page .bhead h2 {
-  background: linear-gradient(180deg, #fff 35%, #aab0f7);
-  -webkit-background-clip: text;
-  background-clip: text;
-}
+/* ---------- 1. DORADOS PROPIOS DE LA VITRINA ---------- */
+/* La paleta (tokens --gold*, fondo, títulos de sección, menú) está en
+   cursos-azul.css, compartida con /metodo. Acá, lo que vitrina.css y
+   essentials.css escriben a mano en dorado. */
 .brunetti-site.academy-page .academy-hero-title {
   background: linear-gradient(180deg, #fff 30%, #aab0f7 100%);
   -webkit-background-clip: text;
@@ -91,9 +47,6 @@
 .brunetti-site.academy-page .academy-mode-tag:not(.is-online),
 .brunetti-site.academy-page .essentials-badge,
 .brunetti-site.academy-page .essentials-cart-badge { color: var(--on-gold); }
-.brunetti-site.academy-page .btn-gold:hover { box-shadow: 0 22px 48px -18px rgba(43, 51, 201, 0.75); }
-.brunetti-site.academy-page .site-nav-burger:hover { background: rgba(107, 116, 240, 0.1); }
-.brunetti-site.academy-page .site-nav-sheet { border-color: rgba(107, 116, 240, 0.28); }
 
 /* ---------- 2. DISEÑO "CURSO PRIMERO" ---------- */
 
@@ -116,8 +69,6 @@
 .brunetti-site.academy-page .bhead { margin-bottom: clamp(1.2rem, 2.6vw, 1.8rem); }
 .brunetti-site.academy-page .bhead h2 { font-size: clamp(1.7rem, 3.4vw, 2.4rem); }
 .brunetti-site.academy-page .bhead p { font-size: 0.95rem; margin-top: 0.5rem; }
-/* En claro, `.bsection p` (#3a3633) le ganaba al rótulo: quedaba gris. */
-[data-theme="light"] .brunetti-site.academy-page .bhead .kicker { color: var(--gold-bright); }
 
 /* HÉROE: más bajo; los datos pasan de franja de cajas a una fila de pastillas. */
 .brunetti-site.academy-page .academy-hero {

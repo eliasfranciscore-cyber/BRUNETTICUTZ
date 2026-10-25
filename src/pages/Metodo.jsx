@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import SiteNav from '../components/SiteNav.jsx'
 import ModuleFooter from '../components/ModuleFooter.jsx'
 import WhatsAppFab from '../components/WhatsAppFab.jsx'
@@ -15,6 +15,9 @@ import { r as academyRoutes } from '../academy/routes.js'
 import { METODO_COURSE, TARGET_CUT_PRICE, FREE_LESSON, LEAD_KEY } from '../data/metodo.js'
 import { track, readUtm } from '../track.js'
 import C from '../data/content/metodo.json'
+// La misma paleta azul de /cursos (desde 2026-10-25 el Método va con el
+// estilo de Cursos, no con el dorado del resto del sitio).
+import '../styles/cursos-azul.css'
 import '../styles/metodo.css'
 
 /* ================================================================
@@ -35,6 +38,11 @@ import '../styles/metodo.css'
    Medición (src/track.js): ViewContent al entrar, Lead al pedir la
    lección, InitiateCheckout al ir a pagar y Contact al tocar WhatsApp; la
    compra la marca public/pixel.js en /cursos/gracias.
+
+   Estilo: el de /cursos (azul y la misma gramática del diseño "Curso
+   primero" de la vitrina): héroe en dos columnas, paneles partidos por
+   líneas en vez de tarjetas sueltas y la lección gratis en una franja
+   azul de lado a lado. Paleta en styles/cursos-azul.css.
    ================================================================ */
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
@@ -105,6 +113,7 @@ function cutsLabel(price) {
 export default function Metodo() {
   const rootRef = useRef(null)
   const location = useLocation()
+  const navigate = useNavigate()
   const { theme } = useTheme()
   const offer = useMetodoOffer()
   const workshopPrice = useWorkshopPrice()
@@ -143,16 +152,23 @@ export default function Metodo() {
         <section className="metodo-hero">
           <div className="bwrap metodo-hero-inner" data-reveal>
             <span className="bhero-kicker"><span className="dot" /> <T path="hero.kicker">{C.hero.kicker}</T></span>
-            <p className="metodo-callout"><T path="hero.callout">{C.hero.callout}</T></p>
-            <T path="hero.title" as="h1" className="metodo-title">{C.hero.title}</T>
-            <T path="hero.sub" as="p" className="metodo-sub">{C.hero.sub}</T>
-            <div className="metodo-actions">
-              <button type="button" className="btn btn-gold" onClick={() => scrollToId('leccion')}>
-                <Icon name="play" size={15} /> <T path="hero.ctaLesson">{C.hero.ctaLesson}</T>
-              </button>
-              <button type="button" className="btn btn-ghost" onClick={() => scrollToId('inscribirme')}>
-                <T path="hero.ctaEnroll">{C.hero.ctaEnroll}</T> <Icon name="arrowRight" size={15} />
-              </button>
+            {/* Escritorio: llamado y titular | texto y botones (metodo.css). */}
+            <div className="metodo-hero-grid">
+              <div className="metodo-hero-main">
+                <p className="metodo-callout"><T path="hero.callout">{C.hero.callout}</T></p>
+                <T path="hero.title" as="h1" className="metodo-title">{C.hero.title}</T>
+              </div>
+              <div className="metodo-hero-side">
+                <T path="hero.sub" as="p" className="metodo-sub">{C.hero.sub}</T>
+                <div className="metodo-actions">
+                  <button type="button" className="btn btn-gold" onClick={() => scrollToId('leccion')}>
+                    <Icon name="play" size={15} /> <T path="hero.ctaLesson">{C.hero.ctaLesson}</T>
+                  </button>
+                  <button type="button" className="btn btn-ghost" onClick={() => scrollToId('inscribirme')}>
+                    <T path="hero.ctaEnroll">{C.hero.ctaEnroll}</T> <Icon name="arrowRight" size={15} />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -177,7 +193,7 @@ export default function Metodo() {
         </section>
 
         <div className="bru-sparkles-zone">
-          {theme !== 'light' && <Sparkles className="bru-sparkles--bg" />}
+          {theme !== 'light' && <Sparkles className="bru-sparkles--bg" color="107, 116, 240" />}
 
           {/* ============ PARA QUIÉN ============ */}
           <section className="bsection metodo-fit">
@@ -225,7 +241,7 @@ export default function Metodo() {
           </section>
 
           {/* ============ MALLA ============ */}
-          <section className="bsection metodo-malla">
+          <section className="bsection metodo-malla" id="malla">
             <div className="bwrap">
               <div className="bhead center" data-reveal>
                 <T path="malla.kicker" as="p" className="kicker">{C.malla.kicker}</T>
@@ -365,7 +381,14 @@ export default function Metodo() {
       </main>
 
       <ModuleFooter
+        logoSrc="/assets/brunetti-cursos-wordmark.webp"
         tagline="El protocolo para cobrar más por el corte — el método de Bruno «Brunetti» Herrera."
+        links={[
+          [() => scrollToId('leccion'), 'Lección gratis'],
+          [() => scrollToId('malla'), 'Malla'],
+          [() => scrollToId('inscribirme'), 'Inscripción'],
+          [() => navigate('/cursos'), 'Todos los cursos'],
+        ]}
         onPrimary={() => scrollToId('inscribirme')}
         primaryLabel="Inscribirme al Método"
         bottomRight="Método Brunetti · Online"

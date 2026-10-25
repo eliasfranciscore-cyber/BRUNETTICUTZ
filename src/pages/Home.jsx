@@ -628,6 +628,7 @@ export default function Home() {
           FEATURES.visagismo && [() => navTo('visagismo'), 'Visagismo'],
           [() => navTo('servicios'), 'Servicios'],
           FEATURES.tuEstilo && [goStyle, 'Encuentra tu estilo'],
+          [() => navigate('/cursos'), 'Cursos'],
           [goCursos, 'Método Brunetti'],
           [goWorkshop, 'Workshop'],
           [() => navTo('contacto'), 'Contacto'],

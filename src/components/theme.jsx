@@ -174,7 +174,7 @@ export function FloatingThemeToggle() {
   // Acento por módulo: el toggle vive fuera de los wrappers .cursos-page/.wks,
   // así que derivamos la clase desde la ruta para teñirlo del color del módulo.
   const { pathname } = useLocation()
-  const moduleClass = pathname.startsWith('/workshop') ? 'ftt-workshop' : pathname.startsWith('/cursos') ? 'ftt-cursos' : ''
+  const moduleClass = pathname.startsWith('/workshop') ? 'ftt-workshop' : pathname.startsWith('/cursos') || pathname.startsWith('/metodo') ? 'ftt-cursos' : ''
   return (
     <button
       type="button"

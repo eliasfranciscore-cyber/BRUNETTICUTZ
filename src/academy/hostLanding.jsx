@@ -20,8 +20,10 @@ import { Sparkles as SiteSparkles } from '../components/ui/sparkles.jsx'
 // Botón del carrito, modal y cajón lateral: el mismo gesto de compra que
 // Essentials (la vitrina usa sus clases essentials-*).
 import '../styles/essentials.css'
-// La marca de /cursos sobre la vitrina compartida: paleta azul y el diseño
-// "Curso primero". Va después de essentials.css porque también lo retoca.
+// La marca de /cursos sobre la vitrina compartida: la paleta azul (la misma
+// de /metodo) y el diseño "Curso primero". Van después de essentials.css
+// porque también lo retocan.
+import '../styles/cursos-azul.css'
 import '../styles/cursos-vitrina.css'
 
 // Partículas del fondo en el azul de Cursos (#6b74f0), no en el dorado por defecto.
