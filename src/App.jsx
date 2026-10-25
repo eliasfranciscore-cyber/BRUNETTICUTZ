@@ -7,6 +7,7 @@ import OverridesProvider from './components/edit/OverridesProvider.jsx'
 import { FEATURES } from './features.js'
 import { ACADEMY_BASE } from './academy/hostConfig.js'
 import { r as academyRoutes, isUnderBase as inAcademy } from './academy/routes.js'
+import { applyRouteMeta } from './routeMeta.js'
 
 // ── Ruteo de lanzamiento de la PWA instalada (iOS "Agregar a inicio") ──────
 // iOS Safari ignora con frecuencia el start_url del manifest y abre la PWA en
@@ -57,6 +58,40 @@ function PWALaunchRouter() {
   return null
 }
 
+/* Lo que cambia con cada ruta del SPA (index.html y public/boot.js solo lo
+   resuelven en la carga dura):
+   - Zoom: se puede ampliar en las páginas públicas; el panel, la app de
+     alumnos y la PWA siguen fijas (window.__psViewport, public/boot.js).
+   - Título y descripción (src/routeMeta.js). La app de alumnos (<base>/…)
+     pone los suyos: los efectos del padre corren DESPUÉS que los del hijo,
+     así que acá se la salta para no pisarlos.
+   - Enlaces con #ancla a otra página (/cursos#terminos, /metodo#leccion):
+     la sección existe recién cuando carga el chunk de la página, así que se
+     busca unos segundos. #curso-… lo maneja la vitrina. */
+function RouteEffects() {
+  const { pathname, hash } = useLocation()
+  useEffect(() => {
+    window.__psViewport?.(pathname)
+    if (!pathname.startsWith(`${ACADEMY_BASE}/`)) applyRouteMeta(pathname)
+  }, [pathname])
+  useEffect(() => {
+    const id = decodeURIComponent((hash || '').slice(1))
+    if (!id || id.startsWith('curso-')) return undefined
+    let tries = 0
+    let timer
+    // Salto directo (sin animación), como un ancla normal: el scroll suave
+    // se cortaba mientras la página de destino terminaba de armarse.
+    const tick = () => {
+      const el = document.getElementById(id)
+      if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 80, behavior: 'auto' })
+      else if (++tries < 12) timer = setTimeout(tick, 250)
+    }
+    timer = setTimeout(tick, 300)
+    return () => clearTimeout(timer)
+  }, [pathname, hash])
+  return null
+}
+
 // Code-splitting: la landing (Home) carga de inmediato; el resto se carga bajo
 // demanda para que la primera pantalla sea más liviana y rápida.
 const Login = lazy(() => import('./pages/Login.jsx'))
@@ -65,6 +100,9 @@ const Account = lazy(() => import('./pages/Account.jsx'))
 const BarberLogin = lazy(() => import('./pages/BarberLogin.jsx'))
 const Dashboard = lazy(() => import('./pages/Dashboard.jsx'))
 const Workshop = lazy(() => import('./pages/Workshop.jsx'))
+// Página de venta del Método Brunetti (propia de este sitio; /cursos es la
+// vitrina compartida de la Academy).
+const Metodo = lazy(() => import('./pages/Metodo.jsx'))
 // Cursos: la página de venta (/cursos) + páginas de acceso + app del alumno de
 // la Brunetti Academy, todo bajo ACADEMY_BASE/* (src/academy/hostConfig.js;
 // ver src/pages/academy/AcademyRoot.jsx, cuyo índice es la vitrina compartida
@@ -93,10 +131,12 @@ export default function App() {
       <EditProvider>
         <div className="stage">
           <PWALaunchRouter />
+          <RouteEffects />
           <Suspense fallback={<RouteFallback />}>
             <Routes>
               <Route path="/"         element={<Home />} />
               <Route path="/workshop" element={<Workshop />} />
+              <Route path="/metodo"   element={<Metodo />} />
               <Route path={`${ACADEMY_BASE}/*`} element={<AcademyRoot />} />
               <Route path="/style"    element={FEATURES.tuEstilo ? <EncuentraEstilo /> : <Navigate to="/" replace />} />
               <Route path="/essentials" element={<Essentials />} />

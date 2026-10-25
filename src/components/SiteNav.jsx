@@ -11,6 +11,9 @@ import './SiteNav.css'
    - Secciones (Servicios/Barberos/Nosotros/Ubicación): scroll en Home,
      o navegan a "/" y Home hace scroll a la sección (location.state.section).
    - "Workshop" siempre enruta a /workshop (es una página más).
+   - "Método" enruta a /metodo, la página de venta del Método Brunetti. La
+     vitrina de la Academy (/cursos) no está en el menú: se llega por enlace
+     y desde "Entrar a la Academy" al pie de /metodo.
    - Reservar: en workshop "Reservar asiento" (→ formulario #inscribir);
      en el resto "Reservar hora en la agenda" (→ /login). */
 const NAV = [
@@ -19,7 +22,7 @@ const NAV = [
   ["sobre",     "Sobre Bruno"],
   ["servicios", "Servicios"],
   ["style",     "Tu estilo"],
-  ["cursos",    "Cursos"],
+  ["metodo",    "Método"],
   ["workshop",  "Workshop"],
   ["essentials","Essentials"],
   ["contacto",  "Contacto"],
@@ -38,6 +41,7 @@ export default function SiteNav({ onSection, scrolled: scrolledProp }) {
   const isHome = location.pathname === "/"
   const isWorkshop = location.pathname === "/workshop"
   const isCursos = location.pathname === "/cursos"
+  const isMetodo = location.pathname === "/metodo"
   const isStyle = location.pathname === "/style"
   const isEssentials = location.pathname === "/essentials"
   const [scrolledWin, setScrolledWin] = useState(false)
@@ -76,14 +80,14 @@ export default function SiteNav({ onSection, scrolled: scrolledProp }) {
   const handleNav = (id) => {
     setMenuOpen(false)
     if (id === "workshop") navigate("/workshop")
-    else if (id === "cursos") navigate("/cursos")
+    else if (id === "metodo") navigate("/metodo")
     else if (id === "style") navigate("/style")
     else if (id === "essentials") navigate("/essentials")
     else if (id === "inicio") { navigate("/"); window.scrollTo({ top: 0, behavior: "smooth" }) }
     else goSection(id)
   }
 
-  const reserveLabel = isWorkshop ? "Reservar asiento" : isCursos ? "Inscribirme" : "Reservar hora"
+  const reserveLabel = isWorkshop ? "Reservar asiento" : isCursos || isMetodo ? "Inscribirme" : "Reservar hora"
   const reserve = () => {
     setMenuOpen(false)
     if (isWorkshop) {
@@ -93,6 +97,11 @@ export default function SiteNav({ onSection, scrolled: scrolledProp }) {
     if (isCursos) {
       // /cursos es la vitrina compartida de la Academy: baja al catálogo.
       const el = document.getElementById("cursos")
+      if (el) { window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 64, behavior: "smooth" }); return }
+    }
+    if (isMetodo) {
+      // /metodo: baja a la tarjeta de precio e inscripción.
+      const el = document.getElementById("inscribirme")
       if (el) { window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 64, behavior: "smooth" }); return }
     }
     navigate("/login")
@@ -119,7 +128,7 @@ export default function SiteNav({ onSection, scrolled: scrolledProp }) {
               key={id}
               onClick={() => handleNav(id)}
               className="nav-link"
-              style={(id === "workshop" && isWorkshop) || (id === "cursos" && isCursos) || (id === "style" && isStyle) || (id === "essentials" && isEssentials) ? { color: "var(--gold-lt)" } : undefined}
+              style={(id === "workshop" && isWorkshop) || (id === "metodo" && isMetodo) || (id === "style" && isStyle) || (id === "essentials" && isEssentials) ? { color: "var(--gold-lt)" } : undefined}
             >
               {label}
             </button>
@@ -149,7 +158,7 @@ export default function SiteNav({ onSection, scrolled: scrolledProp }) {
             key={id}
             role="menuitem"
             onClick={() => handleNav(id)}
-            className={(id === "workshop" && isWorkshop) || (id === "cursos" && isCursos) || (id === "style" && isStyle) || (id === "essentials" && isEssentials) ? "is-active" : ""}
+            className={(id === "workshop" && isWorkshop) || (id === "metodo" && isMetodo) || (id === "style" && isStyle) || (id === "essentials" && isEssentials) ? "is-active" : ""}
           >
             {label}
           </button>

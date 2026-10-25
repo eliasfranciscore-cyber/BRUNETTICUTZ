@@ -20,7 +20,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Manufacturing+Consent&family=Pirata+One&display=swap" rel="stylesheet" />
     <!-- Preload del hero (elemento LCP de la landing) para acelerar el primer paint. -->
     <link rel="preload" as="image" href="/assets/bruno-hero.jpg" fetchpriority="high" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no, maximum-scale=1.0" />
+    <!-- Sin bloqueo de zoom: /boot.js lo pone solo en el panel, la app de
+         alumnos, las páginas de acceso y la PWA instalada (ver public/boot.js). -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -46,6 +48,9 @@
          lleva un CSP sin 'unsafe-inline' en script-src (ver vercel.json y
          public/boot.js). -->
     <script src="/boot.js"></script>
+    <!-- Meta Pixel (el mismo de pimpstudio.cl), en archivo por el mismo CSP;
+         no mide /cursos/… salvo la compra en /cursos/gracias (public/pixel.js). -->
+    <script src="/pixel.js" async></script>
   </head>
   <body>
     <div id="root"></div>

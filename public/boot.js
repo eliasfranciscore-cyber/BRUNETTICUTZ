@@ -18,7 +18,13 @@
    2. Recuerda con qué ruta arrancó ESTE documento (window.__psBootPath). El
       CSP de un documento queda fijo al cargarlo: sirve para saber si se cargó
       con el CSP estricto de /cursos/(.+) o si se llegó navegando desde otra
-      página (igual que en PimpStudio). */
+      página (igual que en PimpStudio).
+   3. Zoom: index.html ya no lo bloquea. Las páginas públicas de venta y
+      contenido (ZOOMABLE) se pueden ampliar con los dedos; el panel, la app
+      de alumnos (/cursos/…), las páginas de acceso y la PWA instalada siguen
+      fijas como siempre (son interfaces de app, no páginas para leer).
+      window.__psViewport(ruta) lo vuelve a aplicar al navegar dentro del
+      SPA (lo llama src/App.jsx). */
 (function () {
   try { window.__psBootPath = location.pathname } catch (e) {}
   try {
@@ -37,4 +43,25 @@
     document.documentElement.style.backgroundColor = bg;
     if (document.body) document.body.style.backgroundColor = bg;
   } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
+})();
+(function () {
+  var ZOOMABLE = ['/', '/metodo', '/cursos', '/workshop', '/essentials', '/essentials/gracias', '/style'];
+  var BASE = 'width=device-width, initial-scale=1.0, viewport-fit=cover';
+  function standalone() {
+    try {
+      return window.navigator.standalone === true ||
+        (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+    } catch (e) { return false; }
+  }
+  window.__psViewport = function (path) {
+    try {
+      var m = document.querySelector('meta[name="viewport"]');
+      if (!m) return;
+      var p = String(path || '/').replace(/\/+$/, '') || '/';
+      var zoom = !standalone() && ZOOMABLE.indexOf(p) !== -1;
+      var want = zoom ? BASE : BASE + ', user-scalable=no, maximum-scale=1.0';
+      if (m.getAttribute('content') !== want) m.setAttribute('content', want);
+    } catch (e) {}
+  };
+  window.__psViewport(location.pathname);
 })();

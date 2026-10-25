@@ -30,6 +30,8 @@ export const PublicLanding = lazy(() => import('../pages/academy/Vitrina.jsx'))
    distintos (SPEC §7.1). Igual que en PimpStudio. */
 export function catalogHref(course) {
   const key = course?.catalogId || course?.slug || ''
+  // El Método Brunetti se vende en su propia página (src/pages/Metodo.jsx).
+  if (key === 'brunetti-metodo') return '/metodo#inscribirme'
   return key ? `${ACADEMY_BASE}#curso-${encodeURIComponent(key)}` : ACADEMY_BASE
 }
 

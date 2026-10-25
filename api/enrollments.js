@@ -1,7 +1,9 @@
 import { neon } from "@neondatabase/serverless"
-import { requireInternal } from "./_auth.js"
+import { requireInternal, readSession } from "./_auth.js"
 import { notifyAll } from "./push.js"
-import { sendWorkshopConfirmationEmail, sendWorkshopWaitlistEmail, sendWorkshopDetailsEmail } from "./_email.js"
+import { rateLimit, clientIp } from "./_rateLimit.js"
+import { ensureEnrollmentColumns } from "./_schema.js"
+import { sendWorkshopConfirmationEmail, sendWorkshopWaitlistEmail, sendWorkshopDetailsEmail, sendMetodoLessonEmail } from "./_email.js"
 
 /* Tabla esperada en Neon (créala si no existe):
    CREATE TABLE IF NOT EXISTS enrollments (
@@ -9,13 +11,18 @@ import { sendWorkshopConfirmationEmail, sendWorkshopWaitlistEmail, sendWorkshopD
      name       TEXT NOT NULL,
      phone      TEXT NOT NULL,
      email      TEXT NOT NULL,
-     source     TEXT NOT NULL DEFAULT 'cursos',   -- 'cursos' | 'workshop'
+     source     TEXT NOT NULL DEFAULT 'cursos',   -- 'cursos' | 'workshop' | 'metodo'
      level      TEXT,
      message    TEXT,
      edition    TEXT,
+     utm        TEXT,                              -- de qué anuncio llegó (lección de muestra de /metodo)
      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
    );
+   'metodo' = pidió la lección de muestra del Método Brunetti en /metodo: es
+   un interesado, no un alumno (la compra del curso va por la Academy).
 */
+
+const SOURCES = ["cursos", "workshop", "metodo"]
 
 const DEMO = [
   { id: 1, name: "Demo Barbero", phone: "912345678", email: "demo@mail.com", source: "cursos",   level: "Estoy empezando", message: "", edition: null, created_at: "2026-06-20T10:00:00Z" },
@@ -36,9 +43,11 @@ export default async function handler(req, res) {
     if (!session) return
     try {
       const sql = neon(process.env.DATABASE_URL)
+      /* utm por to_jsonb: si la columna todavía no existe (nadie pidió la
+         lección desde que se agregó), la lista sale igual, con utm NULL. */
       const rows = await sql`
-        SELECT id, name, phone, email, source, level, message, edition, created_at
-        FROM enrollments ORDER BY created_at DESC LIMIT 300
+        SELECT id, name, phone, email, source, level, message, edition, to_jsonb(e)->>'utm' AS utm, created_at
+        FROM enrollments e ORDER BY created_at DESC LIMIT 300
       `
       return sendJson(res, 200, { ok: true, enrollments: rows })
     } catch (err) {
@@ -113,10 +122,20 @@ export default async function handler(req, res) {
     }
   }
 
-  /* POST — inscripción pública (Cursos o Workshop) */
+  /* POST — inscripción pública (Cursos, Workshop o la lección de muestra
+     del Método) */
   if (req.method === "POST") {
     try {
       const sql = neon(process.env.DATABASE_URL)
+
+      /* Público y sin captcha: a la lección de muestra le llegan anuncios. Con
+         sesión del panel (alta manual) no hay tope. Si el limitador mismo
+         falla, deja pasar (ver api/_rateLimit.js). */
+      if (!readSession(req)) {
+        const allowed = await rateLimit(sql, `enrollments-post:${clientIp(req)}`, { max: 8, windowSeconds: 600 })
+        if (!allowed) return sendJson(res, 429, { ok: false, error: "Demasiados intentos seguidos. Espera unos minutos." })
+      }
+
       /* Auto-crear tabla si no existe (primera vez) */
       await sql`
         CREATE TABLE IF NOT EXISTS enrollments (
@@ -128,18 +147,29 @@ export default async function handler(req, res) {
           level      TEXT,
           message    TEXT,
           edition    TEXT,
+          utm        TEXT,
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         )
       `
+      /* Una tabla creada antes de la columna utm la recibe acá. Si el DDL
+         fallara, la inscripción se guarda igual, sin utm. */
+      let withUtm = true
+      try {
+        await ensureEnrollmentColumns(sql)
+      } catch (serr) {
+        withUtm = false
+        console.error("enrollments ensure utm (no bloquea):", serr?.message)
+      }
 
       const body = req.body || {}
       const name  = String(body.name  || "").trim()
       const phone = cleanPhone(body.phone)
       const email = String(body.email || "").trim().toLowerCase()
-      const source  = ["cursos", "workshop"].includes(body.source) ? body.source : "cursos"
+      const source  = SOURCES.includes(body.source) ? body.source : "cursos"
       const level   = String(body.level   || "").trim() || null
       const message = String(body.message || "").trim() || null
       const edition = String(body.edition || "").trim() || null
+      const utm     = String(body.utm || "").trim().slice(0, 300) || null
 
       if (!name || phone.length < 8 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         return sendJson(res, 400, { ok: false, error: "Datos incompletos" })
@@ -149,11 +179,17 @@ export default async function handler(req, res) {
          interno. No debe depender del upsert en `users` (que antes, al fallar
          —p. ej. por la columna updated_at NOT NULL— abortaba todo y la
          inscripción se perdía aunque al cliente se le mostrara "listo"). */
-      const [row] = await sql`
-        INSERT INTO enrollments (name, phone, email, source, level, message, edition)
-        VALUES (${name}, ${phone}, ${email}, ${source}, ${level}, ${message}, ${edition})
-        RETURNING id, created_at
-      `
+      const [row] = withUtm
+        ? await sql`
+          INSERT INTO enrollments (name, phone, email, source, level, message, edition, utm)
+          VALUES (${name}, ${phone}, ${email}, ${source}, ${level}, ${message}, ${edition}, ${utm})
+          RETURNING id, created_at
+        `
+        : await sql`
+          INSERT INTO enrollments (name, phone, email, source, level, message, edition)
+          VALUES (${name}, ${phone}, ${email}, ${source}, ${level}, ${message}, ${edition})
+          RETURNING id, created_at
+        `
 
       /* 2) Crear/actualizar el cliente en `users` — best-effort: si falla NO
          debe tumbar la inscripción ya guardada. Alineado con api/clients.js
@@ -176,7 +212,7 @@ export default async function handler(req, res) {
       try {
         const tipo = source === "workshop" ? "Workshop" : "Curso"
         await notifyAll({
-          title: `Nueva inscripción · ${tipo}`,
+          title: source === "metodo" ? "Nuevo interesado · Método" : `Nueva inscripción · ${tipo}`,
           body: `${name}${level ? " · " + level : ""} · ${phone}`,
           url: "/panel",
           tag: `inscripcion-${row.id}`,
@@ -185,7 +221,8 @@ export default async function handler(req, res) {
         console.error("enrollments notify (no bloquea):", nerr?.message)
       }
 
-      /* 4) Correo al inscrito (solo workshop por ahora). Son dos correos
+      /* 4) Correo al inscrito: el workshop y la lección de muestra del
+         Método (con el enlace para verla). En el workshop son dos correos
          distintos: por acá nunca hay pago, así que el de "cupo confirmado"
          (con hora y ubicación) solo corresponde cuando hay una edición con
          fecha —alta manual del panel—; la lista de espera recibe el suyo,
@@ -198,6 +235,15 @@ export default async function handler(req, res) {
           else await sendWorkshopConfirmationEmail({ to: email, name, edition })
         } catch (eerr) {
           console.error("enrollments email (no bloquea):", eerr?.message)
+        }
+      } else if (source === "metodo" && body.lessonEmail === true) {
+        /* Solo si la página ya muestra el video (lessonEmail): sin él, el
+           enlace del correo abriría una lección que todavía no se ve, y la
+           lección va por WhatsApp desde el panel. */
+        try {
+          await sendMetodoLessonEmail({ to: email, name })
+        } catch (eerr) {
+          console.error("enrollments email metodo (no bloquea):", eerr?.message)
         }
       }
 

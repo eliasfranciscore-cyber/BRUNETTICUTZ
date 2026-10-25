@@ -39,6 +39,7 @@ npm run preview          # Serve the production build locally
 - `Dashboard` — Barber panel shell (`src/pages/Dashboard.jsx`); most tabs live in `src/pages/panel/*.jsx` — see [Panel architecture](#panel-architecture)
 - `Essentials`, `EssentialsGracias` — Essentials store and its own Mercado Pago return page (`/essentials/gracias`)
 - `Workshop`, `Cursos`, `EncuentraEstilo` — Marketing pages
+- `Metodo` — `/metodo`, the Método Brunetti sales page (this site's own; `/cursos` is the shared Academy storefront) — see [Método Brunetti](#método-brunetti-metodo-desde-2026-10-25)
 
 **Components:** Organized by function (UI primitives in `ui.jsx`, page-specific in respective folders, panel kit in `src/components/panel/`). Tailwind + custom CSS (`src/styles/`).
 
@@ -115,7 +116,7 @@ Seed data in `db/seed.sql` (optional; most tables auto-create on first use).
 - Chunk size warning raised to 700KB (minified CSS is large)
 
 **Vercel config** (`vercel.json`):
-- Rewrites: SPA fallback (all non-asset requests → `/index.html`), `/api/register-client` → `/api/clients?mode=register` (keeps the function count at 11/12 while iOS keeps calling the old path), `/api/csp-report` → `/api/push?job=csp-report`
+- Rewrites: SPA fallback (all non-asset requests → `/index.html`), `/api/register-client` → `/api/clients?mode=register` (keeps the function count at 11/12 while iOS keeps calling the old path), `/api/csp-report` → `/api/push?job=csp-report`, and `/metodo`, `/cursos`, `/workshop` → their own `<ruta>.html` (same build, own title/description/OG tags — see [Método Brunetti](#método-brunetti-metodo-desde-2026-10-25))
 - Security headers: X-Frame-Options, `Strict-Transport-Security` (`max-age` only — **no** `preload`/`includeSubDomains`, both deliberate), `Content-Security-Policy-Report-Only` (not enforcing yet) with `report-uri /api/csp-report`
 - `index.html` served with `Cache-Control: no-store` (the PWA never trusts a cached shell — see `buildWatch.js` under [PWA](#pwa--standalone-mode)); `/assets/*` stay aggressively cached (immutable, 1-year max-age for JS/CSS/fonts; 1 hour + must-revalidate for images)
 
@@ -486,6 +487,19 @@ Lo que `bridge-manual` agrega sobre la del panel, todo bajo `bridge: true` (el a
 **Comparación del secreto en tiempo constante.** `isBridgeRequest()` vive en `api/_bridge.js` (sin imports del proyecto, para no cerrar ciclos) y compara los SHA-256 de los dos lados con `crypto.timingSafeEqual`: con `===` el tiempo de respuesta filtra cuántos caracteres del principio coinciden. La usan `api/bookings.js`, `api/clients.js` y `api/availability.js` (esta última tenía su propia copia con `===` hasta 2026-09-24).
 
 **Cupo de funciones:** este proyecto está en **11/12** Serverless Functions (tope del plan Hobby) — `register-client` se plegó en `clients.js?mode=register` (con un rewrite en `vercel.json` para que la app iOS, que sigue llamando a `/api/register-client`, no se entere), dejando un cupo libre. Aun así **no conviene agregar un archivo nuevo a `api/`** salvo que sea imprescindible: todo lo nuevo va como `?mode=` dentro de un endpoint existente (fidelidad como `?mode=wallet-*` en `api/clients.js`, reseñas/ajustes como `?mode=me|settings|shop-settings|reviews|review` en `api/barbers.js`, etc.), y la lógica compartida en archivos con prefijo `_` (que Vercel no cuenta).
+
+## Método Brunetti (`/metodo`, desde 2026-10-25)
+
+Página de venta propia del Método Brunetti, armada a partir del informe "Método Brunetti: diagnóstico y pivotes" (oct-2026, peldaños 1–3: mensaje, proceso, precio). `/cursos` sigue siendo la vitrina compartida de la Academy (no se edita acá); el Método se vende en `/metodo`, que el menú ("Método"), el home y `catalogHref()` (`src/academy/host.jsx`) apuntan ahí.
+
+- **Página:** `src/pages/Metodo.jsx` + `src/styles/metodo.css`. Texto en `src/data/content/metodo.json` (editable con `npm run edit`), comportamiento en `src/data/metodo.js` (`METODO_COURSE`, `TARGET_CUT_PRICE`, `FREE_LESSON`). Las pruebas del hero son ítems del JSON con `enabled`; **Viggo está apagado** hasta tener su texto.
+- **Precio a la vista:** sale del catálogo público de la Academy (`useAcademyCatalog`, `priceOnline`/`salesOpen` del curso `brunetti-metodo`), nunca escrito en la página. La tarjeta ancla "Método + Workshop" suma ese precio y el del Workshop (`/api/mp-payments?settings=1`) y se consulta por WhatsApp.
+- **Pago:** el mismo de la Academy (`checkoutApi` → `/api/mp-payments` `kind:'course'` → Mercado Pago → `/cursos/gracias`), con la misma clave `ps_academy_checkout` en `sessionStorage`. No se tocó código compartido.
+- **Lección de muestra (lead):** nombre + WhatsApp + correo → `POST /api/enrollments` con `source: 'metodo'` (tercera fuente, junto a `cursos`/`workshop`), `utm` (columna nueva, `ensureEnrollmentColumns`) y tope de 8 POST públicos por IP cada 10 min (`rateLimit`; con sesión del panel no hay tope). Push "Nuevo interesado · Método". El correo con el enlace (`sendMetodoLessonEmail`) sale **solo si la página ya tiene el video** (`lessonEmail: true`, o sea `FREE_LESSON.videoId` lleno). **Falta el ID de YouTube de la lección 19**: mientras esté vacío, el interesado ve "te llega por WhatsApp" y se le escribe desde Panel → Inscripciones (filtro "Método", chip dorado, "Llegó desde" con el UTM, WhatsApp con mensaje propio).
+- **Medición:** `public/pixel.js` (Meta Pixel **837101656042970, el mismo de pimpstudio.cl**: un píxel para las dos puertas), cargado desde `index.html`. No corre en `/cursos/…` (app de alumnos) salvo `/cursos/gracias`, donde consulta el estado del pedido y marca `Purchase` una vez por `ref`; tampoco corre en `localhost` (salvo `localStorage.bc_pixel_dev = '1'`). `src/track.js`: `ViewContent`, `Lead`, `InitiateCheckout`, `Contact` y la captura de `utm_*`/`fbclid` al aterrizar. CSP: hosts de Facebook en la global (Report-Only) y en una regla propia de `/cursos/(gracias.*)`; el resto de `/cursos/((?!gracias).*)` conserva la estricta de siempre.
+- **Vista previa por ruta:** `src/routeMeta.js` es la única fuente; el plugin `route-html` de `vite.config.js` escribe `dist/metodo.html`, `cursos.html`, `workshop.html` (falla el build si a `index.html` le falta una etiqueta) y `App.jsx` (`RouteEffects`) aplica título y descripción al navegar, saltándose `/cursos/…`. Imagen OG: `public/assets/og-metodo.jpg`, regenerable desde `scripts/brand/og-metodo.html`.
+- **Zoom:** `index.html` ya no lo bloquea; `public/boot.js` (`window.__psViewport`, llamado también por `RouteEffects`) lo vuelve a bloquear fuera de las páginas públicas (`ZOOMABLE`) y en la PWA instalada.
+- **WhatsApp:** `WHATSAPP_SHOP` / `waShopHref()` en `src/data.js` (el código viejo aún tiene el número escrito) y `src/components/WhatsAppFab.jsx`.
 
 ## Brunetti Academy (`/cursos`, desde 2026-09-29)
 

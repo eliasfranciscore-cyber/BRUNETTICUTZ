@@ -304,6 +304,44 @@ export async function sendLoyaltyCardEmail({ to, name, url, stars = 0 }) {
   return sendViaResend({ to, subject: `${first ? `${first}, tu` : "Tu"} tarjeta de fidelidad de Brunetticutz`, html })
 }
 
+/* Lección de muestra del Método Brunetti: la pidió en /metodo a cambio de
+   su WhatsApp y su correo. El enlace abre la lección directo
+   (?leccion=gratis), sin volver a pedir los datos. Mismo cascarón dorado que
+   la reserva y la tarjeta. */
+export async function sendMetodoLessonEmail({ to, name }) {
+  const first = firstName(name)
+  const lessonUrl = `${SITE_URL}/metodo?leccion=gratis#leccion`
+  const waUrl = `https://wa.me/${WK.whatsapp}?text=${encodeURIComponent("Hola Bruno, vi la lección gratis del Método Brunetti y tengo una pregunta")}`
+
+  const html = `
+    <div style="font-family: Georgia, 'Times New Roman', serif; background: #f7f3ea; padding: 32px 16px;">
+      <div style="max-width: 480px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e7e0d1;">
+        <div style="background: #16130f; padding: 24px; text-align: center;">
+          <img src="${LOGO_URL}" alt="Brunetticutz" width="220" style="width: 220px; max-width: 70%; height: auto; display: inline-block;" />
+        </div>
+        <div style="padding: 28px 24px;">
+          <h1 style="margin: 0 0 4px; font-size: 20px; color: #1c1a17;">Tu lección gratis${first ? `, ${esc(first)}` : ""}</h1>
+          <p style="margin: 0 0 18px; color: #4a453d; font-size: 14px; line-height: 1.6;">
+            Es una de las 21 lecciones del Método Brunetti: cómo un corte de $12.000 pasa a valer $20.000 sin perder clientes.
+            Mírala con calma; el enlace no vence.
+          </p>
+          <div style="text-align: center; margin: 24px 0 10px;">
+            <a href="${lessonUrl}" style="display: inline-block; background: #d9b158; color: #1c1a17; text-decoration: none; font-weight: 600; font-size: 15px; padding: 14px 30px; border-radius: 999px;">Ver la lección</a>
+          </div>
+          <p style="margin: 18px 0 0; color: #4a453d; font-size: 14px; line-height: 1.6; text-align: center;">
+            ¿Te quedó una duda sobre tu precio o sobre el Método? <a href="${waUrl}" style="color: #9c7a32;">Escríbele a Bruno por WhatsApp</a>.
+          </p>
+          <p style="margin: 18px 0 0; padding-top: 14px; border-top: 1px solid #eee6d8; color: #a49c90; font-size: 11px; text-align: center; line-height: 1.6;">
+            Te llegó porque pediste la lección en brunetticutz.cl/metodo. Si no fuiste tú, ignora este correo.
+          </p>
+        </div>
+      </div>
+    </div>
+  `.trim()
+
+  return sendViaResend({ to, subject: `${first ? `${first}, tu` : "Tu"} lección gratis del Método Brunetti`, html })
+}
+
 
 /* ============================================================
    WORKSHOP — cascarón responsive compartido

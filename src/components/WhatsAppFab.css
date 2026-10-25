@@ -1,0 +1,25 @@
+/* Botón flotante de WhatsApp (WhatsAppFab.jsx). Verde de WhatsApp, para que
+   se reconozca sin leer. */
+.wa-fab {
+  position: fixed;
+  right: clamp(1rem, 4vw, 2.2rem);
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 1.6rem);
+  z-index: 60;
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #25d366;
+  color: #fff;
+  box-shadow: 0 14px 34px -10px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.wa-fab:hover { transform: translateY(-2px); box-shadow: 0 18px 40px -10px rgba(37, 211, 102, 0.55); }
+.wa-fab:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+/* Celular: arriba de la barra fija "Inscribirme" de SiteNav (que mide lo
+   mismo que el espacio que deja .brunetti-site abajo). */
+@media (max-width: 899px) {
+  .wa-fab { width: 52px; height: 52px; bottom: calc(env(safe-area-inset-bottom, 0px) + 5.6rem); }
+}

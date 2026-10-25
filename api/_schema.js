@@ -358,6 +358,18 @@ export const ensureShopOrderColumns = once(async (sql) => {
   if (!present.has("paid_at")) await sql`ALTER TABLE shop_orders ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ`
 })
 
+/* enrollments.utm — de qué anuncio o publicación llegó un interesado
+   ("utm_source=instagram · utm_campaign=metodo"). Lo escribe la lección de
+   muestra de /metodo; las inscripciones de siempre lo dejan en NULL. La tabla
+   la crea api/enrollments.js en su primer POST, así que solo se toca si ya
+   existe. */
+export const ensureEnrollmentColumns = once(async (sql) => {
+  const tables = await presentTables(sql, ["enrollments"])
+  if (!tables.has("enrollments")) return
+  const present = await presentColumns(sql, "enrollments", ["utm"])
+  if (!present.has("utm")) await sql`ALTER TABLE enrollments ADD COLUMN IF NOT EXISTS utm TEXT`
+})
+
 /* ---------------------------------------------------------------------------
    Autenticación
      password_hash  VARCHAR(64) → TEXT: cabe justo un SHA-256 en hex, y el

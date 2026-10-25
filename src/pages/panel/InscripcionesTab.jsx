@@ -10,7 +10,8 @@ import { ORIGIN, OriginChip, PersonCell, fmtStamp } from './PedidosTab.jsx'
 import '../../styles/panel/online.css'
 
 /* ============================================================
-   INSCRIPCIONES — lista unificada de Cursos + Workshop (solo BrunettiCutz).
+   INSCRIPCIONES — lista unificada de Cursos + Workshop + los interesados
+   del Método (lección de muestra de /metodo) (solo BrunettiCutz).
    Trae /api/enrollments (sesión interna) combinado con el respaldo local de
    enrollmentsStore (lo que se inscribió desde /cursos o /workshop en este
    equipo), así que también aparecen la lista de espera y las consultas sin
@@ -52,7 +53,7 @@ export default function InscripcionesTab({ ctx }) {
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
-  const [filter, setFilter] = useState('todos') // todos | cursos | workshop
+  const [filter, setFilter] = useState('todos') // todos | cursos | workshop | metodo
   const [query, setQuery] = useState('')
   const [selected, setSelected] = useState(null)
   const [creating, setCreating] = useState(false)
@@ -196,12 +197,13 @@ export default function InscripcionesTab({ ctx }) {
   }
 
   const counts = useMemo(() => {
-    const c = { todos: rows.length, cursos: 0, workshop: 0, paid: 0, paidCursos: 0, paidWorkshop: 0 }
+    const c = { todos: rows.length, cursos: 0, workshop: 0, metodo: 0, paid: 0, paidCursos: 0, paidWorkshop: 0 }
     for (const r of rows) {
       const paid = isPaid(r)
       if (paid) c.paid += 1
       if (r.source === 'cursos') { c.cursos += 1; if (paid) c.paidCursos += 1 }
       else if (r.source === 'workshop') { c.workshop += 1; if (paid) c.paidWorkshop += 1 }
+      else if (r.source === 'metodo') c.metodo += 1
     }
     return c
   }, [rows])
@@ -298,6 +300,8 @@ export default function InscripcionesTab({ ctx }) {
             { value: 'todos', label: 'Todas', count: counts.todos },
             { value: 'cursos', label: 'Cursos', count: counts.cursos },
             { value: 'workshop', label: 'Workshop', count: counts.workshop },
+            // Solo cuando hay: un filtro en 0 antes de lanzar /metodo es ruido.
+            ...(counts.metodo ? [{ value: 'metodo', label: 'Método', count: counts.metodo }] : []),
           ]}
         />
       </div>
@@ -331,7 +335,7 @@ export default function InscripcionesTab({ ctx }) {
               <EmptyState
                 icon="sparkles"
                 title="Todavía no hay inscripciones"
-                text="Las inscripciones a los Cursos y al Workshop que lleguen por brunetticutz.cl aparecen acá, pagadas o en lista de espera."
+                text="Las inscripciones a los Cursos y al Workshop que lleguen por brunetticutz.cl aparecen acá, pagadas o en lista de espera, junto a quienes piden la lección gratis del Método."
                 action={{ label: 'Nueva inscripción', icon: 'plus', onClick: () => setCreating(true) }}
               />
             )}

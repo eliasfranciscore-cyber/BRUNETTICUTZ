@@ -16,6 +16,9 @@
   --pn-online-workshop-soft: rgba(136, 56, 216, .16);
   --pn-online-essentials: #6fbf86;
   --pn-online-essentials-soft: rgba(111, 191, 134, .14);
+  /* Interesados del Método (lección de muestra): el dorado de /metodo. */
+  --pn-online-metodo: #e0bd6c;
+  --pn-online-metodo-soft: rgba(201, 161, 78, .16);
 }
 /* En claro los tonos de arriba quedan lavados sobre crema: se oscurecen para
    que el rótulo se lea (mismo criterio que --pn-ok en claro). */
@@ -26,6 +29,8 @@
   --pn-online-workshop-soft: rgba(107, 47, 179, .10);
   --pn-online-essentials: #2b8750;
   --pn-online-essentials-soft: rgba(43, 135, 80, .11);
+  --pn-online-metodo: #7a5a17;
+  --pn-online-metodo-soft: rgba(154, 123, 52, .12);
 }
 
 /* Van con `.pn-chip.` delante: así le ganan a la base `.pn-chip` de
@@ -33,6 +38,7 @@
 .pn-chip.pn-chip--cursos { color: var(--pn-online-cursos); background: var(--pn-online-cursos-soft); border-color: transparent; }
 .pn-chip.pn-chip--workshop { color: var(--pn-online-workshop); background: var(--pn-online-workshop-soft); border-color: transparent; }
 .pn-chip.pn-chip--essentials { color: var(--pn-online-essentials); background: var(--pn-online-essentials-soft); border-color: transparent; }
+.pn-chip.pn-chip--metodo { color: var(--pn-online-metodo); background: var(--pn-online-metodo-soft); border-color: transparent; }
 
 /* KPI: en el celular (2 columnas) el primero va a lo ancho, así 3 o 5
    tarjetas no dejan una sola colgando al final. */

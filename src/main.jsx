@@ -22,8 +22,12 @@ import './installPrompt.js'
 // memoria. Sin esto, un arreglo desplegado puede tardar días en llegarle a
 // Bruno en el panel (ver src/buildWatch.js).
 import { watchForNewBuild } from './buildWatch.js'
+// De qué anuncio llegó esta visita (?utm_…): se guarda al aterrizar para
+// mandarlo con el lead de /metodo (ver src/track.js).
+import { captureUtm } from './track.js'
 
 watchForNewBuild()
+captureUtm()
 
 // Service worker para PWA + notificaciones push (iOS instalado en inicio).
 if ('serviceWorker' in navigator) {

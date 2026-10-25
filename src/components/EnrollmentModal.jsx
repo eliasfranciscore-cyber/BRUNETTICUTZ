@@ -72,7 +72,11 @@ export default function EnrollmentModal({ enrollment, clients = [], onClose, onS
 
   const first = (e.name || '').split(' ')[0] || 'Hola'
   const phoneDigits = cleanPhone(e.phone)
-  const waHref = buildWaHref(e.phone, `Hola ${first}, te escribimos de Brunetti 💈`)
+  // Al interesado del Método se le escribe por la lección que pidió: es la
+  // conversación de venta, no un aviso de la barbería.
+  const waHref = buildWaHref(e.phone, e.source === 'metodo'
+    ? `Hola ${first}, soy Bruno. Vi que pediste la lección gratis del Método Brunetti, ¿alcanzaste a verla?`
+    : `Hola ${first}, te escribimos de Brunetti 💈`)
   const isWorkshop = e.source === 'workshop'
   const paid = isPaid(e)
   const payment = parsePayment(e.message)
@@ -178,6 +182,7 @@ export default function EnrollmentModal({ enrollment, clients = [], onClose, onS
               <ListRow title="Teléfono" subtitle={e.phone ? `+56 ${e.phone}` : 'Sin teléfono'} />
               <ListRow title="Correo" subtitle={e.email || 'Sin correo'} subtitleWrap />
               <ListRow title="Inscrito" value={fmtStamp(e.created_at)} />
+              {e.utm && <ListRow title="Llegó desde" subtitle={e.utm} subtitleWrap />}
               {paid && payment?.paymentId && <ListRow title="Pago" subtitle={`Mercado Pago · ${payment.paymentId}`} subtitleWrap />}
               {!paid && e.message && <ListRow title="Mensaje" subtitle={e.message} subtitleWrap />}
             </List>

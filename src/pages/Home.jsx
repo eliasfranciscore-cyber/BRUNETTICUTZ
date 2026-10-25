@@ -185,7 +185,9 @@ export default function Home() {
 
   const goReserve = () => navigate('/reservar')
   const bookService = (id) => { try { localStorage.setItem('ps_pending_service', String(id)) } catch (e) {} navigate('/reservar') }
-  const goCursos = () => navigate('/cursos')
+  // Los botones de cursos del home llevan al Método (/metodo), la página de
+  // venta propia; /cursos es la vitrina compartida de la Academy.
+  const goCursos = () => navigate('/metodo')
   const goWorkshop = () => navigate('/workshop')
   const goStyle = () => navigate('/style')
 
@@ -610,7 +612,7 @@ export default function Home() {
                   </span>
                 </a>
                 <div className="bcard" style={{ padding: '1.2rem' }}>
-                  <p style={{ margin: 0, color: 'var(--ink-2)', lineHeight: 1.6 }}>¿Eres barbero y quieres formarte? El módulo de <a onClick={goCursos} style={{ color: 'var(--gold-bright)', cursor: 'pointer' }}>Cursos</a> tiene toda la información e inscripción.</p>
+                  <p style={{ margin: 0, color: 'var(--ink-2)', lineHeight: 1.6 }}>¿Eres barbero y quieres cobrar más por tu corte? El <a onClick={goCursos} style={{ color: 'var(--gold-bright)', cursor: 'pointer' }}>Método Brunetti</a> tiene toda la información, una lección gratis y la inscripción.</p>
                 </div>
               </div>
             </div>
@@ -626,7 +628,7 @@ export default function Home() {
           FEATURES.visagismo && [() => navTo('visagismo'), 'Visagismo'],
           [() => navTo('servicios'), 'Servicios'],
           FEATURES.tuEstilo && [goStyle, 'Encuentra tu estilo'],
-          [goCursos, 'Cursos'],
+          [goCursos, 'Método Brunetti'],
           [goWorkshop, 'Workshop'],
           [() => navTo('contacto'), 'Contacto'],
         ].filter(Boolean)}

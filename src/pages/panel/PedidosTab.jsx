@@ -26,8 +26,15 @@ export const ORIGIN = {
 }
 const ORIGIN_KEYS = Object.keys(ORIGIN)
 
+/* Orígenes que no son plata: solo aparecen en Inscripciones (la lección de
+   muestra de /metodo deja interesados, no pedidos). Fuera de ORIGIN para que
+   Pedidos no sume un KPI ni un filtro que siempre daría 0. */
+export const LEAD_ORIGIN = {
+  metodo: { label: 'Método · lección', color: 'var(--pn-online-metodo)' },
+}
+
 export function OriginChip({ type }) {
-  const meta = ORIGIN[type]
+  const meta = ORIGIN[type] || LEAD_ORIGIN[type]
   if (!meta) return <Chip tone="muted">{type || '—'}</Chip>
   return <Chip tone={type}>{meta.label}</Chip>
 }

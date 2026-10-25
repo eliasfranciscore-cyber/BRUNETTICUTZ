@@ -1187,7 +1187,7 @@ function enrollmentsApi(c) {
     const phone = cleanPhone(body.phone)
     const email = String(body.email || '').trim()
     if (!name || phone.length !== 9 || !EMAIL_RE.test(email)) return E(400, 'Revisa tu nombre, teléfono y correo.')
-    const row = { id: ++st.seq.enrollment, name, phone, email, source: body.source === 'workshop' ? 'workshop' : 'cursos', level: body.level || null, message: body.message || null, edition: body.edition || null, amount: null, details_sent_at: null, created_at: iso() }
+    const row = { id: ++st.seq.enrollment, name, phone, email, source: ['workshop', 'metodo'].includes(body.source) ? body.source : 'cursos', level: body.level || null, message: body.message || null, edition: body.edition || null, utm: body.utm || null, amount: null, details_sent_at: null, created_at: iso() }
     st.enrollments.unshift(row)
     return OK({ id: row.id })
   }

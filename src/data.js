@@ -77,6 +77,13 @@ export const CLIENT_APPTS = [
   { id: 4, date: "2026-03-18", time: "18:00", barberId: 6, service: "Asesoría de Imagen · Visagista", price: 39990, status: "completada", when: "past" },
 ]
 
+/* WhatsApp de Bruno (56 + 9 dígitos, sin "+"). El código nuevo lo toma de
+   acá; Home, Essentials, el pie y el Workshop todavía lo tienen escrito. */
+export const WHATSAPP_SHOP = "56987483279"
+export function waShopHref(text) {
+  return `https://wa.me/${WHATSAPP_SHOP}${text ? `?text=${encodeURIComponent(text)}` : ""}`
+}
+
 export function CLP(n) { return "$" + Number(n || 0).toLocaleString("es-CL") }
 export function CLPk(n) { return "$" + (Math.round(Number(n) / 1000)).toLocaleString("es-CL") + "k" }
 export function barberById(id) { return BARBERS.find((b) => b.id === id) || null }

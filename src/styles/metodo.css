@@ -1,0 +1,463 @@
+/* ============================================================
+   MÉTODO BRUNETTI — página de venta /metodo (src/pages/Metodo.jsx)
+   Propia de este sitio (no es la vitrina compartida de la Academy).
+   Usa el andamio de brunetti.css (.bwrap, .bsection, .bhead,
+   .bhero-kicker, [data-reveal]) y los tokens globales (--gold*,
+   --g-*, --ink*, --muted). En claro, los titulares los voltea la regla
+   general de brunetti.css; acá solo las tarjetas.
+   ============================================================ */
+
+.metodo-page .btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+.metodo-page .btn:disabled::before { display: none; }
+.metodo-page .btn { gap: 0.5rem; }
+
+.metodo-eyebrow {
+  margin: 0 0 0.6rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  color: var(--gold-bright);
+}
+
+/* ---------- HERO ---------- */
+.brunetti-site .metodo-hero {
+  position: relative;
+  padding: clamp(7.5rem, 14vh, 10rem) 0 clamp(2.4rem, 5vw, 3.6rem);
+  overflow: hidden;
+}
+.brunetti-site .metodo-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(1100px 640px at 50% -14%, rgba(201, 161, 78, 0.16), transparent 62%);
+}
+.metodo-hero-inner { max-width: 860px; text-align: center; }
+.metodo-callout {
+  margin: 0 auto 1.1rem;
+  max-width: 640px;
+  font-size: clamp(0.98rem, 2.2vw, 1.12rem);
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--gold-lt);
+  text-wrap: balance;
+}
+.brunetti-site .metodo-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5.2vw, 3.6rem);
+  font-weight: 600;
+  line-height: 1.06;
+  letter-spacing: 0.005em;
+  text-wrap: balance;
+  background: linear-gradient(180deg, #fff 30%, #e6d4ac);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.metodo-sub {
+  margin: 1.2rem auto 0;
+  max-width: 640px;
+  color: var(--ink-2);
+  font-size: 1.04rem;
+  line-height: 1.62;
+  text-wrap: pretty;
+}
+.metodo-actions {
+  margin-top: 1.9rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.7rem;
+}
+
+/* Prueba bajo el titular: quién es + las cifras confirmadas. */
+.metodo-proof {
+  margin-top: clamp(2.2rem, 5vw, 3.2rem);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: clamp(1rem, 3vw, 2.2rem);
+  padding: clamp(1rem, 2.6vw, 1.4rem) clamp(1.1rem, 3vw, 1.8rem);
+  border-radius: var(--g-radius);
+  border: 1px solid var(--gold-line);
+  background: var(--g-tint);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+.metodo-proof-who { display: flex; align-items: center; gap: 0.85rem; }
+.metodo-proof-who img {
+  width: 72px;
+  height: 72px;
+  flex: none;
+  border-radius: 999px;
+  object-fit: cover;
+  object-position: 50% 20%;
+  border: 2px solid var(--gold-line);
+}
+.metodo-proof-who b { display: block; font-size: 1rem; color: var(--ink); }
+.metodo-proof-who span { display: block; font-size: 0.8rem; color: var(--muted); margin-top: 0.15rem; }
+.metodo-proof-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(var(--n, 3), minmax(0, 1fr));
+  gap: 0.6rem;
+}
+.metodo-proof-items li {
+  padding: 0.25rem 0 0.25rem 0.9rem;
+  border-left: 1px solid var(--gold-line);
+}
+.metodo-proof-items b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+  color: var(--gold-bright);
+  line-height: 1.15;
+}
+.metodo-proof-items span { display: block; margin-top: 0.2rem; font-size: 0.8rem; line-height: 1.4; color: var(--ink-2); }
+
+/* ---------- TARJETAS Y LISTAS ---------- */
+.metodo-card {
+  position: relative;
+  padding: clamp(1.3rem, 3vw, 1.9rem);
+  border-radius: var(--g-radius);
+  border: 1px solid var(--g-edge);
+  background: var(--g-tint);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+.metodo-card h3 { margin: 0 0 0.9rem; font-size: 1.15rem; color: var(--ink); }
+.metodo-card p { margin: 0 0 1rem; color: var(--ink-2); line-height: 1.6; }
+.metodo-card.is-muted { background: transparent; }
+.metodo-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.65rem; }
+.metodo-list li { display: flex; gap: 0.6rem; align-items: flex-start; color: var(--ink); line-height: 1.5; font-size: 0.96rem; }
+.metodo-list li svg { flex: none; margin-top: 0.2rem; color: var(--gold); }
+.metodo-list.is-no li { color: var(--ink-2); }
+.metodo-list.is-no li svg { color: var(--muted); }
+
+.metodo-fit-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+/* ---------- LECCIÓN GRATIS ---------- */
+.metodo-lesson-box {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(1.4rem, 4vw, 3rem);
+  align-items: center;
+  padding: clamp(1.4rem, 4vw, 2.6rem);
+  border-radius: calc(var(--g-radius) + 4px);
+  border: 1px solid var(--gold-line);
+  background:
+    radial-gradient(700px 360px at 0% 0%, rgba(201, 161, 78, 0.14), transparent 65%),
+    var(--g-tint);
+}
+.metodo-lesson-copy h2 {
+  margin: 0;
+  font-size: clamp(1.6rem, 3.6vw, 2.3rem);
+  line-height: 1.12;
+  color: var(--ink);
+  text-wrap: balance;
+}
+.metodo-lesson-copy p:not(.metodo-eyebrow) { margin: 1rem 0 0; color: var(--ink-2); line-height: 1.6; }
+
+.metodo-lead { display: grid; gap: 0.55rem; }
+.metodo-lead .btn { margin-top: 0.3rem; }
+.metodo-suggest {
+  justify-self: start;
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--gold-lt);
+  font-size: 0.82rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.metodo-error {
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  border-radius: 12px;
+  background: rgba(220, 80, 60, 0.12);
+  color: #f2a594;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+.metodo-error a { color: inherit; text-decoration: underline; }
+.metodo-note { margin: 0.4rem 0 0; font-size: 0.76rem; line-height: 1.5; color: var(--muted); text-align: center; }
+
+.metodo-lesson-done { text-align: center; }
+.metodo-lesson-done > svg { color: var(--gold); margin-bottom: 0.4rem; }
+.metodo-lesson-done h3 { margin: 0 0 0.8rem; font-size: 1.2rem; color: var(--ink); }
+.metodo-lesson-done p { margin: 0.8rem 0 0; color: var(--ink-2); line-height: 1.55; font-size: 0.92rem; }
+.metodo-video {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #000;
+  border: 1px solid var(--g-edge);
+}
+.metodo-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.metodo-lesson-next { margin-top: 1.1rem; display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem; }
+
+/* ---------- MALLA ---------- */
+.metodo-modules { list-style: none; margin: 0 auto; padding: 0; max-width: 820px; display: grid; gap: 0.6rem; }
+.metodo-module {
+  border-radius: 18px;
+  border: 1px solid var(--g-edge);
+  background: var(--g-tint);
+  overflow: hidden;
+}
+.metodo-module.is-open { border-color: var(--gold-line); }
+.metodo-module-head {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.2rem;
+  background: none;
+  border: 0;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.metodo-module-head > svg { color: var(--muted); transition: transform 0.25s ease; }
+.metodo-module.is-open .metodo-module-head > svg { transform: rotate(180deg); color: var(--gold); }
+.metodo-module-n {
+  font-size: 0.66rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold-bright);
+  white-space: nowrap;
+}
+.metodo-module-title b { display: block; color: var(--ink); font-size: 1rem; }
+.metodo-module-title span { display: block; margin-top: 0.2rem; color: var(--muted); font-size: 0.84rem; line-height: 1.45; }
+.metodo-lessons { list-style: none; margin: 0; padding: 0 1.2rem 1rem; display: grid; gap: 0.15rem; }
+.metodo-lessons li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.55rem 0;
+  border-top: 1px solid var(--hair);
+  color: var(--ink-2);
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+.metodo-lesson-n {
+  flex: none;
+  width: 1.7rem;
+  height: 1.7rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--hair-2);
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.metodo-free-tag {
+  margin-left: auto;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--gold-line);
+  background: var(--gold-soft);
+  color: var(--gold-lt);
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ---------- PRECIO ---------- */
+.metodo-price-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  max-width: 920px;
+  margin: 0 auto;
+  /* Cada tarjeta con su alto: estiradas, el ancla quedaba con un hueco
+     vacío sobre su botón. */
+  align-items: start;
+}
+.metodo-price-grid .metodo-card { display: flex; flex-direction: column; }
+.metodo-price-grid .metodo-card > .btn { margin-top: auto; }
+.metodo-main {
+  border-color: var(--gold-line);
+  box-shadow: 0 0 0 1px var(--gold-soft), 0 30px 70px -40px rgba(201, 161, 78, 0.55);
+}
+.metodo-tag {
+  align-self: flex-start;
+  margin-bottom: 0.8rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--hair-2);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.metodo-tag.is-gold { border-color: var(--gold-line); color: var(--gold-lt); background: var(--gold-soft); }
+.metodo-amount { margin: 0 0 1.2rem; }
+.metodo-amount b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 5vw, 2.9rem);
+  line-height: 1;
+  color: var(--ink);
+}
+.metodo-amount span { display: block; margin-top: 0.45rem; color: var(--gold-lt); font-size: 0.9rem; font-weight: 600; }
+.metodo-amount.is-anchor b { font-size: clamp(1.6rem, 3.6vw, 2rem); color: var(--ink-2); }
+.metodo-amount.is-anchor span { color: var(--muted); font-weight: 400; }
+.metodo-amount-loading { color: var(--muted); }
+.metodo-soon { margin: 0 0 1.2rem; }
+.metodo-soon b { display: block; color: var(--ink); }
+.metodo-soon span { display: block; margin-top: 0.3rem; color: var(--ink-2); font-size: 0.9rem; }
+.metodo-includes { margin-bottom: 1.4rem; display: grid; gap: 0.2rem; }
+.metodo-includes .metodo-eyebrow { margin-top: 0.8rem; }
+.metodo-includes .metodo-eyebrow:first-child { margin-top: 0; }
+
+/* ---------- PREGUNTAS ---------- */
+.metodo-faq-list { max-width: 760px; margin: 0 auto; display: grid; gap: 0.55rem; }
+.metodo-faq-item {
+  border-radius: 16px;
+  border: 1px solid var(--g-edge);
+  background: var(--g-tint);
+  padding: 0 1.2rem;
+}
+.metodo-faq-item summary {
+  list-style: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 0;
+  cursor: pointer;
+  color: var(--ink);
+  font-weight: 600;
+}
+.metodo-faq-item summary::-webkit-details-marker { display: none; }
+.metodo-faq-item summary svg { flex: none; color: var(--gold); transition: transform 0.25s ease; }
+.metodo-faq-item[open] summary svg { transform: rotate(45deg); }
+.metodo-faq-item p { margin: 0 0 1rem; color: var(--ink-2); line-height: 1.6; }
+.metodo-member { margin: 2rem 0 0; text-align: center; color: var(--muted); font-size: 0.9rem; }
+.metodo-member a { color: var(--gold-lt); }
+
+/* ---------- HOJA DE PAGO ---------- */
+body.metodo-sheet-open { overflow: hidden; }
+.metodo-sheet-wrap {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+}
+.metodo-sheet-scrim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(0, 0, 0, 0.62);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+}
+.metodo-sheet {
+  position: relative;
+  width: min(440px, 100%);
+  max-height: calc(100dvh - 2rem);
+  overflow: auto;
+  border-radius: 22px;
+  border: 1px solid var(--gold-line);
+  background: var(--panel, #111110);
+  color: var(--ink);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+.metodo-sheet-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1.2rem 1.2rem 0.6rem;
+}
+.metodo-sheet-head b { display: block; font-size: 1.1rem; }
+.metodo-sheet-head span { display: block; margin-top: 0.15rem; color: var(--gold-lt); font-size: 0.88rem; }
+.metodo-sheet-head button {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--hair-2);
+  background: none;
+  color: var(--ink);
+  cursor: pointer;
+}
+.metodo-sheet-body { padding: 0.6rem 1.2rem; display: grid; gap: 0.5rem; }
+.metodo-accept { display: flex; gap: 0.55rem; align-items: flex-start; font-size: 0.8rem; line-height: 1.45; color: var(--muted); cursor: pointer; }
+.metodo-accept input { margin-top: 0.15rem; width: 18px; height: 18px; flex: none; }
+.metodo-accept a { color: inherit; text-decoration: underline; }
+.metodo-sheet-foot { padding: 0.6rem 1.2rem calc(1.2rem + env(safe-area-inset-bottom, 0px)); display: grid; gap: 0.55rem; }
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 760px) {
+  .metodo-proof { grid-template-columns: 1fr; }
+  .metodo-proof-items { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 0.9rem; }
+  /* minmax(0, …): con 1fr a secas, un botón con texto largo (nowrap) ensancha
+     la columna más allá de la pantalla y la tarjeta queda cortada. */
+  .metodo-fit-grid,
+  .metodo-price-grid,
+  .metodo-lesson-box { grid-template-columns: minmax(0, 1fr); }
+  .metodo-page .btn { white-space: normal; text-align: center; line-height: 1.3; }
+  .metodo-actions .btn { flex: 1 1 100%; }
+  .metodo-module-head { grid-template-columns: 1fr auto; gap: 0.3rem 0.8rem; padding: 0.9rem 1rem; }
+  .metodo-module-n { grid-column: 1 / -1; }
+  .metodo-lessons { padding: 0 1rem 0.9rem; }
+  /* Hoja de pago: sube desde abajo, como el resto de las hojas del sitio. */
+  .metodo-sheet-wrap { place-items: end center; padding: 0; }
+  .metodo-sheet { width: 100%; border-radius: 22px 22px 0 0; max-height: 92dvh; }
+}
+@media (max-width: 420px) {
+  .metodo-proof-items { grid-template-columns: 1fr; }
+}
+
+/* ---------- MODO CLARO ---------- */
+[data-theme="light"] .metodo-callout { color: var(--gold-deep); }
+[data-theme="light"] .metodo-proof,
+[data-theme="light"] .metodo-card,
+[data-theme="light"] .metodo-module,
+[data-theme="light"] .metodo-faq-item,
+[data-theme="light"] .metodo-lesson-box {
+  background: var(--panel);
+  border-color: var(--hair-2);
+}
+[data-theme="light"] .metodo-lesson-box {
+  background: radial-gradient(700px 360px at 0% 0%, rgba(201, 161, 78, 0.12), transparent 65%), var(--panel);
+  border-color: var(--gold-line);
+}
+[data-theme="light"] .metodo-card.is-muted { background: transparent; }
+[data-theme="light"] .metodo-main { border-color: var(--gold-line); }
+[data-theme="light"] .metodo-proof-items b,
+[data-theme="light"] .metodo-eyebrow,
+[data-theme="light"] .metodo-module-n { color: var(--gold-deep); }
+[data-theme="light"] .metodo-amount span,
+[data-theme="light"] .metodo-tag.is-gold,
+[data-theme="light"] .metodo-suggest,
+[data-theme="light"] .metodo-member a,
+[data-theme="light"] .metodo-sheet-head span,
+[data-theme="light"] .metodo-free-tag { color: var(--gold-deep); }
+[data-theme="light"] .metodo-error { color: #a3361f; }

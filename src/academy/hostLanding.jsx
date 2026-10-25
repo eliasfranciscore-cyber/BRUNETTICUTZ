@@ -27,6 +27,7 @@ export const useSiteFx = useBrunettiFx
 export const LANDING = {
   // Logo del pie de la vitrina (el mismo que usaba la página de /cursos).
   footerLogo: '/assets/brunetti-cursos-wordmark.webp',
-  // Este sitio no carga Meta Pixel.
-  metaPixel: false,
+  // Este sitio carga Meta Pixel (public/pixel.js, el mismo de pimpstudio.cl):
+  // el aviso de privacidad de la vitrina lo declara.
+  metaPixel: true,
 }

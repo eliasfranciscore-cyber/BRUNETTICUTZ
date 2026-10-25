@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 // Mock de toda la API para desarrollo: solo con VITE_DEV_MOCKS=1 y solo en
 // `vite` (serve). Sin la variable no registra nada. Ver scripts/dev-mock.
 import devMockPlugin from './scripts/dev-mock/index.mjs'
+import { ROUTE_META, SITE_URL, metaFor } from './src/routeMeta.js'
 
 /* Mock de la API de la Brunetti Academy (docs/academy/SPEC.md §13,
    docs/academy/PORTABLE.md): SOLO con VITE_DEV_MOCKS=1 (`npm run dev:mock`
@@ -84,6 +85,56 @@ const mockMpPlugin = {
   },
 }
 
+/* Un HTML por página de venta (src/routeMeta.js): dist/metodo.html,
+   dist/cursos.html, dist/workshop.html. Son el mismo index.html del build
+   (mismos scripts con hash) con su propio <title>, description, canonical,
+   og:* y twitter:*; vercel.json sirve /metodo → /metodo.html, etc. Los
+   robots que arman la vista previa de un enlace (WhatsApp, Instagram,
+   Facebook) no corren JavaScript: sin esto todas las rutas se presentaban
+   como "Barbería Premium Maipú". Si index.html cambia y falta una etiqueta
+   que se reemplaza, el build falla en vez de publicar una vista previa a
+   medias. */
+const escHtml = (v) => String(v ?? '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+const routeHtmlPlugin = {
+  name: 'route-html',
+  apply: 'build',
+  enforce: 'post',
+  generateBundle(_options, bundle) {
+    const index = bundle['index.html']
+    if (!index || index.type !== 'asset') this.error('route-html: index.html no está en el bundle')
+    const base = String(index.source)
+    for (const path of Object.keys(ROUTE_META)) {
+      const m = metaFor(path)
+      const url = `${SITE_URL}${m.path}`
+      const image = m.image ? `${SITE_URL}${m.image}` : null
+      let html = base
+      // Con función de reemplazo: el texto lleva "$12.000", que en un string
+      // de reemplazo se leería como referencia a un grupo ($1).
+      const swap = (re, value, label) => {
+        if (!re.test(html)) this.error(`route-html: falta ${label} en index.html`)
+        html = html.replace(re, (_, open, close) => `${open}${value}${close}`)
+      }
+      swap(/(<title>)[^<]*(<\/title>)/, escHtml(m.title), '<title>')
+      swap(/(<meta name="description" content=")[^"]*(")/, escHtml(m.description), 'meta description')
+      swap(/(<link rel="canonical" href=")[^"]*(")/, url, 'canonical')
+      swap(/(<meta property="og:url" content=")[^"]*(")/, url, 'og:url')
+      swap(/(<meta property="og:title" content=")[^"]*(")/, escHtml(m.ogTitle), 'og:title')
+      swap(/(<meta property="og:description" content=")[^"]*(")/, escHtml(m.ogDescription), 'og:description')
+      const extra = [
+        image && `<meta property="og:image" content="${image}" />`,
+        image && '<meta property="og:image:width" content="1200" />',
+        image && '<meta property="og:image:height" content="630" />',
+        `<meta name="twitter:card" content="${image ? 'summary_large_image' : 'summary'}" />`,
+        `<meta name="twitter:title" content="${escHtml(m.ogTitle)}" />`,
+        `<meta name="twitter:description" content="${escHtml(m.ogDescription)}" />`,
+        image && `<meta name="twitter:image" content="${image}" />`,
+      ].filter(Boolean)
+      html = html.replace(/\s*<\/head>/, () => `\n    ${extra.join('\n    ')}\n  </head>`)
+      this.emitFile({ type: 'asset', fileName: `${m.path.slice(1)}.html`, source: html })
+    }
+  },
+}
+
 export default defineConfig({
   // Orden de los middlewares = orden de los plugins (todos se montan en el
   // pre-hook de configureServer):
@@ -95,7 +146,7 @@ export default defineConfig({
   //   2. devMockPlugin (solo VITE_DEV_MOCKS=1): el resto de /api/* de acá,
   //      incluido el checkout de Workshop/Essentials.
   //   3. mockMpPlugin: sin la variable, el Mercado Pago de siempre.
-  plugins: [react(), academyDevMock, devMockPlugin({ returnPaths: SOURCE_PATHS }), mockMpPlugin].filter(Boolean),
+  plugins: [react(), academyDevMock, devMockPlugin({ returnPaths: SOURCE_PATHS }), mockMpPlugin, routeHtmlPlugin].filter(Boolean),
   server: {
     port: parseInt(process.env.PORT) || 5173,
     strictPort: false,

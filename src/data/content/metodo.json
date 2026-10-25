@@ -1,0 +1,124 @@
+{
+  "hero": {
+    "kicker": "Método Brunetti",
+    "callout": "Para barberos que ya cortan bien y siguen cobrando $12.000",
+    "title": "El protocolo con que un corte de $12.000 pasa a valer $20.000, sin perder clientes",
+    "sub": "6 módulos y 21 lecciones de Bruno «Brunetti» Herrera, nominado a los Aconcagua Barber Awards. Pago único por Mercado Pago.",
+    "ctaLesson": "Quiero la lección gratis",
+    "ctaEnroll": "Inscribirme al Método"
+  },
+  "proof": {
+    "name": "Bruno «Brunetti» Herrera",
+    "role": "Barbero en Maipú y creador del Método",
+    "items": [
+      { "id": "caso", "enabled": true, "big": "$12.000 → $20.000", "text": "Lo que pasé a cobrar por el mismo corte, sin perder a mis clientes" },
+      { "id": "aconcagua", "enabled": true, "big": "Nominado", "text": "a los Aconcagua Barber Awards" },
+      { "id": "workshop", "enabled": true, "big": "20", "text": "barberos certificados en el workshop 2025" },
+      { "id": "viggo", "enabled": false, "big": "Viggo", "text": "" }
+    ]
+  },
+  "fit": {
+    "kicker": "Para quién es",
+    "title": "Tu barbería no necesita más clientes: necesita que cada corte pague más",
+    "body": "Agenda llena y plata corta no es éxito, es precio bajo. El Método es para quien ya corta bien y quiere cobrar lo que vale su trabajo.",
+    "yesTitle": "Es para ti si",
+    "yes": [
+      "Ya cortas y tienes clientes que vuelven",
+      "Tu agenda se llena, pero la plata no alcanza",
+      "Quieres subir tu precio sin quedarte con la silla vacía"
+    ],
+    "noTitle": "No es para ti si",
+    "no": [
+      "Estás aprendiendo a cortar desde cero",
+      "Buscas un truco para cobrar más sin cambiar nada en la silla"
+    ]
+  },
+  "lesson": {
+    "kicker": "Lección gratis",
+    "title": "Mira gratis «El caso Brunetti: de $12.000 a $20.000»",
+    "body": "Es la lección 19 del Método, completa. Déjanos tu nombre, tu WhatsApp y tu correo para verla.",
+    "button": "Quiero la lección gratis",
+    "sending": "Enviando…",
+    "privacy": "Usamos tus datos solo para mandarte la lección y escribirte sobre el Método. Esta página usa Meta Pixel para medir anuncios.",
+    "doneTitle": "Listo, aquí está tu lección",
+    "doneBody": "Te la mandamos también por correo para que la veas cuando quieras.",
+    "doneNoVideoTitle": "Listo, te llega por WhatsApp",
+    "doneNoVideoBody": "Bruno te escribe por WhatsApp al número que dejaste, con la lección.",
+    "doneWa": "¿Dudas? Escríbele a Bruno",
+    "doneEnroll": "Ver el precio del Método"
+  },
+  "malla": {
+    "kicker": "Qué aprendes",
+    "title": "6 módulos para cobrar lo que vale tu corte",
+    "body": "21 lecciones grabadas, de la primera pregunta al cliente hasta tu plan para los próximos 30 días.",
+    "modules": [
+      {
+        "title": "Bienvenida",
+        "summary": "Quién soy, qué vas a lograr y cómo aprovechar la Academy.",
+        "lessons": ["Mi historia como barbero: por qué creé esto", "Qué vas a lograr en esta comunidad", "Cómo usar la Academy en 3 minutos"]
+      },
+      {
+        "title": "El Protocolo Pre-Corte",
+        "summary": "Las 5 preguntas que cambian la experiencia del cliente antes de tomar la máquina.",
+        "lessons": ["El error que comete el 90% antes de cortar", "Las 5 preguntas explicadas una por una", "Las 5 preguntas en vivo con cliente real", "Cómo el protocolo cambia lo que cobras"]
+      },
+      {
+        "title": "El Sistema de Fade",
+        "summary": "Low, mid y high fade: lectura del cráneo, ejecución y corrección de errores.",
+        "lessons": ["Cómo leer el cráneo antes de empezar", "Low fade, paso a paso", "Mid fade y high fade: las diferencias clave", "Cómo borrar manchas y líneas duras"]
+      },
+      {
+        "title": "El Orden del Corte",
+        "summary": "Patrón de crecimiento, secciones y zonas: un sistema que da resultados consistentes.",
+        "lessons": ["Por qué el orden importa más que la técnica", "Secciones anatómicas: occipital, parietal y temporal", "El mapa del cráneo: zonas y orden de trabajo"]
+      },
+      {
+        "title": "Marca Personal",
+        "summary": "Cómo posicionarte como EL barbero de tu ciudad: qué publicar y cómo documentar tu trabajo.",
+        "lessons": ["El barbero que no se ve no existe", "Qué publicar en TikTok e Instagram como barbero", "Cómo documentar un corte en 60 segundos"]
+      },
+      {
+        "title": "Cómo Cobrar Más",
+        "summary": "De $12.000 a $20.000: el caso real, la mentalidad y el método paso a paso.",
+        "lessons": ["Por qué los barberos cobran poco", "El caso Brunetti: de $12.000 a $20.000", "Cómo comunicar la subida sin perder clientes", "Tu plan de los próximos 30 días"]
+      }
+    ],
+    "freeTag": "Gratis"
+  },
+  "price": {
+    "kicker": "Inscripción",
+    "title": "Un pago, y el Método es tuyo",
+    "anchorTag": "La opción completa",
+    "anchorName": "Método + Workshop presencial",
+    "anchorBody": "Las 21 lecciones más tu cupo en la próxima edición del workshop presencial con Bruno.",
+    "anchorPriceNote": "valor de las dos cosas por separado",
+    "anchorCta": "Consultar cupo por WhatsApp",
+    "anchorWa": "Hola Bruno, quiero consultar por el Método + Workshop presencial",
+    "tag": "Online · a tu ritmo",
+    "name": "Método Brunetti",
+    "onceTitle": "Tuyo para siempre",
+    "once": ["Las 21 lecciones grabadas, con acceso de por vida", "Vuelves a cada lección las veces que necesites"],
+    "ongoingTitle": "Además, en la Academy",
+    "ongoing": ["La comunidad de alumnos", "Clases en vivo en el calendario"],
+    "cta": "Inscribirme al Método",
+    "note": "Pago único con Mercado Pago, no es una suscripción. Al confirmarse el pago te llega un correo con tu usuario y una contraseña temporal.",
+    "loading": "Cargando precio…",
+    "soonTitle": "Las inscripciones abren pronto",
+    "soonBody": "Pide la lección gratis y te avisamos primero por WhatsApp."
+  },
+  "faq": {
+    "kicker": "Preguntas",
+    "title": "Antes de inscribirte",
+    "items": [
+      { "q": "¿Sirve si estoy empezando a cortar?", "a": "Está pensado para quien ya corta y tiene clientes. Hay técnica (fade y orden del corte), pero el foco es cobrar más por el trabajo que ya haces." },
+      { "q": "¿Cómo pago?", "a": "Con Mercado Pago, en un solo pago. No es una suscripción: no hay cobros mensuales." },
+      { "q": "¿Qué pasa después de pagar?", "a": "Te llega un correo con tu usuario y una contraseña temporal para entrar a la Academy, donde están las 21 lecciones, la comunidad y el calendario de clases en vivo." },
+      { "q": "¿Por cuánto tiempo tengo acceso?", "a": "De por vida a las lecciones del Método. Tu acceso es personal: la cuenta es tuya y no se comparte." },
+      { "q": "¿Y si tengo una duda antes de comprar?", "a": "Escríbele a Bruno por WhatsApp, con el botón de abajo a la derecha." }
+    ]
+  },
+  "footer": {
+    "member": "¿Ya eres alumno?",
+    "memberCta": "Entrar a la Academy"
+  }
+}

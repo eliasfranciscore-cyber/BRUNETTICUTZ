@@ -1,4 +1,5 @@
-/* PIMP STUDIO — Persistencia local de inscripciones (Cursos / Workshop)
+/* PIMP STUDIO — Persistencia local de inscripciones (Cursos / Workshop /
+   lección de muestra del Método)
    ------------------------------------------------------------------
    Capa de respaldo: guarda las inscripciones del flujo público en
    localStorage para que aparezcan de inmediato en el panel interno
@@ -28,7 +29,7 @@ export function addLocalEnrollment(data = {}) {
     name: (data.name || "").trim(),
     phone: cleanPhone(data.phone),
     email: (data.email || "").trim().toLowerCase(),
-    source: data.source === "workshop" ? "workshop" : "cursos",
+    source: ["workshop", "metodo"].includes(data.source) ? data.source : "cursos",
     level: data.level || null,
     message: data.message || null,
     edition: data.edition || null,
