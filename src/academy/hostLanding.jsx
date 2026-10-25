@@ -16,10 +16,18 @@ import SiteNav from '../components/SiteNav.jsx'
 import ModuleFooter from '../components/ModuleFooter.jsx'
 import { Icon } from '../components/ui.jsx'
 import { useBrunettiFx, scrollToId } from '../components/brunetti.jsx'
-import { Sparkles } from '../components/ui/sparkles.jsx'
+import { Sparkles as SiteSparkles } from '../components/ui/sparkles.jsx'
 // Botón del carrito, modal y cajón lateral: el mismo gesto de compra que
 // Essentials (la vitrina usa sus clases essentials-*).
 import '../styles/essentials.css'
+// La marca de /cursos sobre la vitrina compartida: paleta azul y el diseño
+// "Curso primero". Va después de essentials.css porque también lo retoca.
+import '../styles/cursos-vitrina.css'
+
+// Partículas del fondo en el azul de Cursos (#6b74f0), no en el dorado por defecto.
+function Sparkles(props) {
+  return <SiteSparkles color="107, 116, 240" {...props} />
+}
 
 export { SiteNav, ModuleFooter, Icon, Sparkles, scrollToId }
 export const useSiteFx = useBrunettiFx

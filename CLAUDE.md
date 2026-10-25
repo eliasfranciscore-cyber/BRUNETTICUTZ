@@ -534,6 +534,12 @@ sitio) → acceso de por vida, en los dos sitios. Contrato completo en
   `src/academy/host.jsx`, `src/academy/hostLanding.jsx` (menú, pie e íconos de la vitrina) y
   `scripts/dev-mock/academy/host.mjs`, más los puntos de enganche
   listados en [`docs/academy/PORTABLE.md`](docs/academy/PORTABLE.md).
+- **La marca de `/cursos` va en el host, no en la vitrina**: `hostLanding.jsx` importa
+  `src/styles/cursos-vitrina.css` (propio de este sitio, scopeado a `.academy-page`), que pone el
+  azul de Cursos (#0B129E; la vitrina se monta sin `.cursos-page` y sin esto salía dorada) y el
+  diseño "Curso primero" (2026-10-25): héroe bajo, el curso justo después, "Cómo se cursa" en un
+  panel, la Academy en una franja azul y los términos en letra chica. El orden lo cambia CSS
+  (`order`), no el JSX. Las partículas del fondo van azules por el `Sparkles` que exporta el host.
 - **Sin función nueva** (seguimos en 11/12): `/api/academy` es un rewrite a
   `/api/services?scope=academy`, que carga `api/_academy.js` con `import()` dinámico — si la
   Academy no carga, el catálogo de `/reservar` sigue andando.

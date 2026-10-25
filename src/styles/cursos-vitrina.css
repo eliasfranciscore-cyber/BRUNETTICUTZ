@@ -1,0 +1,292 @@
+/* ============================================================
+   /cursos — la vitrina de la Academy con la marca de ESTE sitio
+   (HOST, BrunettiCutz). La importa src/academy/hostLanding.jsx.
+
+   La vitrina (src/pages/academy/Vitrina.jsx + styles/academy/vitrina.css)
+   es código compartido con pimpstudio.cl/academy y el próximo
+   `academy-sync` pisa cualquier edición hecha allá. Todo lo propio de
+   /cursos vive acá, scopeado bajo .academy-page (la raíz de la vitrina):
+   no cambia nada del JSX ni del CSS compartidos.
+
+   1. Paleta AZUL #0B129E. El azul de Cursos vivía bajo .cursos-page
+      (brunetti.css), pero la vitrina se monta con
+      `brunetti-site academy-page`: sin esa clase heredaba el dorado del
+      sitio. Se remapean los mismos tokens --gold* para el oscuro y el
+      claro, más los dorados escritos a mano en vitrina.css,
+      essentials.css y SiteNav.css.
+   2. Diseño "Curso primero" (elegido 2026-10-25): héroe más bajo, el
+      curso justo debajo, "Cómo se cursa" en un solo panel, la Academy en
+      una franja azul de lado a lado y los términos como letra chica. Con
+      un solo curso publicado (lo normal acá) la tarjeta pasa a ser un
+      panel ancho en vez de una columna de 440px en medio del vacío.
+
+   Especificidad: las reglas de la vitrina van con `.brunetti-site .x`
+   (0,2,0); acá casi todo va con `.brunetti-site.academy-page .x` (0,3,0)
+   para ganarles sin depender del orden de carga de los chunks.
+   ============================================================ */
+
+/* ---------- 1. PALETA ---------- */
+/* En oscuro, --gold es el acento de íconos y rótulos (vitrina.css lo usa
+   como color de primer plano): #0b129e puro sobre negro no se lee
+   (~1,6:1), así que va un azul medio y el #0b129e queda en los degradados
+   de botón. */
+.brunetti-site.academy-page {
+  --gold: #7a82f2;
+  --gold-lt: #8b93f5;
+  --gold-bright: #8b93f5;
+  --gold-deep: #070a66;
+  --gold-dp: #070a66;
+  --gold-edge: rgba(107, 116, 240, 0.45);
+  --gold-soft: rgba(107, 116, 240, 0.14);
+  --gold-line: rgba(107, 116, 240, 0.38);
+  --gold-glow: rgba(107, 116, 240, 0.22);
+  --gold-grad: linear-gradient(135deg, #6b74f0 0%, #0b129e 52%, #070a66 100%);
+  --gold-grad-ink: linear-gradient(135deg, #c3c7fb 0%, #8b93f5 55%, #6b74f0 100%);
+  --shadow-gold: 0 16px 40px -18px rgba(11, 18, 158, 0.75);
+  --on-gold: #ffffff;
+  /* El brillo ambiental de .brunetti-site::before mezcla --amb-warm (dorado). */
+  --amb-warm: oklch(0.52 0.2 268);
+  background:
+    radial-gradient(1200px 700px at 80% -10%, rgba(43, 51, 201, 0.16), transparent 60%),
+    linear-gradient(180deg, #0a0a09 0%, #070706 100%);
+}
+/* En claro el azul claro no contrasta sobre la crema: acentos en azul
+   profundo, como hace .cursos-page. (0,3,0) gana a la regla de arriba. */
+[data-theme="light"] .brunetti-site.academy-page {
+  --gold: #0b129e;
+  --gold-lt: #2f39c9;
+  --gold-bright: #2f39c9;
+  --gold-grad: linear-gradient(135deg, #4a53e0 0%, #0b129e 55%, #070a66 100%);
+  --gold-grad-ink: linear-gradient(135deg, #2f39c9 0%, #0b129e 60%, #070a66 100%);
+  --gold-edge: rgba(11, 18, 158, 0.32);
+  --gold-soft: rgba(11, 18, 158, 0.09);
+  --gold-line: rgba(11, 18, 158, 0.28);
+  --gold-glow: rgba(11, 18, 158, 0.14);
+  --on-gold: #ffffff;
+  /* El fondo oscuro de arriba taparía el ::before crema del tema claro. */
+  background: none;
+}
+
+/* Dorados escritos a mano en las hojas compartidas → azul */
+.brunetti-site.academy-page .bhead h2 {
+  background: linear-gradient(180deg, #fff 35%, #aab0f7);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+.brunetti-site.academy-page .academy-hero-title {
+  background: linear-gradient(180deg, #fff 30%, #aab0f7 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+.brunetti-site.academy-page .academy-hero::before {
+  background: radial-gradient(1100px 640px at 22% -12%, rgba(43, 51, 201, 0.24), transparent 62%);
+}
+.brunetti-site.academy-page .academy-card:hover {
+  box-shadow: var(--g-spec), var(--g-drop), 0 0 40px rgba(107, 116, 240, 0.18);
+}
+/* Rótulos que van SIEMPRE sobre el velo oscuro de una foto. */
+.brunetti-site.academy-page .academy-card-track,
+.brunetti-site.academy-page .academy-modal-head .academy-modal-track { color: #c9cdfd; }
+/* Tinta oscura fija (#161616 / #1c1606) sobre el degradado: sobre azul va blanca. */
+.brunetti-site.academy-page .academy-mode-tag:not(.is-online),
+.brunetti-site.academy-page .essentials-badge,
+.brunetti-site.academy-page .essentials-cart-badge { color: var(--on-gold); }
+.brunetti-site.academy-page .btn-gold:hover { box-shadow: 0 22px 48px -18px rgba(43, 51, 201, 0.75); }
+.brunetti-site.academy-page .site-nav-burger:hover { background: rgba(107, 116, 240, 0.1); }
+.brunetti-site.academy-page .site-nav-sheet { border-color: rgba(107, 116, 240, 0.28); }
+
+/* ---------- 2. DISEÑO "CURSO PRIMERO" ---------- */
+
+/* Orden: héroe → cursos → cómo se cursa → Academy → términos. Es solo
+   visual (CSS `order`): el DOM compartido no cambia, y "Cómo se cursa" no
+   tiene nada enfocable, así que el orden del tabulador sigue al de la
+   pantalla. El fondo de partículas es position:fixed y no se mueve. */
+.brunetti-site.academy-page .bru-sparkles-zone {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: clamp(2.6rem, 5vw, 4rem);
+}
+.brunetti-site.academy-page #cursos { order: 1; }
+.brunetti-site.academy-page #modalidades { order: 2; }
+.brunetti-site.academy-page #alumnos { order: 3; }
+.brunetti-site.academy-page #terminos { order: 4; }
+
+/* Ritmo: un solo espacio entre secciones (arriba), no 7rem + 7rem. */
+.brunetti-site.academy-page .bsection { padding: clamp(2.4rem, 5vw, 3.6rem) 0 0; }
+.brunetti-site.academy-page .bhead { margin-bottom: clamp(1.2rem, 2.6vw, 1.8rem); }
+.brunetti-site.academy-page .bhead h2 { font-size: clamp(1.7rem, 3.4vw, 2.4rem); }
+.brunetti-site.academy-page .bhead p { font-size: 0.95rem; margin-top: 0.5rem; }
+/* En claro, `.bsection p` (#3a3633) le ganaba al rótulo: quedaba gris. */
+[data-theme="light"] .brunetti-site.academy-page .bhead .kicker { color: var(--gold-bright); }
+
+/* HÉROE: más bajo; los datos pasan de franja de cajas a una fila de pastillas. */
+.brunetti-site.academy-page .academy-hero {
+  padding: clamp(6.6rem, 12vh, 8rem) 0 clamp(0.6rem, 2vw, 1.2rem);
+}
+.brunetti-site.academy-page .academy-stats {
+  margin-top: clamp(1.4rem, 3vw, 2rem);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  overflow: visible;
+}
+.brunetti-site.academy-page .academy-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 0.95rem;
+  border-radius: 999px;
+  border: 1px solid var(--gold-line);
+  background: rgba(107, 116, 240, 0.08);
+}
+.brunetti-site.academy-page .academy-stat b { font-size: 1rem; }
+.brunetti-site.academy-page .academy-stat span { font-size: 0.68rem; }
+
+/* Escritorio: título grande a la izquierda; texto, avisos e Instagram a la
+   derecha, alineados abajo con el título. */
+@media (min-width: 900px) {
+  .brunetti-site.academy-page .academy-hero-inner {
+    max-width: none;
+    text-align: left;
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    column-gap: clamp(2rem, 5vw, 4.5rem);
+    align-items: end;
+  }
+  .brunetti-site.academy-page .academy-hero-inner > .bhero-kicker { grid-column: 1 / -1; justify-self: start; }
+  .brunetti-site.academy-page .academy-hero-title {
+    grid-column: 1;
+    grid-row: 2 / span 4;
+    align-self: end;
+    font-size: clamp(2.6rem, 5vw, 4rem);
+  }
+  .brunetti-site.academy-page .academy-hero-inner > :not(.bhero-kicker):not(.academy-hero-title) { grid-column: 2; }
+  .brunetti-site.academy-page .academy-hero-sub { margin-top: 0; }
+  /* inline-flex en una columna con texto a la izquierda: el aviso y el
+     Instagram terminaban en la misma línea. */
+  .brunetti-site.academy-page .academy-hero-flag,
+  .brunetti-site.academy-page .academy-hero-ig { display: flex; width: fit-content; margin-left: 0; }
+  .brunetti-site.academy-page .academy-hero-actions { justify-content: flex-start; }
+  .brunetti-site.academy-page .academy-stats {
+    justify-content: flex-start;
+    border-top: 1px solid var(--hair);
+    padding-top: 1.3rem;
+  }
+  /* Cabeceras a la izquierda, alineadas con el héroe (en móvil siguen
+     centradas: es la regla del sitio, brunetti.css "MÓVIL: TODO EL TEXTO
+     CENTRADO"). */
+  .brunetti-site.academy-page #cursos .bhead,
+  .brunetti-site.academy-page #modalidades .bhead,
+  .brunetti-site.academy-page #terminos .bhead { text-align: left; margin-inline: 0; max-width: none; }
+}
+
+/* CURSOS: un solo curso publicado = panel destacado de ancho completo
+   (foto | ficha). Con varios, la grilla de tres columnas de siempre. */
+@media (min-width: 760px) {
+  .brunetti-site.academy-page .academy-grid.is-single { grid-template-columns: minmax(0, 1fr); }
+  .brunetti-site.academy-page .academy-grid.is-single .academy-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    min-height: 440px;
+    border-radius: var(--g-radius-lg);
+    background: linear-gradient(140deg, rgba(43, 51, 201, 0.16), var(--g-tint-soft) 60%);
+  }
+  .brunetti-site.academy-page .academy-grid.is-single .academy-card:hover { transform: none; }
+  .brunetti-site.academy-page .academy-grid.is-single .academy-card-media { aspect-ratio: auto; height: 100%; }
+  .brunetti-site.academy-page .academy-grid.is-single .academy-card-body {
+    padding: clamp(1.8rem, 3.4vw, 2.8rem);
+    justify-content: center;
+  }
+  .brunetti-site.academy-page .academy-grid.is-single .academy-name { font-size: clamp(1.6rem, 2.6vw, 2.1rem); }
+  .brunetti-site.academy-page .academy-grid.is-single .academy-tagline { font-size: 0.92rem; margin-bottom: 0.9rem; }
+  .brunetti-site.academy-page .academy-grid.is-single .academy-desc { font-size: 0.97rem; }
+  .brunetti-site.academy-page .academy-grid.is-single .academy-card-foot {
+    margin-top: 0.8rem;
+    padding-top: 1.2rem;
+    border-top: 1px solid var(--hair);
+  }
+}
+@media (min-width: 900px) {
+  .brunetti-site.academy-page .academy-controls { margin: 0 0 1.4rem; }
+}
+
+/* CÓMO SE CURSA: un solo panel partido por una línea, sin tarjetas. */
+.brunetti-site.academy-page .academy-modes-grid {
+  margin-top: 0;
+  gap: 0;
+  border: 1px solid var(--hair-2);
+  border-radius: var(--g-radius-lg);
+  overflow: hidden;
+}
+.brunetti-site.academy-page .academy-mode-card {
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  padding: clamp(1.4rem, 3vw, 2rem);
+}
+.brunetti-site.academy-page .academy-mode-card + .academy-mode-card { border-left: 1px solid var(--hair-2); }
+@media (max-width: 860px) {
+  .brunetti-site.academy-page .academy-mode-card + .academy-mode-card { border-left: 0; border-top: 1px solid var(--hair-2); }
+}
+.brunetti-site.academy-page .academy-mode-card h3 { margin: 0.75rem 0 0.4rem; font-size: 1.12rem; }
+.brunetti-site.academy-page .academy-mode-card > p { margin-bottom: 0.9rem; font-size: 0.87rem; }
+
+/* ACADEMY: franja azul de lado a lado. Va siempre sobre azul, en los dos
+   temas: tinta blanca fija (el claro voltea h2 y p con !important). */
+.brunetti-site.academy-page .academy-cta {
+  margin-top: clamp(2.4rem, 5vw, 3.6rem);
+  padding: clamp(2.2rem, 5vw, 3.2rem) 0;
+  background:
+    radial-gradient(700px 320px at 85% 0%, rgba(107, 116, 240, 0.45), transparent 70%),
+    linear-gradient(120deg, #0b129e 0%, #080c78 55%, #05074d 100%);
+}
+.brunetti-site.academy-page .academy-cta-inner {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.brunetti-site.academy-page .academy-cta-inner h2 {
+  margin: 0.35rem 0 0.5rem;
+  font-size: clamp(1.3rem, 2.8vw, 1.8rem);
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+}
+.brunetti-site.academy-page .academy-cta-inner p { color: rgba(235, 237, 255, 0.82) !important; }
+.brunetti-site.academy-page .academy-cta-inner p.kicker { color: #c3c7fb !important; }
+.brunetti-site.academy-page .academy-cta-hi { color: rgba(235, 237, 255, 0.7); }
+.brunetti-site.academy-page .academy-cta .btn-gold {
+  background: #fff;
+  color: #0b129e;
+  box-shadow: 0 14px 34px -14px rgba(0, 0, 0, 0.6);
+}
+/* Bajo 860px el texto va centrado (regla del sitio) y el botón, que cae a
+   su propia línea, se quedaba pegado a la izquierda de la franja. */
+@media (max-width: 860px) {
+  .brunetti-site.academy-page .academy-cta-inner { justify-content: center; }
+  .brunetti-site.academy-page .academy-cta-actions { justify-items: center; }
+}
+
+/* TÉRMINOS: letra chica en dos columnas, sin cajas. */
+.brunetti-site.academy-page #terminos { padding-top: clamp(1.6rem, 3vw, 2.4rem); }
+.brunetti-site.academy-page #terminos .bhead h2 { font-size: clamp(1.3rem, 2.4vw, 1.6rem); }
+.brunetti-site.academy-page #terminos .bhead .kicker { margin-bottom: 0.5rem; }
+.brunetti-site.academy-page #terminos .academy-modes-grid {
+  border: 0;
+  border-top: 1px solid var(--hair-2);
+  border-radius: 0;
+  gap: clamp(1.4rem, 4vw, 3rem);
+  overflow: visible;
+}
+.brunetti-site.academy-page #terminos .academy-mode-card { padding: 1.2rem 0 0; }
+.brunetti-site.academy-page #terminos .academy-mode-card + .academy-mode-card { border: 0; }
+.brunetti-site.academy-page #terminos .academy-mode-tag { display: none; }
+.brunetti-site.academy-page #terminos .academy-mode-card h3 { font-size: 0.95rem; margin: 0 0 0.7rem; }
+.brunetti-site.academy-page #terminos .academy-mode-card ul { gap: 0.4rem; }
+.brunetti-site.academy-page #terminos .academy-mode-card li { font-size: 0.78rem; line-height: 1.5; }
