@@ -25,7 +25,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <!-- Sin apple-mobile-web-app-status-bar-style a propósito. Con
+         "black-translucent" la PWA se dibujaba DEBAJO del status bar y, desde
+         iOS 26.1, iOS le pone encima un velo oscuro difuminado que en el
+         panel tapaba los botones de la barra superior. Apple lo da por
+         obsoleto (WebKit 317153): sin la etiqueta, el status bar queda
+         arriba de la página y toma su color. iOS la lee AL INSTALAR: una
+         PWA instalada antes conserva la vieja hasta quitarla y volver a
+         agregarla a la pantalla de inicio. -->
     <meta name="apple-mobile-web-app-title" content="Brunetti" />
     <!-- Evita que iOS auto-detecte y estilice los teléfonos (caja negra en modo claro). -->
     <meta name="format-detection" content="telephone=no" />

@@ -4,7 +4,7 @@ import { bookingUid, cleanPhone, fmtDate, fmtRange, santiagoDateKey } from '../.
 import {
   Button, Card, Chip, EmptyState, InlineAlert, KpiGrid, List, ListRow, ModuleHeader, PeriodNav,
   CalendarSheet, Segmented, SearchField, Skeleton, StatusBadge, Time,
-  useIsPhone, useMediaQuery, useStoredFlag,
+  useIsPhone, useMediaQuery, useStoredFlag, useSwipeTapGuard,
 } from '../../components/panel/index.js'
 import { AGENDA_MAX_KEY, AGENDA_SLOTS } from './shared.jsx'
 import '../../styles/panel/agenda.css'
@@ -84,6 +84,9 @@ export default function AgendaTab({ ctx }) {
   const [selected, setSelected] = useState(() => new Set())
   const [applying, setApplying] = useState(false)
   const [rememberTimeline, setRememberTimeline] = useStoredFlag('pn_agenda_view_line', false)
+  // La franja se desliza: el click que llega tras deslizar no elige el día
+  // que quedó bajo el dedo (lo cambia el deslizamiento).
+  const stripTap = useSwipeTapGuard()
 
   // Restaura la última vista (Bloques/Línea) al entrar a la pestaña.
   useEffect(() => {
@@ -469,6 +472,7 @@ export default function AgendaTab({ ctx }) {
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.4}
         onDragEnd={handleAgendaDaySwipeEnd}
+        onPointerDownCapture={stripTap.onPointerDownCapture}
       >
         {weekDays.map((d) => {
           const isActive = d.key === agendaDayKey
@@ -483,7 +487,7 @@ export default function AgendaTab({ ctx }) {
               className={cx('pn-agenda-day', isActive && 'is-active', isToday && 'is-today')}
               aria-pressed={isActive}
               aria-label={`${fmtDate(d.key, 'long')}${hasBookings ? ', con reservas' : ''}`}
-              onClick={() => setAgendaDayKey(d.key)}
+              onClick={(e) => { if (!stripTap.wasSwipe(e)) setAgendaDayKey(d.key) }}
             >
               <span className="pn-agenda-day-dow">{isToday ? 'Hoy' : dow}</span>
               <span className="pn-agenda-day-num">{num}</span>

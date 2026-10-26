@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo, lazy, Suspense } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { PanelShell, PanelTopbar } from '../components/panel/Shell.jsx'
-import { InlineAlert, SkeletonRows } from '../components/panel/index.js'
+import { InlineAlert, SkeletonRows, isDaySwipe } from '../components/panel/index.js'
 import { BARBERS, CLIENTS, EXPENSES, SERVICES, TODAY_BOOKINGS, barberById, isAdminUser, cleanPhone, CLP, santiagoDateKey } from '../data.js'
 import { FEATURES } from '../features.js'
 import { addLocalBooking, mergeBookings, readLocalBookings } from '../bookingsStore.js'
@@ -1731,10 +1731,9 @@ export default function Dashboard() {
     setWeekOffset(weekOffsetOf(key))
     setAgendaDayKey(key)
   }
+  // Un toque con el dedo que se corre unos px no es deslizar (isDaySwipe).
   const handleAgendaDaySwipeEnd = (_event, info) => {
-    const { offset, velocity } = info || {}
-    if (!offset || !velocity) return
-    if (Math.abs(offset.x) > 60 || Math.abs(velocity.x) > 500) shiftAgendaDay(offset.x < 0 ? 1 : -1)
+    if (isDaySwipe(info)) shiftAgendaDay(info.offset.x < 0 ? 1 : -1)
   }
 
   // Date-picker de Agenda: cualquier fecha pasada es elegible (para revisar

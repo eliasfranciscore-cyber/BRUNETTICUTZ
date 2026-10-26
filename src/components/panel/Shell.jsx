@@ -4,7 +4,7 @@ import { useTheme } from '../theme.jsx'
 import MobileDock from '../MobileDock.jsx'
 import { Avatar, IconButton, List, ListRow, EmptyState } from './kit.jsx'
 import { Sheet } from './Sheet.jsx'
-import { useIsPhone, useOutsideClose, useTopLayerEscape } from './hooks.js'
+import { useIsPhone, useOutsideClose, useStatusBarFallback, useTopLayerEscape } from './hooks.js'
 
 /* ============================================================
    Shell del panel: menú lateral (escritorio), barra superior y dock.
@@ -21,6 +21,7 @@ export const NAV_GROUPS = [
 const cx = (...p) => p.filter(Boolean).join(' ')
 
 export function PanelShell({ tab, setTab, nav, dockItems, barber, photo, onLogout, onNewBooking, children }) {
+  useStatusBarFallback()
   const groups = NAV_GROUPS
     .map(([id, label]) => [id, label, nav.filter((n) => n[3] === id)])
     .filter(([, , items]) => items.length)

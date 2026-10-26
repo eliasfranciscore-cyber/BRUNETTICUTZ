@@ -7,7 +7,7 @@ import { waHref, waMessages, waRescheduledMessage } from '../whatsapp.js'
 import {
   ModuleHeader, Toolbar, Segmented, FilterChips, SearchField, Sheet, ActionMenu, ChoiceGrid, Field,
   Button, IconButton, Chip, Avatar, Time, List, ListRow, EmptyState, PeriodNav, CalendarSheet,
-  useIsPhone, useStoredFlag,
+  useIsPhone, useStoredFlag, useSwipeTapGuard, isDaySwipe,
 } from './panel/index.js'
 import {
   BookingDetailModal, RescheduleSheet, NEXT_STATUS, NEXT_LABEL, NEXT_SHORT, NEXT_ICON, barberShortOf, StatusChip,
@@ -371,15 +371,17 @@ export default function BookingsInbox({
   // --- Deslizar (celular): cambia de día, en tarjetas y en lista por igual ---
   // Con el mouse, soltar un arrastre encima de una tarjeta también dispara
   // su click (y framer-motion avisa el fin del arrastre recién en el cuadro
-  // siguiente): mientras se arrastra, y un instante después, no se abre el
-  // detalle.
-  const swipe = useRef({ active: false, at: 0 })
-  const handleDaySwipeStart = () => { swipe.current = { active: true, at: Date.now() } }
+  // siguiente). Ese click se descarta en captura si el puntero recorrió un
+  // deslizamiento: no abre el detalle ni aprieta un botón de la tarjeta.
+  // Antes se descartaba cualquier click durante un arrastre y 250 ms
+  // después, y como framer-motion cuenta como arrastre 3 px de movimiento,
+  // un toque con el dedo apenas corrido no abría la reserva.
+  const swipeTap = useSwipeTapGuard()
+  const dropSwipeClick = (e) => { if (swipeTap.wasSwipe(e)) { e.preventDefault(); e.stopPropagation() } }
   const handleDaySwipeEnd = (_event, info) => {
-    swipe.current = { active: false, at: Date.now() }
     if (searching || dateScope !== 'dia') return
-    const { offset, velocity } = info
-    if (Math.abs(offset.x) > 60 || Math.abs(velocity.x) > 500) shiftDay(offset.x < 0 ? 1 : -1)
+    // Tocar una tarjeta moviendo apenas el dedo no cambia de día (isDaySwipe).
+    if (isDaySwipe(info)) shiftDay(info.offset.x < 0 ? 1 : -1)
   }
 
   // Estrellas del cliente de una reserva: se cruzan por teléfono con la
@@ -481,13 +483,8 @@ export default function BookingsInbox({
     const href = waHref(bk.phone, (waMessages[situation] || waMessages.default)(bk, barberShortOf(bk, barbers)))
     if (href) window.open(href, '_blank', 'noopener,noreferrer')
   }
-  const openDetail = (bk) => {
-    // (un "arrastrando" de más de 3 s se da por perdido: el div pudo
-    // desmontarse sin avisar el fin)
-    const since = Date.now() - swipe.current.at
-    if (since < (swipe.current.active ? 3000 : 250)) return
-    setDetailId(idOf(bk))
-  }
+  // El click que viene de un deslizamiento ya lo descartó dropSwipeClick.
+  const openDetail = (bk) => setDetailId(idOf(bk))
   const menuFor = (bk, withWhatsApp) => rowMenuItems(bk, {
     withWhatsApp,
     reschedulable: Boolean(onReschedule) && (bk.status === 'pendiente' || bk.status === 'confirmada'),
@@ -559,9 +556,13 @@ export default function BookingsInbox({
         />
       )}
 
-      {/* La tira de semana (con sus flechas) solo aparece con "Semana": para
-          "Hoy" no hace falta y para "Todas" no aplica. */}
-      {!searching && dateScope === 'semana' && (
+      {/* La tira de semana (con sus flechas) está SIEMPRE a la vista, salvo
+          con una búsqueda escrita (la lista es de todas las fechas). Antes
+          solo aparecía con "Semana" y, al tocar un día, desaparecía: para
+          ver otro día había que volver a "Semana" cada vez. Marca el día que
+          muestra la lista; con "Semana" o "Todas" no marca ninguno, y tocar
+          uno pasa a ese día. */}
+      {!searching && (
         <div className="pn-reservas-week">
           <PeriodNav
             label={fmtRange(weekKeys[0], weekKeys[6])}
@@ -575,7 +576,7 @@ export default function BookingsInbox({
           <div className="pn-reservas-daystrip" role="group" aria-label="Día de la semana">
             {weekDays.map((d) => {
               const n = countsByDay[d.key] || 0
-              const isActive = d.key === selectedDay
+              const isActive = dateScope === 'dia' && d.key === selectedDay
               const isTdy = d.key === todayKey
               return (
                 <button key={d.key} type="button" className={cx('pn-reservas-day', isActive && 'is-active', isTdy && 'is-today')} aria-pressed={isActive} onClick={() => selectDay(d.key)}>
@@ -603,8 +604,9 @@ export default function BookingsInbox({
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.5}
         dragDirectionLock
-        onDragStart={handleDaySwipeStart}
         onDragEnd={handleDaySwipeEnd}
+        onPointerDownCapture={swipeTap.onPointerDownCapture}
+        onClickCapture={dropSwipeClick}
       >
         {visible.length === 0 ? (
           <EmptyState
