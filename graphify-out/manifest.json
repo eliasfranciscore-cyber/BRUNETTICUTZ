@@ -5,7 +5,7 @@
     "semantic_hash": "fff8bcf59b4168ac79dbcc95a0ae2d50"
   },
   ".claude/launch.json": {
-    "mtime": 1790694926.3437974,
+    "mtime": 1792974144.909809,
     "ast_hash": "6df6699d5838426ce86080237eb18305",
     "semantic_hash": ""
   },
@@ -45,13 +45,13 @@
     "semantic_hash": ""
   },
   "api/clients.js": {
-    "mtime": 1790270699.606825,
-    "ast_hash": "a8fe9449b0dffef38c79a55c457c01ff",
+    "mtime": 1793367562.4432323,
+    "ast_hash": "b7b84905f5b4590d917477f43fbdd5cd",
     "semantic_hash": ""
   },
   "api/enrollments.js": {
-    "mtime": 1788049398.1427011,
-    "ast_hash": "02982b39f504f6b110f97720d876f5cd",
+    "mtime": 1792968032.7619214,
+    "ast_hash": "4d3460448c0c8b37390c9b3fd77da20b",
     "semantic_hash": ""
   },
   "api/expenses.js": {
@@ -65,13 +65,13 @@
     "semantic_hash": ""
   },
   "api/services.js": {
-    "mtime": 1790693780.8374534,
-    "ast_hash": "536f1a59657845538bc4fa7a29d61fcb",
+    "mtime": 1790808818.993172,
+    "ast_hash": "a2ac5dfcd8c2c9c3ac23faecf8010ca2",
     "semantic_hash": ""
   },
   "db/schema.sql": {
-    "mtime": 1790693947.9613419,
-    "ast_hash": "89846d7476c1b1f4fb1ee4e984afe13c",
+    "mtime": 1793380304.7231843,
+    "ast_hash": "14bb5dddf643ebbf6de2c9a81893f1d4",
     "semantic_hash": ""
   },
   "db/seed.sql": {
@@ -165,8 +165,8 @@
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1790694106.2822,
-    "ast_hash": "61765e485f535a5d90469f112a45a3c8",
+    "mtime": 1793368412.8304553,
+    "ast_hash": "4394cbbb80be04e254af5380f29be94c",
     "semantic_hash": ""
   },
   "postcss.config.js": {
@@ -180,8 +180,8 @@
     "semantic_hash": ""
   },
   "src/App.jsx": {
-    "mtime": 1790693957.1750436,
-    "ast_hash": "cbe1ba53cc998249f085acd2c301ab03",
+    "mtime": 1792968244.1511772,
+    "ast_hash": "3b07d785195c0df57291346be60d3f82",
     "semantic_hash": ""
   },
   "src/bookingsStore.js": {
@@ -190,8 +190,8 @@
     "semantic_hash": ""
   },
   "src/components/BookingsInbox.jsx": {
-    "mtime": 1790270699.6221085,
-    "ast_hash": "f90a257c186a9b2f849a65f336d9dad5",
+    "mtime": 1792974042.1344888,
+    "ast_hash": "c4d3c7ea55f2a2bc934359bb2ace720b",
     "semantic_hash": ""
   },
   "src/components/ClientModal.jsx": {
@@ -225,8 +225,8 @@
     "semantic_hash": ""
   },
   "src/components/SiteNav.jsx": {
-    "mtime": 1790270699.6248758,
-    "ast_hash": "48037dba7525c3f61517863b78196d23",
+    "mtime": 1792970319.4160686,
+    "ast_hash": "aebf1b11b58f96be748ffb430ffbb23d",
     "semantic_hash": ""
   },
   "src/components/brunetti.jsx": {
@@ -235,13 +235,13 @@
     "semantic_hash": ""
   },
   "src/components/theme.jsx": {
-    "mtime": 1790270699.6259396,
-    "ast_hash": "a7ce34ddea70f59e615e9188dc552d2f",
+    "mtime": 1792970322.9602165,
+    "ast_hash": "eef16b15490e080d090576b90ed9f5e3",
     "semantic_hash": ""
   },
   "src/components/ui.jsx": {
-    "mtime": 1790693999.7535696,
-    "ast_hash": "8cad27603c5cf6c86572532b2d8a1567",
+    "mtime": 1790826218.8796663,
+    "ast_hash": "b6369120297ca44701903faeef0ed78f",
     "semantic_hash": ""
   },
   "src/components/ui/lamp.jsx": {
@@ -250,13 +250,13 @@
     "semantic_hash": "f89b02ca2d0dcd3d8fb34440ae601ca7"
   },
   "src/data.js": {
-    "mtime": 1790270699.6262414,
-    "ast_hash": "e1829cb7441aaec4866f3650fda8d227",
+    "mtime": 1792967480.5542092,
+    "ast_hash": "80bfc704255208bb0e04063315dedb4d",
     "semantic_hash": ""
   },
   "src/data/estilo.js": {
-    "mtime": 1783648284.1324105,
-    "ast_hash": "77cbfe88af6010e4101b81e03d9d3d44",
+    "mtime": 1793367577.1081886,
+    "ast_hash": "3170acda957c08644a3e391065619acf",
     "semantic_hash": ""
   },
   "src/data/workshop.js": {
@@ -265,13 +265,13 @@
     "semantic_hash": ""
   },
   "src/enrollmentsStore.js": {
-    "mtime": 1788048319.1892564,
-    "ast_hash": "02449c4fe9af83245e8eae0526b5f17e",
+    "mtime": 1792967353.7652485,
+    "ast_hash": "30725cc756a55321686e1d4cba55bae1",
     "semantic_hash": ""
   },
   "src/main.jsx": {
-    "mtime": 1790270699.6265645,
-    "ast_hash": "e4c5a6c016cad86d5aeb9749ea199c77",
+    "mtime": 1792967470.3784719,
+    "ast_hash": "9ff11a1f9f62fd6d7f7518e181cb96a1",
     "semantic_hash": ""
   },
   "src/pages/Account.jsx": {
@@ -289,14 +289,9 @@
     "ast_hash": "17232adc2af746ae69a92d4a5b11e9bb",
     "semantic_hash": ""
   },
-  "src/pages/Cursos.jsx": {
-    "mtime": 1790694484.7265987,
-    "ast_hash": "e9018e23a5d123602a93e02bfbbece93",
-    "semantic_hash": ""
-  },
   "src/pages/Dashboard.jsx": {
-    "mtime": 1790693985.9279733,
-    "ast_hash": "7f69dfc41acc58296f4acb88df9783b1",
+    "mtime": 1793367729.6596014,
+    "ast_hash": "1ce8e0a275cba125b586d096b86d16e1",
     "semantic_hash": ""
   },
   "src/pages/EncuentraEstilo.jsx": {
@@ -305,8 +300,8 @@
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
-    "mtime": 1790270699.6345918,
-    "ast_hash": "751c654ad1bbbe1dd10f0ef7b02fb51b",
+    "mtime": 1792970319.416884,
+    "ast_hash": "2395a9283f0f486f32daf4d0f78987d0",
     "semantic_hash": ""
   },
   "src/pages/Login.jsx": {
@@ -330,13 +325,13 @@
     "semantic_hash": "1b7e818f114dad25484ff5613ea20db5"
   },
   "vercel.json": {
-    "mtime": 1790693793.250787,
-    "ast_hash": "439bb74436d41588edde57c2dd8612e0",
+    "mtime": 1793368855.9946353,
+    "ast_hash": "75d296b5078b153a5ee97e258c947a0c",
     "semantic_hash": ""
   },
   "vite.config.js": {
-    "mtime": 1790694089.6805935,
-    "ast_hash": "5d8b32f0c99ff78109d66aecd7f045ad",
+    "mtime": 1792967929.1604235,
+    "ast_hash": "7642d4a95ac4f0be8d9ededd179b2e57",
     "semantic_hash": ""
   },
   "CHANGELOG_IMPLEMENTACION.md": {
@@ -345,8 +340,8 @@
     "semantic_hash": "8821dc65ef6d88a32b3d71aa793563c1"
   },
   "CLAUDE.md": {
-    "mtime": 1790693980.8901303,
-    "ast_hash": "e088f0842f19ce5a4a4061e39c995f2b",
+    "mtime": 1793380311.4436753,
+    "ast_hash": "8aa5b6ffbc721f185fb875fa02ed6172",
     "semantic_hash": ""
   },
   "IMPLEMENTATION_PLAN.md": {
@@ -360,8 +355,8 @@
     "semantic_hash": "0683f76e1b8d1fdf512f1d595283c15d"
   },
   "index.html": {
-    "mtime": 1790694074.239673,
-    "ast_hash": "a07b0dd16f06fd3a801c0f93f641d23e",
+    "mtime": 1792969556.9563413,
+    "ast_hash": "8768584d87a09071a4b4767931af2791",
     "semantic_hash": ""
   },
   "ios/BrunettiCutz/README.md": {
@@ -885,8 +880,8 @@
     "semantic_hash": ""
   },
   "src/data/content/cursos.json": {
-    "mtime": 1790694114.6937876,
-    "ast_hash": "690e5e72ccd95254f3bee4e28f83941e",
+    "mtime": 1792967823.8271801,
+    "ast_hash": "069d08662a626477026271a43855edd4",
     "semantic_hash": ""
   },
   "src/data/content/estilo.json": {
@@ -895,13 +890,13 @@
     "semantic_hash": ""
   },
   "src/data/content/home-contacto.json": {
-    "mtime": 1783739679.291144,
-    "ast_hash": "741221faf4b08b3be6e63c5f7027c452",
+    "mtime": 1792967823.8264477,
+    "ast_hash": "7e7b3c44e003b0628d22f9536b72e9b8",
     "semantic_hash": ""
   },
   "src/data/content/home-cursos-teaser.json": {
-    "mtime": 1783739785.923761,
-    "ast_hash": "0abdec59feb9916660faf755a40b56dc",
+    "mtime": 1792967823.8252063,
+    "ast_hash": "134073092e66ad4f631c324ff8856e9b",
     "semantic_hash": ""
   },
   "src/data/content/home-estilo-teaser.json": {
@@ -915,8 +910,8 @@
     "semantic_hash": ""
   },
   "src/data/content/home-hero.json": {
-    "mtime": 1783740382.4698246,
-    "ast_hash": "3ea7220cf57e88ea2744e6bd2952a971",
+    "mtime": 1792967827.6259875,
+    "ast_hash": "76ec28bcf513b291aca7e45025ab3f4a",
     "semantic_hash": ""
   },
   "src/data/content/home-servicios.json": {
@@ -1130,8 +1125,8 @@
     "semantic_hash": ""
   },
   "api/_email.js": {
-    "mtime": 1790270699.60425,
-    "ast_hash": "81fcd41fb3bb40f0ec5df2e64d77f7b2",
+    "mtime": 1793367483.7855515,
+    "ast_hash": "895d9e76149ba527915efca7b663eb82",
     "semantic_hash": ""
   },
   "src/components/ui/container-scroll-animation.jsx": {
@@ -1300,8 +1295,8 @@
     "semantic_hash": ""
   },
   "api/mp-payments.js": {
-    "mtime": 1790693855.6783292,
-    "ast_hash": "4f9719c8b0b9845f61e74958067897de",
+    "mtime": 1790826226.797278,
+    "ast_hash": "a3a8d2d454987e45dccd475358ebeb00",
     "semantic_hash": ""
   },
   "scripts/brand/build-icons.py": {
@@ -1310,13 +1305,8 @@
     "semantic_hash": ""
   },
   "src/components/EnrollmentModal.jsx": {
-    "mtime": 1790270699.6229799,
-    "ast_hash": "df319ab0090b4b743fec0950020fade1",
-    "semantic_hash": ""
-  },
-  "src/components/MercadoPagoCheckout.jsx": {
-    "mtime": 1790702254.6118593,
-    "ast_hash": "f5b5b5494aadd039a1c0ba59308d5053",
+    "mtime": 1792967353.7673504,
+    "ast_hash": "f50d5b34e8cedecbecc9a1cb1cf3413a",
     "semantic_hash": ""
   },
   "src/components/NewEnrollmentModal.jsx": {
@@ -2480,18 +2470,18 @@
     "semantic_hash": ""
   },
   "api/_schema.js": {
-    "mtime": 1790270699.6052,
-    "ast_hash": "a140bd1d7e3ccb1056446397b1553315",
+    "mtime": 1793380304.722746,
+    "ast_hash": "7bbe16e9d3b48d59327e069a190b0a8e",
     "semantic_hash": ""
   },
   "scripts/dev-mock/fixtures.mjs": {
-    "mtime": 1790270699.621342,
-    "ast_hash": "dc1a52e38c5f129555dfe0b1c16761b2",
+    "mtime": 1793380304.725283,
+    "ast_hash": "42ab170596e13070a921c7653bbaf850",
     "semantic_hash": ""
   },
   "scripts/dev-mock/index.mjs": {
-    "mtime": 1790270699.6215038,
-    "ast_hash": "51bdb935c09834fe374b08638fcf2efb",
+    "mtime": 1793380304.7249215,
+    "ast_hash": "70087d45e1587d81e914b2adde262260",
     "semantic_hash": ""
   },
   "src/buildWatch.js": {
@@ -2540,18 +2530,18 @@
     "semantic_hash": ""
   },
   "src/components/panel/Shell.jsx": {
-    "mtime": 1790270699.6254473,
-    "ast_hash": "6ab0090961913421f1758df83467106f",
+    "mtime": 1792969553.8554454,
+    "ast_hash": "b7d101b7855f81d4395371d3b7718ce8",
     "semantic_hash": ""
   },
   "src/components/panel/hooks.js": {
-    "mtime": 1790270699.6255913,
-    "ast_hash": "70acff5200e86b4d8d7315cda7fa75df",
+    "mtime": 1792969812.1113648,
+    "ast_hash": "f28f8f45a7eba601301f76af3c91a6ff",
     "semantic_hash": ""
   },
   "src/components/panel/index.js": {
-    "mtime": 1790270699.6256788,
-    "ast_hash": "9764d62fe24108c66bf56f17e8c90c57",
+    "mtime": 1792969501.2362537,
+    "ast_hash": "ceb4dd6bfe32b6638cbffb5eb2fa558b",
     "semantic_hash": ""
   },
   "src/components/panel/kit.jsx": {
@@ -2560,8 +2550,8 @@
     "semantic_hash": ""
   },
   "src/features.js": {
-    "mtime": 1790270699.6264048,
-    "ast_hash": "3326299faa26f6e38afa3f2a179d0dc4",
+    "mtime": 1793367729.6602652,
+    "ast_hash": "a1c7be332bb5930bcd6f483b50fdb38f",
     "semantic_hash": ""
   },
   "src/installPrompt.js": {
@@ -2585,13 +2575,13 @@
     "semantic_hash": ""
   },
   "src/pages/panel/AgendaTab.jsx": {
-    "mtime": 1790270699.6388638,
-    "ast_hash": "61c02bbd3be08d754dd1ff2fb20536b4",
+    "mtime": 1792969513.348212,
+    "ast_hash": "c024c65827415a03a203c57e181512c1",
     "semantic_hash": ""
   },
   "src/pages/panel/BookingDetailSheet.jsx": {
-    "mtime": 1790270699.6390936,
-    "ast_hash": "73618f7fac861627ef566e16df9d8ca4",
+    "mtime": 1793367748.8399158,
+    "ast_hash": "06c8275883470bb55cd0fd1969f38244",
     "semantic_hash": ""
   },
   "src/pages/panel/CajaTab.jsx": {
@@ -2630,8 +2620,8 @@
     "semantic_hash": ""
   },
   "src/pages/panel/InscripcionesTab.jsx": {
-    "mtime": 1790270699.6487586,
-    "ast_hash": "37e2b5817f4ccbec6fbad597b0d4aa95",
+    "mtime": 1792967353.7669432,
+    "ast_hash": "eac72258ba24c07da5712f98a9ba20ce",
     "semantic_hash": ""
   },
   "src/pages/panel/MarketingTab.jsx": {
@@ -2640,13 +2630,13 @@
     "semantic_hash": ""
   },
   "src/pages/panel/PedidosTab.jsx": {
-    "mtime": 1790270699.6490297,
-    "ast_hash": "db25c20f321cccbef1bf0a9bb3a3c486",
+    "mtime": 1792967353.7658336,
+    "ast_hash": "e16e8e5a299152efeb20f30c65df5022",
     "semantic_hash": ""
   },
   "src/pages/panel/ServiciosTab.jsx": {
-    "mtime": 1790270699.6492224,
-    "ast_hash": "ce693c1a4443610cf6de9efa30d23f46",
+    "mtime": 1790808703.213239,
+    "ast_hash": "b7e79424f5d8fe133559225f59494d44",
     "semantic_hash": ""
   },
   "src/pages/panel/SinCerrar.jsx": {
@@ -2675,28 +2665,28 @@
     "semantic_hash": ""
   },
   "api/_academy.js": {
-    "mtime": 1790694632.7719784,
-    "ast_hash": "113a1dd4c362df972e92128273942bae",
+    "mtime": 1790826148.1947715,
+    "ast_hash": "67efdb5b8d394d618793f9ac960db65f",
     "semantic_hash": ""
   },
   "api/_academyAccount.js": {
-    "mtime": 1790694632.772525,
-    "ast_hash": "02bda1d20b0bafeedfa82b1e5eb78c5c",
+    "mtime": 1790826148.1952822,
+    "ast_hash": "758002d30270d5497a51e6bba988c691",
     "semantic_hash": ""
   },
   "api/_academyAdmin.js": {
-    "mtime": 1790694632.7732434,
-    "ast_hash": "fe829a7748f0b730eef6dc92c5332dfb",
+    "mtime": 1790826148.195589,
+    "ast_hash": "202b7bbf5ce8de98a141c1833d6e1c3e",
     "semantic_hash": ""
   },
   "api/_academyAuth.js": {
-    "mtime": 1790694632.7741885,
-    "ast_hash": "01243aab6b03a47ddaa691559cbfd674",
+    "mtime": 1790826148.19604,
+    "ast_hash": "f7bc3281311f2d3dd09848d112956491",
     "semantic_hash": ""
   },
   "api/_academyChat.js": {
-    "mtime": 1790693390.4146874,
-    "ast_hash": "d51afb75df26b81196beea0a13570df0",
+    "mtime": 1790826148.1966646,
+    "ast_hash": "aa38dee7c7429da764c5180f265e2ea9",
     "semantic_hash": ""
   },
   "api/_academyCommunity.js": {
@@ -2705,18 +2695,18 @@
     "semantic_hash": ""
   },
   "api/_academyCourses.js": {
-    "mtime": 1790694632.7757301,
-    "ast_hash": "e4e29bfb441d74f905ce5c0c75813e61",
+    "mtime": 1790826148.1971538,
+    "ast_hash": "7a2e28f0e76dc589d1723ad622f6cc10",
     "semantic_hash": ""
   },
   "api/_academyCron.js": {
-    "mtime": 1790693390.4154227,
-    "ast_hash": "671982e9c1a0563e6e240e10848daf92",
+    "mtime": 1790826148.1975596,
+    "ast_hash": "3ccd31b6a252273e9786f3ffb2703abf",
     "semantic_hash": ""
   },
   "api/_academyEmail.js": {
-    "mtime": 1790694632.7764711,
-    "ast_hash": "bba3bb2c0f17f90d99dc2d7b693e73b5",
+    "mtime": 1790826148.1984425,
+    "ast_hash": "d56578e48ea8710634575712e746eebf",
     "semantic_hash": ""
   },
   "api/_academyEvents.js": {
@@ -2725,8 +2715,8 @@
     "semantic_hash": ""
   },
   "api/_academyHost.js": {
-    "mtime": 1790724656.261449,
-    "ast_hash": "ba439ed6e64ad67439760952a32e22c7",
+    "mtime": 1790825441.3130827,
+    "ast_hash": "a6f210fa698a75aa7b1c3a45f0921831",
     "semantic_hash": ""
   },
   "api/_academyHttp.js": {
@@ -2755,23 +2745,23 @@
     "semantic_hash": ""
   },
   "api/_academyProvision.js": {
-    "mtime": 1790694632.7795715,
-    "ast_hash": "b45190f7b19ff653f393087d0dffe9ce",
+    "mtime": 1790826148.1991637,
+    "ast_hash": "3b488ad4f40a65cc301568761fd55ca9",
     "semantic_hash": ""
   },
   "api/_academyPush.js": {
-    "mtime": 1790693390.417362,
-    "ast_hash": "e076e65aaeca68aef4e75e96b9807caf",
+    "mtime": 1790826148.1995952,
+    "ast_hash": "61e161424cf67d321534b82dbe912317",
     "semantic_hash": ""
   },
   "api/_academySchema.js": {
-    "mtime": 1790694632.7810698,
-    "ast_hash": "cc2e0bfeb83d1a1926cdf9e5521c4f1e",
+    "mtime": 1790826148.2000546,
+    "ast_hash": "e0db921f7a5e95384d9d02720a5fd302",
     "semantic_hash": ""
   },
   "api/_academySession.js": {
-    "mtime": 1790694632.7817001,
-    "ast_hash": "911b7f5ab855a8259fa59baefd38286f",
+    "mtime": 1790826148.200673,
+    "ast_hash": "3e39eb0265588db9f7d3863bc2ecebec",
     "semantic_hash": ""
   },
   "api/_academyText.js": {
@@ -2795,13 +2785,13 @@
     "semantic_hash": ""
   },
   "public/boot.js": {
-    "mtime": 1790694067.203789,
-    "ast_hash": "d49b3a963ed9cfcdb152fc290f43891a",
+    "mtime": 1792967416.424049,
+    "ast_hash": "5777e14b4655044c9b3e423811f98122",
     "semantic_hash": ""
   },
   "scripts/academy-sync.mjs": {
-    "mtime": 1790693390.4188302,
-    "ast_hash": "e593522ae905ceb26efe297f1c728559",
+    "mtime": 1790826148.2010329,
+    "ast_hash": "097007d2d01d0bc8678b5d79fcafb5ab",
     "semantic_hash": ""
   },
   "scripts/dev-mock/academy/academy-chat.mjs": {
@@ -2885,13 +2875,13 @@
     "semantic_hash": ""
   },
   "src/academy/host.jsx": {
-    "mtime": 1790723672.139718,
-    "ast_hash": "e2d0b43f2aa2aa4bd5266a8605a0c4ea",
+    "mtime": 1792967837.631031,
+    "ast_hash": "1fd889f57398b507c0437e46b19b7971",
     "semantic_hash": ""
   },
   "src/academy/hostConfig.js": {
-    "mtime": 1790693938.7352562,
-    "ast_hash": "a18fcc1e1acf3c8ea36fea0860055f29",
+    "mtime": 1790828203.4131107,
+    "ast_hash": "4da5212b403fb0b7209915051438607c",
     "semantic_hash": ""
   },
   "src/academy/ics.js": {
@@ -3085,8 +3075,8 @@
     "semantic_hash": ""
   },
   "src/components/academy/MemberAdminSheet.jsx": {
-    "mtime": 1790693390.4286127,
-    "ast_hash": "632142470a59ff22bd49acdbb50ffc94",
+    "mtime": 1790828275.914085,
+    "ast_hash": "4a4641cd941b2ee00d166fa13131b66e",
     "semantic_hash": ""
   },
   "src/components/academy/MemberAvatar.jsx": {
@@ -3245,8 +3235,8 @@
     "semantic_hash": ""
   },
   "src/pages/academy/Gracias.jsx": {
-    "mtime": 1790693390.432028,
-    "ast_hash": "cdd58d9bb885be8fcfefb49a257203b7",
+    "mtime": 1790724837.7376127,
+    "ast_hash": "5663eab1e8c3228e24b09043e2f842b7",
     "semantic_hash": ""
   },
   "src/pages/academy/GrupoPage.jsx": {
@@ -3380,8 +3370,8 @@
     "semantic_hash": ""
   },
   "src/pages/panel/academy/CursosSection.jsx": {
-    "mtime": 1790693390.4349575,
-    "ast_hash": "a5c3411192b3d7878d64f8acc7ccae75",
+    "mtime": 1790826148.2060478,
+    "ast_hash": "f0a3f4f9ef91419567945d5e47d8aa64",
     "semantic_hash": ""
   },
   "src/pages/panel/academy/GruposSection.jsx": {
@@ -3390,13 +3380,13 @@
     "semantic_hash": ""
   },
   "src/pages/panel/academy/MiembrosSection.jsx": {
-    "mtime": 1790693390.4353323,
-    "ast_hash": "7c4dfd51a800f2b810264ed51e6dc252",
+    "mtime": 1790828275.9215071,
+    "ast_hash": "cb1bb786ca063cb8e840f72c2217bfd4",
     "semantic_hash": ""
   },
   "src/pages/panel/academy/PedidosSection.jsx": {
-    "mtime": 1790693390.43547,
-    "ast_hash": "2d83049bf96455ca7ff2319a540ce1a3",
+    "mtime": 1790828275.9221704,
+    "ast_hash": "c8079e9be4e6e8a98df9ff0f04dfc1c0",
     "semantic_hash": ""
   },
   "src/pages/panel/academy/ResumenSection.jsx": {
@@ -3435,18 +3425,248 @@
     "semantic_hash": ""
   },
   "docs/academy/PORTABLE.md": {
-    "mtime": 1790693390.418382,
-    "ast_hash": "6e869473fa4eeadb9b90e5996f7f09a2",
+    "mtime": 1790828275.903049,
+    "ast_hash": "91faedbd5c652b70da5ab7fcb926042e",
     "semantic_hash": ""
   },
   "docs/academy/SPEC.md": {
-    "mtime": 1790693390.4186327,
-    "ast_hash": "8a4399fb419a1eef50fc3f80d987e930",
+    "mtime": 1790828275.9038289,
+    "ast_hash": "bbed161aa0380f4adb462bba72ae309d",
     "semantic_hash": ""
   },
   "public/assets/avatars/bruno 2.jpg": {
     "mtime": 1790236682.0,
     "ast_hash": "f3e766e2add926ad5b3e46025141b85d",
+    "semantic_hash": ""
+  },
+  "api/_academyBridge.js": {
+    "mtime": 1790826148.19621,
+    "ast_hash": "d605b7c5a0fe6683135c0ecb0c56dfb6",
+    "semantic_hash": ""
+  },
+  "api/_academyDb.js": {
+    "mtime": 1790828090.503375,
+    "ast_hash": "238ca27495ae46563f3c7e01f3134956",
+    "semantic_hash": ""
+  },
+  "api/_academyPeer.js": {
+    "mtime": 1790826148.1988275,
+    "ast_hash": "18cbead258db58c8d5ff3e63f4a6ffd4",
+    "semantic_hash": ""
+  },
+  "public/pixel.js": {
+    "mtime": 1792967976.4286964,
+    "ast_hash": "84f82c6adcc02daf145b20298fcb48b0",
+    "semantic_hash": ""
+  },
+  "src/academy/cart.js": {
+    "mtime": 1790826148.201924,
+    "ast_hash": "e7d6bfede20a9e74d7edecb18a75347c",
+    "semantic_hash": ""
+  },
+  "src/academy/catalog.js": {
+    "mtime": 1790826148.202004,
+    "ast_hash": "6f11e6eba74b1628a155c592cc8800d0",
+    "semantic_hash": ""
+  },
+  "src/academy/courses.js": {
+    "mtime": 1790826249.7832465,
+    "ast_hash": "ed062d991189f36c87bb7f7efcfcd335",
+    "semantic_hash": ""
+  },
+  "src/academy/hostLanding.jsx": {
+    "mtime": 1792970354.8183284,
+    "ast_hash": "f161981d5211af727c9b0e717bce5250",
+    "semantic_hash": ""
+  },
+  "src/components/WhatsAppFab.jsx": {
+    "mtime": 1792967598.6478906,
+    "ast_hash": "c7a3ed1ef9be2f364a6b2daafc392ca1",
+    "semantic_hash": ""
+  },
+  "src/data/content/metodo.json": {
+    "mtime": 1792968163.5015805,
+    "ast_hash": "74617062192d28ae16bf5bb7824c43f6",
+    "semantic_hash": ""
+  },
+  "src/data/metodo.js": {
+    "mtime": 1792968190.140558,
+    "ast_hash": "837829f81d3604db3a46566e716a3875",
+    "semantic_hash": ""
+  },
+  "src/pages/Metodo.jsx": {
+    "mtime": 1792970415.8103514,
+    "ast_hash": "5cd23f410617b30846ad84a90058baf3",
+    "semantic_hash": ""
+  },
+  "src/pages/academy/Vitrina.jsx": {
+    "mtime": 1790826406.1966803,
+    "ast_hash": "8509f4f3a13b90bc5f541c56113dfbbc",
+    "semantic_hash": ""
+  },
+  "src/routeMeta.js": {
+    "mtime": 1792967795.4753358,
+    "ast_hash": "9b4760b7c084bba1c21def751615524b",
+    "semantic_hash": ""
+  },
+  "src/track.js": {
+    "mtime": 1792967468.4345987,
+    "ast_hash": "871bd7124cdcb9445794151c114d2e57",
+    "semantic_hash": ""
+  },
+  "scripts/brand/og-metodo.html": {
+    "mtime": 1792967896.994397,
+    "ast_hash": "b9cf2f9868ff8cd1f837a1ab48b3ba0f",
+    "semantic_hash": ""
+  },
+  "marketing/historias-metodo-ascension/1-dorado.png": {
+    "mtime": 1791859439.8384,
+    "ast_hash": "3b07cb446792a318ce76c41642b84603",
+    "semantic_hash": ""
+  },
+  "marketing/historias-metodo-ascension/2-morado-foto-real-2.png": {
+    "mtime": 1791861294.453461,
+    "ast_hash": "ee83b02f11c9c472394fcb3670fc3117",
+    "semantic_hash": ""
+  },
+  "marketing/historias-metodo-ascension/2-morado-foto-real-3.png": {
+    "mtime": 1791862054.2341099,
+    "ast_hash": "65b771b23c02f81ee703db6394acf96d",
+    "semantic_hash": ""
+  },
+  "marketing/historias-metodo-ascension/2-morado-foto-real.png": {
+    "mtime": 1791861031.5514913,
+    "ast_hash": "98cc6287026619965bf5e2521daed1a9",
+    "semantic_hash": ""
+  },
+  "marketing/historias-metodo-ascension/2-plateado-v2-foto-real-logo-dorado.png": {
+    "mtime": 1791860317.196701,
+    "ast_hash": "f770fe690ca02eb3657eb941ec90400b",
+    "semantic_hash": ""
+  },
+  "marketing/historias-metodo-ascension/2-plateado-v2-foto-real.png": {
+    "mtime": 1791860317.1946485,
+    "ast_hash": "5a3acbc5438d9f79847e8dd9eb64ff43",
+    "semantic_hash": ""
+  },
+  "marketing/historias-metodo-ascension/2-plateado.png": {
+    "mtime": 1791859439.839127,
+    "ast_hash": "c2595c068aa82f9cb137493cb220e027",
+    "semantic_hash": ""
+  },
+  "marketing/historias-metodo-ascension/3-morado.png": {
+    "mtime": 1791859439.8407872,
+    "ast_hash": "6cec02b15c6a5e27359db8feb8524c9c",
+    "semantic_hash": ""
+  },
+  "marketing/historias-metodo-ascension/4-morado-dorado-bn.png": {
+    "mtime": 1791859439.8424015,
+    "ast_hash": "2fbac2c0589084085f47e4c882d65cb7",
+    "semantic_hash": ""
+  },
+  "marketing/historias-metodo-ascension/5-plateado-dorado.png": {
+    "mtime": 1791859439.84394,
+    "ast_hash": "67a5277315a64fdfd6856ed7d1d23c5e",
+    "semantic_hash": ""
+  },
+  "marketing/historias-metodo-ascension/originales-sin-margen/1-dorado.png": {
+    "mtime": 1791859300.299982,
+    "ast_hash": "15bc058192e31fe582435812e5ea1299",
+    "semantic_hash": ""
+  },
+  "marketing/historias-metodo-ascension/originales-sin-margen/2-plateado.png": {
+    "mtime": 1791859302.6807983,
+    "ast_hash": "2e6e671c438f3ea9145180b4efa39b85",
+    "semantic_hash": ""
+  },
+  "marketing/historias-metodo-ascension/originales-sin-margen/3-morado.png": {
+    "mtime": 1791859304.7681594,
+    "ast_hash": "79e7a243c54aaad5b5c0ee8c898e7733",
+    "semantic_hash": ""
+  },
+  "marketing/historias-metodo-ascension/originales-sin-margen/4-morado-dorado-bn.png": {
+    "mtime": 1791859306.813187,
+    "ast_hash": "fc5c0026aafb1f4a7e70877cc179ef94",
+    "semantic_hash": ""
+  },
+  "marketing/historias-metodo-ascension/originales-sin-margen/5-plateado-dorado.png": {
+    "mtime": 1791859309.2274482,
+    "ast_hash": "abc615a773a2b0c4f32355fef7be0c3c",
+    "semantic_hash": ""
+  },
+  "public/assets/og-metodo.jpg": {
+    "mtime": 1792967897.5243504,
+    "ast_hash": "5d75bc739e7a3bcbbcb949de0a5165c4",
+    "semantic_hash": ""
+  },
+  "api/_visagismo.js": {
+    "mtime": 1793380304.7219949,
+    "ast_hash": "ab3ce57e34f6f6bba8a45aefd69efcfc",
+    "semantic_hash": ""
+  },
+  "api/_visagismoPdf.js": {
+    "mtime": 1793380304.7210653,
+    "ast_hash": "0fdecb85829aeb34449e33c48e4a2232",
+    "semantic_hash": ""
+  },
+  "src/pages/panel/VisagismoTab.jsx": {
+    "mtime": 1793380304.7242458,
+    "ast_hash": "be2858a2085018752e94fb76aa677aac",
+    "semantic_hash": ""
+  },
+  "src/pages/panel/visagismoPhoto.js": {
+    "mtime": 1793367586.829092,
+    "ast_hash": "efb7610983fb7ea2ea987cc3cf216f15",
+    "semantic_hash": ""
+  },
+  "scripts/brand/build-visagismo-assets.mjs": {
+    "mtime": 1793368490.61618,
+    "ast_hash": "82c2baed3c2b993842a159ad4cb2f900",
+    "semantic_hash": ""
+  },
+  "api/_assets/visagismo/bg-morado.jpg": {
+    "mtime": 1793368501.294325,
+    "ast_hash": "985dd449f201145418962474a36df5c6",
+    "semantic_hash": ""
+  },
+  "api/_assets/visagismo/bg-oro.jpg": {
+    "mtime": 1793368493.944388,
+    "ast_hash": "048dabdaf89246dc1511d0892addcbf1",
+    "semantic_hash": ""
+  },
+  "api/_assets/visagismo/bg-plata.jpg": {
+    "mtime": 1793368497.5758543,
+    "ast_hash": "c553ee7faad0a778bd365527ad75be06",
+    "semantic_hash": ""
+  },
+  "api/_assets/visagismo/monogram-morado.png": {
+    "mtime": 1793368503.2631176,
+    "ast_hash": "2b41311ac7987885311bb84cd5117e10",
+    "semantic_hash": ""
+  },
+  "api/_assets/visagismo/monogram-oro.png": {
+    "mtime": 1793368495.8530376,
+    "ast_hash": "7d875187a5a762e9de316de2178a1df1",
+    "semantic_hash": ""
+  },
+  "api/_assets/visagismo/monogram-plata.png": {
+    "mtime": 1793368499.628432,
+    "ast_hash": "0696c53a6816c730c58173e56738545d",
+    "semantic_hash": ""
+  },
+  "api/_assets/visagismo/wordmark-morado.png": {
+    "mtime": 1793368502.2834797,
+    "ast_hash": "d7b9cee626c1a0a1f061ca781da3daa5",
+    "semantic_hash": ""
+  },
+  "api/_assets/visagismo/wordmark-oro.png": {
+    "mtime": 1793368494.842153,
+    "ast_hash": "5bc9401061ae94cb723ca2fa0e351714",
+    "semantic_hash": ""
+  },
+  "api/_assets/visagismo/wordmark-plata.png": {
+    "mtime": 1793368498.621269,
+    "ast_hash": "137c72cebe4443d672d535306634286e",
     "semantic_hash": ""
   }
 }
