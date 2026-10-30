@@ -1,16 +1,16 @@
 # Graph Report - BRUNETTICUTZ  (2026-10-30)
 
 ## Corpus Check
-- 361 files · ~3,977,591 words
+- 374 files · ~3,961,511 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 4287 nodes · 12658 edges · 222 communities (143 shown, 79 thin omitted)
-- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 390 edges (avg confidence: 0.61)
+- 4467 nodes · 13332 edges · 243 communities (163 shown, 80 thin omitted)
+- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 414 edges (avg confidence: 0.62)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `a8181c2c`
+- Built from commit: `aaffe69f`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -203,14 +203,20 @@
 - shared 2.jsx
 - Pimp Studio Academy — Technical SPEC (contract for implementation)
 - MiembrosSection.jsx
+- walletPrompt.js
 - academy-sync.mjs
 - AcademyRoot.jsx
 - index.mjs
+- Account.jsx
+- InstallPrompt.jsx
+- ui.jsx
 - fixtures 2.mjs
 - 2. Archivos del host (uno por repo)
+- suggest
 - Review 2.jsx
 - useQuery.js
 - buildWatch 2.js
+- AsesoriaDatos.jsx
 - 6. Payments & provisioning (BE-PAY) — `api/_academyProvision.js`
 - _password 2.js
 - CLAUDE.md
@@ -224,25 +230,40 @@
 - Architecture
 - OnboardingWidget.jsx
 - 4. Shared helpers
+- AcademyTab.jsx
 - features 2.js
 - buildMonthCells
 - WEEKDAYS_SHORT_ES
 - agoPhrase
 - isStrongPassword
 - AcademyRoot.jsx
+- build-imagen-assets.mjs
+- DashKit.jsx
+- installPrompt 2.js
+- errorText
 - RouteBoundary
+- siteUrl
+- PedidosSection.jsx
+- host.jsx
+- memberById
+- AjustesSection.jsx
+- QuietBoundary
+- Login.jsx
+- courseCard
+- notify
+- csv.js
 
 ## God Nodes (most connected - your core abstractions)
-1. `CLP()` - 116 edges
+1. `CLP()` - 119 edges
 2. `academyApi()` - 107 edges
 3. `useAcademy()` - 96 edges
-4. `rows()` - 86 edges
-5. `useIsPhone()` - 81 edges
-6. `Button` - 80 edges
-7. `fmtDate()` - 74 edges
-8. `Sheet()` - 61 edges
-9. `Icon()` - 54 edges
-10. `InlineAlert()` - 53 edges
+4. `rows()` - 85 edges
+5. `Button` - 82 edges
+6. `useIsPhone()` - 81 edges
+7. `fmtDate()` - 75 edges
+8. `Sheet()` - 63 edges
+9. `Icon()` - 58 edges
+10. `InlineAlert()` - 56 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `PIMP STUDIO Logo (JPG, used as brand header/footer image)` --semantically_similar_to--> `PIMP STUDIO Logo JPG (web/assets copy)`  [INFERRED] [semantically similar]
@@ -259,19 +280,19 @@
 ## Import Cycles
 - None detected.
 
-## Communities (222 total, 79 thin omitted)
+## Communities (243 total, 80 thin omitted)
 
 ### Community 0 - "iOS Data Models"
 Cohesion: 0.07
 Nodes (29): dependencies, framer-motion, @neondatabase/serverless, pdf-lib, @pdf-lib/fontkit, react-dom, react-router-dom, @vercel/analytics (+21 more)
 
 ### Community 1 - "iOS API Client"
-Cohesion: 0.14
-Nodes (35): Codable, Hashable, Identifiable, String, APIEndpointStatus, APIHealth, AvailabilitySlot, Barber (+27 more)
+Cohesion: 0.16
+Nodes (33): Codable, Hashable, Identifiable, String, APIEndpointStatus, APIHealth, AvailabilitySlot, Barber (+25 more)
 
 ### Community 2 - "Backend Auth & Project Docs"
 Cohesion: 0.07
-Nodes (29): AcademyRoot, Account, BarberLogin, Booking, CardShare, Dashboard, EncuentraEstilo, Essentials (+21 more)
+Nodes (32): devMockPlugin(), AcademyRoot, Account, Asesoria, AsesoriaDatos, AsesoriaGracias, BarberLogin, Booking (+24 more)
 
 ### Community 3 - "Workshop Page & Content"
 Cohesion: 0.05
@@ -282,8 +303,8 @@ Cohesion: 0.12
 Nodes (44): afterAutoComplete(), afterCompletion(), autoCompleteEnabled(), autoCompleteStarted(), claimDue(), isFreshBookingDate(), lifecycleEffectsEnabled(), loyaltyForTransition() (+36 more)
 
 ### Community 5 - "Cursos.jsx"
-Cohesion: 0.07
-Nodes (60): ApiError, AcademyContext, COMMON, localPart(), memberPasswordChecks(), memberPasswordProblem(), AUTH_PATHS, authHeaders() (+52 more)
+Cohesion: 0.06
+Nodes (81): academyApi(), ApiError, checkoutApi(), checkoutStatus(), currentPath(), DEFAULT_MSG, defaultMessage(), hardRedirect() (+73 more)
 
 ### Community 6 - "Legacy Static Site (web/app.js)"
 Cohesion: 0.11
@@ -294,16 +315,16 @@ Cohesion: 0.10
 Nodes (31): addToCart(), clearCart(), inCart(), keyOf(), read(), readCart(), removeFromCart(), write() (+23 more)
 
 ### Community 8 - "package.json Config"
-Cohesion: 0.10
-Nodes (48): accountKeys(), BARBER_PROFILES, envFallback(), failedLogin(), fallbackLogin(), fallbackPasswords(), handleAccountUpdate(), handleLogin() (+40 more)
+Cohesion: 0.11
+Nodes (46): accountKeys(), BARBER_PROFILES, envFallback(), failedLogin(), fallbackLogin(), fallbackPasswords(), handleAccountUpdate(), handleLogin() (+38 more)
 
 ### Community 9 - "iOS Detail Sheets & Module Views"
-Cohesion: 0.17
-Nodes (4): Any, T, APIClient, cleanPhone()
+Cohesion: 0.18
+Nodes (3): Any, APIClient, cleanPhone()
 
 ### Community 10 - "Fintoc Checkout & Site Nav"
-Cohesion: 0.12
-Nodes (18): EditingContext, OverridesContext, Editable(), styleFromOverride(), EditableText(), DevEditProvider(), beginDrag(), FACE_SHAPES (+10 more)
+Cohesion: 0.11
+Nodes (18): EditingContext, OverridesContext, Editable(), styleFromOverride(), EditableText(), DevEditProvider(), EditProvider(), beginDrag() (+10 more)
 
 ### Community 11 - "Booking Page & Static Data"
 Cohesion: 0.08
@@ -311,7 +332,7 @@ Nodes (25): 2026-06-12 - Base operativa clientes, agenda y panel interno, 2026-0
 
 ### Community 12 - "iOS Agenda & Reservations Views"
 Cohesion: 0.05
-Nodes (46): Charts, ColorScheme, SafariServices, ServiceRevenue, SwiftUI, UNAuthorizationStatus, UserNotifications, RootView (+38 more)
+Nodes (47): CaseIterable, Charts, ServiceRevenue, UNAuthorizationStatus, UserNotifications, BookingDraftSheet, BookingSheet, ClientSheet (+39 more)
 
 ### Community 13 - "ExpensesModule.jsx"
 Cohesion: 0.07
@@ -322,8 +343,8 @@ Cohesion: 0.23
 Nodes (13): bezier(), clean_alpha(), components(), fmt(), main(), rasterize(), Aplana una cúbica en segmentos de no más de FLAT unidades., Silueta en blanco y negro con aire alrededor, lista para guardar. (+5 more)
 
 ### Community 15 - "EncuentraEstilo (Style Finder) Page"
-Cohesion: 0.12
-Nodes (10): App, Data, Scene, BrunettiCutzApp, KeychainStore, ThemeMode, dark, light (+2 more)
+Cohesion: 0.15
+Nodes (7): Data, KeychainStore, ThemeMode, dark, light, system, SessionStore
 
 ### Community 16 - "Auth & Booking Concepts"
 Cohesion: 0.24
@@ -343,15 +364,15 @@ Nodes (21): Axis, ButtonRole, CGFloat, LinearGradient, TextInputAutocapitalizati
 
 ### Community 20 - "data.js"
 Cohesion: 0.05
-Nodes (69): BookingSyncIssues(), useAutoInstallPrompt(), cx(), DEFAULT_SLOTS, isTaken(), jsonOrReject(), NewBookingModal(), spanTakenAt() (+61 more)
+Nodes (64): BookingSyncIssues(), addDays(), BarChart(), BUSINESS_HOURS, CAT_COLORS, cx(), DashboardResumen(), DOW_ORDER (+56 more)
 
 ### Community 21 - "iOS Booking Sheet & Reminders"
 Cohesion: 0.17
 Nodes (19): ASSETS_DIR, CONTENT_DIR, CORS, fileFromEditId(), fileQueues, handleListAssets(), handleSave(), handleSaveOverride() (+11 more)
 
 ### Community 22 - "BookingsInbox.jsx"
-Cohesion: 0.06
-Nodes (65): BookingCard(), BookingRow(), BookingsInbox(), cx(), FILTER_MAP, FILTERS, initialCardsView, mondayOf() (+57 more)
+Cohesion: 0.07
+Nodes (50): BookingCard(), BookingRow(), BookingsInbox(), cx(), FILTER_MAP, FILTERS, initialCardsView, mondayOf() (+42 more)
 
 ### Community 23 - "index.html PWA Setup"
 Cohesion: 0.22
@@ -359,7 +380,7 @@ Nodes (9): apple-touch-icon PNG 180 rationale, Blackletter fonts (Pirata One, Ma
 
 ### Community 24 - "enrollmentsStore.js"
 Cohesion: 0.05
-Nodes (102): addDays(), daysInMonth(), DOW, DOW_LETTER, gridRange(), isoWeekday(), keyOf(), monthGrid() (+94 more)
+Nodes (97): addDays(), daysInMonth(), DOW, DOW_LETTER, gridRange(), isoWeekday(), keyOf(), monthGrid() (+89 more)
 
 ### Community 25 - "iOS Codable Keys"
 Cohesion: 0.18
@@ -378,52 +399,52 @@ Cohesion: 0.29
 Nodes (10): Barber / Instructor (PIMP & STUDIOS branded, tattooed, glasses, mic), Barbershop / studio interior with white brick wall, Client seated in barber chair wearing cape, Haircut / styling service in progress, estilo-teaser.jpg (style module teaser image), PIMP & STUDIOS brand logo (on barber shirt), Mood: professional, focused, editorial photography, Ring light (professional studio lighting behind barber) (+2 more)
 
 ### Community 30 - "BookingsInbox.jsx"
-Cohesion: 0.09
-Nodes (44): Time(), CLP(), bookingColumns(), CajaTab(), isLegacy(), LEGEND_LABEL, METHOD_COLOR, METHOD_RANK (+36 more)
+Cohesion: 0.06
+Nodes (72): ClientModal(), formOf(), ImageConsultations(), nextVisitLabel(), prettyDay(), Results(), Time(), CLP() (+64 more)
 
 ### Community 32 - "DashboardModel"
-Cohesion: 0.13
-Nodes (31): ensureVisagismoTable, candidates(), cleanShape(), getBrief(), handleVisagismo(), readBrief(), refImg(), sendBrief() (+23 more)
+Cohesion: 0.09
+Nodes (66): actorOf(), candidates(), CATEGORY_IDS, cleanDiagnosis(), cleanFace(), ensureShare(), fullConsultation(), generateReport() (+58 more)
 
 ### Community 33 - "ELIJA Agent Knowledge Base"
 Cohesion: 0.10
 Nodes (19): 2.1 Cabecera propia de Agenda (reconciliada), 2.2 Hero + KPIs (reestilizar el `dk-hero` existente), 2.3 Navegación semana/día, 2.4 Date-picker popover (NUEVO — componente `AgendaDatePicker`), 2.5 Acciones masivas, 2.6 Layout principal (`agenda-layout`, grid `1.55fr .9fr`), 2.7 Modal detalle (NUEVO — componente `BookingDetailModal`), 2.8 Toasts (NUEVO — contenedor fijo) (+11 more)
 
 ### Community 34 - "vercel.json Config"
-Cohesion: 0.07
-Nodes (85): actorOf(), adminCategoryDelete(), adminCategorySave(), adminPin(), adminPostModerate(), adminProjection(), adminReportResolve(), adminReports() (+77 more)
+Cohesion: 0.09
+Nodes (64): actorOf(), adminCategoryDelete(), adminCategorySave(), adminPin(), adminPostModerate(), adminProjection(), adminReportResolve(), buildCard() (+56 more)
 
 ### Community 35 - "Register Client API"
-Cohesion: 0.13
-Nodes (44): requireInternal(), businessDateKey(), businessNowMinutes(), canTouchAgenda(), handler(), isNativeAppleClient(), slotMinutes(), logBookingAttempt() (+36 more)
+Cohesion: 0.09
+Nodes (52): businessDateKey(), businessNowMinutes(), canTouchAgenda(), handler(), isNativeAppleClient(), slotMinutes(), logBookingAttempt(), autoCompleteSafely() (+44 more)
 
 ### Community 36 - "Fintoc Payments API"
 Cohesion: 0.17
 Nodes (11): Diagnóstico (estado actual), Etapa 0 — Fundaciones adaptativas (sistema, no parches), Etapa 1 — Agenda (el módulo con más aire muerto), Etapa 2 — Clientes (cards → tabla densa), Etapa 3 — Reservas (inbox operativo), Etapa 4 — Resumen (dashboard ejecutivo), Etapa 5 — Finanzas + Gastos, Etapa 6 — Servicios, Inscripciones, Marketing, Config (+3 more)
 
 ### Community 37 - "Proposal Generator Script"
-Cohesion: 0.23
-Nodes (16): LANDING, Sparkles(), addToCart(), cartCount(), clearCart(), readCart(), removeFromCart(), setQty() (+8 more)
+Cohesion: 0.11
+Nodes (54): academyUrl(), actorKey(), adminGrant(), adminImportGrant(), adminInvite(), adminMembers(), adminMemberUpdate(), adminOrders() (+46 more)
 
 ### Community 38 - "CSS Stylesheets"
-Cohesion: 0.12
-Nodes (17): EditContext, ContainerScroll(), InteractiveSelector(), Lamp(), CARD_IMAGES, CARDS, CAT_TAG, curateHomeServices() (+9 more)
+Cohesion: 0.08
+Nodes (26): EditContext, ThemeButton(), autoTheme(), FloatingThemeToggle(), santiagoHour(), ThemeCtx, ThemeProvider(), ThemeToggle() (+18 more)
 
 ### Community 39 - "Claude Dev Wrapper Script"
 Cohesion: 0.08
 Nodes (23): 01 · 10.000 seguidores. / $0 en la caja., 02 · Muchos barberos generan vistas. / Y cero clientes., 03 · ¿Cuánto vale un cliente tuyo / en dos años?, 04 · El recorrido de hoy, 05 · El / precio., 06 · “, 07 · ¿Por qué alguien paga más?, 08 · Empaqueta el valor. Cobra en niveles. (+15 more)
 
 ### Community 41 - "DetailSheets.swift"
-Cohesion: 0.47
-Nodes (4): Context, SFSafariViewController, UIViewControllerRepresentable, SafariView
+Cohesion: 0.10
+Nodes (15): App, ColorScheme, Context, SafariServices, Scene, SFSafariViewController, SwiftUI, UIViewControllerRepresentable (+7 more)
 
 ### Community 42 - "CLP"
-Cohesion: 0.09
-Nodes (30): Emblem(), BIZ_FALLBACK, CFG_GROUPS, ConfigPanel(), fold(), HORARIO_DEFAULT, isoToLocalInput(), NOTIF_DEFAULT (+22 more)
+Cohesion: 0.06
+Nodes (46): cap(), daysInMonth(), ExpensesModule(), exportExpensesCSV(), isGasto(), metaOf(), monthKey(), PeriodNav() (+38 more)
 
 ### Community 43 - "push.js"
-Cohesion: 0.17
-Nodes (15): addDays(), BarChart(), BUSINESS_HOURS, CAT_COLORS, cx(), DashboardResumen(), DOW_ORDER, DOW_SHORT (+7 more)
+Cohesion: 0.09
+Nodes (42): HAIR_FROM_INTAKE, labelOf(), PAYMENT_STATUSES, STATUSES, CatalogView(), ImportSheet(), ACTOR, ConsultationSheet() (+34 more)
 
 ### Community 48 - "Cursos.jsx"
 Cohesion: 0.22
@@ -431,15 +452,15 @@ Nodes (8): Base de datos (Neon), Brunetti · Barber Studio — Web + Panel, Depl
 
 ### Community 49 - "Vite Config & Fintoc Mock"
 Cohesion: 0.09
-Nodes (90): addDays(), ALL_SLOTS, blocksFor(), createState(), dateKey(), iso(), isoAt(), minutesAgo() (+82 more)
+Nodes (89): addDays(), ALL_SLOTS, blocksFor(), createState(), dateKey(), imagenFixtures(), iso(), isoAt() (+81 more)
 
 ### Community 51 - "interactive-selector.jsx"
 Cohesion: 0.25
 Nodes (7): Abrir en Xcode, APIs usadas, Brunetti Cutz iOS, Build nativo e IPA, Funciones nativas incluidas, Servidor local, Sesion interna y fallback
 
 ### Community 52 - "AppTab"
-Cohesion: 0.14
-Nodes (12): CaseIterable, Sendable, AppTab, clientes, finanzas, hoy, mas, reservas (+4 more)
+Cohesion: 0.29
+Nodes (7): Sendable, AppTab, clientes, finanzas, hoy, mas, reservas
 
 ### Community 53 - "estilo.js"
 Cohesion: 0.05
@@ -458,40 +479,40 @@ Cohesion: 0.25
 Nodes (13): DriftChip(), InventoryModule(), InventoryStatusChip(), KardexSheet(), KIND_LABELS, MOVE_KINDS, moveDay(), MoveSheet() (+5 more)
 
 ### Community 67 - "_email.js"
-Cohesion: 0.22
-Nodes (25): esc(), firstName(), formatCLP(), formatDate(), sendBookingConfirmationEmail(), sendLoyaltyCardEmail(), sendMetodoLessonEmail(), sendPasswordResetEmail() (+17 more)
+Cohesion: 0.20
+Nodes (28): esc(), firstName(), formatCLP(), formatDate(), imgButton(), imgShell(), sendBookingConfirmationEmail(), sendImagenFormEmail() (+20 more)
 
 ### Community 68 - "PedidosTab.jsx"
-Cohesion: 0.12
-Nodes (30): detailOf(), editionLabel(), EnrollmentModal(), formOf(), isPaid(), parsePayment(), cx(), DataTable() (+22 more)
+Cohesion: 0.14
+Nodes (27): detailOf(), editionLabel(), EnrollmentModal(), formOf(), isPaid(), parsePayment(), detailOf(), editionLabel() (+19 more)
 
 ### Community 69 - "services.js"
-Cohesion: 0.15
-Nodes (20): Decodable, Error, LocalizedError, APIError, badStatus, invalidURL, missingData, AvailabilityResponse (+12 more)
+Cohesion: 0.16
+Nodes (19): Decodable, Error, LocalizedError, APIError, badStatus, invalidURL, missingData, AvailabilityResponse (+11 more)
 
 ### Community 70 - "_bookingLife.js"
-Cohesion: 0.06
-Nodes (76): FALLBACK, useAcademy(), csvCell(), downloadCsv(), toCsv(), DEFAULT_LEVEL_NAMES, LEVEL_THRESHOLDS, levelFor() (+68 more)
+Cohesion: 0.07
+Nodes (71): useAcademy(), levelFor(), ActivityHeatmap(), dayLabel(), levelOf(), MONTHS, parseDay(), ROW_LABELS (+63 more)
 
 ### Community 71 - "workshop.js"
-Cohesion: 0.07
-Nodes (45): MobileDock(), EMPTY, NewEnrollmentModal(), ActionMenu(), cx(), ActionMenu(), cx(), CalendarSheet() (+37 more)
+Cohesion: 0.09
+Nodes (41): FilterMenu(), MobileDock(), ActionMenu(), cx(), cx(), CalendarSheet(), DOW, keyOf() (+33 more)
 
 ### Community 72 - "EssentialsGracias.jsx"
-Cohesion: 0.10
-Nodes (26): ICONS, ModuleFooter(), HIDDEN, LINKS, NAV, SiteNav(), claimSnapshot(), COPY (+18 more)
+Cohesion: 0.09
+Nodes (39): LANDING, Sparkles(), addToCart(), cartCount(), clearCart(), readCart(), removeFromCart(), setQty() (+31 more)
 
 ### Community 73 - "Plan de implementación — Rediseño Brunetti (marca personal Bruno Herrera)"
 Cohesion: 0.40
 Nodes (4): Decisiones clave (confirmadas con el usuario), Estado / Checklist por fases, Notas de retoma (si se corta), Plan de implementación — Rediseño Brunetti (marca personal Bruno Herrera)
 
 ### Community 74 - "DetailSheets.swift"
-Cohesion: 0.27
-Nodes (10): attachmentsOf(), byNewest(), categoryShape(), decodeCursor(), encodeCursor(), feed(), isUnread(), parseJson() (+2 more)
+Cohesion: 0.09
+Nodes (27): ChargeSheet(), cx(), discountPctOf(), METHODS, MODES, PAYMENT_LABELS, REF_LABELS, ChargeSheet() (+19 more)
 
 ### Community 75 - "_auth.js"
-Cohesion: 0.33
-Nodes (7): ctxIsStaff(), groupCard(), isOnline(), localSafeUrl(), safeUrl(), staffRow(), visibleCategories()
+Cohesion: 0.26
+Nodes (13): chat(), chatHeader(), chatMemberIds(), cohortMini(), dmOther(), messageShape(), attachmentsOf(), groupCard() (+5 more)
 
 ### Community 76 - "buildWatch.js"
 Cohesion: 0.24
@@ -502,36 +523,36 @@ Cohesion: 0.23
 Nodes (9): BarberAvatar(), BRUNO, dateParts(), humanDate(), initials(), photoFor(), RATING_WORDS, Review() (+1 more)
 
 ### Community 86 - "ADMIN_API_TOKEN env var"
-Cohesion: 0.22
-Nodes (15): decode(), photoToJpeg(), BriefEditor(), ClientPicker(), emptyDraft(), fmtDay(), fmtStamp(), isJson() (+7 more)
+Cohesion: 0.09
+Nodes (27): asset(), ASSETS, buildImagenPdf(), clp(), embedImage(), fileCache, prettyDate(), readImageBytes() (+19 more)
 
 ### Community 90 - "Booking.jsx"
 Cohesion: 0.09
 Nodes (22): 01 · Hoy no te vas / sin publicar., 02 · Esto no es una charla. / Es un set de grabación., 03 · El día, hora por hora, 04 · La / idea., 05 · Si no se entiende sin audio, / el video ya murió., 06 · Tus 3 hooks / de dolor., 07 · ¿Vale la pena grabar este video?, 08 · Cómo se lee el puntaje (+14 more)
 
 ### Community 92 - "_money.js"
-Cohesion: 0.12
-Nodes (53): m(), addChatMember(), addToCohort(), adminCohortMembers(), adminCohortSave(), bindBots(), blocks(), BOT_POSTS (+45 more)
+Cohesion: 0.10
+Nodes (61): m(), addChatMember(), addToCohort(), adminCohortArchive(), adminCohortMembers(), adminCohortSave(), bindBots(), blocks() (+53 more)
 
 ### Community 139 - "walletPrompt.js"
-Cohesion: 0.07
-Nodes (57): addLocalBooking(), cancelKeyOf(), cancelLocalBooking(), isCancelled(), isOrphanLocalBooking(), markLocalBookingSynced(), matchKeyOf(), mergeBookings() (+49 more)
+Cohesion: 0.14
+Nodes (21): GlareCard(), DAYS_ES, MONTHS_ES, SERVICE_BARBERS, SLOT_GROUPS, slotState(), ALL_BOOKING_SLOTS, blocksFor() (+13 more)
 
 ### Community 140 - "auth-barber.js"
-Cohesion: 0.09
-Nodes (40): blank(), CASH_METHODS, isMissingTable(), onlineSales(), parseAmountFromMessage(), PAYMENT_LABELS, PAYMENT_METHODS, PAYMENT_REF_LABELS (+32 more)
+Cohesion: 0.12
+Nodes (36): ASESORIA_KEYS, asesoriaSettings(), handleAsesoriaPaid(), imageTablesReady(), buildEssentialsOrder(), cleanPhone(), decodeRef(), encodeRef() (+28 more)
 
 ### Community 141 - "push.js"
-Cohesion: 0.30
-Nodes (13): cronAuthorized(), cspReportAllowed(), cspReportBuckets, getWebPush(), handler(), logNotification(), normalizeCspReports(), notifyAll() (+5 more)
+Cohesion: 0.31
+Nodes (12): cronAuthorized(), cspReportAllowed(), cspReportBuckets, getWebPush(), handler(), logNotification(), normalizeCspReports(), notifyBarber() (+4 more)
 
 ### Community 142 - "cleanPhone"
 Cohesion: 0.15
 Nodes (12): Banco de frases, hooks de escenario y CTAs, CTA de escenario (el del workshop), CTAs, CTAs para los videos de ellos, Frases martillo, Hooks de escenario, Preguntas para la sala, Sobre clientes y dinero (+4 more)
 
 ### Community 143 - "AppTab"
-Cohesion: 0.08
-Nodes (74): activeMembers(), ADMIN_ROLES, ADMIN_TABS, adminOf(), adminReports(), adminRow(), byOldest(), canSeeCommentTarget() (+66 more)
+Cohesion: 0.07
+Nodes (63): activeMembers(), ADMIN_ROLES, ADMIN_TABS, adminOf(), adminRow(), byNewest(), byOldest(), CATEGORY_SORT (+55 more)
 
 ### Community 144 - "M3 · La estructura del video viral"
 Cohesion: 0.17
@@ -575,99 +596,99 @@ Nodes (6): Cuatro ideas puntuadas, para mostrar cómo se aplica, Ejemplo de punt
 
 ### Community 154 - "ChargeSheet.jsx"
 Cohesion: 0.09
-Nodes (59): ACCESS_TYPES, accessibleCourseIds(), ADMIN_UPLOAD_KINDS, adminCourseDelete(), adminCourses(), adminCourseSave(), adminLessonDelete(), adminLessonSave() (+51 more)
+Nodes (60): ACCESS_TYPES, accessibleCourseIds(), ADMIN_UPLOAD_KINDS, adminCourseDelete(), adminCourses(), adminCourseSave(), adminLessonDelete(), adminLessonSave() (+52 more)
 
 ### Community 155 - "OpenBrunettiModuleIntent"
 Cohesion: 0.15
 Nodes (12): AppEnum, AppIntent, AppIntents, AppShortcut, AppShortcutsProvider, DisplayRepresentation, IntentResult, LocalizedStringResource (+4 more)
 
 ### Community 156 - "cleanPhone"
-Cohesion: 0.13
-Nodes (21): DriftChip(), InventoryModule(), InventoryStatusChip(), KardexSheet(), KIND_LABELS, MOVE_KINDS, moveDay(), MoveSheet() (+13 more)
+Cohesion: 0.25
+Nodes (13): DriftChip(), InventoryModule(), InventoryStatusChip(), KardexSheet(), KIND_LABELS, MOVE_KINDS, moveDay(), MoveSheet() (+5 more)
 
 ### Community 157 - "DashboardFocus"
-Cohesion: 0.09
-Nodes (11): Foundation, LocalAuthentication, Observation, Security, DashboardFocus, dia, semana, workshop (+3 more)
+Cohesion: 0.10
+Nodes (10): Foundation, LocalAuthentication, Observation, Security, DashboardFocus, dia, semana, workshop (+2 more)
 
 ### Community 158 - "_notion.js"
-Cohesion: 0.08
-Nodes (44): ACADEMY_BRAND, CHECKOUT, isBlobUrl(), isImageUrl(), RELATIVE_OK, safeUrl(), useAcademyQuery(), createPlayerBridge() (+36 more)
+Cohesion: 0.07
+Nodes (49): ACADEMY_BRAND, LEVEL_THRESHOLDS, canvasToBlob(), compressImageInfo(), decode(), encode(), readAsDataUrl(), uploadImage() (+41 more)
 
 ### Community 159 - "vercel.json"
 Cohesion: 0.22
 Nodes (8): includeFiles, buildCommand, framework, functions, api/clients.js, headers, outputDirectory, rewrites
 
 ### Community 160 - "_academyProvision.js"
-Cohesion: 0.06
-Nodes (106): academyUrl(), actorKey(), adminGrant(), adminImportGrant(), adminInvite(), adminMembers(), adminMemberUpdate(), adminOrders() (+98 more)
+Cohesion: 0.10
+Nodes (54): siteIs(), generateTempPassword(), actorId(), afterPurchase(), alertAdmins(), alertIfDuplicateCourse(), applyPayment(), approvedPayment() (+46 more)
 
 ### Community 161 - "routes.js"
-Cohesion: 0.13
-Nodes (25): academyApi(), checkoutStatus(), currentPath(), DEFAULT_MSG, defaultMessage(), hardRedirect(), loginUrlWithNext(), onAuthPage() (+17 more)
+Cohesion: 0.22
+Nodes (26): asesoriaCheckout(), catalog(), catalogApi(), cleanPhone(), E(), full(), imagenApi(), imagenFormApi() (+18 more)
 
 ### Community 162 - "_academyAccount.js"
-Cohesion: 0.09
-Nodes (55): academyUrl(), applyPrefsPatch(), emailChange(), emailChangeConfirm(), failLogin(), groupSummary(), handlers, IP_LOCK (+47 more)
+Cohesion: 0.11
+Nodes (46): academyUrl(), emailChange(), emailChangeConfirm(), failLogin(), groupSummary(), handlers, IP_LOCK, ipKey() (+38 more)
 
 ### Community 163 - "_academyAdmin.js"
-Cohesion: 0.20
-Nodes (7): backgroundHtml(), MONO_SVG, OUT, ROOT, star(), THEMES, TMP
+Cohesion: 0.15
+Nodes (17): cx(), DEFAULT_SLOTS, isTaken(), jsonOrReject(), NewBookingModal(), spanTakenAt(), STATUS_OPTIONS, STEP_LABELS (+9 more)
 
 ### Community 164 - "PostDetail.jsx"
 Cohesion: 0.11
-Nodes (47): canModerate(), CommentComposer(), CommentItem(), CommentThread(), REPORT_REASONS, ReportSheet(), KIND_ICON, NotificationsPopover() (+39 more)
+Nodes (47): timeAgoLong(), canModerate(), CommentComposer(), CommentItem(), CommentThread(), REPORT_REASONS, ReportSheet(), KIND_ICON (+39 more)
 
 ### Community 165 - "_academyChat.js"
-Cohesion: 0.09
-Nodes (49): addToCohort(), adminCohortArchive(), adminCohortMembers(), adminCohortSave(), blockMember(), canStartDm(), chatMarkUnread(), chatMute() (+41 more)
+Cohesion: 0.10
+Nodes (48): addToCohort(), adminCohortArchive(), adminCohortMembers(), adminCohortSave(), blockMember(), canStartDm(), chatMarkUnread(), chatMute() (+40 more)
 
 ### Community 166 - "_academy.js"
-Cohesion: 0.07
-Nodes (49): account(), adminMod(), chat(), community(), courses(), ENSURE_AUTH, ENSURE_MODES, events() (+41 more)
+Cohesion: 0.08
+Nodes (41): account(), adminMod(), chat(), community(), courses(), ENSURE_AUTH, ENSURE_MODES, events() (+33 more)
 
 ### Community 167 - "academy-core.mjs"
-Cohesion: 0.09
-Nodes (47): addToCohort(), adminAlert(), applyMockPayment(), autoDm(), bad(), byPos(), checkout, claimAndSendCredentials() (+39 more)
+Cohesion: 0.08
+Nodes (47): addToCohort(), adminAlert(), applyMockPayment(), autoDm(), bad(), byPos(), canonicalTemp(), checkout (+39 more)
 
 ### Community 168 - "academy-events.mjs"
-Cohesion: 0.13
-Nodes (39): chatMute(), activityOf(), cohortIdsOfM(), dateKeyIn(), dayKey(), dayNum(), dayOfInstant(), dayOfKey() (+31 more)
+Cohesion: 0.14
+Nodes (39): activityOf(), cleanText(), ctxIsStaff(), dateKeyIn(), dayKey(), dayNum(), dayOfInstant(), dayOfKey() (+31 more)
 
 ### Community 169 - "lib.mjs"
-Cohesion: 0.07
-Nodes (30): cohortSeatsLeft(), MOCK_HOST, authError(), barberFromToken(), buildCtx(), canSeeEvent(), cleanText(), DEFAULT_PREFS (+22 more)
+Cohesion: 0.06
+Nodes (25): MOCK_HOST, createAcademyMock(), buildCtx(), canSeeEvent(), cleanText(), configureHost(), DEFAULT_PREFS, G (+17 more)
 
 ### Community 170 - "_academyEvents.js"
-Cohesion: 0.13
-Nodes (36): boundary(), canSeeEvent(), dayNumber(), eventOut(), eventsInRange(), expandOccurrences(), formatters, fromDayNumber() (+28 more)
+Cohesion: 0.12
+Nodes (37): boundary(), canSeeEvent(), dayNumber(), eventOut(), eventsInRange(), expandOccurrences(), formatters, fromDayNumber() (+29 more)
 
 ### Community 171 - "toInt"
 Cohesion: 0.20
-Nodes (27): adminCohortArchive(), block(), chatMarkUnread(), chatStart(), file(), ownMembership(), pushSubscribe(), pushUnsubscribe() (+19 more)
+Nodes (32): block(), chatRead(), chatStart(), file(), pushUnsubscribe(), adminCategoryDelete(), adminPin(), adminPostModerate() (+24 more)
 
 ### Community 172 - "ChatThread.jsx"
 Cohesion: 0.09
-Nodes (39): clearDraft(), fullKey(), loadDraft(), saveDraft(), canvasToBlob(), compressImage(), compressImageInfo(), decode() (+31 more)
+Nodes (37): clearDraft(), fullKey(), loadDraft(), saveDraft(), fmtDateTime(), timeAgo(), isChatFileUrl(), ChatPopover() (+29 more)
 
 ### Community 173 - "fixtures.mjs"
-Cohesion: 0.08
-Nodes (34): canonicalTemp(), checkPassword(), setPassword(), ALWAYS_ONLINE, BRUNETTI_MODULES, COHORTS, COMMENT_POOL, COURSE_CFG (+26 more)
+Cohesion: 0.09
+Nodes (27): ALWAYS_ONLINE, BRUNETTI_MODULES, COHORTS, COMMENT_POOL, COURSE_CFG, COURSE_DEFS, createState(), DEFAULT_CATEGORIES (+19 more)
 
 ### Community 174 - "_academyHost.js"
-Cohesion: 0.17
-Nodes (21): bridge(), bridgePush(), bridgeVerifyOrder(), handlers, isDbError(), siteIs(), HOST, callPeer() (+13 more)
+Cohesion: 0.16
+Nodes (22): bridge(), bridgePush(), bridgeVerifyOrder(), handlers, isDbError(), HOST, isAdminProfile(), notifyStaff() (+14 more)
 
 ### Community 176 - "_academyHttp.js"
-Cohesion: 0.12
-Nodes (23): cleanAttachments(), dim(), outAttachments(), publicFromRow(), cleanLinks(), decodeCursor(), DEFAULT_PREFS, DEFAULT_SETTINGS (+15 more)
+Cohesion: 0.08
+Nodes (42): adminReports(), groupCard(), publicFromRow(), publicProjection(), cleanLinks(), decodeCursor(), DEFAULT_PREFS, DEFAULT_SETTINGS (+34 more)
 
 ### Community 177 - "barbers.js"
 Cohesion: 0.16
-Nodes (28): barberSettingsKey(), BUDGET_CATEGORIES, BUSINESS_KEYS, EMPTY_DISTRIBUTION(), handleMe(), handleMode(), handleReviews(), handleSettings() (+20 more)
+Nodes (31): requireInternal(), barberSettingsKey(), BUDGET_CATEGORIES, BUSINESS_KEYS, EMPTY_DISTRIBUTION(), handleMe(), handleMode(), handler() (+23 more)
 
 ### Community 178 - "academyApi"
-Cohesion: 0.13
-Nodes (29): catalogHref(), FILLED, Icon(), ICONS, BuyButton(), clampPct(), CourseCard(), CourseCover() (+21 more)
+Cohesion: 0.09
+Nodes (38): catalogHref(), FILLED, Icon(), ICONS, buscar(), path(), r, BuyButton() (+30 more)
 
 ### Community 179 - "_academyEmail.js"
 Cohesion: 0.23
@@ -678,36 +699,36 @@ Cohesion: 0.08
 Nodes (16): BOOKING_COLUMNS, columnsMemo, ensureAuthColumns, ensureBookingColumns, ensureClientColumns, ensureExpenseColumns, ensureProductsLedger, ensureReviewsTable (+8 more)
 
 ### Community 181 - "nowIso"
-Cohesion: 0.18
-Nodes (16): addTo(), broadcast(), cache, inflight, keyString(), listeners, peekQuery(), refetchers (+8 more)
+Cohesion: 0.10
+Nodes (31): addTo(), broadcast(), cache, inflight, invalidateQuery(), keyString(), listeners, peekQuery() (+23 more)
 
 ### Community 182 - "_schema.js"
-Cohesion: 0.12
-Nodes (14): DEMO_EXPENSES, handler(), KINDS, readKind(), readKindFilter(), validateExpense(), BOOKING_COLUMNS, columnsMemo (+6 more)
+Cohesion: 0.11
+Nodes (15): DEMO_EXPENSES, handler(), KINDS, readKind(), readKindFilter(), validateExpense(), BOOKING_COLUMNS, columnsMemo (+7 more)
 
 ### Community 183 - "withState"
 Cohesion: 0.17
-Nodes (28): courseCard(), courseProgressPct(), mockMemberList(), progressMap(), activeGrantCourseIds(), canAccessCourse(), canAccessLesson(), canSeePost() (+20 more)
+Nodes (27): groupPayload(), mockMemberList(), activeGrantCourseIds(), canAccessCourse(), canAccessLesson(), canSeePost(), cohortIdsOf(), courseOf() (+19 more)
 
 ### Community 184 - "GruposSection.jsx"
-Cohesion: 0.07
-Nodes (63): react, slugify(), InlineAlert(), Toolbar(), AdminApiError, errorText(), GENERIC, useAdminLoad() (+55 more)
+Cohesion: 0.19
+Nodes (17): slugify(), byPos(), ContentEditor(), CourseSheet(), CursosSection(), EMPTY_COURSE, fmtDuration(), LessonSheet() (+9 more)
 
 ### Community 185 - "CursosSection.jsx"
 Cohesion: 0.60
 Nodes (5): b64url(), createSession(), macEq(), readSession(), sign()
 
 ### Community 186 - "ConfirmDialog"
-Cohesion: 0.06
-Nodes (81): ChargeSheet(), cx(), discountPctOf(), METHODS, MODES, PAYMENT_LABELS, REF_LABELS, ChargeSheet() (+73 more)
+Cohesion: 0.07
+Nodes (75): METHODS, STATUS_META, ActionMenu(), cx(), DataTable(), ALERT_ICON, Avatar(), avatarThumb() (+67 more)
 
 ### Community 187 - "push.js"
 Cohesion: 0.22
 Nodes (21): barberPushEnabled(), browserPushSupported(), disableAcademyPush(), enableAcademyPush(), existingSubscription(), fail(), getOrCreateSubscription(), isAcademyPushEnabled() (+13 more)
 
 ### Community 188 - "_academyCron.js"
-Cohesion: 0.13
-Nodes (29): academyUrl(), audienceFor(), cap(), CLEANUP, countOf(), finish(), isDeliverable(), MIN_LEFT (+21 more)
+Cohesion: 0.19
+Nodes (21): academyUrl(), audienceFor(), cap(), CLEANUP, countOf(), finish(), isDeliverable(), MIN_LEFT (+13 more)
 
 ### Community 189 - "shared 2.jsx"
 Cohesion: 0.11
@@ -719,19 +740,35 @@ Nodes (19): 0. Non-negotiable rules (read twice), 10. Cron (BE-EVENTS writes `_a
 
 ### Community 191 - "MiembrosSection.jsx"
 Cohesion: 0.06
-Nodes (58): PAYMENT_LABELS, cap(), daysInMonth(), ExpensesModule(), exportExpensesCSV(), isGasto(), metaOf(), monthKey() (+50 more)
+Nodes (47): CalendarSheet(), DOW, keyOf(), MONTHS, pad(), parse(), todayKey(), useStoredFlag() (+39 more)
+
+### Community 192 - "walletPrompt.js"
+Cohesion: 0.23
+Nodes (16): Brandmark(), useAutoWalletPrompt(), WalletPrompt(), LoyaltyCard(), CardShare(), fetchGoogleWalletSaveURL(), fetchGoogleWalletSaveURLByToken(), fetchTarjetaInfo() (+8 more)
 
 ### Community 193 - "academy-sync.mjs"
 Cohesion: 0.13
 Nodes (17): ALLOWED, ALLOWED_LOCAL, args, DRY, DST, dstFiles, HOST_FILES, IGNORE() (+9 more)
 
 ### Community 194 - "AcademyRoot.jsx"
-Cohesion: 0.43
-Nodes (7): CalendarSheet(), DOW, keyOf(), MONTHS, pad(), parse(), todayKey()
+Cohesion: 0.24
+Nodes (15): academyDbTag(), academySql(), academyUrl(), client(), clients, hostSql(), ownUrl(), sharedDb() (+7 more)
 
 ### Community 195 - "index.mjs"
-Cohesion: 0.13
-Nodes (10): checkModeDrift(), createAcademyMock(), errorReply(), HANDLERS, http, mountAcademyMock(), replayBody(), send() (+2 more)
+Cohesion: 0.15
+Nodes (7): checkModeDrift(), errorReply(), HANDLERS, http, mountAcademyMock(), replayBody(), send()
+
+### Community 196 - "Account.jsx"
+Cohesion: 0.31
+Nodes (16): addLocalBooking(), cancelKeyOf(), cancelLocalBooking(), isCancelled(), isOrphanLocalBooking(), markLocalBookingSynced(), matchKeyOf(), mergeBookings() (+8 more)
+
+### Community 197 - "InstallPrompt.jsx"
+Cohesion: 0.24
+Nodes (13): COPY, InstallPrompt(), useAutoInstallPrompt(), canOfferInstall(), emit(), installState(), isInAppBrowser(), listeners (+5 more)
+
+### Community 198 - "ui.jsx"
+Cohesion: 0.17
+Nodes (15): grantsSummary(), MemberSheet(), MiembrosSection(), ACCESS_LABEL, accessState(), CoverField(), credentialsText(), cx() (+7 more)
 
 ### Community 199 - "fixtures 2.mjs"
 Cohesion: 0.23
@@ -741,17 +778,25 @@ Nodes (9): addDays(), ALL_SLOTS, createState(), dateKey(), iso(), isoAt(), minut
 Cohesion: 0.14
 Nodes (11): 0. Una sola base (api/_academyDb.js), 1. Archivos compartidos (se copian, nunca se editan en el destino), 2. Archivos del host (uno por repo), 3. Puntos de enganche en cada repo (una sola vez), 4. Replicar un cambio, Academy portable — una Academy, dos sitios, `api/_academyHost.js`, `scripts/dev-mock/academy/host.mjs` (+3 more)
 
+### Community 201 - "suggest"
+Cohesion: 0.36
+Nodes (13): conditionerNeed(), cutParams(), FACE_CUT, has(), join(), lowerFirst(), norm(), productDetail() (+5 more)
+
 ### Community 202 - "Review 2.jsx"
 Cohesion: 0.23
 Nodes (9): BarberAvatar(), BRUNO, dateParts(), humanDate(), initials(), photoFor(), RATING_WORDS, Review() (+1 more)
 
 ### Community 203 - "useQuery.js"
-Cohesion: 0.05
-Nodes (46): ACADEMY_LINKS, buscar(), path(), r, AcademyShell(), ChatDock, ChatPopover, cx() (+38 more)
+Cohesion: 0.08
+Nodes (28): FALLBACK, ACADEMY_LINKS, DEFAULT_LEVEL_NAMES, levelLabel(), levelName(), AcademyShell(), ChatDock, ChatPopover (+20 more)
 
 ### Community 204 - "buildWatch 2.js"
 Cohesion: 0.33
 Nodes (10): check(), hasFilledField(), hasOpenLayer(), HOLD_PATH_PREFIXES, isCartHeld(), isHeldPublicRoute(), isTyping(), loadedEntry() (+2 more)
+
+### Community 205 - "AsesoriaDatos.jsx"
+Cohesion: 0.22
+Nodes (10): decode(), photoToJpeg(), INTAKE, PHOTO_TIPS, API(), AsesoriaDatos(), call(), STEPS (+2 more)
 
 ### Community 206 - "6. Payments & provisioning (BE-PAY) — `api/_academyProvision.js`"
 Cohesion: 0.20
@@ -763,7 +808,7 @@ Nodes (5): generateResetToken(), hashResetToken(), safeEqualHex(), sha256Hex(), 
 
 ### Community 208 - "CLAUDE.md"
 Cohesion: 0.18
-Nodes (10): Brunetti Academy (`/cursos`, desde 2026-09-29), Deployment Checklist, graphify, Key Files to Know, Método Brunetti (`/metodo`, desde 2026-10-25), Native iOS App, Puente con PimpStudio (agenda de Bruno + tarjeta de fidelidad), Quick Start (+2 more)
+Nodes (10): Brunetti Academy (`/cursos`, desde 2026-09-29), Brunetti Image Studio (asesoría de imagen, desde 2026-10-30), Deployment Checklist, graphify, Key Files to Know, Método Brunetti (`/metodo`, desde 2026-10-25), Native iOS App, Puente con PimpStudio (agenda de Bruno + tarjeta de fidelidad) (+2 more)
 
 ### Community 209 - "Common Tasks"
 Cohesion: 0.22
@@ -771,7 +816,7 @@ Nodes (9): Build for production, Common Tasks, Database schema setup (after clon
 
 ### Community 210 - "MercadoPagoCheckout.jsx"
 Cohesion: 0.13
-Nodes (21): checkoutApi(), FALLBACK, fetchAcademyCatalog(), LOADING, useAcademyCatalog(), WhatsAppFab(), FREE_LESSON, waShopHref() (+13 more)
+Nodes (27): useAcademyCatalog(), scrollToId(), useBrunettiFx(), WhatsAppFab(), FREE_LESSON, waShopHref(), Asesoria(), FAQ (+19 more)
 
 ### Community 211 - "whatsapp 2.js"
 Cohesion: 0.36
@@ -782,8 +827,8 @@ Cohesion: 0.25
 Nodes (8): 7.1 Routes (`src/App.jsx`: replace the 3 academy routes by `<Route path="/academy/*" element={<AcademyRoot/>}/>`), 7.2 Client libs (FE-CORE) `src/academy/`, 7.3 Shell & layout (FE-CORE) — match Skool screenshots, 7.4 Tabs (owners in §1.2) — visual behavior summary, 7.5 Panel tab (FE-PANEL) `src/pages/panel/AcademyTab.jsx`, 7.6 Catalog `src/pages/Academy.jsx` (FE-PANEL), 7.7 Styles, 7. Frontend
 
 ### Community 213 - "useSync.js"
-Cohesion: 0.10
-Nodes (40): devMockPlugin(), academyUrl(), buildQuery(), bumpSync(), chatIds(), clearTimer(), conditionsOk(), deliver() (+32 more)
+Cohesion: 0.26
+Nodes (23): academyUrl(), buildQuery(), bumpSync(), chatIds(), clearTimer(), conditionsOk(), deliver(), doSync() (+15 more)
 
 ### Community 214 - "3. Sessions & auth (BE-CORE)"
 Cohesion: 0.29
@@ -798,36 +843,92 @@ Cohesion: 0.33
 Nodes (6): Architecture, Backend (Vercel Functions), Build & Deployment, Database (PostgreSQL), Frontend (React), Project Overview
 
 ### Community 217 - "OnboardingWidget.jsx"
-Cohesion: 0.11
-Nodes (38): COPY, InstallPrompt(), canOfferInstall(), emit(), installState(), isInAppBrowser(), listeners, promptInstall() (+30 more)
+Cohesion: 0.35
+Nodes (18): PushCard(), PushCard(), academyPushEnabled(), authHeaders(), disablePush(), enablePush(), isIOS(), isStandalone() (+10 more)
 
 ### Community 218 - "4. Shared helpers"
 Cohesion: 0.50
 Nodes (4): 4.1 `api/_academyText.js` (pure, no imports except node:crypto), 4.2 `api/_academyHttp.js`, 4.3 Projections, 4. Shared helpers
 
+### Community 219 - "AcademyTab.jsx"
+Cohesion: 0.24
+Nodes (9): compressImage(), AdminApiError, GENERIC, request(), useAcademyAdmin(), GruposSection(), AcademyTab(), readSection() (+1 more)
+
 ### Community 227 - "AcademyRoot.jsx"
-Cohesion: 0.13
-Nodes (13): about(), BRUNETTI_METODO, brunettiSeedCourse(), buildSeedPayload(), lessonTitle(), PublicLanding, AcademyApp, ConfirmarCorreo (+5 more)
+Cohesion: 0.18
+Nodes (8): PublicLanding, AcademyApp, ConfirmarCorreo, CrearContrasena, Gracias, Ingreso, LegacyPerfil(), Restablecer
+
+### Community 228 - "build-imagen-assets.mjs"
+Cohesion: 0.20
+Nodes (7): backgroundHtml(), MONO_SVG, OUT, ROOT, star(), THEMES, TMP
+
+### Community 229 - "DashKit.jsx"
+Cohesion: 0.29
+Nodes (8): AnimatedRing(), Donut(), prefersReduced(), ProgressBar(), Sparkline(), useCountUp(), Icon(), PATHS
+
+### Community 230 - "installPrompt 2.js"
+Cohesion: 0.29
+Nodes (8): canOfferInstall(), emit(), installState(), isInAppBrowser(), listeners, promptInstall(), shouldAutoPromptInstall(), wasDismissedRecently()
+
+### Community 231 - "errorText"
+Cohesion: 0.22
+Nodes (10): react, errorText(), useDebounced(), CohortMembersSheet(), CohortSheet(), EmailSheet(), GrantSheet(), InviteSheet() (+2 more)
+
+### Community 233 - "siteUrl"
+Cohesion: 0.44
+Nodes (8): siteUrl(), backUrlFor(), createPreference(), fetchPayment(), mpFetch(), notificationUrl(), payerFor(), searchPayments()
+
+### Community 234 - "PedidosSection.jsx"
+Cohesion: 0.31
+Nodes (8): FILTERS, MODALITY, PedidosSection(), titleOf(), VERIFIABLE, fmtWhenTime(), ORDER_STATUS, StatusChip()
+
+### Community 235 - "host.jsx"
+Cohesion: 0.36
+Nodes (5): about(), BRUNETTI_METODO, brunettiSeedCourse(), buildSeedPayload(), lessonTitle()
+
+### Community 236 - "memberById"
+Cohesion: 0.54
+Nodes (8): cohortSeatsLeft(), authError(), barberFromToken(), gate(), memberById(), memberFromToken(), resolveToken(), staffGate()
+
+### Community 237 - "AjustesSection.jsx"
+Cohesion: 0.53
+Nodes (5): useAdminLoad(), AjustesSection(), deepMerge(), draftFrom(), LoadBlock()
+
+### Community 239 - "Login.jsx"
+Cohesion: 0.60
+Nodes (4): MobileScreen(), fmtPhone(), hasExistingBookings(), Login()
+
+### Community 240 - "courseCard"
+Cohesion: 0.67
+Nodes (4): courseCard(), courseProgressPct(), progressMap(), orderedLessons()
+
+### Community 241 - "notify"
+Cohesion: 0.67
+Nodes (4): welcomeNew(), isBlocked(), notify(), notifyMany()
+
+### Community 242 - "csv.js"
+Cohesion: 0.83
+Nodes (3): csvCell(), downloadCsv(), toCsv()
 
 ## Knowledge Gaps
-- **929 isolated node(s):** `dev-wrapper.sh script`, `NVM_DIR`, `GET`, `POST`, `MODE_OWNERS` (+924 more)
+- **966 isolated node(s):** `dev-wrapper.sh script`, `NVM_DIR`, `GET`, `POST`, `MODE_OWNERS` (+961 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **79 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **80 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `m()` connect `_money.js` to `Cursos.jsx`, `UI Components & Login`, `walletPrompt.js`, `AppTab`, `enrollmentsStore.js`, `cleanPhone`, `_notion.js`, `routes.js`, `vercel.json Config`, `Register Client API`, `PostDetail.jsx`, `_academyChat.js`, `_academy.js`, `academy-core.mjs`, `ChatThread.jsx`, `GruposSection.jsx`, `_academyCron.js`, `MiembrosSection.jsx`, `DashboardResumen.jsx`, `_bookingLife.js`, `useSync.js`?**
-  _High betweenness centrality (0.212) - this node is a cross-community bridge._
-- **Why does `Dashboard()` connect `data.js` to `_academy.js`, `toInt`, `walletPrompt.js`, `nowIso`, `BookingsInbox.jsx`, `OnboardingWidget.jsx`, `BookingsInbox.jsx`?**
-  _High betweenness centrality (0.074) - this node is a cross-community bridge._
-- **Why does `nextId()` connect `academy-core.mjs` to `lib.mjs`, `_money.js`, `withState`?**
-  _High betweenness centrality (0.064) - this node is a cross-community bridge._
+- **Why does `m()` connect `_money.js` to `Cursos.jsx`, `UI Components & Login`, `AppTab`, `enrollmentsStore.js`, `cleanPhone`, `_notion.js`, `DashboardModel`, `routes.js`, `vercel.json Config`, `Register Client API`, `PostDetail.jsx`, `_academyChat.js`, `_academy.js`, `academy-core.mjs`, `ChatThread.jsx`, `Vite Config & Fintoc Mock`, `nowIso`, `ConfirmDialog`, `_academyCron.js`, `MiembrosSection.jsx`, `DashboardResumen.jsx`, `_bookingLife.js`, `ui.jsx`, `_auth.js`, `useSync.js`, `errorText`, `Login.jsx`?**
+  _High betweenness centrality (0.209) - this node is a cross-community bridge._
+- **Why does `nextId()` connect `academy-core.mjs` to `lib.mjs`, `_money.js`, `notify`, `withState`?**
+  _High betweenness centrality (0.067) - this node is a cross-community bridge._
+- **Why does `CLP()` connect `BookingsInbox.jsx` to `Cursos.jsx`, `walletPrompt.js`, `ui.jsx`, `data.js`, `BookingsInbox.jsx`, `cleanPhone`, `_academyAdmin.js`, `CSS Stylesheets`, `CLP`, `GruposSection.jsx`, `ConfirmDialog`, `MiembrosSection.jsx`, `DashboardResumen.jsx`, `PedidosTab.jsx`, `Account.jsx`, `EssentialsGracias.jsx`, `DetailSheets.swift`, `MercadoPagoCheckout.jsx`, `PedidosSection.jsx`?**
+  _High betweenness centrality (0.053) - this node is a cross-community bridge._
 - **Are the 9 inferred relationships involving `CLP()` (e.g. with `ClientModal()` and `DashboardResumen()`) actually correct?**
   _`CLP()` has 9 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 3 inferred relationships involving `rows()` (e.g. with `search()` and `buildVisagismoPdf()`) actually correct?**
-  _`rows()` has 3 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 2 inferred relationships involving `rows()` (e.g. with `search()` and `MiembrosTab()`) actually correct?**
+  _`rows()` has 2 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `dev-wrapper.sh script`, `NVM_DIR`, `GET` to the rest of the system?**
-  _943 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _980 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `iOS Data Models` be split into smaller, more focused modules?**
   _Cohesion score 0.06666666666666667 - nodes in this community are weakly interconnected._

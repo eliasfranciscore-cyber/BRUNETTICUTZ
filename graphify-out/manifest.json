@@ -45,8 +45,8 @@
     "semantic_hash": ""
   },
   "api/clients.js": {
-    "mtime": 1793367562.4432323,
-    "ast_hash": "b7b84905f5b4590d917477f43fbdd5cd",
+    "mtime": 1793386311.5668986,
+    "ast_hash": "80f10bfe5eb1b4e019184edcd1a20040",
     "semantic_hash": ""
   },
   "api/enrollments.js": {
@@ -70,8 +70,8 @@
     "semantic_hash": ""
   },
   "db/schema.sql": {
-    "mtime": 1793380304.7231843,
-    "ast_hash": "14bb5dddf643ebbf6de2c9a81893f1d4",
+    "mtime": 1793385550.8722284,
+    "ast_hash": "340a24bbf82ed64525fb003556accd1f",
     "semantic_hash": ""
   },
   "db/seed.sql": {
@@ -180,8 +180,8 @@
     "semantic_hash": ""
   },
   "src/App.jsx": {
-    "mtime": 1792968244.1511772,
-    "ast_hash": "3b07d785195c0df57291346be60d3f82",
+    "mtime": 1793387195.0165107,
+    "ast_hash": "8bcc505f2a118109a6a46fa6ae40fa1a",
     "semantic_hash": ""
   },
   "src/bookingsStore.js": {
@@ -195,8 +195,8 @@
     "semantic_hash": ""
   },
   "src/components/ClientModal.jsx": {
-    "mtime": 1790270699.6224527,
-    "ast_hash": "a618133899ee53bb166633f6fc46df7e",
+    "mtime": 1793387014.1967342,
+    "ast_hash": "7c22defa89f1bf7aa8f88688ccffc3ec",
     "semantic_hash": ""
   },
   "src/components/DashboardResumen.jsx": {
@@ -225,8 +225,8 @@
     "semantic_hash": ""
   },
   "src/components/SiteNav.jsx": {
-    "mtime": 1792970319.4160686,
-    "ast_hash": "aebf1b11b58f96be748ffb430ffbb23d",
+    "mtime": 1793387195.0153055,
+    "ast_hash": "56e26013cc4a3a3df30c1204ab2a09e6",
     "semantic_hash": ""
   },
   "src/components/brunetti.jsx": {
@@ -255,8 +255,8 @@
     "semantic_hash": ""
   },
   "src/data/estilo.js": {
-    "mtime": 1793367577.1081886,
-    "ast_hash": "3170acda957c08644a3e391065619acf",
+    "mtime": 1793385574.043216,
+    "ast_hash": "bd8afe26f742142332e8ed2578905f59",
     "semantic_hash": ""
   },
   "src/data/workshop.js": {
@@ -290,13 +290,13 @@
     "semantic_hash": ""
   },
   "src/pages/Dashboard.jsx": {
-    "mtime": 1793367729.6596014,
-    "ast_hash": "1ce8e0a275cba125b586d096b86d16e1",
+    "mtime": 1793386983.744897,
+    "ast_hash": "b5ff3a7d159f3e96bd9e71977be6823c",
     "semantic_hash": ""
   },
   "src/pages/EncuentraEstilo.jsx": {
-    "mtime": 1790270699.633213,
-    "ast_hash": "0b41f6dcb8a8abb95236bd8ad9175490",
+    "mtime": 1793385578.011192,
+    "ast_hash": "21e0d1542c1229668ab4925d97445d06",
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
@@ -325,13 +325,13 @@
     "semantic_hash": "1b7e818f114dad25484ff5613ea20db5"
   },
   "vercel.json": {
-    "mtime": 1793368855.9946353,
-    "ast_hash": "75d296b5078b153a5ee97e258c947a0c",
+    "mtime": 1793386385.3703597,
+    "ast_hash": "7ded390784b1422fc0a66eadb69c4fdd",
     "semantic_hash": ""
   },
   "vite.config.js": {
-    "mtime": 1792967929.1604235,
-    "ast_hash": "7642d4a95ac4f0be8d9ededd179b2e57",
+    "mtime": 1793386355.6032462,
+    "ast_hash": "5ca3fef1d8356489b4fc110c4855430f",
     "semantic_hash": ""
   },
   "CHANGELOG_IMPLEMENTACION.md": {
@@ -340,8 +340,8 @@
     "semantic_hash": "8821dc65ef6d88a32b3d71aa793563c1"
   },
   "CLAUDE.md": {
-    "mtime": 1793380311.4436753,
-    "ast_hash": "8aa5b6ffbc721f185fb875fa02ed6172",
+    "mtime": 1793387644.0100024,
+    "ast_hash": "df6e039740bd6eff33a592b96bee4cf4",
     "semantic_hash": ""
   },
   "IMPLEMENTATION_PLAN.md": {
@@ -885,8 +885,8 @@
     "semantic_hash": ""
   },
   "src/data/content/estilo.json": {
-    "mtime": 1783903902.1021516,
-    "ast_hash": "cca0d2205b275dbfabdd4f53afeb6216",
+    "mtime": 1793385574.0441356,
+    "ast_hash": "47c927ac711aa347420db33f2a4ec057",
     "semantic_hash": ""
   },
   "src/data/content/home-contacto.json": {
@@ -1125,8 +1125,8 @@
     "semantic_hash": ""
   },
   "api/_email.js": {
-    "mtime": 1793367483.7855515,
-    "ast_hash": "895d9e76149ba527915efca7b663eb82",
+    "mtime": 1793386995.925527,
+    "ast_hash": "95ca8708370dae42e286bb0790009707",
     "semantic_hash": ""
   },
   "src/components/ui/container-scroll-animation.jsx": {
@@ -1295,8 +1295,8 @@
     "semantic_hash": ""
   },
   "api/mp-payments.js": {
-    "mtime": 1790826226.797278,
-    "ast_hash": "a3a8d2d454987e45dccd475358ebeb00",
+    "mtime": 1793386355.6030357,
+    "ast_hash": "061dafe098256dfd604112644b417595",
     "semantic_hash": ""
   },
   "scripts/brand/build-icons.py": {
@@ -2460,8 +2460,8 @@
     "semantic_hash": ""
   },
   "api/_money.js": {
-    "mtime": 1790270699.604438,
-    "ast_hash": "0b534af3df932d09d819229b856cae6c",
+    "mtime": 1793386346.3708663,
+    "ast_hash": "ae217efecd06e73e310003e425d3997c",
     "semantic_hash": ""
   },
   "api/_password.js": {
@@ -2470,18 +2470,18 @@
     "semantic_hash": ""
   },
   "api/_schema.js": {
-    "mtime": 1793380304.722746,
-    "ast_hash": "7bbe16e9d3b48d59327e069a190b0a8e",
+    "mtime": 1793385521.5525477,
+    "ast_hash": "4deb23fecad4e7dd19a633447dbee7b0",
     "semantic_hash": ""
   },
   "scripts/dev-mock/fixtures.mjs": {
-    "mtime": 1793380304.725283,
-    "ast_hash": "42ab170596e13070a921c7653bbaf850",
+    "mtime": 1793386606.8757343,
+    "ast_hash": "179c5eaaa1d91fb47bc90b3675e8d9c6",
     "semantic_hash": ""
   },
   "scripts/dev-mock/index.mjs": {
-    "mtime": 1793380304.7249215,
-    "ast_hash": "70087d45e1587d81e914b2adde262260",
+    "mtime": 1793386556.8668077,
+    "ast_hash": "b08b9d8f3e0ca9d065edb81fcee929d8",
     "semantic_hash": ""
   },
   "src/buildWatch.js": {
@@ -2550,8 +2550,8 @@
     "semantic_hash": ""
   },
   "src/features.js": {
-    "mtime": 1793367729.6602652,
-    "ast_hash": "a1c7be332bb5930bcd6f483b50fdb38f",
+    "mtime": 1793386973.143911,
+    "ast_hash": "cf2dbb267eae514308b3084e6a1bf4df",
     "semantic_hash": ""
   },
   "src/installPrompt.js": {
@@ -2580,8 +2580,8 @@
     "semantic_hash": ""
   },
   "src/pages/panel/BookingDetailSheet.jsx": {
-    "mtime": 1793367748.8399158,
-    "ast_hash": "06c8275883470bb55cd0fd1969f38244",
+    "mtime": 1793386973.1454258,
+    "ast_hash": "74f47e0e3aeb3149183b44fd644b2971",
     "semantic_hash": ""
   },
   "src/pages/panel/CajaTab.jsx": {
@@ -2615,8 +2615,8 @@
     "semantic_hash": ""
   },
   "src/pages/panel/FinanzasTab.jsx": {
-    "mtime": 1790270699.6486728,
-    "ast_hash": "3186e6af20329bfcdb00ded6767c742e",
+    "mtime": 1793386375.9218745,
+    "ast_hash": "c39f8fc08d0bfb8c5a4cf044eb0dd111",
     "semantic_hash": ""
   },
   "src/pages/panel/InscripcionesTab.jsx": {
@@ -2630,8 +2630,8 @@
     "semantic_hash": ""
   },
   "src/pages/panel/PedidosTab.jsx": {
-    "mtime": 1792967353.7658336,
-    "ast_hash": "e16e8e5a299152efeb20f30c65df5022",
+    "mtime": 1793386375.9212089,
+    "ast_hash": "d2720d1604d714f559af08b10c48a9ca",
     "semantic_hash": ""
   },
   "src/pages/panel/ServiciosTab.jsx": {
@@ -2785,8 +2785,8 @@
     "semantic_hash": ""
   },
   "public/boot.js": {
-    "mtime": 1792967416.424049,
-    "ast_hash": "5777e14b4655044c9b3e423811f98122",
+    "mtime": 1793387195.0158503,
+    "ast_hash": "1c8eb740b9e2ab1831dbdb3b1f5e6893",
     "semantic_hash": ""
   },
   "scripts/academy-sync.mjs": {
@@ -3505,8 +3505,8 @@
     "semantic_hash": ""
   },
   "src/routeMeta.js": {
-    "mtime": 1792967795.4753358,
-    "ast_hash": "9b4760b7c084bba1c21def751615524b",
+    "mtime": 1793387195.0161586,
+    "ast_hash": "a6f1189dd40267d35357238eb7f34884",
     "semantic_hash": ""
   },
   "src/track.js": {
@@ -3599,74 +3599,134 @@
     "ast_hash": "5d75bc739e7a3bcbbcb949de0a5165c4",
     "semantic_hash": ""
   },
-  "api/_visagismo.js": {
-    "mtime": 1793380304.7219949,
-    "ast_hash": "ab3ce57e34f6f6bba8a45aefd69efcfc",
+  "api/_imagen.js": {
+    "mtime": 1793386262.8582587,
+    "ast_hash": "be978a4ab073d440cefb527a49650357",
     "semantic_hash": ""
   },
-  "api/_visagismoPdf.js": {
-    "mtime": 1793380304.7210653,
-    "ast_hash": "0fdecb85829aeb34449e33c48e4a2232",
+  "api/_imagenCore.js": {
+    "mtime": 1793386121.8989458,
+    "ast_hash": "75b677c0d1148db8d99a0ce43b0e9db4",
     "semantic_hash": ""
   },
-  "src/pages/panel/VisagismoTab.jsx": {
-    "mtime": 1793380304.7242458,
-    "ast_hash": "be2858a2085018752e94fb76aa677aac",
+  "api/_imagenForm.js": {
+    "mtime": 1793386303.6308477,
+    "ast_hash": "71f4e77ffeccab733bb2e0d3da2a5ff9",
     "semantic_hash": ""
   },
-  "src/pages/panel/visagismoPhoto.js": {
-    "mtime": 1793367586.829092,
-    "ast_hash": "efb7610983fb7ea2ea987cc3cf216f15",
+  "api/_imagenPdf.js": {
+    "mtime": 1793385921.0869474,
+    "ast_hash": "ac2352596829270024555168c0017f7d",
     "semantic_hash": ""
   },
-  "scripts/brand/build-visagismo-assets.mjs": {
-    "mtime": 1793368490.61618,
-    "ast_hash": "82c2baed3c2b993842a159ad4cb2f900",
+  "api/_imagenRules.js": {
+    "mtime": 1793387233.7049763,
+    "ast_hash": "2daceb21ee5eeb553bd03f5d6fed36cd",
     "semantic_hash": ""
   },
-  "api/_assets/visagismo/bg-morado.jpg": {
-    "mtime": 1793368501.294325,
-    "ast_hash": "985dd449f201145418962474a36df5c6",
+  "scripts/brand/build-asesoria-ejemplo.mjs": {
+    "mtime": 1793387218.1374385,
+    "ast_hash": "347ed7a3c6f1ce0cbada0a08c5f75aa3",
     "semantic_hash": ""
   },
-  "api/_assets/visagismo/bg-oro.jpg": {
-    "mtime": 1793368493.944388,
-    "ast_hash": "048dabdaf89246dc1511d0892addcbf1",
+  "scripts/brand/build-imagen-assets.mjs": {
+    "mtime": 1793387644.0106056,
+    "ast_hash": "1dd7324b4ab76688627dac5588902d43",
     "semantic_hash": ""
   },
-  "api/_assets/visagismo/bg-plata.jpg": {
+  "scripts/dev-mock/imagen.mjs": {
+    "mtime": 1793386556.8657606,
+    "ast_hash": "13ea78244c052babb57201b31261d89b",
+    "semantic_hash": ""
+  },
+  "src/imagen/photo.js": {
+    "mtime": 1793386654.3282897,
+    "ast_hash": "67baab5c50ba291744e6b4a4a6b7b2f8",
+    "semantic_hash": ""
+  },
+  "src/imagen/vocab.js": {
+    "mtime": 1793387434.603316,
+    "ast_hash": "4fbb54821ab502d2ef10a31bf86e2c0f",
+    "semantic_hash": ""
+  },
+  "src/pages/Asesoria.jsx": {
+    "mtime": 1793387434.6036022,
+    "ast_hash": "8cbde04b144b13f630e522562475d5be",
+    "semantic_hash": ""
+  },
+  "src/pages/AsesoriaDatos.jsx": {
+    "mtime": 1793387427.2240994,
+    "ast_hash": "78fdaed38236f8c205cc595b0ab05203",
+    "semantic_hash": ""
+  },
+  "src/pages/AsesoriaGracias.jsx": {
+    "mtime": 1793387434.6037734,
+    "ast_hash": "d8fd411781b77bf048a119ef509d6b2f",
+    "semantic_hash": ""
+  },
+  "src/pages/panel/ImagenTab.jsx": {
+    "mtime": 1793386723.4572713,
+    "ast_hash": "e7e79d81385f7460198654420c93b987",
+    "semantic_hash": ""
+  },
+  "src/pages/panel/imagen/CatalogView.jsx": {
+    "mtime": 1793386906.0818026,
+    "ast_hash": "edd3ec7c6a5f9f8123a1c0518ce4b1c3",
+    "semantic_hash": ""
+  },
+  "src/pages/panel/imagen/ConsultationSheet.jsx": {
+    "mtime": 1793387132.6148505,
+    "ast_hash": "1028da7988094dfb9db610c052119c3a",
+    "semantic_hash": ""
+  },
+  "src/pages/panel/imagen/SettingsView.jsx": {
+    "mtime": 1793386922.9325788,
+    "ast_hash": "c7548399518e8b36cdb5a84ddd1a3564",
+    "semantic_hash": ""
+  },
+  "src/pages/panel/imagen/shared.jsx": {
+    "mtime": 1793386675.636665,
+    "ast_hash": "e9363b76f65c7e00bca6823e81e288b0",
+    "semantic_hash": ""
+  },
+  "api/_assets/imagen/bg.jpg": {
     "mtime": 1793368497.5758543,
     "ast_hash": "c553ee7faad0a778bd365527ad75be06",
     "semantic_hash": ""
   },
-  "api/_assets/visagismo/monogram-morado.png": {
-    "mtime": 1793368503.2631176,
-    "ast_hash": "2b41311ac7987885311bb84cd5117e10",
-    "semantic_hash": ""
-  },
-  "api/_assets/visagismo/monogram-oro.png": {
-    "mtime": 1793368495.8530376,
-    "ast_hash": "7d875187a5a762e9de316de2178a1df1",
-    "semantic_hash": ""
-  },
-  "api/_assets/visagismo/monogram-plata.png": {
+  "api/_assets/imagen/monogram.png": {
     "mtime": 1793368499.628432,
     "ast_hash": "0696c53a6816c730c58173e56738545d",
     "semantic_hash": ""
   },
-  "api/_assets/visagismo/wordmark-morado.png": {
-    "mtime": 1793368502.2834797,
-    "ast_hash": "d7b9cee626c1a0a1f061ca781da3daa5",
-    "semantic_hash": ""
-  },
-  "api/_assets/visagismo/wordmark-oro.png": {
-    "mtime": 1793368494.842153,
-    "ast_hash": "5bc9401061ae94cb723ca2fa0e351714",
-    "semantic_hash": ""
-  },
-  "api/_assets/visagismo/wordmark-plata.png": {
+  "api/_assets/imagen/wordmark.png": {
     "mtime": 1793368498.621269,
     "ast_hash": "137c72cebe4443d672d535306634286e",
+    "semantic_hash": ""
+  },
+  "public/assets/asesoria/informe-1.jpg": {
+    "mtime": 1793387234.3924265,
+    "ast_hash": "4999cde676228252fdd67d1cec6dc1ce",
+    "semantic_hash": ""
+  },
+  "public/assets/asesoria/informe-2.jpg": {
+    "mtime": 1793387234.3927104,
+    "ast_hash": "af53cd7b8b22fff545abd147f5f3ef90",
+    "semantic_hash": ""
+  },
+  "public/assets/asesoria/informe-3.jpg": {
+    "mtime": 1793387234.392967,
+    "ast_hash": "13bc203a7b0c0c578b9073bf262497e7",
+    "semantic_hash": ""
+  },
+  "public/assets/asesoria/og-asesoria.jpg": {
+    "mtime": 1793387235.5857818,
+    "ast_hash": "14ed96b714dea1420fd2e4b7487ba120",
+    "semantic_hash": ""
+  },
+  "public/assets/email/brunetti-wordmark-plata.png": {
+    "mtime": 1793386011.2903922,
+    "ast_hash": "53aeb49b9f6085be7de04eabf0829876",
     "semantic_hash": ""
   }
 }
