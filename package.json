@@ -13,10 +13,12 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.10.4",
+    "@pdf-lib/fontkit": "^1.1.1",
     "@vercel/analytics": "^2.0.1",
     "@vercel/blob": "^2.6.1",
     "framer-motion": "^12.42.0",
     "lenis": "^1.3.26",
+    "pdf-lib": "^1.17.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^6.27.0",

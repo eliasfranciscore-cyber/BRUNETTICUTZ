@@ -371,6 +371,65 @@ export const ensureEnrollmentColumns = once(async (sql) => {
 })
 
 /* ---------------------------------------------------------------------------
+   visagismo_briefs — el brief de visagismo que Bruno arma en el panel
+   (pestaña Visagismo) y se le manda al cliente en PDF. Ver api/_visagismo.js.
+     shape      foto de la forma de rostro TAL COMO SE MANDÓ (nombre,
+                diagnóstico, rasgos, objetivo, "evita", silueta): si después
+                se editan los textos de /style, el PDF de un brief viejo no
+                cambia.
+     tips       lista de strings.
+     theme      diseño del PDF: 'plata' (el oficial) | 'oro' | 'morado'
+                (THEMES en api/_visagismoPdf.js).
+     cut_img    foto de referencia del corte (/assets/estilo/…).
+     source     'panel' (lo arma Bruno) | 'autoevaluacion' (fase 2: el
+                cliente la paga y la completa solo en la web).
+     status     'borrador' | 'enviado'.
+   ------------------------------------------------------------------------- */
+export const ensureVisagismoTable = once(async (sql) => {
+  const tables = await presentTables(sql, ["visagismo_briefs"])
+  if (!tables.has("visagismo_briefs")) {
+    await sql`
+      CREATE TABLE IF NOT EXISTS visagismo_briefs (
+        id          SERIAL PRIMARY KEY,
+        client_id   INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        booking_id  INTEGER REFERENCES bookings(id) ON DELETE SET NULL,
+        source      VARCHAR(20) NOT NULL DEFAULT 'panel',
+        status      VARCHAR(20) NOT NULL DEFAULT 'borrador',
+        name        VARCHAR(200),
+        phone       VARCHAR(20),
+        email       VARCHAR(300),
+        visit_date  DATE,
+        face_shape  VARCHAR(40),
+        shape       JSONB,
+        cut_name    VARCHAR(200),
+        cut_note    TEXT,
+        cut_img     TEXT,
+        theme       VARCHAR(20) NOT NULL DEFAULT 'plata',
+        tips        JSONB NOT NULL DEFAULT '[]'::jsonb,
+        notes       TEXT,
+        before_url  TEXT,
+        after_url   TEXT,
+        sent_at     TIMESTAMPTZ,
+        sent_to     VARCHAR(300),
+        send_count  INTEGER NOT NULL DEFAULT 0,
+        created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `
+  } else {
+    const present = await presentColumns(sql, "visagismo_briefs", ["cut_img", "theme"])
+    if (!present.has("cut_img") || !present.has("theme")) {
+      await sql`ALTER TABLE visagismo_briefs ADD COLUMN IF NOT EXISTS cut_img TEXT, ADD COLUMN IF NOT EXISTS theme VARCHAR(20) NOT NULL DEFAULT 'plata'`
+    }
+  }
+  await guarded("idx_visagismo_briefs_phone", async () => {
+    if (!(await hasIndex(sql, "idx_visagismo_briefs_phone"))) {
+      await sql`CREATE INDEX IF NOT EXISTS idx_visagismo_briefs_phone ON visagismo_briefs (phone)`
+    }
+  })
+})
+
+/* ---------------------------------------------------------------------------
    Autenticación
      password_hash  VARCHAR(64) → TEXT: cabe justo un SHA-256 en hex, y el
                     formato PBKDF2 ("pbkdf2$iteraciones$sal$hash") no. VARCHAR

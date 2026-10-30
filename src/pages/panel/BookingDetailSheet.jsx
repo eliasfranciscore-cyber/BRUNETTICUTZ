@@ -387,6 +387,11 @@ export function BookingDetailModal(props) {
   const menuItems = [
     { label: 'Cambiar estado', icon: 'refresh', onClick: () => setStatusPickerOpen(true) },
     canCorrect && { label: 'Corregir cobro', icon: 'cash', hint: 'Monto, medio o comprobante', onClick: () => ctx.openCashRow(bk) },
+    // Brief de visagismo de esta atención (pestaña Visagismo, solo admin).
+    FEATURES.visagismoPanel && ctx?.admin && ctx?.navigate && bk.status === 'completada' && Number(bk.id) > 0 && {
+      label: 'Brief de visagismo', icon: 'sparkles', hint: 'Rostro, corte, tips y fotos por correo',
+      onClick: () => { ctx.navigate(`/panel?tab=visagismo&visBooking=${Number(bk.id)}&visDate=${bk.date}`); requestClose() },
+    },
     noShowable && { label: 'No vino', icon: 'user', danger: true, onClick: () => setConfirmKind('noshow') },
     cancelable && { label: 'Cancelar reserva', icon: 'close', danger: true, onClick: () => setConfirmKind('cancel') },
     { label: 'Eliminar reserva definitivamente', icon: 'trash', danger: true, onClick: () => setConfirmKind('delete') },

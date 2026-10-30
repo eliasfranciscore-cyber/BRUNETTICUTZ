@@ -1,0 +1,187 @@
+/* ============================================================
+   VISAGISMO — pestaña del panel (src/pages/panel/VisagismoTab.jsx)
+   Solo tokens del panel (--pn-*): el dorado sale de --pn-accent.
+   ============================================================ */
+
+.pn-vis-form { gap: 22px; }
+.pn-vis-sec { display: grid; gap: 12px; min-width: 0; }
+.pn-vis-h {
+  margin: 0;
+  font-size: var(--pn-fs-xs);
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--pn-text-3);
+}
+.pn-vis-muted { margin: 0; font-size: var(--pn-fs-sm); color: var(--pn-text-3); }
+
+/* Formas de rostro: 6 siluetas, 3 por fila en el celular. */
+.pn-vis-shapes { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 640px) { .pn-vis-shapes { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.pn-vis-shape {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 12px 6px 10px;
+  border: 1px solid var(--pn-line);
+  border-radius: var(--pn-r);
+  background: var(--pn-card-2);
+  color: var(--pn-text-2);
+  font: inherit;
+  font-size: var(--pn-fs-sm);
+  cursor: pointer;
+  transition: border-color .15s var(--pn-ease), background .15s var(--pn-ease);
+}
+.pn-vis-shape svg { width: 34px; height: 41px; }
+.pn-vis-shape svg path { fill: transparent; stroke: currentColor; stroke-width: 3; }
+.pn-vis-shape:hover { background: var(--pn-card-3); }
+.pn-vis-shape.is-on { border-color: var(--pn-accent); color: var(--pn-text); box-shadow: 0 0 0 3px var(--pn-accent-soft); }
+.pn-vis-shape.is-on svg path { stroke: var(--pn-accent); fill: var(--pn-accent-soft); }
+
+.pn-vis-diag {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: var(--pn-r);
+  background: var(--pn-card-2);
+  font-size: var(--pn-fs-sm);
+  color: var(--pn-text-2);
+}
+.pn-vis-diag p { margin: 0; }
+.pn-vis-tag { font-weight: 600; color: var(--pn-text); }
+
+/* Cortes sugeridos con su foto de referencia. */
+.pn-vis-cuts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.pn-vis-cut {
+  display: grid;
+  gap: 6px;
+  padding: 0 0 8px;
+  overflow: hidden;
+  border: 1px solid var(--pn-line);
+  border-radius: var(--pn-r);
+  background: var(--pn-card-2);
+  color: var(--pn-text-2);
+  font: inherit;
+  font-size: var(--pn-fs-sm);
+  text-align: center;
+  cursor: pointer;
+}
+.pn-vis-cut img { width: 100%; aspect-ratio: 1; object-position: 50% 20%; object-fit: cover; display: block; background: #fff; }
+.pn-vis-cut span { padding: 0 6px; }
+.pn-vis-cut.is-on { border-color: var(--pn-accent); color: var(--pn-text); box-shadow: 0 0 0 3px var(--pn-accent-soft); }
+
+/* Tips editables. */
+.pn-vis-tips { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; counter-reset: tip; }
+.pn-vis-tips li { position: relative; display: grid; grid-template-columns: 22px minmax(0, 1fr) 32px; gap: 8px; align-items: start; }
+.pn-vis-tips li::before {
+  counter-increment: tip;
+  content: counter(tip);
+  margin-top: 10px;
+  font-size: var(--pn-fs-xs);
+  font-weight: 700;
+  color: var(--pn-accent);
+  text-align: center;
+}
+.pn-vis-tips textarea { resize: vertical; height: auto; min-height: 44px; field-sizing: content; }
+.pn-vis-x {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-top: 6px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--pn-text-3);
+  cursor: pointer;
+}
+.pn-vis-x:hover { background: var(--pn-hover); color: var(--pn-bad); }
+.pn-vis-addtip { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+
+/* Fotos antes / después: el <label> entero es el botón de subir. */
+.pn-vis-photos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.pn-vis-photo {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 5;
+  max-height: 300px;
+  width: 100%;
+  overflow: hidden;
+  border: 1.5px dashed var(--pn-line-2);
+  border-radius: var(--pn-r);
+  background: var(--pn-card-2);
+  color: var(--pn-text-3);
+  cursor: pointer;
+}
+.pn-vis-photo.has-img { border-style: solid; border-color: var(--pn-line); }
+.pn-vis-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.pn-vis-photo input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.pn-vis-photo-tag {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(22, 19, 15, .78);
+  color: #f2e7cc;
+  font-size: var(--pn-fs-xs);
+  font-weight: 600;
+}
+
+/* Selector de cliente (Nuevo brief). */
+.pn-vis-pick { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.pn-vis-pick button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid var(--pn-line);
+  border-radius: var(--pn-r);
+  background: var(--pn-card-2);
+  color: var(--pn-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.pn-vis-pick button:hover { background: var(--pn-card-3); }
+.pn-vis-pick-main { display: grid; gap: 2px; min-width: 0; }
+.pn-vis-pick-main span { font-size: var(--pn-fs-sm); color: var(--pn-text-3); }
+
+/* Selector de diseño del PDF: una muestra por tema. */
+.pn-vis-themes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.pn-vis-theme {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border: 1px solid var(--pn-line);
+  border-radius: var(--pn-r);
+  background: var(--pn-card-2);
+  color: var(--pn-text-2);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.pn-vis-theme.is-on { border-color: var(--pn-accent); color: var(--pn-text); box-shadow: 0 0 0 3px var(--pn-accent-soft); }
+.pn-vis-theme-swatch {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 34px;
+  height: 46px;
+  border: 1px solid;
+  border-radius: 4px;
+  outline: 1px solid currentColor;
+  outline-offset: -5px;
+}
+.pn-vis-theme-word { font-family: "Pirata One", serif; font-size: 22px; line-height: 1; }
+.pn-vis-theme-txt { display: grid; gap: 1px; min-width: 0; }
+.pn-vis-theme-txt strong { font-size: var(--pn-fs-sm); }
+.pn-vis-theme-txt span { font-size: var(--pn-fs-xs); color: var(--pn-text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 640px) {
+  .pn-vis-theme { flex-direction: column; text-align: center; gap: 6px; }
+  .pn-vis-theme-txt span { display: none; }
+}

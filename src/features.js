@@ -23,6 +23,7 @@ export const FEATURES = {
   singleDay: true,        // servicios de un solo día
   reviews: true,          // reseñas (/resena y tarjeta en Resumen)
   passwordReset: true,    // restablecer contraseña por correo y bloqueo del servidor
+  visagismoPanel: true,   // pestaña Visagismo del panel (brief + PDF por correo, api/_visagismo.js)
 
   /* Secciones de la web pública, ocultas a los clientes desde el 2026-09-30.
      Apagada, una sección no se dibuja en la landing ni aparece en el menú

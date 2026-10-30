@@ -154,6 +154,18 @@ export function createState(now = new Date()) {
     bk(6, '15:00', 104, 11, 'confirmada'),
     bk(7, '10:00', 107, 9, 'confirmada'),
   ]
+  // Asesoría visagista de AYER (servicio 10), al final del arreglo para no
+  // correr los ids de las demás: es la que precarga la pestaña Visagismo.
+  bookings.push(bk(-1, '09:00', 108, 10, 'completada', paid(D(-1), '11:00', 'tarjeta', 49990, '004990')))
+  // Un brief ya enviado (Martín, asesoría de hace 15 días).
+  const visagismo = [{
+    id: 1, clientId: 112, bookingId: bookings.find((b) => b.date === D(-15) && b.time === '16:00').id,
+    source: 'panel', status: 'enviado', name: 'Martín Castillo', phone: '976543210', email: 'martin.castillo@gmail.com',
+    visitDate: D(-15), faceShape: 'cuadrado', shape: null, theme: 'plata', cutName: 'Crop texturizado', cutNote: 'Suaviza la mandíbula sin perder estructura.', cutImg: '/assets/estilo/estilo-crop-rizado.jpg',
+    tips: ['Un poco de textura arriba suaviza la mandíbula marcada.', 'Repasa los lados cada 3 semanas.'], notes: null,
+    beforeUrl: null, afterUrl: null, sentAt: isoAt(D(-14), '10:00'), sentTo: 'martin.castillo@gmail.com', sendCount: 1,
+    createdAt: isoAt(D(-15), '18:30'), updatedAt: isoAt(D(-14), '10:00'),
+  }]
 
   // Bloqueos manuales de la agenda: `${date}|${slot}`.
   const blocks = new Set([`${today}|19:00`, `${D(1)}|13:00`, `${D(1)}|14:00`, `${D(2)}|09:00`])
@@ -275,8 +287,8 @@ export function createState(now = new Date()) {
 
   return {
     today, barbers, services, clients, bookings, blocks, products, moves, sales, expenses,
-    enrollments, shopOrders, notifications, reviews, campaigns, settings,
-    seq: { booking: seq, move: moveSeq, sale: 7003, expense: expSeq, enrollment: enrSeq, order: 3002, client: 114, service: 16, product: 5, campaign: 31, block: 0 },
+    enrollments, shopOrders, notifications, reviews, campaigns, settings, visagismo,
+    seq: { visagismo: 1, booking: seq, move: moveSeq, sale: 7003, expense: expSeq, enrollment: enrSeq, order: 3002, client: 114, service: 16, product: 5, campaign: 31, block: 0 },
     loginFailures: {},
     resetTokens: new Set(),
   }

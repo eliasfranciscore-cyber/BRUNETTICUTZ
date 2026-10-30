@@ -61,7 +61,7 @@ Each file in `/api` exports a default handler: `async function handler(req, res)
 - `/api/auth-barber.js` — Barber login, `?me=1` profile refresh, account update (name/email/password), password reset request/confirm, DB-backed lockout — see [Auth](#auth)
 - `/api/bookings.js` — CRUD for reservations plus panel-only modes (`unclosed`, `cash`, `sales`, `sale`) and the PimpStudio bridge modes (`bridge-completed`, `bridge-manual`) — see [Booking modes](#booking-modes-apibookingsjs)
 - `/api/services.js` — Menu items (featured, single-day, loyalty-eligible, show-on-home flags)
-- `/api/clients.js` — Customer registry (barber view), `?mode=register` (folded-in `register-client`, see `vercel.json` rewrite below), wallet/loyalty bridge modes, bridge modes for PimpStudio
+- `/api/clients.js` — Customer registry (barber view), `?mode=register` (folded-in `register-client`, see `vercel.json` rewrite below), wallet/loyalty bridge modes, bridge modes for PimpStudio, and `?mode=visagismo` (the Visagismo tab, see [Visagismo](#visagismo-panel-desde-2026-10-30))
 - `/api/expenses.js` — Finance tracking, `?kind=all|gasto|ingreso` (default `gasto`, for iOS backward compat)
 - `/api/barbers.js` — Barber CRUD plus `?mode=me|settings|shop-settings|reviews|review` — see [Barbers modes](#barbers-modes-apibarbersjs)
 - `/api/mp-payments.js` — Mercado Pago Checkout Pro: checkout + webhook handler (Cursos, Workshop, Essentials) — see [Mercado Pago Integration](#mercado-pago-integration)
@@ -575,6 +575,21 @@ sitio) → acceso de por vida, en los dos sitios. Contrato completo en
   (`/panel`), los de la Academy en `/cursos/...`.
 - **Probar sin base**: `VITE_DEV_MOCKS=1 npm run dev` también monta el mock de la Academy
   (`scripts/dev-mock/academy/`, alumnos de prueba con contraseña `academy123`).
+
+## Visagismo (panel, desde 2026-10-30)
+
+Pestaña **Visagismo** del panel (admin, grupo "Día a día", `FEATURES.visagismoPanel`): Bruno arma el brief de un cliente atendido —tipo de rostro, corte ideal, tips, fotos del antes y el después, nota, y el diseño del PDF— y se lo manda por correo con un **PDF adjunto**. La página pública `/style` sigue oculta (`FEATURES.tuEstilo = false`) hasta la fase 2.
+
+- **Front:** `src/pages/panel/VisagismoTab.jsx` + `src/styles/panel/visagismo.css`. "Nuevo brief" ofrece los atendidos de **ayer** (completadas/en curso, la Asesoría Visagista —servicio 10— primero), otro día, o un cliente de la lista. El detalle de una reserva completada tiene "Brief de visagismo" en su menú (`?tab=visagismo&visBooking=<id>&visDate=<día>`).
+- **Formas de rostro:** las mismas 6 de `/style` — silueta y `tips` sugeridos en `src/data/estilo.js`, textos en `src/data/content/estilo.json`. El brief guarda una **copia** (`shape` JSONB) de lo que se mandó.
+- **Fotos:** `src/pages/panel/visagismoPhoto.js` las re-codifica a **JPEG** (pdf-lib no lee WebP; también saca el EXIF) y van al Blob público con sufijo aleatorio.
+- **API:** `/api/clients?mode=visagismo` → `api/_visagismo.js` (import dinámico, admin): lista, `candidates`, CRUD, `upload`, `pdf=1` y `send=1`. Tabla `visagismo_briefs` (`ensureVisagismoTable`). Al enviar, si el cliente no tenía correo en su ficha, se le guarda.
+- **PDF:** `api/_visagismoPdf.js` (pdf-lib + `@pdf-lib/fontkit`, en el servidor: la vista previa y el adjunto son el mismo archivo). **Tres diseños** (`THEMES`), elegidos por brief en el editor (columna `theme`): **plata** (papel perla y cromo, marcos editoriales) es **el oficial** desde 2026-10-30 (`DEFAULT_THEME`: el de todo brief nuevo, el `DEFAULT` de la columna y el de respaldo si llega un tema desconocido); **oro** (negro y oro, arcos góticos) y **morado** (violeta del Workshop, arcos redondos) quedan como alternativas en el selector. Tipografías de la marca embebidas (Pirata One, Manufacturing Consent, Sora; TTF en `api/_assets/visagismo/fonts/`). Completo = 2 páginas (portada + antes/después + rostro con diagrama; corte ideal con referencia + "también te favorecen" + tips + nota firmada + cierre), y una 3.ª sola si los tips o la nota no caben. `compact: true` = mini resumen de **1 plana** para la fase 2. `?theme=` en `pdf=1` compara diseños sin guardar.
+- **Arte fijo del PDF:** fondos (degradado, grano, marco con estrellas, monograma de marca de agua), wordmark y monograma en cada metal, en `api/_assets/visagismo/`. Se regeneran con `node scripts/brand/build-visagismo-assets.mjs` (Chrome headless + `sips`, macOS). `vercel.json` los mete en la función con `includeFiles`. Las fotos de referencia (`/assets/estilo/…`) se leen del disco en local y de `SITE_URL` en producción.
+- **Correo:** `sendVisagismoBriefEmail` en `api/_email.js`; `sendViaResend` acepta `attachments` (solo lo usa este correo).
+- **Dev mock:** `?mode=visagismo` en `scripts/dev-mock/index.mjs` usa el mismo generador de PDF; las fotos quedan como dataURL y el correo no sale.
+
+**Fase 2 (planificada, no hecha):** autoevaluación pública pagada (Mercado Pago, $3.990 editable desde el panel, `source: 'visagismo'`, referencia `visagismo-<id>`). CTA: "Por el precio de un café, descubre tu tipo de rostro y tu corte ideal". Al terminar, el cliente recibe el PDF `compact` de 1 plana y la fila queda en esta misma pestaña con `source = 'autoevaluacion'` (más un aviso en la ficha y la reserva del cliente, para que Bruno sepa qué conversar cuando llegue). Los $3.990 se descuentan de la Asesoría Visagista como **crédito asociado al teléfono**.
 
 ## Native iOS App
 

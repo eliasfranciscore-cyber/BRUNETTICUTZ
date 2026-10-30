@@ -26,7 +26,10 @@ const WK = {
   whatsapp: "56987483279",
 }
 
-async function sendViaResend({ to, subject, html }) {
+/* `attachments` es opcional: [{ filename, content: <base64> }], tal cual lo
+   recibe Resend. Solo lo usa el brief de visagismo (el PDF); los demás
+   correos no lo mandan y el cuerpo del POST les queda igual que siempre. */
+async function sendViaResend({ to, subject, html, attachments }) {
   if (!to) return { ok: false, reason: "no-email" }
   const apiKey = process.env.RESEND_API_KEY
   if (!apiKey) {
@@ -41,7 +44,7 @@ async function sendViaResend({ to, subject, html }) {
         Authorization: `Bearer ${apiKey}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ from, to, subject, html }),
+      body: JSON.stringify({ from, to, subject, html, ...(attachments?.length ? { attachments } : {}) }),
     })
     if (!response.ok) {
       const errText = await response.text().catch(() => "")
@@ -269,6 +272,55 @@ export async function sendVisitThanksEmail({ to, name, service, barber, date, re
    en iPhone, y el link resuelve las dos plataformas con un mismo mensaje: al
    abrirlo desde el celular aparece un único botón, Apple Wallet o Google
    Wallet según el teléfono. */
+/* Brief de visagismo (panel → Visagismo): el PDF va adjunto y el cuerpo
+   lleva un resumen corto (forma de rostro, corte y hasta 3 tips) para quien
+   no abra el adjunto. Ver api/_visagismo.js. */
+export async function sendVisagismoBriefEmail({ to, name, faceShape, cutName, tips = [], pdfBase64, filename }) {
+  const first = firstName(name)
+  const shortTips = (Array.isArray(tips) ? tips : []).map((t) => String(t || "").trim()).filter(Boolean).slice(0, 3)
+  const row = (label, value) => value
+    ? `<tr><td style="padding: 6px 0; color: #8a847d;">${label}</td><td style="padding: 6px 0; text-align: right; font-weight: 600;">${esc(value)}</td></tr>`
+    : ""
+  const tipsBlock = shortTips.length ? `
+    <div style="margin: 22px 0 0; padding: 18px; background: #faf6ec; border: 1px solid #e7dcc2; border-radius: 12px;">
+      <p style="margin: 0 0 10px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #b8912f;">Tips de Bruno</p>
+      <ul style="margin: 0; padding: 0 0 0 18px; color: #1c1a17; font-size: 14px; line-height: 1.5;">
+        ${shortTips.map((t) => `<li style="margin: 0 0 6px;">${esc(t)}</li>`).join("")}
+      </ul>
+    </div>
+  ` : ""
+
+  const html = `
+    <div style="font-family: Georgia, 'Times New Roman', serif; background: #f7f3ea; padding: 32px 16px;">
+      <div style="max-width: 480px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e7e0d1;">
+        <div style="background: #16130f; padding: 24px; text-align: center;">
+          <img src="${LOGO_URL}" alt="Brunetticutz" width="220" style="width: 220px; max-width: 70%; height: auto; display: inline-block;" />
+        </div>
+        <div style="padding: 28px 24px;">
+          <h1 style="margin: 0 0 4px; font-size: 20px; color: #1c1a17;">Tu brief de visagismo${first ? `, ${esc(first)}` : ""}</h1>
+          <p style="margin: 0 0 20px; color: #4a453d; font-size: 14px;">Te dejo por escrito lo que vimos en tu asesoría. El detalle completo, con tus fotos del antes y el después, va en el PDF adjunto.</p>
+          <table style="width: 100%; border-collapse: collapse; font-size: 14px; color: #1c1a17;">
+            ${row("Tu rostro", faceShape)}
+            ${row("Tu corte ideal", cutName)}
+          </table>
+          ${tipsBlock}
+          <div style="text-align: center; margin: 26px 0 6px;">
+            <a href="${SITE_URL}/reservar" style="display: inline-block; background: #d9b158; color: #1c1a17; text-decoration: none; font-weight: 600; font-size: 14px; padding: 12px 28px; border-radius: 999px;">Reservar mi próxima hora</a>
+          </div>
+          <p style="margin: 14px 0 0; color: #8a847d; font-size: 12px; text-align: center;">Bruno · Brunetticutz</p>
+        </div>
+      </div>
+    </div>
+  `.trim()
+
+  return sendViaResend({
+    to,
+    subject: "Tu brief de visagismo · Brunetticutz",
+    html,
+    attachments: pdfBase64 ? [{ filename: filename || "Brief-visagismo.pdf", content: pdfBase64 }] : undefined,
+  })
+}
+
 export async function sendLoyaltyCardEmail({ to, name, url, stars = 0 }) {
   const first = String(name || "").trim().split(" ")[0] || ""
   const saldo = stars > 0

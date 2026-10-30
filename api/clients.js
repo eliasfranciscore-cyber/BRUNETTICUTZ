@@ -242,6 +242,19 @@ export default async function handler(req, res) {
   const bridgeMode = String(req.query?.mode || "")
   if (bridgeMode.startsWith("bridge-")) return handleBridgeClients(req, res, bridgeMode)
   if (bridgeMode === "register") return handleRegisterBackup(req, res)
+  // Visagismo (pestaña del panel): brief + PDF por correo. import() dinámico,
+  // igual que la Academy en services.js: si pdf-lib o el módulo no cargan,
+  // solo este modo responde 503 y el resto de /api/clients sigue andando.
+  if (bridgeMode === "visagismo") {
+    let handleVisagismo
+    try {
+      ;({ handleVisagismo } = await import("./_visagismo.js"))
+    } catch (err) {
+      console.error("visagismo: no cargó el módulo:", err?.message || err)
+      return res.status(503).json({ ok: false, error: "Visagismo no está disponible en este momento." })
+    }
+    return handleVisagismo(req, res, neon(process.env.DATABASE_URL))
+  }
 
   try {
     const sql = neon(process.env.DATABASE_URL)

@@ -38,6 +38,8 @@ import { ACADEMY_VISIBLE } from '../academy/hostConfig.js'
 // acá buildNav es también la lista del deep link ?tab=, así que en false
 // desaparecen el menú y /panel?tab=academy a la vez.
 const AcademyTab = lazy(() => import('./panel/AcademyTab.jsx'))
+// Visagismo (brief + PDF por correo): solo admin, también en su propio chunk.
+const VisagismoTab = lazy(() => import('./panel/VisagismoTab.jsx'))
 
 /* Catálogo de pestañas del panel: [id, ícono, rótulo, grupo]. El grupo
    ('dia' | 'negocio', ver NAV_GROUPS en components/panel/Shell.jsx) ordena el
@@ -53,6 +55,7 @@ function buildNav({ admin, canViewFinance, canEditServices }) {
     ["reservas",      "scissors",  "Reservas",      "dia"],
     ...(FEATURES.cash && canViewFinance ? [["caja", "cash", "Caja", "dia"]] : []),
     ["clientes",      "users",     "Clientes",      "dia"],
+    ...(admin && FEATURES.visagismoPanel ? [["visagismo", "sparkles", "Visagismo", "dia"]] : []),
     ...(canViewFinance ? [["finanzas", "chart", "Finanzas", "negocio"]] : []),
     ...(admin ? [["gastos", "wallet", "Gastos", "negocio"]] : []),
     ...(admin ? [["pedidos", "box", "Pedidos", "negocio"]] : []),
@@ -2222,6 +2225,11 @@ export default function Dashboard() {
         {tab === "marketing" && <MarketingTab ctx={dash} />}
 
         {/* ACADEMY (solo admin; carga diferida) */}
+        {tab === "visagismo" && admin && FEATURES.visagismoPanel && (
+          <Suspense fallback={<SkeletonRows rows={4} />}>
+            <VisagismoTab ctx={dash} />
+          </Suspense>
+        )}
         {tab === "academy" && admin && (
           <Suspense fallback={<SkeletonRows rows={4} />}>
             <AcademyTab ctx={dash} />

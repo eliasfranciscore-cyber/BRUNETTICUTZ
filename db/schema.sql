@@ -866,3 +866,36 @@ CREATE INDEX IF NOT EXISTS idx_aca_orders_pending ON academy_orders (created_at)
 CREATE INDEX IF NOT EXISTS idx_aca_chat_members_member ON academy_chat_members (member_id);
 CREATE INDEX IF NOT EXISTS idx_aca_cohort_members_member ON academy_cohort_members (member_id);
 CREATE INDEX IF NOT EXISTS idx_aca_uploads_member ON academy_uploads (member_id, created_at);
+
+-- Visagismo: brief que Bruno arma en el panel (pestaña Visagismo) y se manda
+-- al cliente en PDF por correo. `shape` guarda la forma de rostro tal como se
+-- mandó; `theme` = diseño del PDF (oro | plata | morado); `source` = 'panel' |
+-- 'autoevaluacion' (fase 2, autoevaluación pagada).
+-- La crea sola ensureVisagismoTable (api/_schema.js).
+CREATE TABLE IF NOT EXISTS visagismo_briefs (
+  id          SERIAL PRIMARY KEY,
+  client_id   INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  booking_id  INTEGER REFERENCES bookings(id) ON DELETE SET NULL,
+  source      VARCHAR(20) NOT NULL DEFAULT 'panel',
+  status      VARCHAR(20) NOT NULL DEFAULT 'borrador',
+  name        VARCHAR(200),
+  phone       VARCHAR(20),
+  email       VARCHAR(300),
+  visit_date  DATE,
+  face_shape  VARCHAR(40),
+  shape       JSONB,
+  cut_name    VARCHAR(200),
+  cut_note    TEXT,
+  cut_img     TEXT,
+  theme       VARCHAR(20) NOT NULL DEFAULT 'plata',
+  tips        JSONB NOT NULL DEFAULT '[]'::jsonb,
+  notes       TEXT,
+  before_url  TEXT,
+  after_url   TEXT,
+  sent_at     TIMESTAMPTZ,
+  sent_to     VARCHAR(300),
+  send_count  INTEGER NOT NULL DEFAULT 0,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_visagismo_briefs_phone ON visagismo_briefs (phone);

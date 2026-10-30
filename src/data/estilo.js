@@ -10,6 +10,8 @@ export const u = (name) => `/assets/estilo/${name}`
 
 // ---- FORMAS DE ROSTRO (paso 1 del workflow) ----
 // path = silueta SVG simple dentro de viewBox 0 0 100 120
+// tips = sugerencias de cuidado que precarga el brief de visagismo del panel
+//        (Bruno las edita antes de mandarlo; /style no las muestra)
 export const FACE_SHAPES = [
   {
     id: 'ovalado',
@@ -26,6 +28,11 @@ export const FACE_SHAPES = [
       { name: 'Pompadour suave', img: u('estilo-pompadour-clasico.jpg'), note: 'Volumen frontal para un aire elegante.' },
     ],
     avoid: 'Flequillos muy pesados que tapen la frente y rompan la proporción.',
+    tips: [
+      'Tu rostro admite casi todo: cambia de largo o textura según la temporada.',
+      'Mantén los lados limpios y repásalos cada 3 a 4 semanas.',
+      'Una pasta de fijación media da movimiento sin endurecer el pelo.',
+    ],
   },
   {
     id: 'redondo',
@@ -42,6 +49,11 @@ export const FACE_SHAPES = [
       { name: 'Fade alto', img: u('estilo-crop-texturizado-oscuro.jpg'), note: 'Cierra los lados y sube la mirada.' },
     ],
     avoid: 'Cortes redondeados y volumen a los costados — ensanchan aún más.',
+    tips: [
+      'Seca con secador de abajo hacia arriba para ganar altura.',
+      'Usa pasta o cera mate: el brillo aplana y redondea.',
+      'Lados cortos y repasados cada 3 semanas para mantener el efecto vertical.',
+    ],
   },
   {
     id: 'cuadrado',
@@ -58,6 +70,11 @@ export const FACE_SHAPES = [
       { name: 'Fade + barba definida', img: u('estilo-textura-barba.jpg'), note: 'Combo de carácter, muy fotogénico.' },
     ],
     avoid: 'Volúmenes extremos que exageren demasiado la angulosidad.',
+    tips: [
+      'Un poco de textura arriba suaviza la mandíbula marcada.',
+      'Evita las líneas demasiado rectas en la frente: mejor un borde natural.',
+      'Una barba corta y prolija acompaña los ángulos sin endurecerlos.',
+    ],
   },
   {
     id: 'alargado',
@@ -74,6 +91,11 @@ export const FACE_SHAPES = [
       { name: 'Barba media', img: u('estilo-barba-canosa.jpg'), note: 'Da peso al tercio inferior.' },
     ],
     avoid: 'Mucho volumen arriba y lados rapados al cero — alargan más.',
+    tips: [
+      'Deja algo de largo a los costados para dar ancho visual.',
+      'Un flequillo o un peinado hacia adelante acorta la frente.',
+      'Peina con los dedos y producto liviano: volumen controlado, no altura.',
+    ],
   },
   {
     id: 'triangular',
@@ -90,6 +112,11 @@ export const FACE_SHAPES = [
       { name: 'Lados moderados', img: u('estilo-crop-rizado-corto.jpg'), note: 'Ni muy abiertos ni rapados.' },
     ],
     avoid: 'Lados muy voluminosos que ensanchen aún más la mandíbula.',
+    tips: [
+      'Suma volumen arriba para equilibrar una mandíbula más ancha.',
+      'Lados más cerrados, degradados suaves, sin cortes bruscos.',
+      'Una barba perfilada en el mentón ayuda a afinar la línea inferior.',
+    ],
   },
   {
     id: 'diamante',
@@ -106,6 +133,11 @@ export const FACE_SHAPES = [
       { name: 'Barba en la mandíbula', img: u('estilo-barba-canosa.jpg'), note: 'Da peso y ancho al mentón.' },
     ],
     avoid: 'Lados rapados al extremo que estrechen el rostro.',
+    tips: [
+      'Deja algo de largo en los lados para ensanchar la frente y el mentón.',
+      'Un flequillo texturizado suaviza los pómulos marcados.',
+      'Una barba con algo de cuerpo en el mentón equilibra el rostro.',
+    ],
   },
 ]
 
