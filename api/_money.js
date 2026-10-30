@@ -240,7 +240,37 @@ export async function onlineSales(sql, { from = null, to = null, withOrders = fa
     if (!isMissingTable(err)) throw err
   }
 
+  // Asesorías de imagen cobradas por Mercado Pago (Brunetti Image Studio). Las
+  // pagadas en el local o por transferencia van por Caja, no acá.
+  let asesoriaRows = []
+  try {
+    asesoriaRows = await sql`
+      SELECT id, name, phone, email, modality, paid_amount, created_at, day FROM (
+        SELECT c.id, c.name, c.phone, c.email, c.modality, c.paid_amount, c.created_at,
+               ((COALESCE(c.paid_at, c.created_at) AT TIME ZONE ${BUSINESS_TZ})::date)::text AS day
+        FROM image_consultations c
+        WHERE c.payment_status = 'pagada' AND c.payment_method = 'mercadopago'
+      ) x
+      WHERE (${fromDate}::date IS NULL OR day::date >= ${fromDate}::date)
+        AND (${toDate}::date IS NULL OR day::date <= ${toDate}::date)
+      ORDER BY created_at DESC
+    `
+  } catch (err) {
+    if (!isMissingTable(err)) throw err
+  }
+
   const orders = [
+    ...asesoriaRows.map((r) => ({
+      id: r.id,
+      type: "asesoria",
+      name: r.name,
+      phone: r.phone,
+      email: r.email,
+      amount: Number(r.paid_amount || 0),
+      detail: r.modality === "online" ? "Asesoría online" : "Asesoría presencial",
+      date: r.day,
+      created_at: r.created_at,
+    })),
     ...enrollmentRows.map((r) => ({
       id: r.id,
       type: r.source, // 'cursos' | 'workshop'

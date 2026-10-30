@@ -23,6 +23,7 @@ export const ORIGIN = {
   cursos: { label: 'Cursos', color: 'var(--pn-online-cursos)' },
   workshop: { label: 'Workshop', color: 'var(--pn-online-workshop)' },
   essentials: { label: 'Essentials', color: 'var(--pn-online-essentials)' },
+  asesoria: { label: 'Asesoría', color: 'var(--pn-online-asesoria)' },
 }
 const ORIGIN_KEYS = Object.keys(ORIGIN)
 
@@ -85,6 +86,7 @@ const waOrderMessage = (o) => {
   const first = String(o?.name || '').trim().split(' ')[0] || 'Hola'
   const what = o?.type === 'essentials' ? 'tu pedido de Essentials'
     : o?.type === 'workshop' ? 'tu cupo en el Workshop'
+      : o?.type === 'asesoria' ? 'tu asesoría de imagen'
       : 'tu inscripción al curso'
   return `Hola ${first}, te escribimos de Brunetti por ${what} 💈`
 }

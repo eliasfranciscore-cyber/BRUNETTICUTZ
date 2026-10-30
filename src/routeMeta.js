@@ -36,6 +36,11 @@ export const ROUTE_META = {
     description: 'Cursos de barbería de la Brunetti Academy: pago único con Mercado Pago, acceso de por vida a las lecciones y comunidad de alumnos.',
     image: null,
   },
+  '/asesoria': {
+    title: 'Asesoría de imagen masculina · Brunetti Image Studio',
+    description: 'Diagnóstico de rostro, cráneo y cabello con Bruno «Brunetti» Herrera: tus cortes, tus productos y tu rutina en un informe personalizado. Presencial en Maipú u online.',
+    image: '/assets/asesoria/og-asesoria.jpg',
+  },
   '/workshop': {
     title: 'Workshop Contenido que Vende · para barberos',
     description: 'Una jornada intensiva para barberos que ya dominan la técnica: sube tu valor percibido, convierte Instagram en agenda real y aprende a grabar y editar desde el celular.',

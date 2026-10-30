@@ -242,18 +242,24 @@ export default async function handler(req, res) {
   const bridgeMode = String(req.query?.mode || "")
   if (bridgeMode.startsWith("bridge-")) return handleBridgeClients(req, res, bridgeMode)
   if (bridgeMode === "register") return handleRegisterBackup(req, res)
-  // Visagismo (pestaña del panel): brief + PDF por correo. import() dinámico,
-  // igual que la Academy en services.js: si pdf-lib o el módulo no cargan,
-  // solo este modo responde 503 y el resto de /api/clients sigue andando.
-  if (bridgeMode === "visagismo") {
-    let handleVisagismo
+  // Brunetti Image Studio (asesorías de imagen). import() dinámico, igual que
+  // la Academy en services.js: si pdf-lib o el módulo no cargan, solo estos
+  // modos responden 503 y el resto de /api/clients sigue andando.
+  //   imagen          panel (admin): asesorías, diagnóstico, catálogo, informes
+  //   imagen-form     público con token: el formulario de ingreso y sus fotos
+  //   imagen-informe  público con token: el PDF del link temporal
+  if (bridgeMode === "imagen" || bridgeMode === "imagen-form" || bridgeMode === "imagen-informe") {
+    let mod
     try {
-      ;({ handleVisagismo } = await import("./_visagismo.js"))
+      mod = bridgeMode === "imagen" ? await import("./_imagen.js") : await import("./_imagenForm.js")
     } catch (err) {
-      console.error("visagismo: no cargó el módulo:", err?.message || err)
-      return res.status(503).json({ ok: false, error: "Visagismo no está disponible en este momento." })
+      console.error("imagen: no cargó el módulo:", err?.message || err)
+      return res.status(503).json({ ok: false, error: "Image Studio no está disponible en este momento." })
     }
-    return handleVisagismo(req, res, neon(process.env.DATABASE_URL))
+    const sql = neon(process.env.DATABASE_URL)
+    if (bridgeMode === "imagen") return mod.handleImagen(req, res, sql)
+    if (bridgeMode === "imagen-form") return mod.handleImagenForm(req, res, sql)
+    return mod.handleImagenInforme(req, res, sql)
   }
 
   try {

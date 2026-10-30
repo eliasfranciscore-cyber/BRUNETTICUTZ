@@ -20,8 +20,11 @@
    (external_reference en base64) siguen entrando por handleEnrollmentPaid,
    que es lo que necesitan los reintentos de pagos anteriores.
 
-   Fuentes soportadas: 'cursos', 'workshop' (precio fijo, sin carrito) y
-   'essentials' (carrito de productos, valida precio/stock contra la DB).
+   Fuentes soportadas: 'cursos', 'workshop' (precio fijo, sin carrito),
+   'essentials' (carrito de productos, valida precio/stock contra la DB) y
+   'asesoria' (Brunetti Image Studio: precio e interruptor por modalidad en
+   los ajustes; la fila de la asesoría se crea antes del pago y el webhook la
+   marca pagada, ver api/_imagenCore.js).
    El sandbox vs producción lo decide Mercado Pago automáticamente según el
    prefijo del access token (TEST- vs el de producción) — a diferencia de
    Flow, acá no hace falta una env var de ambiente aparte.
@@ -36,12 +39,13 @@
 import { neon } from '@neondatabase/serverless'
 import { requireInternal } from './_auth.js'
 import { notifyAll } from './push.js'
-import { sendWorkshopConfirmationEmail } from './_email.js'
+import { sendWorkshopConfirmationEmail, sendImagenFormEmail } from './_email.js'
 import { onlineSales } from './_money.js'
 import { ensureShopOrderColumns, hasColumns } from './_schema.js'
+import { ASESORIA_KEYS, asesoriaSettings, imageTablesReady, createWebConsultation, handleAsesoriaPaid } from './_imagenCore.js'
 
 const MP_API_BASE = 'https://api.mercadopago.com'
-const SOURCES = ['cursos', 'workshop', 'essentials']
+const SOURCES = ['cursos', 'workshop', 'essentials', 'asesoria']
 const FIXED_PRICES = { cursos: 9990, workshop: 49990 }
 const SOURCE_TITLES = {
   cursos: 'Curso Brunetti · Visagismo & Barbería',
@@ -51,7 +55,7 @@ const SOURCE_TITLES = {
    página de comprobante (/essentials/gracias), que lee payment_id/status de
    la URL y consulta ?status=1 hasta que el webhook confirma. Mismo mapa que
    el mock de Mercado Pago en vite.config.js: si cambia uno, cambia el otro. */
-const SOURCE_PATHS = { cursos: '/cursos', workshop: '/workshop', essentials: '/essentials/gracias' }
+const SOURCE_PATHS = { cursos: '/cursos', workshop: '/workshop', essentials: '/essentials/gracias', asesoria: '/asesoria/gracias' }
 
 function cleanPhone(v) {
   let digits = String(v || '').replace(/\D/g, '')
@@ -120,7 +124,7 @@ export default async function handler(req, res) {
    tabla clave/valor simple: si la lectura falla se usan los defaults
    (FIXED_PRICES para el precio, y el Workshop sin cobrar).
    ============================================================ */
-const SETTINGS_KEYS = ['cursos_price', 'workshop_price', 'workshop_date', 'workshop_payments']
+const SETTINGS_KEYS = ['cursos_price', 'workshop_price', 'workshop_date', 'workshop_payments', ...ASESORIA_KEYS]
 
 async function ensureSettingsTable(sql) {
   await sql`
@@ -136,7 +140,7 @@ async function readSettings(sql) {
   /* workshopPaymentsEnabled arranca apagado a propósito: si la fila todavía
      no existe, o la DB no responde, el Workshop queda en pausa y nadie puede
      pagar un cupo sin fecha confirmada. Se enciende desde el panel interno. */
-  const defaults = { cursosPrice: FIXED_PRICES.cursos, workshopPrice: FIXED_PRICES.workshop, workshopDate: null, workshopPaymentsEnabled: false }
+  const defaults = { cursosPrice: FIXED_PRICES.cursos, workshopPrice: FIXED_PRICES.workshop, workshopDate: null, workshopPaymentsEnabled: false, asesoria: asesoriaSettings({}) }
   try {
     await ensureSettingsTable(sql)
     const rows = await sql`SELECT key, value FROM settings WHERE key = ANY(${SETTINGS_KEYS})`
@@ -146,6 +150,8 @@ async function readSettings(sql) {
       workshopPrice: byKey.workshop_price ? Number(byKey.workshop_price) : defaults.workshopPrice,
       workshopDate: byKey.workshop_date || defaults.workshopDate,
       workshopPaymentsEnabled: byKey.workshop_payments === '1',
+      // Asesoría de imagen: mismo criterio, cada modalidad apagada por defecto.
+      asesoria: asesoriaSettings(byKey),
     }
   } catch (err) {
     console.error('readSettings error (usando defaults):', err?.message)
@@ -163,7 +169,7 @@ async function handlePatchSettings(req, res) {
   const session = requireInternal(req, res)
   if (!session) return
 
-  const { cursosPrice, workshopPrice, workshopDate, workshopPaymentsEnabled } = req.body || {}
+  const { cursosPrice, workshopPrice, workshopDate, workshopPaymentsEnabled, asesoria } = req.body || {}
   const updates = []
   if (cursosPrice !== undefined) {
     const n = Number(cursosPrice)
@@ -183,6 +189,19 @@ async function handlePatchSettings(req, res) {
   }
   if (workshopPaymentsEnabled !== undefined) {
     updates.push(['workshop_payments', workshopPaymentsEnabled ? '1' : '0'])
+  }
+  if (asesoria && typeof asesoria === 'object') {
+    for (const m of ['presencial', 'online']) {
+      const v = asesoria[m]
+      if (!v || typeof v !== 'object') continue
+      if (v.price !== undefined) {
+        const n = v.price === '' || v.price == null ? 0 : Number(v.price)
+        if (!Number.isFinite(n) || n < 0 || n > 10_000_000) return res.status(400).json({ error: `Precio de la asesoría ${m} inválido` })
+        updates.push([`asesoria_${m}_price`, String(Math.round(n))])
+      }
+      if (v.enabled !== undefined) updates.push([`asesoria_${m}_payments`, v.enabled ? '1' : '0'])
+      if (v.info !== undefined) updates.push([`asesoria_${m}_info`, String(v.info || '').trim().slice(0, 800)])
+    }
   }
   if (!updates.length) return res.status(400).json({ error: 'Nada que guardar' })
 
@@ -256,7 +275,25 @@ async function handlePanelOrders(req, res) {
       }
     })
 
-    const orders = [...enrollmentOrders, ...essentialsOrders]
+    // Asesorías de imagen cobradas por Mercado Pago (la tabla puede no existir
+    // todavía si nadie abrió Image Studio en el panel).
+    let asesoriaOrders = []
+    try {
+      const rows = await sql`
+        SELECT id, name, phone, email, modality, paid_amount, COALESCE(paid_at, created_at) AS created_at
+        FROM image_consultations
+        WHERE payment_status = 'pagada' AND payment_method = 'mercadopago'
+        ORDER BY created_at DESC LIMIT 300
+      `
+      asesoriaOrders = rows.map((r) => ({
+        id: r.id, type: 'asesoria', name: r.name, phone: r.phone, email: r.email, amount: r.paid_amount,
+        detail: r.modality === 'online' ? 'Asesoría online' : 'Asesoría presencial', created_at: r.created_at,
+      }))
+    } catch (err) {
+      if (err?.code !== '42P01') throw err
+    }
+
+    const orders = [...enrollmentOrders, ...essentialsOrders, ...asesoriaOrders]
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
 
     return res.status(200).json({ ok: true, orders })
@@ -335,7 +372,7 @@ async function handleCheckout(req, res) {
   if (!SOURCES.includes(source)) {
     return res.status(400).json({ error: 'source inválido' })
   }
-  if (!String(name || '').trim() || !validEmail(email) || cleanPhone(phone).length < 8) {
+  if (!String(name || '').trim() || !validEmail(email) || cleanPhone(phone).length < (source === 'asesoria' ? 9 : 8)) {
     return res.status(400).json({ error: 'Missing required fields' })
   }
 
@@ -351,8 +388,29 @@ async function handleCheckout(req, res) {
   try {
     let mpItems
     let externalReference
+    let extra = {}
 
-    if (source === 'essentials') {
+    if (source === 'asesoria') {
+      /* Asesoría de imagen: el precio y el interruptor salen de los ajustes
+         (nunca del cliente). Sin la tabla (el panel todavía no la creó) no hay
+         asesoría que cobrar: este camino no corre migraciones. */
+      const sql = neon(process.env.DATABASE_URL)
+      const modality = ['presencial', 'online'].includes(req.body?.modality) ? req.body.modality : null
+      if (!modality) return res.status(400).json({ error: 'Elige la modalidad de la asesoría' })
+      const settings = await readSettings(sql)
+      const m = settings.asesoria[modality]
+      if (!m.enabled) {
+        return res.status(409).json({ error: 'Esta asesoría todavía no se vende en línea. Escríbenos por WhatsApp y la coordinamos.', paused: true })
+      }
+      if (!(await imageTablesReady(sql))) {
+        return res.status(503).json({ error: 'La venta de asesorías no está disponible en este momento.' })
+      }
+      const created = await createWebConsultation(sql, { modality, name: cleanedName, phone: cleanedPhone, email: cleanedEmail, price: m.price, utm: req.body?.utm })
+      externalReference = `asesoria-${created.id}`
+      mpItems = [{ title: `Asesoría de imagen ${modality} · Brunetti Image Studio`, quantity: 1, unit_price: m.price, currency_id: 'CLP' }]
+      // El token abre el formulario en /asesoria/gracias apenas se confirma el pago.
+      extra = { token: created.token }
+    } else if (source === 'essentials') {
       const built = await buildEssentialsOrder({ name: cleanedName, phone: cleanedPhone, email: cleanedEmail, items })
       if (built.error) return res.status(400).json({ error: built.error })
       mpItems = built.mpItems
@@ -394,7 +452,7 @@ async function handleCheckout(req, res) {
     const isTest = String(process.env.MP_ACCESS_TOKEN).startsWith('TEST-')
     const checkoutUrl = isTest ? (preference.sandbox_init_point || preference.init_point) : preference.init_point
 
-    return res.status(200).json({ checkoutUrl, preferenceId: preference.id })
+    return res.status(200).json({ checkoutUrl, preferenceId: preference.id, ...extra })
   } catch (err) {
     console.error('MP checkout error:', err.data || err.message)
     return res.status(err.status || 500).json({ error: err.message || 'Payment service error' })
@@ -554,6 +612,9 @@ async function handleWebhook(req, res) {
 
     if (ref.startsWith('essentials-')) {
       return handleEssentialsPaid(sql, ref, payment, res)
+    }
+    if (ref.startsWith('asesoria-')) {
+      return handleAsesoriaPaid(sql, ref, payment, res, { notifyAll, sendImagenFormEmail })
     }
     return handleEnrollmentPaid(sql, ref, payment, res)
   } catch (err) {

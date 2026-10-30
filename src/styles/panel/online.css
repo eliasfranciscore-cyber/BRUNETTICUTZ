@@ -19,6 +19,9 @@
   /* Interesados del Método (lección de muestra): el dorado de /metodo. */
   --pn-online-metodo: #e0bd6c;
   --pn-online-metodo-soft: rgba(201, 161, 78, .16);
+  /* Asesorías de imagen (Brunetti Image Studio): el plata del informe. */
+  --pn-online-asesoria: #c3c8d0;
+  --pn-online-asesoria-soft: rgba(195, 200, 208, .14);
 }
 /* En claro los tonos de arriba quedan lavados sobre crema: se oscurecen para
    que el rótulo se lea (mismo criterio que --pn-ok en claro). */
@@ -31,6 +34,8 @@
   --pn-online-essentials-soft: rgba(43, 135, 80, .11);
   --pn-online-metodo: #7a5a17;
   --pn-online-metodo-soft: rgba(154, 123, 52, .12);
+  --pn-online-asesoria: #4f545b;
+  --pn-online-asesoria-soft: rgba(79, 84, 91, .10);
 }
 
 /* Van con `.pn-chip.` delante: así le ganan a la base `.pn-chip` de
@@ -39,6 +44,7 @@
 .pn-chip.pn-chip--workshop { color: var(--pn-online-workshop); background: var(--pn-online-workshop-soft); border-color: transparent; }
 .pn-chip.pn-chip--essentials { color: var(--pn-online-essentials); background: var(--pn-online-essentials-soft); border-color: transparent; }
 .pn-chip.pn-chip--metodo { color: var(--pn-online-metodo); background: var(--pn-online-metodo-soft); border-color: transparent; }
+.pn-chip.pn-chip--asesoria { color: var(--pn-online-asesoria); background: var(--pn-online-asesoria-soft); border-color: transparent; }
 
 /* KPI: en el celular (2 columnas) el primero va a lo ancho, así 3 o 5
    tarjetas no dejan una sola colgando al final. */

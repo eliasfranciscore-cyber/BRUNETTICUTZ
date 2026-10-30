@@ -122,7 +122,7 @@ function Hero() {
           <button className="ete-btn ete-btn-ghost" type="button" onClick={() => smoothScroll('galeria')}><EditableText file="estilo" path="hero.ctaSecondary">{ESTILO.hero.ctaSecondary}</EditableText></button>
         </div>
         <div className="ete-hero-stats">
-          <div className="s"><b>6</b><span><EditableText file="estilo" path="hero.stat1Label">{ESTILO.hero.stat1Label}</EditableText></span></div>
+          <div className="s"><b>{FACE_SHAPES.length}</b><span><EditableText file="estilo" path="hero.stat1Label">{ESTILO.hero.stat1Label}</EditableText></span></div>
           <div className="s"><b>+30</b><span><EditableText file="estilo" path="hero.stat2Label">{ESTILO.hero.stat2Label}</EditableText></span></div>
           <div className="s"><b>100%</b><span><EditableText file="estilo" path="hero.stat3Label">{ESTILO.hero.stat3Label}</EditableText></span></div>
         </div>

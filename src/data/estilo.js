@@ -10,8 +10,9 @@ export const u = (name) => `/assets/estilo/${name}`
 
 // ---- FORMAS DE ROSTRO (paso 1 del workflow) ----
 // path = silueta SVG simple dentro de viewBox 0 0 100 120
-// tips = sugerencias de cuidado que precarga el brief de visagismo del panel
-//        (Bruno las edita antes de mandarlo; /style no las muestra)
+// tips = consejos que el Image Studio del panel ofrece como sugerencias para el
+//        informe (Bruno los aprueba o descarta; /style no los muestra)
+// El orden importa: content/estilo.json → faceShapes se empareja por índice.
 export const FACE_SHAPES = [
   {
     id: 'ovalado',
@@ -77,8 +78,9 @@ export const FACE_SHAPES = [
     ],
   },
   {
+    // id histórico; el documento de Image Studio lo llama "rectangular".
     id: 'alargado',
-    name: 'Alargado',
+    name: 'Rectangular',
     tagline: 'Vertical y elegante',
     path: 'M50 6 C70 6 80 26 80 56 C80 96 68 116 50 116 C32 116 20 96 20 56 C20 26 30 6 50 6 Z',
     traits: ['Rostro más largo que ancho', 'Frente alta', 'Mentón alargado'],
@@ -137,6 +139,28 @@ export const FACE_SHAPES = [
       'Deja algo de largo en los lados para ensanchar la frente y el mentón.',
       'Un flequillo texturizado suaviza los pómulos marcados.',
       'Una barba con algo de cuerpo en el mentón equilibra el rostro.',
+    ],
+  },
+  {
+    // Textos por revisar con Bruno (2026-10-30).
+    id: 'corazon',
+    name: 'Corazón',
+    tagline: 'Frente amplia, mentón fino',
+    path: 'M50 112 C40 104 22 86 17 64 C13 46 14 26 24 14 C30 8 40 6 50 6 C60 6 70 8 76 14 C86 26 87 46 83 64 C78 86 60 104 50 112 Z',
+    traits: ['Frente ancha', 'Pómulos marcados', 'Mentón estrecho'],
+    diagnosis:
+      'Equilibramos una frente más ancha que la mandíbula: menos volumen arriba y algo de peso en la zona baja suavizan el contraste.',
+    goal: 'Restar ancho a la frente y dar cuerpo al mentón.',
+    best: [
+      { name: 'Flequillo ligero', img: u('estilo-flequillo-largo.jpg'), note: 'Cubre parte de la frente y la suaviza.' },
+      { name: 'Texturizado medio', img: u('estilo-crop-texturizado.jpg'), note: 'Movimiento sin sumar altura.' },
+      { name: 'Barba con cuerpo', img: u('estilo-textura-barba.jpg'), note: 'Da ancho y peso al mentón.' },
+    ],
+    avoid: 'Mucho volumen arriba o peinados hacia atrás que dejan la frente al descubierto.',
+    tips: [
+      'Peina hacia adelante o de lado para restar ancho a la frente.',
+      'Mantén algo de largo a los lados: un fade muy alto agranda la parte de arriba.',
+      'Una barba con cuerpo en el mentón equilibra el rostro.',
     ],
   },
 ]

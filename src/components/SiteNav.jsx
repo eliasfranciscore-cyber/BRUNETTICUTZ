@@ -20,6 +20,7 @@ const NAV = [
   ["visagismo", "Visagismo"],
   ["sobre",     "Sobre Bruno"],
   ["servicios", "Servicios"],
+  ["asesoria",  "Asesoría"],
   ["style",     "Tu estilo"],
   ["cursos",    "Cursos"],
   ["metodo",    "Método"],
@@ -32,6 +33,7 @@ const HIDDEN = {
   visagismo: !FEATURES.visagismo,
   sobre: !FEATURES.sobreBruno,
   style: !FEATURES.tuEstilo,
+  asesoria: !FEATURES.imageStudio,
 }
 const LINKS = NAV.filter(([id]) => !HIDDEN[id])
 
@@ -42,6 +44,7 @@ export default function SiteNav({ onSection, scrolled: scrolledProp }) {
   const isWorkshop = location.pathname === "/workshop"
   const isCursos = location.pathname === "/cursos"
   const isMetodo = location.pathname === "/metodo"
+  const isAsesoria = location.pathname === "/asesoria"
   const isStyle = location.pathname === "/style"
   const isEssentials = location.pathname === "/essentials"
   const [scrolledWin, setScrolledWin] = useState(false)
@@ -82,13 +85,14 @@ export default function SiteNav({ onSection, scrolled: scrolledProp }) {
     if (id === "workshop") navigate("/workshop")
     else if (id === "cursos") navigate("/cursos")
     else if (id === "metodo") navigate("/metodo")
+    else if (id === "asesoria") navigate("/asesoria")
     else if (id === "style") navigate("/style")
     else if (id === "essentials") navigate("/essentials")
     else if (id === "inicio") { navigate("/"); window.scrollTo({ top: 0, behavior: "smooth" }) }
     else goSection(id)
   }
 
-  const reserveLabel = isWorkshop ? "Reservar asiento" : isCursos || isMetodo ? "Inscribirme" : "Reservar hora"
+  const reserveLabel = isWorkshop ? "Reservar asiento" : isCursos || isMetodo ? "Inscribirme" : isAsesoria ? "Reservar asesoría" : "Reservar hora"
   const reserve = () => {
     setMenuOpen(false)
     if (isWorkshop) {
@@ -98,6 +102,11 @@ export default function SiteNav({ onSection, scrolled: scrolledProp }) {
     if (isCursos) {
       // /cursos es la vitrina compartida de la Academy: baja al catálogo.
       const el = document.getElementById("cursos")
+      if (el) { window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 64, behavior: "smooth" }); return }
+    }
+    if (isAsesoria) {
+      // /asesoria (Brunetti Image Studio): baja a las modalidades.
+      const el = document.getElementById("modalidades")
       if (el) { window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 64, behavior: "smooth" }); return }
     }
     if (isMetodo) {

@@ -35,7 +35,7 @@ import {
   createState, dateKey, nowMinutes, addDays, iso, ALL_SLOTS, slotMinutes, blocksFor,
   BRUNO_ID, LOYALTY_GOAL, DISCOUNT_STARS, DISCOUNT_PCT, PAYMENT_METHODS, STATUSES,
 } from './fixtures.mjs'
-import { FACE_SHAPES } from '../../src/data/estilo.js'
+import { imagenApi, imagenFormApi, imagenInformeApi, asesoriaCheckout, asesoriaOrders } from './imagen.mjs'
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 const TIME_RE = /^\d{2}:\d{2}$/
@@ -811,100 +811,12 @@ function walletStatsOf(st, h) {
   }
 }
 
-/* Visagismo (?mode=visagismo, api/_visagismo.js): mismas formas que el
-   real. Las fotos quedan como dataURL (no hay Blob), el correo no sale de
-   verdad, y el PDF lo arma el MISMO api/_visagismoPdf.js (es Node puro), así
-   la vista previa se ve igual que en producción. */
-const VIS_FIELDS = ['bookingId', 'name', 'phone', 'email', 'visitDate', 'shape', 'cutName', 'cutNote', 'cutImg', 'theme', 'tips', 'notes']
-const VIS_THEMES = ['plata', 'oro', 'morado']
-function visShape(b) {
-  if (b.shape?.name || !b.faceShape) return b
-  const s = FACE_SHAPES.find((x) => x.id === b.faceShape)
-  return s ? { ...b, shape: { id: s.id, name: s.name, tagline: s.tagline, traits: s.traits, diagnosis: s.diagnosis, goal: s.goal, avoid: s.avoid, path: s.path, best: s.best.map(({ name, note, img }) => ({ name, note, img })) } } : b
-}
-async function visagismoApi(c) {
-  const { st, method, q, body, h } = c
-  const s = needAdmin(c); if (s) return s
-  st.visagismo ||= []
-  const id = Number(q.id)
-  const find = () => st.visagismo.find((b) => b.id === id)
-  if (method === 'GET' && q.candidates) {
-    const date = DATE_RE.test(String(q.date || '')) ? q.date : addDays(dateKey(), -1)
-    const bookings = st.bookings
-      .filter((b) => b.date === date && ['completada', 'en curso'].includes(b.status))
-      .sort((a, b) => (b.serviceId === 10) - (a.serviceId === 10) || a.time.localeCompare(b.time))
-      .map((b) => {
-        const cl = h.clientOf(b.clientId)
-        const brief = [...st.visagismo].reverse().find((v) => v.bookingId === b.id)
-        return {
-          bookingId: b.id, date: b.date, time: b.time, status: b.status, serviceId: b.serviceId,
-          service: h.svcOf(b.serviceId)?.name || b.customService || 'Servicio',
-          clientId: cl?.id ?? null, name: cl?.name || '', phone: cl?.phone || null, email: cl?.email || null,
-          briefId: brief?.id ?? null, briefStatus: brief?.status ?? null,
-        }
-      })
-    return OK({ date, bookings })
-  }
-  if (method === 'GET' && q.pdf) {
-    const b = find()
-    if (!b) return E(404, 'Brief no encontrado')
-    const { buildVisagismoPdf } = await import('../../api/_visagismoPdf.js')
-    const theme = VIS_THEMES.includes(q.theme) ? q.theme : b.theme
-    const bytes = await buildVisagismoPdf(visShape(b), { compact: Boolean(q.compact), theme })
-    return [200, Buffer.from(bytes), 'application/pdf']
-  }
-  if (method === 'GET') {
-    if (q.id) { const b = find(); return b ? OK({ brief: visShape(b) }) : E(404, 'Brief no encontrado') }
-    const list = [...st.visagismo].sort((a, b) => String(b.updatedAt).localeCompare(String(a.updatedAt)))
-    return OK({ briefs: list.map(visShape) })
-  }
-  if (method === 'POST' && q.upload) {
-    const b = st.visagismo.find((x) => x.id === Number(body.id))
-    if (!b || !['before', 'after'].includes(body.slot)) return E(400, 'Datos incompletos')
-    if (!/^data:image\/(png|jpeg|jpg);base64,/.test(String(body.dataUrl || ''))) return E(400, 'La foto tiene que ser JPEG o PNG')
-    b[body.slot === 'before' ? 'beforeUrl' : 'afterUrl'] = body.dataUrl
-    b.updatedAt = iso()
-    return OK({ url: body.dataUrl, brief: b })
-  }
-  if (method === 'POST' && q.send) {
-    const b = find()
-    if (!b) return E(404, 'Brief no encontrado')
-    const email = String(body.email || b.email || '').trim().toLowerCase()
-    if (!EMAIL_RE.test(email)) return E(400, 'Falta un correo válido del cliente')
-    if (!visShape(b).shape?.name) return E(400, 'Elige la forma de rostro antes de enviar')
-    Object.assign(b, { status: 'enviado', email, sentTo: email, sentAt: iso(), sendCount: (b.sendCount || 0) + 1, updatedAt: iso() })
-    return OK({ brief: visShape(b), mocked: true })
-  }
-  if (method === 'POST' || method === 'PATCH') {
-    if (!String(body.name || '').trim() && !String(body.phone || '').trim()) return E(400, 'Falta el cliente')
-    const data = Object.fromEntries(VIS_FIELDS.map((k) => [k, body[k] ?? null]))
-    data.phone = cleanPhone(data.phone).length === 9 ? cleanPhone(data.phone) : null
-    data.tips = Array.isArray(body.tips) ? body.tips.filter(Boolean).slice(0, 12) : []
-    data.theme = VIS_THEMES.includes(body.theme) ? body.theme : 'plata'
-    data.faceShape = body.shape?.id || null
-    data.clientId = h.clientByPhone(data.phone)?.id ?? null
-    if (method === 'POST') {
-      const b = { id: ++st.seq.visagismo, source: 'panel', status: 'borrador', beforeUrl: null, afterUrl: null, sentAt: null, sentTo: null, sendCount: 0, createdAt: iso(), updatedAt: iso(), ...data }
-      st.visagismo.push(b)
-      return [201, { ok: true, brief: b }]
-    }
-    const b = find()
-    if (!b) return E(404, 'Brief no encontrado')
-    Object.assign(b, data, { bookingId: data.bookingId ?? b.bookingId, updatedAt: iso() })
-    return OK({ brief: b })
-  }
-  if (method === 'DELETE') {
-    const before = st.visagismo.length
-    st.visagismo = st.visagismo.filter((b) => b.id !== id)
-    return before === st.visagismo.length ? E(404, 'Brief no encontrado') : OK()
-  }
-  return E(405, 'Method not allowed')
-}
-
 function clientsApi(c) {
   const { st, method, q, body, h } = c
   const mode = q.mode
-  if (mode === 'visagismo') return visagismoApi(c)
+  if (mode === 'imagen') return imagenApi(c)
+  if (mode === 'imagen-form') return imagenFormApi(c)
+  if (mode === 'imagen-informe') return imagenInformeApi(c)
   if (mode && mode.startsWith('bridge-')) return E(404, 'No encontrado')
   if (method === 'GET' && (mode === 'wallet-pass' || mode === 'wallet-pass-google')) return E(502, 'El pase de Wallet no está disponible en el mock de desarrollo.')
   if (method === 'GET' && mode === 'wallet-tarjeta-info') {
@@ -1158,13 +1070,18 @@ function onlineOrders(st) {
     .map((e) => ({ id: e.id, type: e.source, name: e.name, phone: e.phone, email: e.email, amount: Number(e.amount || 0), detail: e.edition || null, date: dateKey(new Date(e.created_at)), created_at: e.created_at }))
   const fromShop = st.shopOrders.filter((o) => o.status === 'paid')
     .map((o) => ({ id: o.id, type: 'essentials', name: o.name, phone: o.phone, email: o.email, amount: o.amount, detail: o.items.map((i) => `${i.qty}× ${i.name}`).join(', ') || null, date: dateKey(new Date(o.paid_at || o.created_at)), created_at: o.created_at }))
-  return [...fromEnrollments, ...fromShop].sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))
+  const fromAsesorias = asesoriaOrders(st).map((o) => ({ ...o, date: dateKey(new Date(o.created_at)) }))
+  return [...fromEnrollments, ...fromShop, ...fromAsesorias].sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))
 }
 
 function mpPaymentsApi(c, { returnPaths }) {
   const { st, method, q, body, h } = c
   const set = st.settings
-  const publicSettings = () => ({ cursosPrice: set.cursosPrice, workshopPrice: set.workshopPrice, workshopDate: set.workshopDate, workshopPaymentsEnabled: set.workshopPaymentsEnabled })
+  const asesoriaOut = () => Object.fromEntries(['presencial', 'online'].map((m) => {
+    const a = set.asesoria?.[m] || {}
+    return [m, { price: a.price > 0 ? a.price : null, enabled: Boolean(a.enabled && a.price > 0), info: a.info || '' }]
+  }))
+  const publicSettings = () => ({ cursosPrice: set.cursosPrice, workshopPrice: set.workshopPrice, workshopDate: set.workshopDate, workshopPaymentsEnabled: set.workshopPaymentsEnabled, asesoria: asesoriaOut() })
   if (method === 'GET' && q.status === '1') {
     const p = st.payments?.[String(q.payment_id || '')]
     return [200, { status: 'approved', paid: true, amount: p?.amount ?? 9990 }]
@@ -1181,6 +1098,21 @@ function mpPaymentsApi(c, { returnPaths }) {
       }
       if (body.workshopDate !== undefined) set.workshopDate = body.workshopDate || null
       if (body.workshopPaymentsEnabled !== undefined) set.workshopPaymentsEnabled = Boolean(body.workshopPaymentsEnabled)
+      if (body.asesoria && typeof body.asesoria === 'object') {
+        set.asesoria ||= {}
+        for (const m of ['presencial', 'online']) {
+          const v = body.asesoria[m]
+          if (!v || typeof v !== 'object') continue
+          const a = (set.asesoria[m] ||= {})
+          if (v.price !== undefined) {
+            const n = v.price === '' || v.price == null ? 0 : Number(v.price)
+            if (!Number.isFinite(n) || n < 0) return [400, { error: `Precio de la asesoría ${m} inválido` }]
+            a.price = Math.round(n)
+          }
+          if (v.enabled !== undefined) a.enabled = Boolean(v.enabled)
+          if (v.info !== undefined) a.info = String(v.info || '').slice(0, 800)
+        }
+      }
       return [200, publicSettings()]
     }
   }
@@ -1192,9 +1124,10 @@ function mpPaymentsApi(c, { returnPaths }) {
       const from = DATE_RE.test(String(q.from || '')) ? q.from : null
       const to = DATE_RE.test(String(q.to || '')) ? q.to : null
       const orders = all.filter((o) => (!from || o.date >= from) && (!to || o.date <= to))
-      const byType = { cursos: { total: 0, count: 0 }, workshop: { total: 0, count: 0 }, essentials: { total: 0, count: 0 } }
+      const byType = { cursos: { total: 0, count: 0 }, workshop: { total: 0, count: 0 }, essentials: { total: 0, count: 0 }, asesoria: { total: 0, count: 0 } }
       const days = new Map()
       for (const o of orders) {
+        byType[o.type] ||= { total: 0, count: 0 }
         byType[o.type].total += o.amount
         byType[o.type].count += 1
         const d = days.get(o.date) || { date: o.date, total: 0, count: 0 }
@@ -1212,7 +1145,7 @@ function mpPaymentsApi(c, { returnPaths }) {
   if (method === 'POST' && q.webhook === '1') return OK()
   if (method === 'POST') {
     const source = body.source
-    if (!['cursos', 'workshop', 'essentials'].includes(source)) return [400, { error: 'source inválido' }]
+    if (!['cursos', 'workshop', 'essentials', 'asesoria'].includes(source)) return [400, { error: 'source inválido' }]
     const name = String(body.name || '').trim()
     const email = String(body.email || '').trim().toLowerCase()
     const phone = cleanPhone(body.phone)
@@ -1220,7 +1153,14 @@ function mpPaymentsApi(c, { returnPaths }) {
     const paymentId = `mock_${Date.now()}`
     const now = iso()
     let amount = 0
-    if (source === 'essentials') {
+    let extra = {}
+    if (source === 'asesoria') {
+      // Simula checkout + webhook juntos: la asesoría queda pagada al instante.
+      const out = asesoriaCheckout(st, { modality: body.modality, name, phone, email, utm: body.utm })
+      if (out.error) return out.error
+      amount = out.amount
+      extra = { token: out.cons.formToken }
+    } else if (source === 'essentials') {
       const items = Array.isArray(body.items) ? body.items : []
       if (!items.length) return [400, { error: 'El carrito está vacío.' }]
       const lines = []
@@ -1252,10 +1192,10 @@ function mpPaymentsApi(c, { returnPaths }) {
       })
     }
     ;(st.payments ||= {})[paymentId] = { amount, source }
-    st.notifications.unshift({ id: Date.now(), title: 'Pago recibido', body: `${name} · ${source} · $${amount}`, url: source === 'essentials' ? '/panel?tab=pedidos' : '/panel?tab=inscripciones', tag: 'mp', createdAt: now })
+    st.notifications.unshift({ id: Date.now(), title: 'Pago recibido', body: `${name} · ${source} · $${amount}`, url: source === 'essentials' ? '/panel?tab=pedidos' : source === 'asesoria' ? '/panel?tab=imagen' : '/panel?tab=inscripciones', tag: 'mp', createdAt: now })
     const path = returnPaths[source] || '/'
     console.log(`✓ Mock de API · Mercado Pago aprobado al instante: ${source} $${amount} → ${path}`)
-    return [200, { checkoutUrl: `http://${c.host}${path}?status=approved&payment_id=${paymentId}`, preferenceId: paymentId }]
+    return [200, { checkoutUrl: `http://${c.host}${path}?status=approved&payment_id=${paymentId}`, preferenceId: paymentId, ...extra }]
   }
   return E(405, 'Method not allowed')
 }
@@ -1356,7 +1296,7 @@ export default function devMockPlugin({ returnPaths = {} } = {}) {
         try {
           const [status, data, rawType] = await api.handle(req)
           res.statusCode = status
-          // Respuesta binaria (el PDF de visagismo): [status, Buffer, contentType].
+          // Respuesta binaria (PDF o foto de Image Studio): [status, Buffer, contentType].
           if (rawType) {
             res.setHeader('Content-Type', rawType)
             res.setHeader('Cache-Control', 'no-store')

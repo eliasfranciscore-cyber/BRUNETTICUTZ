@@ -83,3 +83,10 @@
   .pn-clientes-form { grid-template-columns: 1fr 1fr; gap: 12px 16px; }
   .pn-clientes-form .pn-field-full { grid-column: 1 / -1; }
 }
+
+/* Aviso de Image Studio en la ficha: el cliente ya mandó su ficha de asesoría. */
+.pn-client-note {
+  display: flex; gap: 8px; align-items: flex-start; margin: 0 0 8px; padding: 10px 12px;
+  border-radius: var(--pn-r); background: var(--pn-accent-soft); color: var(--pn-text); font-size: var(--pn-fs-sm);
+}
+.pn-client-note svg { flex: none; margin-top: 2px; color: var(--pn-accent); }

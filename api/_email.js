@@ -27,7 +27,7 @@ const WK = {
 }
 
 /* `attachments` es opcional: [{ filename, content: <base64> }], tal cual lo
-   recibe Resend. Solo lo usa el brief de visagismo (el PDF); los demás
+   recibe Resend. Solo lo usa el informe de Image Studio (el PDF); los demás
    correos no lo mandan y el cuerpo del POST les queda igual que siempre. */
 async function sendViaResend({ to, subject, html, attachments }) {
   if (!to) return { ok: false, reason: "no-email" }
@@ -267,60 +267,84 @@ export async function sendVisitThanksEmail({ to, name, service, barber, date, re
   })
 }
 
+/* ---------- Brunetti Image Studio (asesoría de imagen) ----------
+   Mismo papel perla y cromo que el informe PDF (api/_imagenPdf.js). */
+const IMG_LOGO_URL = `${SITE_URL}/assets/email/brunetti-wordmark-plata.png`
+
+function imgShell({ heading, body }) {
+  return `
+    <div style="font-family: Georgia, 'Times New Roman', serif; background: #ecebe7; padding: 32px 16px;">
+      <div style="max-width: 500px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #d9dbe0;">
+        <div style="background: #f5f4f1; padding: 26px 24px 18px; text-align: center; border-bottom: 1px solid #e1e2e6;">
+          <img src="${IMG_LOGO_URL}" alt="Brunetticutz" width="230" style="width: 230px; max-width: 72%; height: auto; display: inline-block;" />
+          <p style="margin: 10px 0 0; font-family: Arial, sans-serif; font-size: 10px; letter-spacing: .32em; text-transform: uppercase; color: #5f646c;">Brunetti Image Studio</p>
+        </div>
+        <div style="padding: 28px 24px;">
+          <h1 style="margin: 0 0 10px; font-size: 21px; color: #1d1f23;">${heading}</h1>
+          ${body}
+          <p style="margin: 22px 0 0; color: #8b9098; font-size: 12px; text-align: center;">Bruno · Brunetti Image Studio · ${SITE_URL.replace(/^https?:\/\//, "")}</p>
+        </div>
+      </div>
+    </div>
+  `.trim()
+}
+
+function imgButton(href, label) {
+  return `<div style="text-align: center; margin: 24px 0 6px;">
+    <a href="${href}" style="display: inline-block; background: #1d1f23; color: #ffffff; text-decoration: none; font-weight: 600; font-size: 14px; padding: 13px 30px; border-radius: 999px; font-family: Arial, sans-serif;">${label}</a>
+  </div>`
+}
+
+/* Después del pago: el enlace para completar datos, hábitos y fotos. */
+export async function sendImagenFormEmail({ to, name, modality, formUrl }) {
+  const first = firstName(name)
+  const online = modality === "online"
+  const html = imgShell({
+    heading: `Tu asesoría está confirmada${first ? `, ${esc(first)}` : ""}`,
+    body: `
+      <p style="margin: 0 0 14px; color: #3d4148; font-size: 14px; line-height: 1.6;">Gracias por tu pago. El siguiente paso es contarnos de ti: tu objetivo, tus hábitos y ${online ? "unas fotos de tu cabeza desde 4 ángulos" : "cómo cuidas tu pelo hoy"}. Con eso Bruno prepara tu diagnóstico.</p>
+      ${imgButton(formUrl, "Completar mis datos")}
+      ${online ? `<div style="margin: 18px 0 0; padding: 16px 18px; background: #f5f4f1; border: 1px solid #e1e2e6; border-radius: 12px; font-size: 13px; color: #3d4148; line-height: 1.55;">
+        <p style="margin: 0 0 6px; font-family: Arial, sans-serif; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #5f646c;">Para tus fotos</p>
+        Luz natural de frente, sin filtros ni gorro, con el pelo seco y peinado como lo usas a diario: frontal, ambos perfiles y desde atrás.
+      </div>` : ""}
+      <p style="margin: 16px 0 0; color: #8b9098; font-size: 12px; line-height: 1.5;">Este enlace es personal: no lo compartas. Si tienes dudas, responde este correo o escríbenos por WhatsApp.</p>
+    `,
+  })
+  return sendViaResend({ to, subject: "Completa tus datos · Brunetti Image Studio", html })
+}
+
+/* El informe: PDF adjunto + resumen corto + (opcional) link temporal. */
+export async function sendImagenReportEmail({ to, name, faceShape, cuts = [], pdfBase64, filename, shareUrl }) {
+  const first = firstName(name)
+  const row = (label, value) => value
+    ? `<tr><td style="padding: 7px 0; color: #8b9098; border-bottom: 1px solid #eceef1;">${label}</td><td style="padding: 7px 0; text-align: right; font-weight: 600; border-bottom: 1px solid #eceef1;">${esc(value)}</td></tr>`
+    : ""
+  const html = imgShell({
+    heading: `Tu asesoría de imagen${first ? `, ${esc(first)}` : ""}`,
+    body: `
+      <p style="margin: 0 0 18px; color: #3d4148; font-size: 14px; line-height: 1.6;">Te dejo tu informe personalizado: tu diagnóstico, los cortes que te favorecen, tus productos, tu rutina de lavado y el plan de mantenimiento. Va completo en el PDF adjunto.</p>
+      <table style="width: 100%; border-collapse: collapse; font-size: 14px; color: #1d1f23;">
+        ${row("Tu rostro", faceShape)}
+        ${row(cuts.length > 1 ? "Tus cortes" : "Tu corte", cuts.slice(0, 3).join(" · "))}
+      </table>
+      ${shareUrl ? `<p style="margin: 16px 0 0; color: #3d4148; font-size: 13px;">¿No ves el adjunto? <a href="${shareUrl}" style="color: #1d1f23;">Ábrelo acá</a> (el enlace dura 30 días).</p>` : ""}
+      ${imgButton(`${SITE_URL}/reservar`, "Reservar mi próxima hora")}
+    `,
+  })
+  return sendViaResend({
+    to,
+    subject: "Tu asesoría de imagen · Brunetti Image Studio",
+    html,
+    attachments: pdfBase64 ? [{ filename: filename || "Asesoria-de-imagen.pdf", content: pdfBase64 }] : undefined,
+  })
+}
+
 /* Tarjeta de fidelidad: le manda al cliente su link personal /tarjeta?t=…
    El correo NO lleva el .pkpass adjunto a propósito — ese archivo solo sirve
    en iPhone, y el link resuelve las dos plataformas con un mismo mensaje: al
    abrirlo desde el celular aparece un único botón, Apple Wallet o Google
    Wallet según el teléfono. */
-/* Brief de visagismo (panel → Visagismo): el PDF va adjunto y el cuerpo
-   lleva un resumen corto (forma de rostro, corte y hasta 3 tips) para quien
-   no abra el adjunto. Ver api/_visagismo.js. */
-export async function sendVisagismoBriefEmail({ to, name, faceShape, cutName, tips = [], pdfBase64, filename }) {
-  const first = firstName(name)
-  const shortTips = (Array.isArray(tips) ? tips : []).map((t) => String(t || "").trim()).filter(Boolean).slice(0, 3)
-  const row = (label, value) => value
-    ? `<tr><td style="padding: 6px 0; color: #8a847d;">${label}</td><td style="padding: 6px 0; text-align: right; font-weight: 600;">${esc(value)}</td></tr>`
-    : ""
-  const tipsBlock = shortTips.length ? `
-    <div style="margin: 22px 0 0; padding: 18px; background: #faf6ec; border: 1px solid #e7dcc2; border-radius: 12px;">
-      <p style="margin: 0 0 10px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #b8912f;">Tips de Bruno</p>
-      <ul style="margin: 0; padding: 0 0 0 18px; color: #1c1a17; font-size: 14px; line-height: 1.5;">
-        ${shortTips.map((t) => `<li style="margin: 0 0 6px;">${esc(t)}</li>`).join("")}
-      </ul>
-    </div>
-  ` : ""
-
-  const html = `
-    <div style="font-family: Georgia, 'Times New Roman', serif; background: #f7f3ea; padding: 32px 16px;">
-      <div style="max-width: 480px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #e7e0d1;">
-        <div style="background: #16130f; padding: 24px; text-align: center;">
-          <img src="${LOGO_URL}" alt="Brunetticutz" width="220" style="width: 220px; max-width: 70%; height: auto; display: inline-block;" />
-        </div>
-        <div style="padding: 28px 24px;">
-          <h1 style="margin: 0 0 4px; font-size: 20px; color: #1c1a17;">Tu brief de visagismo${first ? `, ${esc(first)}` : ""}</h1>
-          <p style="margin: 0 0 20px; color: #4a453d; font-size: 14px;">Te dejo por escrito lo que vimos en tu asesoría. El detalle completo, con tus fotos del antes y el después, va en el PDF adjunto.</p>
-          <table style="width: 100%; border-collapse: collapse; font-size: 14px; color: #1c1a17;">
-            ${row("Tu rostro", faceShape)}
-            ${row("Tu corte ideal", cutName)}
-          </table>
-          ${tipsBlock}
-          <div style="text-align: center; margin: 26px 0 6px;">
-            <a href="${SITE_URL}/reservar" style="display: inline-block; background: #d9b158; color: #1c1a17; text-decoration: none; font-weight: 600; font-size: 14px; padding: 12px 28px; border-radius: 999px;">Reservar mi próxima hora</a>
-          </div>
-          <p style="margin: 14px 0 0; color: #8a847d; font-size: 12px; text-align: center;">Bruno · Brunetticutz</p>
-        </div>
-      </div>
-    </div>
-  `.trim()
-
-  return sendViaResend({
-    to,
-    subject: "Tu brief de visagismo · Brunetticutz",
-    html,
-    attachments: pdfBase64 ? [{ filename: filename || "Brief-visagismo.pdf", content: pdfBase64 }] : undefined,
-  })
-}
-
 export async function sendLoyaltyCardEmail({ to, name, url, stars = 0 }) {
   const first = String(name || "").trim().split(" ")[0] || ""
   const saldo = stars > 0

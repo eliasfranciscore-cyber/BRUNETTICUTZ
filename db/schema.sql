@@ -867,35 +867,130 @@ CREATE INDEX IF NOT EXISTS idx_aca_chat_members_member ON academy_chat_members (
 CREATE INDEX IF NOT EXISTS idx_aca_cohort_members_member ON academy_cohort_members (member_id);
 CREATE INDEX IF NOT EXISTS idx_aca_uploads_member ON academy_uploads (member_id, created_at);
 
--- Visagismo: brief que Bruno arma en el panel (pestaña Visagismo) y se manda
--- al cliente en PDF por correo. `shape` guarda la forma de rostro tal como se
--- mandó; `theme` = diseño del PDF (oro | plata | morado); `source` = 'panel' |
--- 'autoevaluacion' (fase 2, autoevaluación pagada).
--- La crea sola ensureVisagismoTable (api/_schema.js).
-CREATE TABLE IF NOT EXISTS visagismo_briefs (
-  id          SERIAL PRIMARY KEY,
-  client_id   INTEGER REFERENCES users(id) ON DELETE SET NULL,
-  booking_id  INTEGER REFERENCES bookings(id) ON DELETE SET NULL,
-  source      VARCHAR(20) NOT NULL DEFAULT 'panel',
-  status      VARCHAR(20) NOT NULL DEFAULT 'borrador',
-  name        VARCHAR(200),
-  phone       VARCHAR(20),
-  email       VARCHAR(300),
-  visit_date  DATE,
-  face_shape  VARCHAR(40),
-  shape       JSONB,
-  cut_name    VARCHAR(200),
-  cut_note    TEXT,
-  cut_img     TEXT,
-  theme       VARCHAR(20) NOT NULL DEFAULT 'plata',
-  tips        JSONB NOT NULL DEFAULT '[]'::jsonb,
-  notes       TEXT,
-  before_url  TEXT,
-  after_url   TEXT,
-  sent_at     TIMESTAMPTZ,
-  sent_to     VARCHAR(300),
-  send_count  INTEGER NOT NULL DEFAULT 0,
-  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+-- Brunetti Image Studio: asesorías de imagen (pestaña Image Studio del panel,
+-- /asesoria en la web). Una asesoría junta pago, ficha de ingreso (lo que
+-- declara el cliente), fotos de diagnóstico (Blob privado) y el diagnóstico de
+-- Bruno; las recomendaciones se aprueban una por una y cada informe PDF queda
+-- como versión aparte con el snapshot que lo originó. Las crea solo el panel
+-- (ensureImageTables, api/_schema.js); checkout y webhook las leen a la
+-- defensiva. Ver api/_imagen.js.
+CREATE TABLE IF NOT EXISTS image_products (
+  id           SERIAL PRIMARY KEY,
+  name         VARCHAR(200) NOT NULL,
+  brand        VARCHAR(120),
+  category     VARCHAR(30) NOT NULL,      -- pomada | cera | arcilla | polvo | crema | gel | spray | sea_salt | champu | acondicionador
+  img_url      TEXT,
+  description  TEXT,
+  hold         VARCHAR(20),               -- fijación: baja | media | alta
+  shine        VARCHAR(20),               -- brillo: mate | natural | alto
+  amount       VARCHAR(200),
+  application  TEXT,
+  usage        TEXT,
+  frequency    VARCHAR(200),
+  hair_types   JSONB NOT NULL DEFAULT '[]'::jsonb,   -- liso | ondulado | rizado | crespo
+  thickness    JSONB NOT NULL DEFAULT '[]'::jsonb,   -- fino | medio | grueso
+  conditions   JSONB NOT NULL DEFAULT '[]'::jsonb,   -- normal | seco | graso | mixto
+  needs        JSONB NOT NULL DEFAULT '[]'::jsonb,   -- caspa | sensible | frizz | volumen | ...
+  sold_here    BOOLEAN NOT NULL DEFAULT false,
+  product_id   INTEGER REFERENCES products(id) ON DELETE SET NULL,
+  price        INTEGER,
+  buy_url      TEXT,
+  active       BOOLEAN NOT NULL DEFAULT true,
+  reviewed_at  TIMESTAMPTZ,
+  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-CREATE INDEX IF NOT EXISTS idx_visagismo_briefs_phone ON visagismo_briefs (phone);
+
+CREATE TABLE IF NOT EXISTS image_consultations (
+  id                   SERIAL PRIMARY KEY,
+  client_id            INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  booking_id           INTEGER REFERENCES bookings(id) ON DELETE SET NULL,
+  source               VARCHAR(20) NOT NULL DEFAULT 'panel',            -- panel | web
+  modality             VARCHAR(20) NOT NULL DEFAULT 'presencial',       -- presencial | online
+  status               VARCHAR(30) NOT NULL DEFAULT 'datos_pendientes', -- pago_pendiente | datos_pendientes | en_revision | informe_listo | entregada | cancelada
+  payment_status       VARCHAR(20) NOT NULL DEFAULT 'en_local',         -- pendiente | pagada | en_local
+  price                INTEGER,
+  paid_amount          INTEGER,
+  payment_method       VARCHAR(30),
+  payment_ref          VARCHAR(120),
+  paid_at              TIMESTAMPTZ,
+  name                 VARCHAR(200),
+  phone                VARCHAR(20),
+  email                VARCHAR(300),
+  age                  INTEGER,
+  visit_date           DATE,
+  intake               JSONB NOT NULL DEFAULT '{}'::jsonb,
+  intake_submitted_at  TIMESTAMPTZ,
+  consent_at           TIMESTAMPTZ,
+  consent_by           VARCHAR(60),
+  consent_version      VARCHAR(20),
+  form_token           VARCHAR(64) UNIQUE,
+  diagnosis            JSONB NOT NULL DEFAULT '{}'::jsonb,
+  diagnosed_by         INTEGER REFERENCES barbers(id) ON DELETE SET NULL,
+  diagnosed_at         TIMESTAMPTZ,
+  next_followup        DATE,
+  notes                TEXT,
+  utm                  TEXT,
+  created_by           INTEGER REFERENCES barbers(id) ON DELETE SET NULL,
+  created_at           TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at           TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_image_consultations_phone ON image_consultations (phone);
+
+CREATE TABLE IF NOT EXISTS image_photos (
+  id               SERIAL PRIMARY KEY,
+  consultation_id  INTEGER NOT NULL REFERENCES image_consultations(id) ON DELETE CASCADE,
+  angle            VARCHAR(20) NOT NULL,   -- frontal | perfil_izq | perfil_der | posterior | superior
+  blob_url         TEXT NOT NULL,          -- Blob privado
+  content_type     VARCHAR(40),
+  uploaded_by      VARCHAR(60),            -- cliente | barbero:<id>
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_image_photos_consultation ON image_photos (consultation_id);
+
+CREATE TABLE IF NOT EXISTS image_recommendations (
+  id               SERIAL PRIMARY KEY,
+  consultation_id  INTEGER NOT NULL REFERENCES image_consultations(id) ON DELETE CASCADE,
+  kind             VARCHAR(20) NOT NULL,   -- corte | evitar | peinado | champu | acondicionador | rutina | consejo | mantenimiento
+  product_id       INTEGER REFERENCES image_products(id) ON DELETE SET NULL,
+  title            VARCHAR(200) NOT NULL,
+  detail           JSONB NOT NULL DEFAULT '{}'::jsonb,
+  reason           TEXT,
+  source           VARCHAR(20) NOT NULL DEFAULT 'manual',   -- regla | manual | ia
+  rule_id          VARCHAR(60),
+  status           VARCHAR(20) NOT NULL DEFAULT 'sugerida', -- sugerida | aprobada | descartada
+  edited           BOOLEAN NOT NULL DEFAULT false,
+  decided_by       INTEGER REFERENCES barbers(id) ON DELETE SET NULL,
+  decided_at       TIMESTAMPTZ,
+  position         INTEGER NOT NULL DEFAULT 0,
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_image_recommendations_consultation ON image_recommendations (consultation_id);
+
+CREATE TABLE IF NOT EXISTS image_reports (
+  id                SERIAL PRIMARY KEY,
+  consultation_id   INTEGER NOT NULL REFERENCES image_consultations(id) ON DELETE CASCADE,
+  version           INTEGER NOT NULL,
+  snapshot          JSONB NOT NULL,        -- diagnóstico + recomendaciones aprobadas tal como salieron
+  pdf_url           TEXT,                  -- Blob privado
+  created_by        INTEGER REFERENCES barbers(id) ON DELETE SET NULL,
+  created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  sent_at           TIMESTAMPTZ,
+  sent_to           VARCHAR(300),
+  send_count        INTEGER NOT NULL DEFAULT 0,
+  share_token       VARCHAR(64) UNIQUE,    -- link temporal /asesoria/informe/<token>
+  share_expires_at  TIMESTAMPTZ,
+  UNIQUE (consultation_id, version)
+);
+
+CREATE TABLE IF NOT EXISTS image_events (
+  id               SERIAL PRIMARY KEY,
+  consultation_id  INTEGER NOT NULL REFERENCES image_consultations(id) ON DELETE CASCADE,
+  actor            VARCHAR(20) NOT NULL,   -- cliente | sistema | barbero
+  actor_id         INTEGER,
+  action           VARCHAR(40) NOT NULL,
+  detail           JSONB,
+  created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_image_events_consultation ON image_events (consultation_id);

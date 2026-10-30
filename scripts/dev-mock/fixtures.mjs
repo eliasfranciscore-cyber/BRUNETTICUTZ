@@ -10,6 +10,8 @@
    curso, completada con y sin cobro, "pago por confirmar" (autocompletada),
    No vino, corte gratis canjeado y las que quedaron sin cerrar. */
 
+import { FACE_SHAPES } from '../../src/data/estilo.js'
+import { suggest } from '../../api/_imagenRules.js'
 export const TZ = 'America/Santiago'
 export const BRUNO_ID = 6
 export const LOYALTY_GOAL = 10
@@ -157,15 +159,10 @@ export function createState(now = new Date()) {
   // Asesoría visagista de AYER (servicio 10), al final del arreglo para no
   // correr los ids de las demás: es la que precarga la pestaña Visagismo.
   bookings.push(bk(-1, '09:00', 108, 10, 'completada', paid(D(-1), '11:00', 'tarjeta', 49990, '004990')))
-  // Un brief ya enviado (Martín, asesoría de hace 15 días).
-  const visagismo = [{
-    id: 1, clientId: 112, bookingId: bookings.find((b) => b.date === D(-15) && b.time === '16:00').id,
-    source: 'panel', status: 'enviado', name: 'Martín Castillo', phone: '976543210', email: 'martin.castillo@gmail.com',
-    visitDate: D(-15), faceShape: 'cuadrado', shape: null, theme: 'plata', cutName: 'Crop texturizado', cutNote: 'Suaviza la mandíbula sin perder estructura.', cutImg: '/assets/estilo/estilo-crop-rizado.jpg',
-    tips: ['Un poco de textura arriba suaviza la mandíbula marcada.', 'Repasa los lados cada 3 semanas.'], notes: null,
-    beforeUrl: null, afterUrl: null, sentAt: isoAt(D(-14), '10:00'), sentTo: 'martin.castillo@gmail.com', sendCount: 1,
-    createdAt: isoAt(D(-15), '18:30'), updatedAt: isoAt(D(-14), '10:00'),
-  }]
+  // Brunetti Image Studio: asesorías en todos los estados que el panel tiene
+  // que dibujar, y un catálogo de prueba (solo en el mock: en producción el
+  // catálogo lo carga Bruno, nada se inventa).
+  const imagen = imagenFixtures({ bookings, D, isoAt })
 
   // Bloqueos manuales de la agenda: `${date}|${slot}`.
   const blocks = new Set([`${today}|19:00`, `${D(1)}|13:00`, `${D(1)}|14:00`, `${D(2)}|09:00`])
@@ -283,13 +280,102 @@ export function createState(now = new Date()) {
     workshopPrice: 59990,
     workshopDate: `${D(24)}T10:00:00.000Z`,
     workshopPaymentsEnabled: true,
+    // Asesoría de imagen: online a la venta, presencial en pausa (WhatsApp).
+    asesoria: {
+      presencial: { price: 49990, enabled: false, info: 'En la barbería con Bruno: diagnóstico en vivo, corte y tu informe personalizado.' },
+      online: { price: 29990, enabled: true, info: 'Desde tu casa: respondes unas preguntas, subes 4 fotos y recibes tu informe por correo.' },
+    },
   }
 
   return {
     today, barbers, services, clients, bookings, blocks, products, moves, sales, expenses,
-    enrollments, shopOrders, notifications, reviews, campaigns, settings, visagismo,
-    seq: { visagismo: 1, booking: seq, move: moveSeq, sale: 7003, expense: expSeq, enrollment: enrSeq, order: 3002, client: 114, service: 16, product: 5, campaign: 31, block: 0 },
+    enrollments, shopOrders, notifications, reviews, campaigns, settings, imagen,
+    seq: { booking: seq, move: moveSeq, sale: 7003, expense: expSeq, enrollment: enrSeq, order: 3002, client: 114, service: 16, product: 5, campaign: 31, block: 0 },
     loginFailures: {},
     resetTokens: new Set(),
   }
+}
+
+/* ---------- Brunetti Image Studio ---------- */
+// Un token fijo para probar el formulario público sin pasar por el pago:
+// /asesoria/datos?t=0123456789abcdef0123456789abcdef
+export const DEMO_FORM_TOKEN = '0123456789abcdef0123456789abcdef'
+
+function imagenFixtures({ bookings, D, isoAt }) {
+  const face = (id) => {
+    const f = FACE_SHAPES.find((x) => x.id === id)
+    return { id: f.id, name: f.name, tagline: f.tagline, traits: f.traits, diagnosis: f.diagnosis, goal: f.goal, avoid: f.avoid, path: f.path, tips: f.tips, best: f.best.map(({ name, note, img }) => ({ name, note, img })) }
+  }
+  const prod = (id, p) => ({
+    id, name: p.name, brand: p.brand || null, category: p.category, imgUrl: p.imgUrl || null, description: p.description || null,
+    hold: p.hold || null, shine: p.shine || null, amount: p.amount || null, application: p.application || null, usage: p.usage || null,
+    frequency: p.frequency || null, hairTypes: p.hairTypes || [], thickness: p.thickness || [], conditions: p.conditions || [], needs: p.needs || [],
+    soldHere: Boolean(p.soldHere), productId: p.productId || null, price: p.price ?? null, buyUrl: p.buyUrl || null, active: true,
+    reviewedAt: p.reviewed ? isoAt(D(-3), '10:00') : null, updatedAt: isoAt(D(-3), '10:00'),
+  })
+  const products = [
+    prod(1, { name: 'Cera mate Brunetti', brand: 'Brunetti', category: 'cera', hold: 'Media', shine: 'Mate', hairTypes: ['Liso', 'Ondulado'], thickness: ['Medio', 'Grueso'], amount: 'Del tamaño de una arveja', application: 'Frótala entre las palmas y aplícala con el pelo seco, de atrás hacia adelante.', frequency: 'A diario', soldHere: true, productId: 2, reviewed: true }),
+    prod(2, { name: 'Shampoo anticaspa', brand: 'Barber Club', category: 'champu', needs: ['Anticaspa', 'Uso diario'], usage: 'Masajea el cuero cabelludo un minuto y enjuaga.', frequency: '2 a 3 veces por semana', soldHere: true, productId: 4, reviewed: true }),
+    prod(3, { name: 'Polvo texturizador (demo)', brand: 'Marca demo', category: 'polvo', hold: 'Media', shine: 'Mate', thickness: ['Fino', 'Medio'], amount: 'Una pizca', application: 'Espolvorea en la raíz con el pelo seco y peina con los dedos.', frequency: 'A diario', buyUrl: 'https://ejemplo.cl/polvo' }),
+    prod(4, { name: 'Champú purificante (demo)', brand: 'Marca demo', category: 'champu', needs: ['Cabello graso', 'Limpieza profunda'], usage: 'Solo en el cuero cabelludo; deja actuar un minuto.', frequency: 'Día por medio', buyUrl: 'https://ejemplo.cl/champu' }),
+    prod(5, { name: 'Acondicionador ligero (demo)', brand: 'Marca demo', category: 'acondicionador', needs: ['Cabello fino', 'Hidratante'], amount: 'Media moneda', application: 'De medios a puntas; enjuaga al minuto.' }),
+    prod(6, { name: 'Crema para rizos (demo)', brand: 'Marca demo', category: 'crema', hold: 'Baja', shine: 'Natural', hairTypes: ['Ondulado', 'Rizado', 'Crespo'], needs: ['Frizz', 'Rizos'], application: 'Con el pelo húmedo, de medios a puntas, apretando los rizos.' }),
+  ]
+  const base = {
+    clientId: null, bookingId: null, source: 'panel', modality: 'presencial', status: 'datos_pendientes', paymentStatus: 'en_local',
+    price: null, paidAmount: null, paymentMethod: null, paymentRef: null, paidAt: null, email: null, age: null, visitDate: null,
+    intake: {}, intakeSubmittedAt: null, consentAt: null, consentBy: null, consentVersion: null, diagnosis: {},
+    diagnosedBy: null, diagnosedAt: null, nextFollowup: null, notes: null, utm: null, createdBy: 6,
+  }
+  const yesterday = bookings.find((b) => b.date === D(-1) && b.serviceId === 10)
+  const martinBooking = bookings.find((b) => b.date === D(-15) && b.time === '16:00')
+  const consultations = [
+    { ...base, id: 1, clientId: 112, bookingId: martinBooking?.id ?? null, status: 'entregada', paymentStatus: 'pagada', paidAmount: 49990, paymentMethod: 'reserva', paidAt: isoAt(D(-15), '17:00'),
+      name: 'Martín Castillo', phone: '976543210', email: 'martin.castillo@gmail.com', age: 34, visitDate: D(-15), formToken: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      intake: { goal: 'Un corte que se vea bien sin peinarme mucho para la oficina.', style: 'Moderno', styleTime: 'Hasta 5 minutos', finish: 'Mate', washFreq: 'A diario', water: 'Caliente', drying: 'Toalla', needs: ['Caspa'], currentProducts: 'Gel del supermercado' },
+      intakeSubmittedAt: isoAt(D(-16), '20:00'), consentAt: isoAt(D(-16), '20:00'), consentBy: 'cliente', consentVersion: '2026-10',
+      diagnosis: { face: face('cuadrado'), skull: { occipital: 'Normal', projection: 'Media', height: 'Media', sides: 'Equilibradas', notes: null }, hair: { type: 'Liso', thickness: 'Grueso', density: 'Alta', condition: 'Normal', frizz: 'No', volume: 'Alto', porosity: 'No evaluada', sensitivity: 'No', loss: 'No', notes: null }, observations: 'Remolino marcado en la coronilla: conviene dejar algo más de largo ahí.' },
+      diagnosedBy: 6, diagnosedAt: isoAt(D(-15), '17:30'), nextFollowup: D(13), notes: 'Martín, con la cera mate y el repaso cada 4 semanas vas a mantener la forma sin esfuerzo.',
+      createdAt: isoAt(D(-17), '12:00'), updatedAt: isoAt(D(-14), '10:00') },
+    { ...base, id: 2, clientId: 108, bookingId: yesterday?.id ?? null, status: 'en_revision', paymentStatus: 'pagada', paidAmount: 49990, paymentMethod: 'reserva', paidAt: isoAt(D(-1), '11:00'),
+      name: 'Cristóbal Pérez', phone: '961234578', email: 'cristobal.perez@gmail.com', visitDate: D(-1), formToken: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
+      intake: { goal: 'Dejar de verme la cara tan redonda.', style: 'Clásico', finish: 'Natural', washFreq: 'Día por medio', needs: ['Grasa', 'Poco volumen'] },
+      consentAt: isoAt(D(-1), '09:05'), consentBy: 'barbero:6', consentVersion: '2026-10',
+      diagnosis: { face: face('redondo'), skull: { occipital: 'Plana', projection: 'Baja', height: 'Media', sides: 'Anchas', notes: null }, hair: { type: 'Liso', thickness: 'Fino', density: 'Media', condition: 'Graso', frizz: 'No', volume: 'Bajo', porosity: 'No evaluada', sensitivity: 'No', loss: 'Leve', notes: null }, observations: null },
+      diagnosedBy: 6, diagnosedAt: isoAt(D(-1), '10:40'), createdAt: isoAt(D(-1), '09:00'), updatedAt: isoAt(D(-1), '10:40') },
+    { ...base, id: 3, clientId: 109, source: 'web', modality: 'online', status: 'en_revision', paymentStatus: 'pagada', price: 29990, paidAmount: 29990, paymentMethod: 'mercadopago', paymentRef: 'mock_demo_3', paidAt: isoAt(D(-2), '19:10'),
+      name: 'Agustín Soto', phone: '989012345', email: 'agustin.soto@icloud.com', age: 27, formToken: 'cccccccccccccccccccccccccccccccc',
+      intake: { goal: 'Quiero dejarme crecer el pelo arriba sin que se vea desordenado.', style: 'Atrevido', styleTime: 'Más de 5 minutos', finish: 'Natural', length: 'Dejar crecer', washFreq: '2 a 3 veces por semana', water: 'Tibia', drying: 'Al aire', needs: ['Frizz', 'Resequedad'], currentProducts: 'Ninguno', habits: 'Voy al gimnasio 4 veces por semana.' },
+      intakeSubmittedAt: isoAt(D(-2), '20:02'), consentAt: isoAt(D(-2), '19:40'), consentBy: 'cliente', consentVersion: '2026-10', utm: '/asesoria · utm_source=instagram',
+      createdAt: isoAt(D(-2), '19:05'), updatedAt: isoAt(D(-2), '20:02') },
+    { ...base, id: 4, source: 'web', modality: 'online', status: 'pago_pendiente', paymentStatus: 'pendiente', price: 29990,
+      name: 'Ignacio Vargas', phone: '954321876', email: 'ignacio.vargas@gmail.com', formToken: 'dddddddddddddddddddddddddddddddd',
+      createdAt: isoAt(D(-1), '22:15'), updatedAt: isoAt(D(-1), '22:15') },
+    { ...base, id: 5, clientId: 113, source: 'web', modality: 'online', status: 'datos_pendientes', paymentStatus: 'pagada', price: 29990, paidAmount: 29990, paymentMethod: 'mercadopago', paymentRef: 'mock_demo_5', paidAt: isoAt(D(0), '08:30'),
+      name: 'Lucas Herrera', phone: '918273645', email: 'lucas.herrera@gmail.com', formToken: DEMO_FORM_TOKEN,
+      createdAt: isoAt(D(0), '08:25'), updatedAt: isoAt(D(0), '08:30') },
+  ]
+  const photos = [
+    ['frontal', 'estilo-mullet-rizado.jpg'], ['perfil_izq', 'estilo-crop-rizado-corto.jpg'], ['perfil_der', 'estilo-crop-rizado.jpg'], ['posterior', 'estilo-mullet-shag.jpg'],
+  ].map(([angle, img], i) => ({ id: i + 1, consultationId: 3, angle, src: `/assets/estilo/${img}`, uploadedBy: 'cliente', createdAt: isoAt(D(-2), '19:50') }))
+
+  // Martín: sugerencias ya revisadas por Bruno y un informe v1 entregado.
+  const out = suggest({ diagnosis: consultations[0].diagnosis, intake: consultations[0].intake, catalog: products })
+  const recs = out.items.map((it, i) => ({
+    id: i + 1, consultationId: 1, kind: it.kind, productId: it.productId ?? null, title: it.title, detail: it.detail || {}, reason: it.reason || null,
+    source: 'regla', ruleId: it.ruleId, status: it.kind === 'corte' && i === 1 ? 'descartada' : 'aprobada', edited: i === 0,
+    decidedBy: 6, decidedByName: 'Bruno Herrera', decidedAt: isoAt(D(-15), '18:00'), position: i + 1,
+  }))
+  const reports = [{ id: 1, consultationId: 1, version: 1, snapshot: null, createdAt: isoAt(D(-15), '18:10'), sentAt: isoAt(D(-14), '10:00'), sentTo: 'martin.castillo@gmail.com', sendCount: 1, shareToken: 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee', shareExpiresAt: isoAt(D(15), '10:00') }]
+  const ev = (id, consultationId, actor, action, at, detail = null) => ({ id, consultationId, actor, actorName: actor === 'barbero' ? 'Bruno Herrera' : null, action, detail, at })
+  const events = [
+    ev(1, 1, 'barbero', 'envio_correo', isoAt(D(-14), '10:00'), { version: 1, to: 'martin.castillo@gmail.com' }),
+    ev(2, 1, 'barbero', 'informe', isoAt(D(-15), '18:10'), { version: 1 }),
+    ev(3, 1, 'barbero', 'diagnostico', isoAt(D(-15), '17:30'), { face: 'Cuadrado' }),
+    ev(4, 3, 'cliente', 'datos_enviados', isoAt(D(-2), '20:02'), { photos: 4 }),
+    ev(5, 3, 'sistema', 'pago', isoAt(D(-2), '19:10'), { amount: 29990, method: 'mercadopago' }),
+    ev(6, 2, 'barbero', 'diagnostico', isoAt(D(-1), '10:40'), { face: 'Redondo' }),
+    ev(7, 5, 'sistema', 'pago', isoAt(D(0), '08:30'), { amount: 29990, method: 'mercadopago' }),
+  ]
+  return { consultations, photos, recs, reports, events, products, seq: { consultation: 5, photo: photos.length, rec: recs.length, report: 1, event: events.length, product: products.length } }
 }

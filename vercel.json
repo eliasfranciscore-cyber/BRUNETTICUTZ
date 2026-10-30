@@ -3,16 +3,18 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "functions": {
-    "api/clients.js": { "includeFiles": "api/_assets/visagismo/**" }
+    "api/clients.js": { "includeFiles": "api/_assets/imagen/**" }
   },
   "rewrites": [
     { "source": "/api/register-client", "destination": "/api/clients?mode=register" },
     { "source": "/api/csp-report", "destination": "/api/push?job=csp-report" },
     { "source": "/api/academy", "destination": "/api/services?scope=academy" },
+    { "source": "/asesoria/informe/:token", "destination": "/api/clients?mode=imagen-informe&t=:token" },
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/metodo", "destination": "/metodo.html" },
     { "source": "/cursos", "destination": "/cursos.html" },
     { "source": "/workshop", "destination": "/workshop.html" },
+    { "source": "/asesoria", "destination": "/asesoria.html" },
     { "source": "/((?!assets/).*)", "destination": "/index.html" }
   ],
   "headers": [

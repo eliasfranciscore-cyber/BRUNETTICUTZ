@@ -36,6 +36,7 @@ const ONLINE_TYPES = [
   { id: 'cursos', label: 'Cursos' },
   { id: 'workshop', label: 'Workshop' },
   { id: 'essentials', label: 'Essentials' },
+  { id: 'asesoria', label: 'Asesorías' },
 ]
 
 // Montos con signo legible: "−$12.000" y no "$-12.000".

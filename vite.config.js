@@ -24,7 +24,7 @@ const academyDevMock = process.env.VITE_DEV_MOCKS === '1'
 
 // A dónde vuelve el navegador después de pagar. Essentials tiene su propia
 // página de gracias (igual que los back_urls de api/mp-payments.js).
-const SOURCE_PATHS = { cursos: '/cursos', workshop: '/workshop', essentials: '/essentials/gracias' }
+const SOURCE_PATHS = { cursos: '/cursos', workshop: '/workshop', essentials: '/essentials/gracias', asesoria: '/asesoria/gracias' }
 
 const mockMpPlugin = {
   name: 'mock-mercadopago',

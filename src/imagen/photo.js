@@ -1,11 +1,12 @@
-/* Foto del antes / después del brief de visagismo → dataURL JPEG.
+/* Foto de diagnóstico de Brunetti Image Studio → dataURL JPEG. La usan el
+   panel (ficha de la asesoría) y el formulario público (/asesoria/datos).
 
    Siempre se vuelve a codificar en un canvas, como en src/academy/upload.js
    (que no se toca acá: es código compartido con PimpStudio y el sync lo
    pisaría). Dos diferencias con aquel:
-     - Siempre JPEG, nunca WebP: el PDF lo arma pdf-lib en el servidor y
-       pdf-lib no sabe leer WebP.
-     - Un poco más grande (1600 px): la foto va a media plana de un A4.
+     - Siempre JPEG, nunca WebP: el servidor solo acepta JPEG/PNG (pdf-lib
+       no sabe leer WebP).
+     - Un poco más grande (1600 px): Bruno diagnostica con ellas.
    Re-codificar también saca el EXIF (la ubicación GPS de la foto) y endereza
    la orientación del iPhone. Un HEIC lo decodifica Safari; si el navegador
    no puede, se avisa en vez de mandar algo que el servidor va a rechazar. */

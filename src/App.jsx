@@ -115,6 +115,10 @@ const EssentialsGracias = lazy(() => import('./pages/EssentialsGracias.jsx'))
 const CardShare = lazy(() => import('./pages/CardShare.jsx'))
 const Review = lazy(() => import('./pages/Review.jsx'))
 const ResetPassword = lazy(() => import('./pages/ResetPassword.jsx'))
+// Brunetti Image Studio: página de venta, vuelta del pago y formulario de ingreso.
+const Asesoria = lazy(() => import('./pages/Asesoria.jsx'))
+const AsesoriaGracias = lazy(() => import('./pages/AsesoriaGracias.jsx'))
+const AsesoriaDatos = lazy(() => import('./pages/AsesoriaDatos.jsx'))
 
 function RouteFallback() {
   return (
@@ -139,6 +143,9 @@ export default function App() {
               <Route path="/metodo"   element={<Metodo />} />
               <Route path={`${ACADEMY_BASE}/*`} element={<AcademyRoot />} />
               <Route path="/style"    element={FEATURES.tuEstilo ? <EncuentraEstilo /> : <Navigate to="/" replace />} />
+              {FEATURES.imageStudio && <Route path="/asesoria" element={<Asesoria />} />}
+              {FEATURES.imageStudio && <Route path="/asesoria/gracias" element={<AsesoriaGracias />} />}
+              {FEATURES.imageStudio && <Route path="/asesoria/datos" element={<AsesoriaDatos />} />}
               <Route path="/essentials" element={<Essentials />} />
               <Route path="/essentials/gracias" element={<EssentialsGracias />} />
               <Route path="/encuentra-tu-estilo" element={<Navigate to={FEATURES.tuEstilo ? '/style' : '/'} replace />} />

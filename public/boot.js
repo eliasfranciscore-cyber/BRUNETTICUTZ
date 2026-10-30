@@ -45,7 +45,7 @@
   } catch (e) { document.documentElement.setAttribute('data-theme', 'dark'); }
 })();
 (function () {
-  var ZOOMABLE = ['/', '/metodo', '/cursos', '/workshop', '/essentials', '/essentials/gracias', '/style'];
+  var ZOOMABLE = ['/', '/metodo', '/cursos', '/workshop', '/essentials', '/essentials/gracias', '/style', '/asesoria', '/asesoria/gracias', '/asesoria/datos'];
   var BASE = 'width=device-width, initial-scale=1.0, viewport-fit=cover';
   function standalone() {
     try {

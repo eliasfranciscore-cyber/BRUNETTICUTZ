@@ -1,20 +1,22 @@
-/* Arte fijo del PDF de visagismo (api/_visagismoPdf.js), por tema.
+/* Arte fijo del informe de Brunetti Image Studio (api/_imagenPdf.js),
+   diseño Plata.
 
-     node scripts/brand/build-visagismo-assets.mjs
+     node scripts/brand/build-imagen-assets.mjs
 
    pdf-lib no sabe dibujar degradados, brillos ni texturas: eso se dibuja acá
    una sola vez con Chrome headless (HTML + CSS + SVG) y se guarda en
-   api/_assets/visagismo/, que la función lee del disco (vercel.json lo
-   incluye con includeFiles). Por tema:
+   api/_assets/imagen/, que la función lee del disco (vercel.json lo incluye
+   con includeFiles):
 
-     bg-<tema>.jpg        fondo A4 a 2x (1190×1684): degradado, grano, marco
-                          doble con estrellas en las esquinas y el monograma
-                          de marca de agua.
-     wordmark-<tema>.png  el wordmark "Brunetticutz" en ese metal (oro = el
-                          del sitio; morado = el del Workshop; plata = el de
-                          oro pasado a cromo).
-     monogram-<tema>.png  el monograma "B cutz" (vectorial, del SVG de
-                          grabado) con relleno metálico, fondo transparente.
+     bg.jpg        fondo A4 a 2x (1190×1684): papel perla, grano, marco doble
+                   con estrellas en las esquinas y el monograma de marca de
+                   agua.
+     wordmark.png  el wordmark "Brunetticutz" del sitio pasado a cromo.
+     monogram.png  el monograma "B cutz" (vectorial, del SVG de grabado) con
+                   relleno cromado, fondo transparente.
+
+   La tabla THEMES conserva las paletas de oro y morado que se probaron:
+   solo se genera la de PLATA (la oficial).
 
    Requiere Google Chrome instalado (macOS) y `sips` (viene con macOS) para
    pasar los fondos a JPEG. Las fuentes no se generan acá: son los TTF de
@@ -27,7 +29,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..')
-const OUT = path.join(ROOT, 'api/_assets/visagismo')
+const OUT = path.join(ROOT, 'api/_assets/imagen')
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'vis-assets-'))
 const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 
@@ -160,16 +162,17 @@ function shoot(html, [w, h], out, { transparent = false } = {}) {
 }
 
 fs.mkdirSync(OUT, { recursive: true })
-for (const [name, t] of Object.entries(THEMES)) {
-  const png = path.join(TMP, `bg-${name}.png`)
+{
+  const t = THEMES.plata
+  const png = path.join(TMP, 'bg.png')
   shoot(backgroundHtml(t), [W, H], png)
-  execFileSync('sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '84', png, '--out', path.join(OUT, `bg-${name}.jpg`)], { stdio: 'ignore' })
+  execFileSync('sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '84', png, '--out', path.join(OUT, 'bg.jpg')], { stdio: 'ignore' })
 
   // 1200 px de ancho; el alto sale del archivo de origen (~430 px).
-  shoot(wordmarkHtml(t), [1200, 440], path.join(OUT, `wordmark-${name}.png`), { transparent: true })
+  shoot(wordmarkHtml(t), [1200, 440], path.join(OUT, 'wordmark.png'), { transparent: true })
 
   const mono = monogramHtml(t)
-  shoot(mono.html, mono.size, path.join(OUT, `monogram-${name}.png`), { transparent: true })
-  console.log('✓', name)
+  shoot(mono.html, mono.size, path.join(OUT, 'monogram.png'), { transparent: true })
+  console.log('✓ plata')
 }
 fs.rmSync(TMP, { recursive: true, force: true })

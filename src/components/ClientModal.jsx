@@ -8,6 +8,7 @@ import {
   Field, Button, IconButton, Chip, ProgressBar, SectionLabel,
 } from './panel/index.js'
 import { StatusChip } from '../pages/panel/BookingDetailSheet.jsx'
+import { STATUSES as IMAGE_STATUSES, MODALITIES } from '../imagen/vocab.js'
 import '../styles/panel/clientes.css'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -39,7 +40,8 @@ const formOf = (c) => ({
  *  client, history, startEditing
  *  onClose, onSave(updated), onDelete(client), onSchedule(client)
  *  ctx — el `dash` del panel: se usan `admin`, `sendWalletCard`,
- *        `walletSendingId` y `clientKey` (todos opcionales).
+ *        `walletSendingId`, `clientKey`, `authHeaders` y `navigate` (todos
+ *        opcionales).
  */
 export default function ClientModal({ client, history = [], startEditing = false, onClose, onSave, onDelete, onSchedule, ctx = {} }) {
   const { sendWalletCard, walletSendingId, clientKey, admin } = ctx || {}
@@ -231,6 +233,10 @@ export default function ClientModal({ client, history = [], startEditing = false
               </Button>
             )}
 
+            {admin && FEATURES.imageStudio && ctx?.authHeaders && c.phone && (
+              <ImageConsultations phone={c.phone} ctx={ctx} onOpen={onClose} />
+            )}
+
             <div>
               <SectionLabel>Historial de reservas</SectionLabel>
               {(history || []).length === 0 ? (
@@ -273,5 +279,48 @@ export default function ClientModal({ client, history = [], startEditing = false
         confirmLabel="Eliminar"
       />
     </>
+  )
+}
+
+/* Asesorías de imagen del cliente (Image Studio). Si tiene una en curso con
+   su ficha enviada, va arriba como aviso: así Bruno sabe qué conversar
+   cuando llega. Tocar una abre la pestaña Image Studio en esa asesoría. */
+function ImageConsultations({ phone, ctx, onOpen }) {
+  const [list, setList] = useState(null)
+  useEffect(() => {
+    let live = true
+    setList(null)
+    fetch(`/api/clients?mode=imagen&phone=${encodeURIComponent(phone)}`, { headers: ctx.authHeaders() })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => { if (live) setList(json?.consultations || []) })
+      .catch(() => { if (live) setList([]) })
+    return () => { live = false }
+  }, [phone]) // eslint-disable-line react-hooks/exhaustive-deps
+  if (!list || list.length === 0) return null
+  const open = (id) => { ctx.navigate?.(`/panel?tab=imagen&imgId=${id}`); onOpen?.() }
+  const pending = list.find((x) => x.intakeSubmittedAt && !['entregada', 'cancelada'].includes(x.status))
+  const label = (id) => IMAGE_STATUSES.find((x) => x.id === id)
+  return (
+    <div>
+      <SectionLabel>Asesorías de imagen</SectionLabel>
+      {pending && (
+        <p className="pn-client-note">
+          <Icon name="sparkles" size={14} /> Completó su ficha de asesoría {pending.modality === 'online' ? 'online' : 'presencial'}
+          {pending.faceName ? ` · ${pending.faceName}` : ''}: revísala antes de que llegue.
+        </p>
+      )}
+      <List>
+        {list.map((x) => (
+          <ListRow
+            key={x.id}
+            title={`Asesoría ${(MODALITIES.find((m) => m.id === x.modality)?.label || '').toLowerCase()}`}
+            subtitle={[x.visitDate ? fmtDate(x.visitDate, 'short') : null, x.faceName, x.lastVersion ? `informe v${x.lastVersion}` : null].filter(Boolean).join(' · ')}
+            meta={<Chip tone={label(x.status)?.tone || 'muted'}>{label(x.status)?.label || x.status}</Chip>}
+            chevron
+            onClick={() => open(x.id)}
+          />
+        ))}
+      </List>
+    </div>
   )
 }

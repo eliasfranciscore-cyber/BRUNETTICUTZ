@@ -371,60 +371,193 @@ export const ensureEnrollmentColumns = once(async (sql) => {
 })
 
 /* ---------------------------------------------------------------------------
-   visagismo_briefs — el brief de visagismo que Bruno arma en el panel
-   (pestaña Visagismo) y se le manda al cliente en PDF. Ver api/_visagismo.js.
-     shape      foto de la forma de rostro TAL COMO SE MANDÓ (nombre,
-                diagnóstico, rasgos, objetivo, "evita", silueta): si después
-                se editan los textos de /style, el PDF de un brief viejo no
-                cambia.
-     tips       lista de strings.
-     theme      diseño del PDF: 'plata' (el oficial) | 'oro' | 'morado'
-                (THEMES en api/_visagismoPdf.js).
-     cut_img    foto de referencia del corte (/assets/estilo/…).
-     source     'panel' (lo arma Bruno) | 'autoevaluacion' (fase 2: el
-                cliente la paga y la completa solo en la web).
-     status     'borrador' | 'enviado'.
+   Brunetti Image Studio — asesorías de imagen (pestaña Image Studio del panel,
+   /asesoria en la web). Ver api/_imagen.js, api/_imagenForm.js y
+   api/_imagenRules.js. Una asesoría junta su pago, la ficha de ingreso que
+   llena el cliente, sus fotos y el diagnóstico de Bruno; las recomendaciones
+   se aprueban una por una y cada informe PDF queda como versión aparte con la
+   foto (snapshot) de lo que lo originó.
+
+     image_consultations
+       status          'pago_pendiente' | 'datos_pendientes' | 'en_revision'
+                       | 'informe_listo' | 'entregada' | 'cancelada'
+       payment_status  'pendiente' (web, sin pagar) | 'pagada' | 'en_local'
+                       (se cobra en la barbería, con la reserva)
+       intake          lo que declaró el cliente (objetivo, hábitos, lavado,
+                       productos actuales, necesidades). No es diagnóstico.
+       diagnosis       lo que registra Bruno: rostro (con la foto de la forma),
+                       cráneo, cabello y observaciones.
+       form_token      llave del formulario público /asesoria/datos?t=.
+     image_photos      fotos de diagnóstico, en Blob PRIVADO (se sirven por
+                       proxy con sesión).
+     image_products    catálogo de la asesoría (peinado, champú,
+                       acondicionador); product_id lo ata a Essentials cuando
+                       se vende en la barbería.
+     image_recommendations  'sugerida' | 'aprobada' | 'descartada'; solo las
+                       aprobadas entran al informe.
+     image_reports     versión N del informe: snapshot + PDF en Blob privado +
+                       link temporal para WhatsApp (share_token).
+     image_events      quién hizo qué (cliente, sistema o un barbero).
+
+   Las crea solo el panel: el checkout y el webhook de Mercado Pago las leen a
+   la defensiva (to_regclass) y nunca corren este ensure.
    ------------------------------------------------------------------------- */
-export const ensureVisagismoTable = once(async (sql) => {
-  const tables = await presentTables(sql, ["visagismo_briefs"])
-  if (!tables.has("visagismo_briefs")) {
+const IMAGE_TABLES = ["image_products", "image_consultations", "image_photos", "image_recommendations", "image_reports", "image_events"]
+export const ensureImageTables = once(async (sql) => {
+  const tables = await presentTables(sql, IMAGE_TABLES)
+  if (!tables.has("image_products")) {
     await sql`
-      CREATE TABLE IF NOT EXISTS visagismo_briefs (
-        id          SERIAL PRIMARY KEY,
-        client_id   INTEGER REFERENCES users(id) ON DELETE SET NULL,
-        booking_id  INTEGER REFERENCES bookings(id) ON DELETE SET NULL,
-        source      VARCHAR(20) NOT NULL DEFAULT 'panel',
-        status      VARCHAR(20) NOT NULL DEFAULT 'borrador',
-        name        VARCHAR(200),
-        phone       VARCHAR(20),
-        email       VARCHAR(300),
-        visit_date  DATE,
-        face_shape  VARCHAR(40),
-        shape       JSONB,
-        cut_name    VARCHAR(200),
-        cut_note    TEXT,
-        cut_img     TEXT,
-        theme       VARCHAR(20) NOT NULL DEFAULT 'plata',
-        tips        JSONB NOT NULL DEFAULT '[]'::jsonb,
-        notes       TEXT,
-        before_url  TEXT,
-        after_url   TEXT,
-        sent_at     TIMESTAMPTZ,
-        sent_to     VARCHAR(300),
-        send_count  INTEGER NOT NULL DEFAULT 0,
-        created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-        updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      CREATE TABLE IF NOT EXISTS image_products (
+        id           SERIAL PRIMARY KEY,
+        name         VARCHAR(200) NOT NULL,
+        brand        VARCHAR(120),
+        category     VARCHAR(30) NOT NULL,
+        img_url      TEXT,
+        description  TEXT,
+        hold         VARCHAR(20),
+        shine        VARCHAR(20),
+        amount       VARCHAR(200),
+        application  TEXT,
+        usage        TEXT,
+        frequency    VARCHAR(200),
+        hair_types   JSONB NOT NULL DEFAULT '[]'::jsonb,
+        thickness    JSONB NOT NULL DEFAULT '[]'::jsonb,
+        conditions   JSONB NOT NULL DEFAULT '[]'::jsonb,
+        needs        JSONB NOT NULL DEFAULT '[]'::jsonb,
+        sold_here    BOOLEAN NOT NULL DEFAULT false,
+        product_id   INTEGER REFERENCES products(id) ON DELETE SET NULL,
+        price        INTEGER,
+        buy_url      TEXT,
+        active       BOOLEAN NOT NULL DEFAULT true,
+        reviewed_at  TIMESTAMPTZ,
+        created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at   TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
     `
-  } else {
-    const present = await presentColumns(sql, "visagismo_briefs", ["cut_img", "theme"])
-    if (!present.has("cut_img") || !present.has("theme")) {
-      await sql`ALTER TABLE visagismo_briefs ADD COLUMN IF NOT EXISTS cut_img TEXT, ADD COLUMN IF NOT EXISTS theme VARCHAR(20) NOT NULL DEFAULT 'plata'`
-    }
   }
-  await guarded("idx_visagismo_briefs_phone", async () => {
-    if (!(await hasIndex(sql, "idx_visagismo_briefs_phone"))) {
-      await sql`CREATE INDEX IF NOT EXISTS idx_visagismo_briefs_phone ON visagismo_briefs (phone)`
+  if (!tables.has("image_consultations")) {
+    await sql`
+      CREATE TABLE IF NOT EXISTS image_consultations (
+        id                   SERIAL PRIMARY KEY,
+        client_id            INTEGER REFERENCES users(id) ON DELETE SET NULL,
+        booking_id           INTEGER REFERENCES bookings(id) ON DELETE SET NULL,
+        source               VARCHAR(20) NOT NULL DEFAULT 'panel',
+        modality             VARCHAR(20) NOT NULL DEFAULT 'presencial',
+        status               VARCHAR(30) NOT NULL DEFAULT 'datos_pendientes',
+        payment_status       VARCHAR(20) NOT NULL DEFAULT 'en_local',
+        price                INTEGER,
+        paid_amount          INTEGER,
+        payment_method       VARCHAR(30),
+        payment_ref          VARCHAR(120),
+        paid_at              TIMESTAMPTZ,
+        name                 VARCHAR(200),
+        phone                VARCHAR(20),
+        email                VARCHAR(300),
+        age                  INTEGER,
+        visit_date           DATE,
+        intake               JSONB NOT NULL DEFAULT '{}'::jsonb,
+        intake_submitted_at  TIMESTAMPTZ,
+        consent_at           TIMESTAMPTZ,
+        consent_by           VARCHAR(60),
+        consent_version      VARCHAR(20),
+        form_token           VARCHAR(64) UNIQUE,
+        diagnosis            JSONB NOT NULL DEFAULT '{}'::jsonb,
+        diagnosed_by         INTEGER REFERENCES barbers(id) ON DELETE SET NULL,
+        diagnosed_at         TIMESTAMPTZ,
+        next_followup        DATE,
+        notes                TEXT,
+        utm                  TEXT,
+        created_by           INTEGER REFERENCES barbers(id) ON DELETE SET NULL,
+        created_at           TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at           TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `
+  }
+  if (!tables.has("image_photos")) {
+    await sql`
+      CREATE TABLE IF NOT EXISTS image_photos (
+        id               SERIAL PRIMARY KEY,
+        consultation_id  INTEGER NOT NULL REFERENCES image_consultations(id) ON DELETE CASCADE,
+        angle            VARCHAR(20) NOT NULL,
+        blob_url         TEXT NOT NULL,
+        content_type     VARCHAR(40),
+        uploaded_by      VARCHAR(60),
+        created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `
+  }
+  if (!tables.has("image_recommendations")) {
+    await sql`
+      CREATE TABLE IF NOT EXISTS image_recommendations (
+        id               SERIAL PRIMARY KEY,
+        consultation_id  INTEGER NOT NULL REFERENCES image_consultations(id) ON DELETE CASCADE,
+        kind             VARCHAR(20) NOT NULL,
+        product_id       INTEGER REFERENCES image_products(id) ON DELETE SET NULL,
+        title            VARCHAR(200) NOT NULL,
+        detail           JSONB NOT NULL DEFAULT '{}'::jsonb,
+        reason           TEXT,
+        source           VARCHAR(20) NOT NULL DEFAULT 'manual',
+        rule_id          VARCHAR(60),
+        status           VARCHAR(20) NOT NULL DEFAULT 'sugerida',
+        edited           BOOLEAN NOT NULL DEFAULT false,
+        decided_by       INTEGER REFERENCES barbers(id) ON DELETE SET NULL,
+        decided_at       TIMESTAMPTZ,
+        position         INTEGER NOT NULL DEFAULT 0,
+        created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `
+  }
+  if (!tables.has("image_reports")) {
+    await sql`
+      CREATE TABLE IF NOT EXISTS image_reports (
+        id                SERIAL PRIMARY KEY,
+        consultation_id   INTEGER NOT NULL REFERENCES image_consultations(id) ON DELETE CASCADE,
+        version           INTEGER NOT NULL,
+        snapshot          JSONB NOT NULL,
+        pdf_url           TEXT,
+        created_by        INTEGER REFERENCES barbers(id) ON DELETE SET NULL,
+        created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        sent_at           TIMESTAMPTZ,
+        sent_to           VARCHAR(300),
+        send_count        INTEGER NOT NULL DEFAULT 0,
+        share_token       VARCHAR(64) UNIQUE,
+        share_expires_at  TIMESTAMPTZ,
+        UNIQUE (consultation_id, version)
+      )
+    `
+  }
+  if (!tables.has("image_events")) {
+    await sql`
+      CREATE TABLE IF NOT EXISTS image_events (
+        id               SERIAL PRIMARY KEY,
+        consultation_id  INTEGER NOT NULL REFERENCES image_consultations(id) ON DELETE CASCADE,
+        actor            VARCHAR(20) NOT NULL,
+        actor_id         INTEGER,
+        action           VARCHAR(40) NOT NULL,
+        detail           JSONB,
+        created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `
+  }
+  await guarded("idx_image_consultations_phone", async () => {
+    if (!(await hasIndex(sql, "idx_image_consultations_phone"))) {
+      await sql`CREATE INDEX IF NOT EXISTS idx_image_consultations_phone ON image_consultations (phone)`
+    }
+  })
+  await guarded("idx_image_photos_consultation", async () => {
+    if (!(await hasIndex(sql, "idx_image_photos_consultation"))) {
+      await sql`CREATE INDEX IF NOT EXISTS idx_image_photos_consultation ON image_photos (consultation_id)`
+    }
+  })
+  await guarded("idx_image_recommendations_consultation", async () => {
+    if (!(await hasIndex(sql, "idx_image_recommendations_consultation"))) {
+      await sql`CREATE INDEX IF NOT EXISTS idx_image_recommendations_consultation ON image_recommendations (consultation_id)`
+    }
+  })
+  await guarded("idx_image_events_consultation", async () => {
+    if (!(await hasIndex(sql, "idx_image_events_consultation"))) {
+      await sql`CREATE INDEX IF NOT EXISTS idx_image_events_consultation ON image_events (consultation_id)`
     }
   })
 })

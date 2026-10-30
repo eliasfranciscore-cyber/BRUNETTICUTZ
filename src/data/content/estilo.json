@@ -106,7 +106,7 @@
       "avoid": "Volúmenes extremos que exageren demasiado la angulosidad."
     },
     {
-      "name": "Alargado",
+      "name": "Rectangular",
       "tagline": "Vertical y elegante",
       "traits": [
         "Rostro más largo que ancho",
@@ -182,6 +182,32 @@
         }
       ],
       "avoid": "Lados rapados al extremo que estrechen el rostro."
+    },
+    {
+      "name": "Corazón",
+      "tagline": "Frente amplia, mentón fino",
+      "traits": [
+        "Frente ancha",
+        "Pómulos marcados",
+        "Mentón estrecho"
+      ],
+      "diagnosis": "Equilibramos una frente más ancha que la mandíbula: menos volumen arriba y algo de peso en la zona baja suavizan el contraste.",
+      "goal": "Restar ancho a la frente y dar cuerpo al mentón.",
+      "best": [
+        {
+          "name": "Flequillo ligero",
+          "note": "Cubre parte de la frente y la suaviza."
+        },
+        {
+          "name": "Texturizado medio",
+          "note": "Movimiento sin sumar altura."
+        },
+        {
+          "name": "Barba con cuerpo",
+          "note": "Da ancho y peso al mentón."
+        }
+      ],
+      "avoid": "Mucho volumen arriba o peinados hacia atrás que dejan la frente al descubierto."
     }
   ],
   "galeria": {
