@@ -225,8 +225,8 @@
     "semantic_hash": ""
   },
   "src/components/SiteNav.jsx": {
-    "mtime": 1793387195.0153055,
-    "ast_hash": "56e26013cc4a3a3df30c1204ab2a09e6",
+    "mtime": 1793405091.5665963,
+    "ast_hash": "d795e4c3b36edd4f680f695febd65673",
     "semantic_hash": ""
   },
   "src/components/brunetti.jsx": {
@@ -3630,8 +3630,8 @@
     "semantic_hash": ""
   },
   "scripts/brand/build-imagen-assets.mjs": {
-    "mtime": 1793387644.0106056,
-    "ast_hash": "1dd7324b4ab76688627dac5588902d43",
+    "mtime": 1793405075.735223,
+    "ast_hash": "a7f986d9b354318ed157652ec81efa7d",
     "semantic_hash": ""
   },
   "scripts/dev-mock/imagen.mjs": {
@@ -3650,8 +3650,8 @@
     "semantic_hash": ""
   },
   "src/pages/Asesoria.jsx": {
-    "mtime": 1793387434.6036022,
-    "ast_hash": "8cbde04b144b13f630e522562475d5be",
+    "mtime": 1793405099.731445,
+    "ast_hash": "770ba2f77aa668dc48b7877f1bdaa935",
     "semantic_hash": ""
   },
   "src/pages/AsesoriaDatos.jsx": {
@@ -3690,17 +3690,17 @@
     "semantic_hash": ""
   },
   "api/_assets/imagen/bg.jpg": {
-    "mtime": 1793368497.5758543,
+    "mtime": 1793405076.883753,
     "ast_hash": "c553ee7faad0a778bd365527ad75be06",
     "semantic_hash": ""
   },
   "api/_assets/imagen/monogram.png": {
-    "mtime": 1793368499.628432,
+    "mtime": 1793405078.1189573,
     "ast_hash": "0696c53a6816c730c58173e56738545d",
     "semantic_hash": ""
   },
   "api/_assets/imagen/wordmark.png": {
-    "mtime": 1793368498.621269,
+    "mtime": 1793405077.471559,
     "ast_hash": "137c72cebe4443d672d535306634286e",
     "semantic_hash": ""
   },
@@ -3727,6 +3727,11 @@
   "public/assets/email/brunetti-wordmark-plata.png": {
     "mtime": 1793386011.2903922,
     "ast_hash": "53aeb49b9f6085be7de04eabf0829876",
+    "semantic_hash": ""
+  },
+  "public/assets/brunetti-asesoria-wordmark.webp": {
+    "mtime": 1793405078.9540317,
+    "ast_hash": "28986a014ed9fb62e8d8d9081d642f1c",
     "semantic_hash": ""
   }
 }
