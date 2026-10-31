@@ -15,12 +15,17 @@
      monogram.png  el monograma "B cutz" (vectorial, del SVG de grabado) con
                    relleno cromado, fondo transparente.
 
+   Además escribe public/assets/brunetti-asesoria-wordmark.webp, el wordmark
+   plateado del menú de /asesoria (como el azul de Cursos y el morado del
+   Workshop): el mismo de oro pasado a cromo, pero claro, para fondo oscuro.
+
    La tabla THEMES conserva las paletas de oro y morado que se probaron:
    solo se genera la de PLATA (la oficial).
 
-   Requiere Google Chrome instalado (macOS) y `sips` (viene con macOS) para
-   pasar los fondos a JPEG. Las fuentes no se generan acá: son los TTF de
-   Google Fonts que están en api/_assets/visagismo/fonts/. */
+   Requiere Google Chrome instalado (macOS), `sips` (viene con macOS) para
+   pasar los fondos a JPEG y `cwebp` (brew install webp) para el del menú.
+   Las fuentes no se generan acá: son los TTF de Google Fonts que están en
+   api/_assets/imagen/fonts/. */
 
 import { execFileSync } from 'node:child_process'
 import fs from 'node:fs'
@@ -126,13 +131,16 @@ function backgroundHtml(t) {
   </body></html>`
 }
 
-function wordmarkHtml(t) {
-  const src = path.join(ROOT, t.wordmark.src)
+function wordmarkHtml({ src, filter }, width = 1200) {
   return `<!doctype html><html><head><style>
     html,body{margin:0;background:transparent}
-    img{display:block;width:1200px;height:auto;filter:${t.wordmark.filter}}
-  </style></head><body><img src="file://${src}"></body></html>`
+    img{display:block;width:${width}px;height:auto;filter:${filter}}
+  </style></head><body><img src="file://${path.join(ROOT, src)}"></body></html>`
 }
+
+// Wordmark del menú de /asesoria: mismo tamaño que los de oro, azul y morado
+// (1508×539), cromo claro para que se lea sobre la barra oscura.
+const NAV_WORDMARK = { src: 'public/assets/brunetti-hero-wordmark.webp', filter: 'grayscale(1) contrast(1.2)' }
 
 function monogramHtml(t) {
   const [, , vw, vh] = MONO_VIEWBOX.split(/\s+/).map(Number)
@@ -169,10 +177,16 @@ fs.mkdirSync(OUT, { recursive: true })
   execFileSync('sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '84', png, '--out', path.join(OUT, 'bg.jpg')], { stdio: 'ignore' })
 
   // 1200 px de ancho; el alto sale del archivo de origen (~430 px).
-  shoot(wordmarkHtml(t), [1200, 440], path.join(OUT, 'wordmark.png'), { transparent: true })
+  shoot(wordmarkHtml(t.wordmark), [1200, 440], path.join(OUT, 'wordmark.png'), { transparent: true })
 
   const mono = monogramHtml(t)
   shoot(mono.html, mono.size, path.join(OUT, 'monogram.png'), { transparent: true })
   console.log('✓ plata')
+}
+{
+  const png = path.join(TMP, 'nav-wordmark.png')
+  shoot(wordmarkHtml(NAV_WORDMARK, 1508), [1508, 539], png, { transparent: true })
+  execFileSync('cwebp', ['-quiet', '-q', '86', '-alpha_q', '100', png, '-o', path.join(ROOT, 'public/assets/brunetti-asesoria-wordmark.webp')])
+  console.log('✓ menú de /asesoria')
 }
 fs.rmSync(TMP, { recursive: true, force: true })

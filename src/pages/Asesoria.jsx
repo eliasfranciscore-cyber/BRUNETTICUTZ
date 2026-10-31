@@ -90,7 +90,6 @@ export default function Asesoria() {
         <section className="as-hero">
           <div className="bwrap as-hero-grid">
             <div className="as-hero-copy" data-reveal>
-              <img className="as-wordmark" src="/assets/email/brunetti-wordmark-plata.png" alt="Brunetticutz" width="560" height="190" />
               <span className="bhero-kicker"><span className="dot" /> Brunetti Image Studio</span>
               <h1 className="as-title">Tu imagen, diseñada con criterio.</h1>
               <p className="as-sub">
