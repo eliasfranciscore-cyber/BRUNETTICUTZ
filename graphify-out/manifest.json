@@ -180,8 +180,8 @@
     "semantic_hash": ""
   },
   "src/App.jsx": {
-    "mtime": 1793387195.0165107,
-    "ast_hash": "8bcc505f2a118109a6a46fa6ae40fa1a",
+    "mtime": 1793583238.8199997,
+    "ast_hash": "e5eec73730b166e1162dce664927f68f",
     "semantic_hash": ""
   },
   "src/bookingsStore.js": {
@@ -225,8 +225,8 @@
     "semantic_hash": ""
   },
   "src/components/SiteNav.jsx": {
-    "mtime": 1793405091.5665963,
-    "ast_hash": "d795e4c3b36edd4f680f695febd65673",
+    "mtime": 1793736421.3122873,
+    "ast_hash": "5c24d6d09386d0f9bb4b1446fdebc5f3",
     "semantic_hash": ""
   },
   "src/components/brunetti.jsx": {
@@ -295,13 +295,13 @@
     "semantic_hash": ""
   },
   "src/pages/EncuentraEstilo.jsx": {
-    "mtime": 1793385578.011192,
-    "ast_hash": "21e0d1542c1229668ab4925d97445d06",
+    "mtime": 1793733680.3358014,
+    "ast_hash": "4231b1fa182df1000e20b9a6d7717979",
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
-    "mtime": 1792970319.416884,
-    "ast_hash": "2395a9283f0f486f32daf4d0f78987d0",
+    "mtime": 1793736533.221841,
+    "ast_hash": "849ff9790766896dea0499fd8f3c8ae4",
     "semantic_hash": ""
   },
   "src/pages/Login.jsx": {
@@ -310,8 +310,8 @@
     "semantic_hash": ""
   },
   "src/pages/Workshop.jsx": {
-    "mtime": 1790270699.6386867,
-    "ast_hash": "7bbaf5796713365a1c3989937864747c",
+    "mtime": 1793733680.3350902,
+    "ast_hash": "3579340a9f05d6809e726aeea02c9d4f",
     "semantic_hash": ""
   },
   "src/push.js": {
@@ -340,8 +340,8 @@
     "semantic_hash": "8821dc65ef6d88a32b3d71aa793563c1"
   },
   "CLAUDE.md": {
-    "mtime": 1793387644.0100024,
-    "ast_hash": "df6e039740bd6eff33a592b96bee4cf4",
+    "mtime": 1793736719.5227342,
+    "ast_hash": "090711eaa9c1cee6e64cee12e132d306",
     "semantic_hash": ""
   },
   "IMPLEMENTATION_PLAN.md": {
@@ -1139,11 +1139,6 @@
     "ast_hash": "091c5e0bd7d95d635a39136a706421df",
     "semantic_hash": ""
   },
-  "src/components/ui/sparkles.jsx": {
-    "mtime": 1783903433.5798821,
-    "ast_hash": "878087bac7d68974edd9f12b64dddb80",
-    "semantic_hash": ""
-  },
   "public/assets/brunetti-cursos-wordmark.webp": {
     "mtime": 1783892476.0866573,
     "ast_hash": "0ac675699e954cb9f08c9accc7800419",
@@ -1225,8 +1220,8 @@
     "semantic_hash": ""
   },
   "src/pages/Essentials.jsx": {
-    "mtime": 1790270699.6343338,
-    "ast_hash": "57a8cb44b309438dfcdc2dcdc04bca4c",
+    "mtime": 1793733680.334309,
+    "ast_hash": "bca9fd24ef4f5a835d9518e24537b4fb",
     "semantic_hash": ""
   },
   "public/assets/products/polera-barber-club-1.png": {
@@ -3475,8 +3470,8 @@
     "semantic_hash": ""
   },
   "src/academy/hostLanding.jsx": {
-    "mtime": 1792970354.8183284,
-    "ast_hash": "f161981d5211af727c9b0e717bce5250",
+    "mtime": 1793733680.3362932,
+    "ast_hash": "bea014d305e4d7783a6f8221b0605b88",
     "semantic_hash": ""
   },
   "src/components/WhatsAppFab.jsx": {
@@ -3495,8 +3490,8 @@
     "semantic_hash": ""
   },
   "src/pages/Metodo.jsx": {
-    "mtime": 1792970415.8103514,
-    "ast_hash": "5cd23f410617b30846ad84a90058baf3",
+    "mtime": 1793733680.333648,
+    "ast_hash": "9f75160b69bbd2bdb7cceb55219b0dbb",
     "semantic_hash": ""
   },
   "src/pages/academy/Vitrina.jsx": {
@@ -3732,6 +3727,26 @@
   "public/assets/brunetti-asesoria-wordmark.webp": {
     "mtime": 1793405078.9540317,
     "ast_hash": "28986a014ed9fb62e8d8d9081d642f1c",
+    "semantic_hash": ""
+  },
+  ".codex/hooks.json": {
+    "mtime": 1793583012.5839195,
+    "ast_hash": "14432ca18734be8a10d1af16e6bf3062",
+    "semantic_hash": ""
+  },
+  "src/data/content/home-universo.json": {
+    "mtime": 1793733257.2233217,
+    "ast_hash": "2843ae0ea691330017f711cbb6be38e5",
+    "semantic_hash": ""
+  },
+  "src/pages/RedesignProposals.jsx": {
+    "mtime": 1793583785.274645,
+    "ast_hash": "17ca9b5c95bb237eef832452772c3490",
+    "semantic_hash": ""
+  },
+  "AGENTS.md": {
+    "mtime": 1793583012.582461,
+    "ast_hash": "3efedd0d518c519724d6bef2eb39a426",
     "semantic_hash": ""
   }
 }
