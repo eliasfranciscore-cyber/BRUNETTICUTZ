@@ -225,8 +225,8 @@
     "semantic_hash": ""
   },
   "src/components/SiteNav.jsx": {
-    "mtime": 1793742694.9476304,
-    "ast_hash": "b20b31ff6b4fce4b0c5de24922fcab59",
+    "mtime": 1793748991.1824865,
+    "ast_hash": "269ffc733a2cacf6fa40aaa364708e3f",
     "semantic_hash": ""
   },
   "src/components/brunetti.jsx": {
@@ -300,8 +300,8 @@
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
-    "mtime": 1793742694.3197095,
-    "ast_hash": "85d81bc4d3dd927ca130e15100140d86",
+    "mtime": 1793749023.5655181,
+    "ast_hash": "0a153cff415ed97a42ffe27440d44aa8",
     "semantic_hash": ""
   },
   "src/pages/Login.jsx": {
@@ -340,8 +340,8 @@
     "semantic_hash": "8821dc65ef6d88a32b3d71aa793563c1"
   },
   "CLAUDE.md": {
-    "mtime": 1793742757.2032065,
-    "ast_hash": "aff15d6f8f68af6f6bce8c04d33a1a8a",
+    "mtime": 1793749054.7292721,
+    "ast_hash": "2235ae6bd61039fbde05af01b5068e1b",
     "semantic_hash": ""
   },
   "IMPLEMENTATION_PLAN.md": {
@@ -910,8 +910,8 @@
     "semantic_hash": ""
   },
   "src/data/content/home-hero.json": {
-    "mtime": 1792967827.6259875,
-    "ast_hash": "76ec28bcf513b291aca7e45025ab3f4a",
+    "mtime": 1793749029.0775852,
+    "ast_hash": "e13bf419220de24dcc6e964da6c1d606",
     "semantic_hash": ""
   },
   "src/data/content/home-servicios.json": {
@@ -990,8 +990,8 @@
     "semantic_hash": ""
   },
   "src/data/overrides/home-hero.json": {
-    "mtime": 1783889412.1585793,
-    "ast_hash": "fce4dca860574373022e26aa19ad53c9",
+    "mtime": 1793749029.0785408,
+    "ast_hash": "8a80554c91d9fca8acb82f023de02f11",
     "semantic_hash": ""
   },
   "src/data/overrides/home-visagismo.json": {

@@ -1,7 +1,7 @@
 # Graph Report - BRUNETTICUTZ  (2026-11-03)
 
 ## Corpus Check
-- 377 files · ~3,980,977 words
+- 377 files · ~3,980,849 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `ddaa4521`
+- Built from commit: `d934a048`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -325,7 +325,7 @@ Nodes (25): 2026-06-12 - Base operativa clientes, agenda y panel interno, 2026-0
 
 ### Community 12 - "iOS Agenda & Reservations Views"
 Cohesion: 0.05
-Nodes (49): Charts, ColorScheme, SafariServices, ServiceRevenue, SwiftUI, UNAuthorizationStatus, UserNotifications, RootView (+41 more)
+Nodes (48): Charts, SafariServices, ServiceRevenue, SwiftUI, UNAuthorizationStatus, UserNotifications, DashboardView, ModuleHost (+40 more)
 
 ### Community 13 - "ExpensesModule.jsx"
 Cohesion: 0.07
@@ -336,16 +336,16 @@ Cohesion: 0.23
 Nodes (13): bezier(), clean_alpha(), components(), fmt(), main(), rasterize(), Aplana una cúbica en segmentos de no más de FLAT unidades., Silueta en blanco y negro con aire alrededor, lista para guardar. (+5 more)
 
 ### Community 15 - "EncuentraEstilo (Style Finder) Page"
-Cohesion: 0.12
-Nodes (10): App, Data, Scene, BrunettiCutzApp, KeychainStore, ThemeMode, dark, light (+2 more)
+Cohesion: 0.15
+Nodes (7): Data, KeychainStore, ThemeMode, dark, light, system, SessionStore
 
 ### Community 16 - "Auth & Booking Concepts"
 Cohesion: 0.24
 Nodes (16): Admin Key Authentication (shared internal password pattern), Barber Availability Management (barber sets available slots per day), Barber Authentication Flow (username/password, sets active barber session), Dual Authentication System (client auth via phone vs barber/admin auth via username+password), Phone Number as Client Identity (celular = ID de cliente), Manual Slot Blocking (admin blocks time slots per barber per day), TNE Discount (20% for Tarjeta Nacional Estudiantil, non-Bruno services), PIMP STUDIO Logo (JPG, used as brand header/footer image) (+8 more)
 
 ### Community 17 - "ui.jsx"
-Cohesion: 0.28
-Nodes (9): amountOf(), fmtStamp(), fmtTime(), orderDetail(), OrderSheet(), PedidosTab(), plural(), stampMs() (+1 more)
+Cohesion: 0.29
+Nodes (5): App, ColorScheme, Scene, BrunettiCutzApp, RootView
 
 ### Community 18 - "iOS App Intents & Shortcuts"
 Cohesion: 0.08
@@ -356,16 +356,16 @@ Cohesion: 0.11
 Nodes (21): Axis, ButtonRole, CGFloat, LinearGradient, TextInputAutocapitalization, UIColor, UIImpactFeedbackGenerator, UIKeyboardType (+13 more)
 
 ### Community 20 - "data.js"
-Cohesion: 0.07
-Nodes (49): ChargeSheet(), cx(), discountPctOf(), METHODS, MODES, PAYMENT_LABELS, REF_LABELS, cx() (+41 more)
+Cohesion: 0.31
+Nodes (10): cx(), DEFAULT_SLOTS, isTaken(), jsonOrReject(), NewBookingModal(), spanTakenAt(), STATUS_OPTIONS, STEP_LABELS (+2 more)
 
 ### Community 21 - "iOS Booking Sheet & Reminders"
 Cohesion: 0.17
 Nodes (19): ASSETS_DIR, CONTENT_DIR, CORS, fileFromEditId(), fileQueues, handleListAssets(), handleSave(), handleSaveOverride() (+11 more)
 
 ### Community 22 - "BookingsInbox.jsx"
-Cohesion: 0.05
-Nodes (82): dayKey(), BookingCard(), BookingRow(), BookingsInbox(), cx(), FILTER_MAP, FILTERS, initialCardsView (+74 more)
+Cohesion: 0.06
+Nodes (67): dayKey(), BookingCard(), BookingRow(), BookingsInbox(), cx(), FILTER_MAP, FILTERS, initialCardsView (+59 more)
 
 ### Community 23 - "index.html PWA Setup"
 Cohesion: 0.22
@@ -393,7 +393,7 @@ Nodes (10): Barber / Instructor (PIMP & STUDIOS branded, tattooed, glasses, mic)
 
 ### Community 30 - "BookingsInbox.jsx"
 Cohesion: 0.06
-Nodes (67): ChargeSheet(), cx(), discountPctOf(), MODES, PAYMENT_LABELS, REF_LABELS, CLP(), santiagoDateKey() (+59 more)
+Nodes (61): ChargeSheet(), cx(), discountPctOf(), METHODS, MODES, PAYMENT_LABELS, REF_LABELS, ChargeSheet() (+53 more)
 
 ### Community 32 - "DashboardModel"
 Cohesion: 0.11
@@ -432,8 +432,8 @@ Cohesion: 0.47
 Nodes (4): Context, SFSafariViewController, UIViewControllerRepresentable, SafariView
 
 ### Community 42 - "CLP"
-Cohesion: 0.09
-Nodes (31): Emblem(), BIZ_FALLBACK, CFG_GROUPS, ConfigPanel(), fold(), HORARIO_DEFAULT, isoToLocalInput(), NOTIF_DEFAULT (+23 more)
+Cohesion: 0.07
+Nodes (41): BookingSyncIssues(), Emblem(), Icon(), ICONS, Reveal(), useInView(), attemptsLeftText(), BarberLogin() (+33 more)
 
 ### Community 43 - "push.js"
 Cohesion: 0.06
@@ -452,8 +452,8 @@ Cohesion: 0.25
 Nodes (7): Abrir en Xcode, APIs usadas, Brunetti Cutz iOS, Build nativo e IPA, Funciones nativas incluidas, Servidor local, Sesion interna y fallback
 
 ### Community 52 - "AppTab"
-Cohesion: 0.14
-Nodes (12): CaseIterable, Sendable, AppTab, clientes, finanzas, hoy, mas, reservas (+4 more)
+Cohesion: 0.18
+Nodes (11): CaseIterable, Sendable, AppTab, clientes, finanzas, hoy, mas, reservas (+3 more)
 
 ### Community 53 - "estilo.js"
 Cohesion: 0.05
@@ -468,8 +468,8 @@ Cohesion: 0.15
 Nodes (32): blank(), createProduct(), DEMO_PRODUCTS, ensureProductsTable(), handleInventory(), handleProducts(), has(), inventoryItem() (+24 more)
 
 ### Community 66 - "DashboardResumen.jsx"
-Cohesion: 0.25
-Nodes (13): DriftChip(), InventoryModule(), InventoryStatusChip(), KardexSheet(), KIND_LABELS, MOVE_KINDS, moveDay(), MoveSheet() (+5 more)
+Cohesion: 0.06
+Nodes (54): ClientModal(), formOf(), ImageConsultations(), nextVisitLabel(), prettyDay(), Results(), DriftChip(), InventoryModule() (+46 more)
 
 ### Community 67 - "_email.js"
 Cohesion: 0.20
@@ -488,7 +488,7 @@ Cohesion: 0.06
 Nodes (73): csvCell(), downloadCsv(), toCsv(), levelFor(), ActivityHeatmap(), dayLabel(), levelOf(), MONTHS (+65 more)
 
 ### Community 71 - "workshop.js"
-Cohesion: 0.08
+Cohesion: 0.07
 Nodes (42): FilterMenu(), MobileDock(), ActionMenu(), cx(), ActionMenu(), cx(), CalendarSheet(), DOW (+34 more)
 
 ### Community 72 - "EssentialsGracias.jsx"
@@ -500,8 +500,8 @@ Cohesion: 0.40
 Nodes (4): Decisiones clave (confirmadas con el usuario), Estado / Checklist por fases, Notas de retoma (si se corta), Plan de implementación — Rediseño Brunetti (marca personal Bruno Herrera)
 
 ### Community 74 - "DetailSheets.swift"
-Cohesion: 0.07
-Nodes (52): BookingSyncIssues(), cap(), daysInMonth(), ExpensesModule(), exportExpensesCSV(), isGasto(), metaOf(), monthKey() (+44 more)
+Cohesion: 0.05
+Nodes (81): cap(), daysInMonth(), ExpensesModule(), exportExpensesCSV(), isGasto(), metaOf(), monthKey(), isDaySwipe() (+73 more)
 
 ### Community 75 - "_auth.js"
 Cohesion: 0.17
@@ -713,7 +713,7 @@ Nodes (16): Architecture, Backend (Vercel Functions), Brunetti Academy (`/cursos
 
 ### Community 186 - "ConfirmDialog"
 Cohesion: 0.06
-Nodes (86): METHODS, ClientModal(), formOf(), nextVisitLabel(), STATUS_META, GlobalSearch(), useSearch(), cx() (+78 more)
+Nodes (83): METHODS, STATUS_META, GlobalSearch(), useSearch(), cx(), DataTable(), ALERT_ICON, Avatar() (+75 more)
 
 ### Community 187 - "push.js"
 Cohesion: 0.22
@@ -840,8 +840,8 @@ Cohesion: 0.10
 Nodes (42): todayKey(), cx(), OnboardingWidget(), COPY, InstallPrompt(), useAutoInstallPrompt(), canOfferInstall(), emit() (+34 more)
 
 ### Community 218 - "4. Shared helpers"
-Cohesion: 0.13
-Nodes (21): DriftChip(), InventoryModule(), InventoryStatusChip(), KardexSheet(), KIND_LABELS, MOVE_KINDS, moveDay(), MoveSheet() (+13 more)
+Cohesion: 0.25
+Nodes (13): DriftChip(), InventoryModule(), InventoryStatusChip(), KardexSheet(), KIND_LABELS, MOVE_KINDS, moveDay(), MoveSheet() (+5 more)
 
 ### Community 219 - "Common Tasks"
 Cohesion: 0.22
@@ -883,11 +883,11 @@ Nodes (3): toEmbedUrl(), VideoEmbed(), ytId()
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `m()` connect `_money.js` to `Cursos.jsx`, `UI Components & Login`, `walletPrompt.js`, `AppTab`, `enrollmentsStore.js`, `_notion.js`, `BookingsInbox.jsx`, `DashboardModel`, `routes.js`, `vercel.json Config`, `Register Client API`, `PostDetail.jsx`, `_academyChat.js`, `_academy.js`, `academy-core.mjs`, `Vite Config & Fintoc Mock`, `GruposSection.jsx`, `ConfirmDialog`, `_academyCron.js`, `MiembrosSection.jsx`, `DashboardResumen.jsx`, `SinCerrar 2.jsx`, `_bookingLife.js`, `DetailSheets.swift`, `useSync.js`, `4. Shared helpers`?**
+- **Why does `m()` connect `_money.js` to `Cursos.jsx`, `UI Components & Login`, `walletPrompt.js`, `AppTab`, `enrollmentsStore.js`, `_notion.js`, `DashboardModel`, `routes.js`, `vercel.json Config`, `Register Client API`, `PostDetail.jsx`, `_academyChat.js`, `_academy.js`, `academy-core.mjs`, `Vite Config & Fintoc Mock`, `GruposSection.jsx`, `ConfirmDialog`, `_academyCron.js`, `MiembrosSection.jsx`, `DashboardResumen.jsx`, `SinCerrar 2.jsx`, `_bookingLife.js`, `DetailSheets.swift`, `useSync.js`, `4. Shared helpers`?**
   _High betweenness centrality (0.201) - this node is a cross-community bridge._
 - **Why does `nextId()` connect `academy-core.mjs` to `lib.mjs`, `_money.js`, `withState`?**
   _High betweenness centrality (0.073) - this node is a cross-community bridge._
-- **Why does `CLP()` connect `BookingsInbox.jsx` to `DashboardResumen.jsx`, `_academyAdmin.js`, `PedidosTab.jsx`, `Cursos.jsx`, `useTheme`, `CSS Stylesheets`, `EssentialsGracias.jsx`, `4. Shared helpers`, `DetailSheets.swift`, `walletPrompt.js`, `ui.jsx`, `MercadoPagoCheckout.jsx`, `data.js`, `BookingsInbox.jsx`, `GruposSection.jsx`, `ConfirmDialog`?**
+- **Why does `CLP()` connect `BookingsInbox.jsx` to `DashboardResumen.jsx`, `_academyAdmin.js`, `PedidosTab.jsx`, `Cursos.jsx`, `useTheme`, `CSS Stylesheets`, `EssentialsGracias.jsx`, `4. Shared helpers`, `DetailSheets.swift`, `walletPrompt.js`, `workshop.js`, `MercadoPagoCheckout.jsx`, `data.js`, `BookingsInbox.jsx`, `GruposSection.jsx`, `ConfirmDialog`?**
   _High betweenness centrality (0.045) - this node is a cross-community bridge._
 - **Are the 9 inferred relationships involving `CLP()` (e.g. with `ClientModal()` and `DashboardResumen()`) actually correct?**
   _`CLP()` has 9 INFERRED edges - model-reasoned connections that need verification._
