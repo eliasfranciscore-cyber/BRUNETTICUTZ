@@ -5,8 +5,8 @@
    (glows) ni bordes. Cientos de reglas de brunetti.css, pimp.css y el CSS de
    cada página los dibujan; en vez de tocarlas una por una, esta capa los
    apaga en bloque, solo bajo las raíces públicas (.brunetti-site, .wks,
-   .ete) y el cromo compartido (navbar, menú móvil, toggle de
-   tema, botón de WhatsApp). El panel, /reservar y las cuentas no se tocan.
+   .ete) y el cromo compartido (navbar, menú móvil, botón flotante de
+   Reservar, toggle de tema, botón de WhatsApp). El panel, /reservar y las cuentas no se tocan.
    - Sombras: box-shadow, text-shadow y drop-shadow fuera, también los
      glows animados (un !important gana sobre las animaciones).
    - Bordes: color transparente, no border:0, para no mover el layout. Se
@@ -23,12 +23,12 @@
 :is(.brunetti-site, .wks, .ete) *,
 :is(.brunetti-site, .wks, .ete) ::before,
 :is(.brunetti-site, .wks, .ete) ::after,
-:is(.home-nav, .site-nav-sheet, .float-theme-toggle, .wa-fab),
-:is(.home-nav, .site-nav-sheet, .float-theme-toggle, .wa-fab) *,
-:is(.home-nav, .site-nav-sheet, .float-theme-toggle, .wa-fab)::before,
-:is(.home-nav, .site-nav-sheet, .float-theme-toggle, .wa-fab)::after,
-:is(.home-nav, .site-nav-sheet, .float-theme-toggle, .wa-fab) ::before,
-:is(.home-nav, .site-nav-sheet, .float-theme-toggle, .wa-fab) ::after {
+:is(.home-nav, .site-nav-sheet, .site-nav-cta-bar, .float-theme-toggle, .wa-fab),
+:is(.home-nav, .site-nav-sheet, .site-nav-cta-bar, .float-theme-toggle, .wa-fab) *,
+:is(.home-nav, .site-nav-sheet, .site-nav-cta-bar, .float-theme-toggle, .wa-fab)::before,
+:is(.home-nav, .site-nav-sheet, .site-nav-cta-bar, .float-theme-toggle, .wa-fab)::after,
+:is(.home-nav, .site-nav-sheet, .site-nav-cta-bar, .float-theme-toggle, .wa-fab) ::before,
+:is(.home-nav, .site-nav-sheet, .site-nav-cta-bar, .float-theme-toggle, .wa-fab) ::after {
   box-shadow: none !important;
   text-shadow: none !important;
 }
@@ -47,10 +47,10 @@
 :is(.brunetti-site, .wks, .ete) :not(input, select, textarea, .essentials-gracias-spinner, .bhero-cue .mouse),
 :is(.brunetti-site, .wks, .ete) ::before,
 :is(.brunetti-site, .wks, .ete) ::after,
-:is(.home-nav, .site-nav-sheet, .float-theme-toggle, .wa-fab),
-:is(.home-nav, .site-nav-sheet, .float-theme-toggle, .wa-fab) *,
-:is(.home-nav, .site-nav-sheet, .float-theme-toggle, .wa-fab)::before,
-:is(.home-nav, .site-nav-sheet, .float-theme-toggle, .wa-fab)::after {
+:is(.home-nav, .site-nav-sheet, .site-nav-cta-bar, .float-theme-toggle, .wa-fab),
+:is(.home-nav, .site-nav-sheet, .site-nav-cta-bar, .float-theme-toggle, .wa-fab) *,
+:is(.home-nav, .site-nav-sheet, .site-nav-cta-bar, .float-theme-toggle, .wa-fab)::before,
+:is(.home-nav, .site-nav-sheet, .site-nav-cta-bar, .float-theme-toggle, .wa-fab)::after {
   border-color: transparent !important;
 }
 

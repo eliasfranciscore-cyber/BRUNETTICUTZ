@@ -330,6 +330,80 @@
 .brunetti-site [data-reveal].is-in { opacity: 1; transform: none; }
 
 /* ============================================================
+   HERO DE LA LANDING — "Portada" (2026-11-03)
+   La foto real a pantalla completa con grado oscuro de cine y el titular
+   abajo. Los .bhero de más abajo siguen siendo el hero de las otras
+   páginas (Asesoría, Método, Essentials, /cursos).
+   ============================================================ */
+.brunetti-site .bportada {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  min-height: 100svh;
+  display: flex;
+  align-items: flex-end;
+  padding: 6rem clamp(1.25rem, 5vw, 4.5rem) clamp(2.6rem, 8vh, 5rem);
+}
+.brunetti-site .bportada-photo {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 66% 4%;
+  filter: grayscale(0.4) brightness(0.68) contrast(1.12);
+}
+.brunetti-site .bportada-shade {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(180deg, rgba(8, 8, 7, 0.5) 0%, rgba(8, 8, 7, 0) 22%),
+    linear-gradient(0deg, #080807 0%, rgba(8, 8, 7, 0.9) 26%, rgba(8, 8, 7, 0) 62%),
+    linear-gradient(90deg, rgba(8, 8, 7, 0.75) 0%, rgba(8, 8, 7, 0) 55%);
+}
+.brunetti-site .bportada-copy { max-width: 640px; text-align: left; }
+.brunetti-site .bportada-kicker {
+  margin: 0;
+  color: var(--gold-bright);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+.brunetti-site .bportada-h {
+  margin: 0.9rem 0 0;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(3rem, 8.4vw, 6.6rem);
+  line-height: 0.96;
+  letter-spacing: -0.045em;
+  color: #fff;
+  text-wrap: balance;
+}
+.brunetti-site .bportada-h em { font-style: italic; color: var(--gold-bright); }
+.brunetti-site .bportada-sub { margin: 1.1rem 0 0; max-width: 42ch; color: rgba(255, 255, 255, 0.72); font-size: 1rem; line-height: 1.55; }
+.brunetti-site .bportada-actions { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.8rem; }
+.brunetti-site .bportada-actions .btn:active { transform: scale(0.97); }
+/* Entrada: el texto sube y aparece una sola vez al cargar. */
+@keyframes bruPortadaRise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+.brunetti-site .bportada-copy > * { animation: bruPortadaRise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.brunetti-site .bportada-copy > :nth-child(2) { animation-delay: 0.08s; }
+.brunetti-site .bportada-copy > :nth-child(3) { animation-delay: 0.16s; }
+.brunetti-site .bportada-copy > :nth-child(4) { animation-delay: 0.24s; }
+@media (max-width: 899px) {
+  /* Abajo queda el botón flotante de Reservar (SiteNav): el texto termina
+     sobre él, no debajo. */
+  .brunetti-site .bportada { padding-bottom: calc(5.6rem + env(safe-area-inset-bottom, 0px)); }
+  .brunetti-site .bportada-actions { flex-direction: column; }
+  .brunetti-site .bportada-actions .btn { width: 100%; justify-content: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .brunetti-site .bportada-copy > * { animation: none; }
+}
+
+/* ============================================================
    HERO
    ============================================================ */
 .brunetti-site .bhero {
@@ -720,6 +794,10 @@
 .brunetti-site .bmarquee span b { color: var(--gold-bright); font-weight: 600; }
 .brunetti-site .bmarquee .sep { color: var(--gold); }
 @keyframes bruMarquee { to { transform: translateX(-50%); } }
+/* En el celular no va (2026-11-03): solo escritorio. */
+@media (max-width: 899px) {
+  .brunetti-site .bmarquee { display: none; }
+}
 
 /* ============================================================
    SECTION SCAFFOLD (Brunetti)
@@ -2721,6 +2799,8 @@ body.dash-mode .float-theme-toggle { display: none; }
 .float-theme-toggle.ftt-workshop .ftt-knob { background: linear-gradient(135deg, #b483f3, #8838d8); color: #fff; }
 @media (max-width: 899px) {
   .float-theme-toggle { bottom: 6.4rem; z-index: 66; }
+  /* Espacio para que el botón flotante de Reservar (móvil) no tape el contenido/footer */
+  .brunetti-site { padding-bottom: 5.6rem; }
   /* /resena (Review.jsx) no monta SiteNav ni reserva aire
      propio para el toggle elevado, a diferencia de /reservar, /cuenta o
      /ingreso: a 6.4rem se monta sobre el textarea de comentario o el borde

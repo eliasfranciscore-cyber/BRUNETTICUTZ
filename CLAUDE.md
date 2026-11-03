@@ -45,7 +45,7 @@ npm run preview          # Serve the production build locally
 
 **State management:** Lightweight Zustand-like stores (`bookingsStore.js`, `enrollmentsStore.js`) for local client state. No global Redux.
 
-**Styling:** Tailwind CSS with PostCSS. Base design-system tokens and public-site styles in `src/styles/pimp.css`, panel-specific extras in `modules.css`, page-specific in `brunetti.css`, `workshop.css`, etc. The public site is **flat** since 2026-11-03: `src/styles/flat.css` (imported right after `brunetti.css`, rules with `!important`) turns off every box-shadow, text-shadow, glow and border under the public roots (`.brunetti-site`, `.wks`, `.ete`) and the shared chrome (navbar, mobile menu, theme toggle, WhatsApp button) — so a new shadow or border on a public page won't show; don't fight it per page. Form fields keep their borders. The panel's own design system is `src/styles/panel.css` + `src/styles/panel/*.css` — see [Panel architecture](#panel-architecture).
+**Styling:** Tailwind CSS with PostCSS. Base design-system tokens and public-site styles in `src/styles/pimp.css`, panel-specific extras in `modules.css`, page-specific in `brunetti.css`, `workshop.css`, etc. The public site is **flat** since 2026-11-03: `src/styles/flat.css` (imported right after `brunetti.css`, rules with `!important`) turns off every box-shadow, text-shadow, glow and border under the public roots (`.brunetti-site`, `.wks`, `.ete`) and the shared chrome (navbar, mobile menu, floating mobile Reservar button, theme toggle, WhatsApp button) — so a new shadow or border on a public page won't show; don't fight it per page. Form fields keep their borders. The panel's own design system is `src/styles/panel.css` + `src/styles/panel/*.css` — see [Panel architecture](#panel-architecture).
 
 #### Backend (Vercel Functions)
 
@@ -280,7 +280,7 @@ This only happens once per app session (sessionStorage flag).
 
 **Install prompt** (`src/installPrompt.js` + `InstallPrompt.jsx`): barber-only now (the public site doesn't prompt clients to install anything). Dismissal is remembered in `localStorage` under `bc_install_dismissed`.
 
-**Theme**: automatic by hour (light 7:00–18:59, dark otherwise, `America/Santiago`), with a manual override (`ps_theme_manual` in `localStorage`) that always wins once set — there's no periodic reset of that flag. The switch lives in Ajustes → Apariencia. **The public site is dark-only since 2026-11-03** (`FEATURES.publicLightTheme: false`): `publicDarkOnly()` in `src/components/theme.jsx` forces `data-theme="dark"` everywhere except `/panel` and the Academy members app (`/cursos/…`, not `/cursos/gracias`), and hides the floating toggle; `public/boot.js` mirrors the same rule (`PUBLIC_LIGHT`) for the first paint. The saved choice (`ps_theme`) is untouched, so the panel keeps its own theme. To bring light mode back, flip both switches. The `[data-theme="light"]` CSS is still there, dormant. The mobile bottom "Reservar" bar (`.site-nav-cta-bar`) was removed the same day; the mobile menu sheet carries the Reservar item instead.
+**Theme**: automatic by hour (light 7:00–18:59, dark otherwise, `America/Santiago`), with a manual override (`ps_theme_manual` in `localStorage`) that always wins once set — there's no periodic reset of that flag. The switch lives in Ajustes → Apariencia. **The public site is dark-only since 2026-11-03** (`FEATURES.publicLightTheme: false`): `publicDarkOnly()` in `src/components/theme.jsx` forces `data-theme="dark"` everywhere except `/panel` and the Academy members app (`/cursos/…`, not `/cursos/gracias`), and hides the floating toggle; `public/boot.js` mirrors the same rule (`PUBLIC_LIGHT`) for the first paint. The saved choice (`ps_theme`) is untouched, so the panel keeps its own theme. To bring light mode back, flip both switches. The `[data-theme="light"]` CSS is still there, dormant.
 
 ### Mercado Pago Integration
 
@@ -426,7 +426,7 @@ Key files: `src/components/edit/` → `context.js` (shared contexts), `Overrides
 
 **Coverage:** all `EditableText` usages are editable everywhere (text move/font/color/position come
 for free). Fixed editorial images are tagged with `<Editable as="img" editId="<page>:<name>" …/>`:
-Home (`home-hero:cutout`, `home-hero:bg`, `home-sobre:figure`, `home-estilo:teaserBg`,
+Home (`home-hero:photo` — the "Portada" hero, full-bleed photo with its copy in `home-hero.json` —, `home-sobre:figure`, `home-estilo:teaserBg`,
 `home:compareBefore/After`, and the Universo Brunetti tiles `home-universo:<asesoria|metodo|workshop|essentials>`
 — their copy lives in `home-universo.json`), Cursos (`cursos:heroCutout`, `cursos:heroBg`),
 Encuentra tu estilo (`estilo-hero:<i>`, `estilo:ctaBg`), Workshop (`workshop:hero`, `workshop:logo`,

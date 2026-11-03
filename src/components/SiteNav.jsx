@@ -6,8 +6,8 @@ import './SiteNav.css'
 
 /* Navbar global del sitio. Persiste en todas las páginas (Home, Workshop, ...).
    Escritorio: logo + enlaces de módulos + botón Reservar (en la barra superior).
-   Móvil: logo + botón de menú desplegable (módulos y el CTA Reservar). La
-   barra inferior fija con el CTA se quitó el 2026-11-03 (tapaba contenido).
+   Móvil: logo + botón de menú desplegable (módulos) y el botón Reservar
+   flotante abajo, a lo ancho (sin barra de fondo ni sombra).
    - Secciones (Servicios/Barberos/Nosotros/Ubicación): scroll en Home,
      o navegan a "/" y Home hace scroll a la sección (location.state.section).
    - "Workshop" siempre enruta a /workshop (es una página más).
@@ -168,15 +168,18 @@ export default function SiteNav({ onSection, scrolled: scrolledProp }) {
             {label}
           </button>
         ))}
-        <button role="menuitem" className="site-nav-sheet-reserve" onClick={reserve}>
-          <Icon name="calendar" size={15} /> {reserveLabel}
-        </button>
         <button
           role="menuitem"
           className="site-nav-sheet-barber"
           onClick={() => { setMenuOpen(false); navigate("/ingreso") }}
         >
           <Icon name="key" size={15} /> Acceso interno
+        </button>
+      </div>
+
+      <div className="site-nav-cta-bar">
+        <button className="btn btn-gold" onClick={reserve}>
+          <Icon name="calendar" size={15} /> {reserveLabel}
         </button>
       </div>
     </React.Fragment>

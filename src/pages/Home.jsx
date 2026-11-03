@@ -305,48 +305,23 @@ export default function Home() {
 
       <main>
         {/* ============ HERO ============ */}
-        <section id="hero" className="bhero">
-          <div className="bhero-bgphoto" aria-hidden="true">
-            <Editable as="img" editId="home-hero:bg" src="/assets/bruno-hero-bg.webp" alt="" fetchpriority="high" decoding="async" />
-          </div>
-          <Lamp className="bru-lamp--hero" />
-          <div className="bhero-grid">
-            <div className="bhero-text">
-              <h1 className="bhero-name bhero-name--img" aria-label="Brunetticutz">
-                <Editable as="img" editId="home-hero:wordmark" className="bhero-name-img" src="/assets/brunetti-hero-wordmark.webp" alt="Brunetticutz" fetchpriority="high" decoding="async" />
-              </h1>
-              <span className="bhero-kicker"><span className="dot" /><EditableText file="home-hero" path="kicker">{HERO.kicker}</EditableText></span>
-              <p className="bhero-role">
-                <EditableText file="home-hero" path="rolePrefix">{HERO.rolePrefix}</EditableText>
-                <b><EditableText file="home-hero" path="roleHighlight">{HERO.roleHighlight}</EditableText></b>
-              </p>
-              <p className="bhero-sub"><EditableText file="home-hero" path="sub" as="span">{HERO.sub}</EditableText></p>
-              <div className="bhero-actions">
-                <a className="btn btn-primary" onClick={goReserve}><EditableText file="home-hero" path="ctaPrimary">{HERO.ctaPrimary}</EditableText></a>
-                <a className="btn btn-ghost" onClick={goCursos}><EditableText file="home-hero" path="ctaSecondary">{HERO.ctaSecondary}</EditableText></a>
-              </div>
-              <div className="bhero-meta">
-                <div className="stat"><strong><EditableText file="home-hero" path="stat1Label">{HERO.stat1Label}</EditableText></strong><span><EditableText file="home-hero" path="stat1Sub">{HERO.stat1Sub}</EditableText></span></div>
-                <div className="stat"><strong><EditableText file="home-hero" path="stat2Label">{HERO.stat2Label}</EditableText></strong><span><EditableText file="home-hero" path="stat2Sub">{HERO.stat2Sub}</EditableText></span></div>
-                <div className="stat"><strong><EditableText file="home-hero" path="stat3Label">{HERO.stat3Label}</EditableText></strong><span><EditableText file="home-hero" path="stat3Sub">{HERO.stat3Sub}</EditableText></span></div>
-              </div>
+        {/* "Portada" (elegida el 2026-11-03): la foto real a pantalla completa,
+            con un grado oscuro de cine, y la frase abajo como el titular de
+            una portada. */}
+        <section id="hero" className="bportada">
+          <Editable as="img" editId="home-hero:photo" className="bportada-photo" src="/assets/bruno-hero.jpg" alt="Bruno Herrera cortando el pelo a un cliente" fetchpriority="high" decoding="async" />
+          <div className="bportada-shade" aria-hidden="true" />
+          <div className="bportada-copy">
+            <p className="bportada-kicker"><EditableText file="home-hero" path="kicker">{HERO.kicker}</EditableText></p>
+            <h1 className="bportada-h">
+              <EditableText file="home-hero" path="title">{HERO.title}</EditableText>{' '}
+              <em><EditableText file="home-hero" path="titleAccent">{HERO.titleAccent}</EditableText></em>
+            </h1>
+            <p className="bportada-sub"><EditableText file="home-hero" path="sub" as="span">{HERO.sub}</EditableText></p>
+            <div className="bportada-actions">
+              <a className="btn btn-primary" onClick={goReserve}><EditableText file="home-hero" path="ctaPrimary">{HERO.ctaPrimary}</EditableText></a>
+              <a className="btn btn-ghost" onClick={goCursos}><EditableText file="home-hero" path="ctaSecondary">{HERO.ctaSecondary}</EditableText></a>
             </div>
-
-            <div className="bhero-figwrap">
-              <div className="bhero-figure bhero-figure--cutout" data-tilt>
-                <a className="bhero-fig-link" href="https://instagram.com/brunetticutz" target="_blank" rel="noopener noreferrer" aria-label="Ver Instagram de @brunetticutz">
-                  <Editable as="img" editId="home-hero:cutout" src="/assets/bruno-hero-cutout.webp" alt="Bruno Herrera, Brunetti — visagista" fetchpriority="high" decoding="async" />
-                  <div className="fig-tag">
-                    <span><EditableText file="home-hero" path="figHandle">{HERO.figHandle}</EditableText></span>
-                  </div>
-                </a>
-              </div>
-            </div>
-          </div>
-
-          <div className="bhero-cue">
-            <span><EditableText file="home-hero" path="scrollCue">{HERO.scrollCue}</EditableText></span>
-            <div className="mouse" />
           </div>
         </section>
 

@@ -230,19 +230,6 @@
   color: var(--gold);
 }
 .site-nav-sheet .site-nav-sheet-barber svg { flex: 0 0 auto; }
-/* Reservar: sin la barra inferior fija (quitada el 2026-11-03), el menú
-   móvil es el atajo a la agenda desde cualquier página. */
-.site-nav-sheet .site-nav-sheet-reserve {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.55rem;
-  margin-top: 0.45rem;
-  background: var(--gold);
-  color: var(--on-gold, #14110b);
-  font-weight: 600;
-}
-.site-nav-sheet .site-nav-sheet-reserve:active { background: var(--gold-bright, var(--gold)); }
 /* Modo claro: el sheet sigue el tema. (data-theme vive en <html>.) */
 [data-theme="light"] .site-nav-sheet {
   background: rgba(255, 253, 248, 0.9);
@@ -278,6 +265,36 @@
 }
 @media (min-width: 900px) {
   .site-nav-backdrop { display: none; }
+}
+
+/* CTA Reservar flotante (móvil) — sin barra de fondo ni sombra, solo el
+   botón a lo ancho. El inset inferior evita que quede bajo el home
+   indicator del iPhone. */
+.site-nav-cta-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 65;
+  padding: 0.85rem clamp(1rem, 4vw, 1.4rem) calc(0.9rem + env(safe-area-inset-bottom, 0px));
+  background: none;
+  border-top: 0;
+  pointer-events: none;
+}
+.site-nav-cta-bar .btn {
+  width: 100%;
+  pointer-events: auto;
+}
+.site-nav-cta-bar .btn:active { transform: scale(0.98); }
+@media (min-width: 900px) {
+  .site-nav-cta-bar { display: none; }
+}
+
+/* Espacio inferior para que el botón flotante no tape contenido */
+@media (max-width: 899px) {
+  .home-scroll { padding-bottom: 5rem; }
+  .wks-shell { padding-bottom: 5rem; }
+  .estilo-page .mfooter { padding-bottom: 5rem; }
 }
 
 /* Accesibilidad: sin transparencia → materiales sólidos; sin movimiento →
