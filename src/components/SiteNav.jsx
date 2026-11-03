@@ -6,8 +6,8 @@ import './SiteNav.css'
 
 /* Navbar global del sitio. Persiste en todas las páginas (Home, Workshop, ...).
    Escritorio: logo + enlaces de módulos + botón Reservar (en la barra superior).
-   Móvil: logo + botón de menú desplegable (módulos) y una barra inferior fija
-   con el CTA Reservar (estilo workshop), full-width.
+   Móvil: logo + botón de menú desplegable (módulos y el CTA Reservar). La
+   barra inferior fija con el CTA se quitó el 2026-11-03 (tapaba contenido).
    - Secciones (Servicios/Barberos/Nosotros/Ubicación): scroll en Home,
      o navegan a "/" y Home hace scroll a la sección (location.state.section).
    - "Workshop" siempre enruta a /workshop (es una página más).
@@ -64,18 +64,6 @@ export default function SiteNav({ onSection, scrolled: scrolledProp }) {
 
   // Cerrar el menú al cambiar de ruta.
   useEffect(() => { setMenuOpen(false) }, [location.pathname])
-
-  /* Marca el documento mientras esta barra existe. El toggle flotante de tema
-     (FloatingThemeToggle, montado en App.jsx) se ancla DENTRO de la fila del
-     botón "Reservar" en móvil cuando la marca está puesta (ver brunetti.css,
-     body.has-cta-bar), en vez de quedar flotando sobre el contenido: a 6.4rem
-     del borde caía justo encima del "Reservar hora" de las tarjetas de
-     servicio y se robaba el tap. En las páginas sin esta barra (/reservar,
-     /cuenta, /ingreso) el toggle conserva su posición elevada de siempre. */
-  useEffect(() => {
-    document.body.classList.add('has-cta-bar')
-    return () => document.body.classList.remove('has-cta-bar')
-  }, [])
 
   const scrolled = scrolledProp !== undefined ? scrolledProp : scrolledWin
 
@@ -180,18 +168,15 @@ export default function SiteNav({ onSection, scrolled: scrolledProp }) {
             {label}
           </button>
         ))}
+        <button role="menuitem" className="site-nav-sheet-reserve" onClick={reserve}>
+          <Icon name="calendar" size={15} /> {reserveLabel}
+        </button>
         <button
           role="menuitem"
           className="site-nav-sheet-barber"
           onClick={() => { setMenuOpen(false); navigate("/ingreso") }}
         >
           <Icon name="key" size={15} /> Acceso interno
-        </button>
-      </div>
-
-      <div className="site-nav-cta-bar">
-        <button className="btn btn-gold" onClick={reserve}>
-          <Icon name="calendar" size={15} /> {reserveLabel}
         </button>
       </div>
     </React.Fragment>

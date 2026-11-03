@@ -6,6 +6,9 @@ import { BrowserRouter } from 'react-router-dom'
 import './styles/pimp.css'
 import './styles/modules.css'
 import './styles/brunetti.css'
+// Sitio público sin sombras, glows ni bordes (con !important: gana también
+// sobre el CSS de cada página, que se carga después).
+import './styles/flat.css'
 // Tailwind (solo utilidades, preflight OFF) — alimenta el componente de lámpara.
 import './styles/tailwind.css'
 // Sistema visual del panel interno: va AL FINAL a propósito, para ganar por

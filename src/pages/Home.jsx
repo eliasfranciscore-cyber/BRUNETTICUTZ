@@ -122,7 +122,7 @@ const CARDS = EXPERIENCIAS.cards.map((c, i) => ({ ...c, img: CARD_IMAGES[i] }))
 // abre el visor de las tarjetas de home-experiencias.json (el antiguo
 // carrusel). Si los accesos quedan impares, el último va a todo el ancho.
 const UNIVERSO_TILES = [
-  FEATURES.imageStudio && { key: 'asesoria', to: '/asesoria', img: '/assets/asesoria/informe-2.jpg', logo: '/assets/brunetti-asesoria-wordmark.webp' },
+  FEATURES.imageStudio && { key: 'asesoria', to: '/asesoria', img: '/assets/asesoria/universo-asesoria.webp', logo: '/assets/brunetti-asesoria-wordmark.webp' },
   { key: 'metodo', to: '/metodo', img: '/assets/workshop-2026.jpg', logo: '/assets/brunetti-cursos-wordmark.webp' },
   { key: 'workshop', to: '/workshop', img: '/assets/workshop-gallery/wk-08.webp', logo: '/assets/brunetti-workshop-wordmark.webp' },
   { key: 'essentials', to: '/essentials', img: '/assets/products/polera-barber-club-1.png', logo: '/assets/brunetti-hero-wordmark.webp' },

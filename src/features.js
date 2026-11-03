@@ -32,4 +32,10 @@ export const FEATURES = {
   visagismo: false,       // sección "Visagismo" de la landing
   sobreBruno: false,      // sección "Sobre Bruno" de la landing
   tuEstilo: false,        // "Encuentra tu estilo": teaser de la landing y página /style
+
+  /* Modo claro de la web pública, apagado desde el 2026-11-03: todo lo que no
+     es el panel ni la app de alumnos (/cursos/…) va solo en oscuro y sin el
+     toggle flotante (ver publicDarkOnly() en src/components/theme.jsx). Para
+     volver a prenderlo: true acá y PUBLIC_LIGHT = true en public/boot.js. */
+  publicLightTheme: false,
 }

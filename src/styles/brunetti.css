@@ -1131,14 +1131,22 @@
   filter: saturate(0.55) contrast(1.04);
   transition: transform 0.8s var(--ease-out), filter 0.5s ease;
 }
-.brunetti-site .buni-tile--asesoria .buni-photo { object-position: center 38%; }
+.brunetti-site .buni-tile--asesoria .buni-photo { object-position: center 25%; }
 .brunetti-site .buni-tile--essentials .buni-photo { object-position: center 30%; }
 .brunetti-site .buni-strip { display: grid; grid-template-columns: repeat(4, 1fr); }
 .brunetti-site .buni-strip img { width: 100%; height: 100%; min-width: 0; object-position: center 30%; }
 .brunetti-site .buni-shade { z-index: 1; background: linear-gradient(0deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.45) 45%, rgba(0, 0, 0, 0.05) 78%); }
-/* El informe de la asesoría es una página clara: necesita más sombra para
-   que el título no se mezcle con su texto. */
-.brunetti-site .buni-tile--asesoria .buni-shade { background: linear-gradient(0deg, rgba(0, 0, 0, 0.94) 0%, rgba(0, 0, 0, 0.72) 48%, rgba(0, 0, 0, 0.28) 100%); }
+/* La asesoría es un retrato vertical sobre fondo de estudio blanco. En
+   escritorio el texto va a la izquierda y la cara queda libre a la derecha,
+   con la sombra de lado; en el celular la tarjeta crece para que la cabeza
+   entera quede sobre el texto (ver el bloque de 860px). La esquina de
+   arriba se oscurece un poco más para que el logo plateado no se pierda. */
+.brunetti-site .buni-tile--asesoria .buni-shade {
+  background:
+    radial-gradient(circle at 100% 0%, rgba(0, 0, 0, 0.4), transparent 34%),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.6) 42%, rgba(0, 0, 0, 0.3) 100%);
+}
+.brunetti-site .buni-tile--asesoria .buni-copy { max-width: 52%; }
 .brunetti-site .buni-tile--trabajo .buni-shade { background: linear-gradient(90deg, rgba(0, 0, 0, 0.88) 0%, rgba(0, 0, 0, 0.55) 45%, rgba(0, 0, 0, 0.15) 100%); }
 @media (hover: hover) {
   .brunetti-site .buni-tile:hover .buni-photo,
@@ -1201,6 +1209,14 @@
   .brunetti-site .buni-copy { margin-inline: auto; text-align: center; }
   .brunetti-site .buni-copy p { margin-inline: auto; }
   .brunetti-site .buni-tile--trabajo .buni-shade { background: linear-gradient(0deg, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.5) 50%, rgba(0, 0, 0, 0.1) 85%); }
+  .brunetti-site .buni-tile.buni-tile--asesoria { min-height: 470px; }
+  .brunetti-site .buni-tile--asesoria .buni-photo { object-position: center bottom; }
+  .brunetti-site .buni-tile--asesoria .buni-shade {
+    background:
+      radial-gradient(circle at 100% 0%, rgba(0, 0, 0, 0.4), transparent 34%),
+      linear-gradient(0deg, rgba(0, 0, 0, 0.94) 0%, rgba(0, 0, 0, 0.7) 42%, rgba(0, 0, 0, 0.3) 100%);
+  }
+  .brunetti-site .buni-tile--asesoria .buni-copy { max-width: 580px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .brunetti-site .buni-tile:hover .buni-photo,
@@ -2703,29 +2719,9 @@ body.dash-mode .float-theme-toggle { display: none; }
 /* Acento del knob según el módulo actual: azul en /cursos, morado en /workshop. */
 .float-theme-toggle.ftt-cursos .ftt-knob { background: linear-gradient(135deg, #6b74f0, #0b129e); color: #fff; }
 .float-theme-toggle.ftt-workshop .ftt-knob { background: linear-gradient(135deg, #b483f3, #8838d8); color: #fff; }
-/* 899px, no 900: SiteNav.css oculta .site-nav-cta-bar recién desde
-   min-width:900px, así que a los 900px exactos ya no hay barra ni CTA que
-   cubrir. Con max-width:900px este bloque seguía aplicando ahí (el toggle
-   bajaba a la fila de un botón que ya no estaba, "flotando" solo). */
 @media (max-width: 899px) {
   .float-theme-toggle { bottom: 6.4rem; z-index: 66; }
-  /* Espacio para que la barra fija de Reservar (móvil) no tape el contenido/footer */
-  .brunetti-site { padding-bottom: 5.6rem; }
-  /* Cuando la barra inferior "Reservar" está montada (body.has-cta-bar, lo
-     pone SiteNav), el toggle baja y se ancla EN esa fila, a la izquierda del
-     botón. Flotando a 6.4rem quedaba a la altura de los CTA de las tarjetas
-     de servicio y les robaba el tap al hacer scroll. Ahora abajo hay una sola
-     fila: [toggle] [Reservar hora ————], y nada tapa el contenido. El bottom
-     suma el mismo env() que la barra (SiteNav.css) para subir junto con el
-     botón sobre el home indicator; los 6px centran el toggle (36px de alto)
-     en el botón. La barra le cede su ancho (66px + aire) con padding-left. */
-  body.has-cta-bar .float-theme-toggle {
-    bottom: calc(0.9rem + 6px + env(safe-area-inset-bottom, 0px));
-  }
-  body.has-cta-bar .site-nav-cta-bar {
-    padding-left: calc(1rem + 66px + 0.55rem);
-  }
-  /* /resena (Review.jsx) no monta SiteNav (sin has-cta-bar) ni reserva aire
+  /* /resena (Review.jsx) no monta SiteNav ni reserva aire
      propio para el toggle elevado, a diferencia de /reservar, /cuenta o
      /ingreso: a 6.4rem se monta sobre el textarea de comentario o el borde
      de la tarjeta (review.css ya deja 8.8rem de padding-bottom pensados

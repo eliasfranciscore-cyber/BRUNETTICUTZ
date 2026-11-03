@@ -1,8 +1,14 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { useLocation } from 'react-router-dom'
+import { FEATURES } from '../features.js'
 
 /* ============================================================
    Tema claro/oscuro global.
+   - La web pública va SOLO en oscuro mientras FEATURES.publicLightTheme esté
+     apagado (desde el 2026-11-03): el tema de abajo rige únicamente en las
+     dos apps con selector propio, el panel (/panel) y la app de alumnos de
+     la Academy (/cursos/…, salvo /cursos/gracias). La elección guardada no
+     se toca: al volver al panel sigue la que había.
    - Por defecto es AUTOMÁTICO por la hora de Santiago de Chile: claro de
      07:00 a 18:59 y oscuro el resto. Se re-evalúa cada 10 min y cada vez que
      la app vuelve a primer plano (una PWA en iOS congela los timers mientras
@@ -32,7 +38,17 @@ function autoTheme() {
   return h >= 7 && h < 19 ? 'light' : 'dark'
 }
 
+/* ¿Esta ruta va forzada a oscuro? public/boot.js repite la regla para el
+   primer paint: si cambia acá, cambia allá. */
+export function publicDarkOnly(pathname = '') {
+  if (FEATURES.publicLightTheme) return false
+  const app = pathname === '/panel' || pathname.startsWith('/panel/') ||
+    (pathname.startsWith('/cursos/') && !pathname.startsWith('/cursos/gracias'))
+  return !app
+}
+
 export function ThemeProvider({ children }) {
+  const { pathname } = useLocation()
   const [manual, setManual] = useState(() => {
     try { return localStorage.getItem('ps_theme_manual') === '1' } catch { return false }
   })
@@ -43,10 +59,13 @@ export function ThemeProvider({ children }) {
     return autoTheme()
   })
 
-  // Aplica el tema al documento y persiste.
+  // El que se ve: oscuro en la web pública, el elegido en el panel/Academy.
+  const shown = publicDarkOnly(pathname) ? 'dark' : theme
+
+  // Aplica el tema al documento.
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', theme)
-    const bg = theme === 'light' ? '#f7f3ea' : '#080807'
+    document.documentElement.setAttribute('data-theme', shown)
+    const bg = shown === 'light' ? '#f7f3ea' : '#080807'
     // CLAVE para iOS Safari: NO re-lee <meta theme-color> al cambiar `content` →
     // las safe-areas (notch/barra) se quedan del color anterior hasta recargar.
     // Solución: ELIMINAR y RECREAR el meta en cada cambio para forzar el repintado
@@ -64,6 +83,10 @@ export function ThemeProvider({ children }) {
       document.documentElement.style.backgroundColor = bg
       if (document.body) document.body.style.backgroundColor = bg
     } catch {}
+  }, [shown])
+
+  // Persiste la elección (no el oscuro forzado de la web pública).
+  useEffect(() => {
     try { localStorage.setItem('ps_theme', theme) } catch {}
   }, [theme])
 
@@ -119,7 +142,7 @@ export function ThemeProvider({ children }) {
     }
   }, [])
 
-  return <ThemeCtx.Provider value={{ theme, toggle, manual, auto: !manual, useAuto, setAuto, setTheme: chooseTheme }}>{children}</ThemeCtx.Provider>
+  return <ThemeCtx.Provider value={{ theme: shown, toggle, manual, auto: !manual, useAuto, setAuto, setTheme: chooseTheme }}>{children}</ThemeCtx.Provider>
 }
 
 export function useTheme() { return useContext(ThemeCtx) }
@@ -174,6 +197,8 @@ export function FloatingThemeToggle() {
   // Acento por módulo: el toggle vive fuera de los wrappers .cursos-page/.wks,
   // así que derivamos la clase desde la ruta para teñirlo del color del módulo.
   const { pathname } = useLocation()
+  // Web pública solo en oscuro: no hay nada que alternar.
+  if (publicDarkOnly(pathname)) return null
   const moduleClass = pathname.startsWith('/workshop') ? 'ftt-workshop' : pathname.startsWith('/cursos') || pathname.startsWith('/metodo') ? 'ftt-cursos' : ''
   return (
     <button

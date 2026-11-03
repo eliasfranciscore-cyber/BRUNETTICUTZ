@@ -12,7 +12,8 @@
    archivo sin hash.
 
    1. Tema inicial sin flash: respeta la elección manual; si no, la hora de
-      Santiago (claro de 07:00 a 18:59, oscuro el resto). Mismos colores que
+      Santiago (claro de 07:00 a 18:59, oscuro el resto). La web pública va
+      siempre en oscuro (ver PUBLIC_LIGHT más abajo). Mismos colores que
       ThemeProvider (src/components/theme.jsx) y que el script inline de
       antes: el comportamiento no cambia, solo de dónde se carga.
    2. Recuerda con qué ruta arrancó ESTE documento (window.__psBootPath). El
@@ -34,6 +35,14 @@
       var h = parseInt(new Intl.DateTimeFormat('es-CL', { timeZone: 'America/Santiago', hour: 'numeric', hour12: false }).format(new Date()), 10) % 24;
       t = (h >= 7 && h < 19) ? 'light' : 'dark';
     }
+    // Web pública solo en oscuro desde el 2026-11-03 (FEATURES.publicLightTheme
+    // en src/features.js; misma regla que publicDarkOnly() de
+    // src/components/theme.jsx): el tema elegido rige solo en el panel y en
+    // la app de alumnos (/cursos/…, salvo /cursos/gracias).
+    var PUBLIC_LIGHT = false;
+    var p = location.pathname;
+    var app = p === '/panel' || p.indexOf('/panel/') === 0 || (p.indexOf('/cursos/') === 0 && p.indexOf('/cursos/gracias') !== 0);
+    if (!PUBLIC_LIGHT && !app) t = 'dark';
     document.documentElement.setAttribute('data-theme', t);
     var bg = t === 'light' ? '#f7f3ea' : '#080807';
     var m = document.querySelector('meta[name="theme-color"]');

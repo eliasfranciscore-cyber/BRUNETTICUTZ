@@ -1,0 +1,69 @@
+/* ============================================================
+   SITIO PÚBLICO PLANO (2026-11-03)
+   Pedido explícito: en la landing y en las páginas anexas (Asesoría,
+   Método, Workshop, Essentials, /cursos, Tu estilo) no van sombras, brillos
+   (glows) ni bordes. Cientos de reglas de brunetti.css, pimp.css y el CSS de
+   cada página los dibujan; en vez de tocarlas una por una, esta capa los
+   apaga en bloque, solo bajo las raíces públicas (.brunetti-site, .wks,
+   .ete) y el cromo compartido (navbar, menú móvil, toggle de
+   tema, botón de WhatsApp). El panel, /reservar y las cuentas no se tocan.
+   - Sombras: box-shadow, text-shadow y drop-shadow fuera, también los
+     glows animados (un !important gana sobre las animaciones).
+   - Bordes: color transparente, no border:0, para no mover el layout. Se
+     salvan los campos de formulario (sin borde un input transparente
+     desaparece) y las formas que se dibujan con borde (el spinner de
+     /essentials/gracias y el mouse del hero).
+   - Lo que sin borde quedaba invisible (botones fantasma) recibe un fondo.
+   Va con !important a propósito: el CSS de cada página se carga después
+   (lazy) y esta capa tiene que ganarle siempre.
+   ============================================================ */
+
+/* ---------- Sin sombras ni glows ---------- */
+:is(.brunetti-site, .wks, .ete),
+:is(.brunetti-site, .wks, .ete) *,
+:is(.brunetti-site, .wks, .ete) ::before,
+:is(.brunetti-site, .wks, .ete) ::after,
+:is(.home-nav, .site-nav-sheet, .float-theme-toggle, .wa-fab),
+:is(.home-nav, .site-nav-sheet, .float-theme-toggle, .wa-fab) *,
+:is(.home-nav, .site-nav-sheet, .float-theme-toggle, .wa-fab)::before,
+:is(.home-nav, .site-nav-sheet, .float-theme-toggle, .wa-fab)::after,
+:is(.home-nav, .site-nav-sheet, .float-theme-toggle, .wa-fab) ::before,
+:is(.home-nav, .site-nav-sheet, .float-theme-toggle, .wa-fab) ::after {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+/* drop-shadow va dentro de `filter`, que también lleva saturación y
+   brillo: se apaga solo donde era una sombra. */
+.brunetti-site .bhero-name-img,
+.brunetti-site .bhero-figure--cutout img,
+.brunetti-site .course-hero-figwrap img,
+.wks-hero-figwrap img,
+.wks-hero-logo,
+.home-nav .site-nav-brand-word { filter: none !important; }
+[data-theme="light"] .asesoria-page .home-nav .site-nav-brand-word { filter: brightness(0.6) contrast(1.5) !important; }
+
+/* ---------- Sin bordes ---------- */
+:is(.brunetti-site, .wks, .ete) :not(input, select, textarea, .essentials-gracias-spinner, .bhero-cue .mouse),
+:is(.brunetti-site, .wks, .ete) ::before,
+:is(.brunetti-site, .wks, .ete) ::after,
+:is(.home-nav, .site-nav-sheet, .float-theme-toggle, .wa-fab),
+:is(.home-nav, .site-nav-sheet, .float-theme-toggle, .wa-fab) *,
+:is(.home-nav, .site-nav-sheet, .float-theme-toggle, .wa-fab)::before,
+:is(.home-nav, .site-nav-sheet, .float-theme-toggle, .wa-fab)::after {
+  border-color: transparent !important;
+}
+
+/* Botones fantasma: sin borde quedaban como texto suelto; ahora llevan un
+   fondo tenue, como el "Reservar hora" de las tarjetas de servicio. */
+:is(.brunetti-site, .wks, .ete) .btn-ghost { background: rgba(255, 255, 255, 0.08); }
+:is(.brunetti-site, .wks, .ete) .btn-ghost:hover { background: rgba(255, 255, 255, 0.14); }
+[data-theme="light"] :is(.brunetti-site, .wks, .ete) .btn-ghost { background: rgba(0, 0, 0, 0.06); }
+[data-theme="light"] :is(.brunetti-site, .wks, .ete) .btn-ghost:hover { background: rgba(0, 0, 0, 0.1); }
+
+/* Varios anillos de foco eran box-shadow: el foco de teclado sigue
+   visible con un outline. */
+:is(.brunetti-site, .wks, .ete) :is(a, button, [role="button"], input, select, textarea):focus-visible {
+  outline: 2px solid var(--gold-bright, #e7c87e);
+  outline-offset: 2px;
+}

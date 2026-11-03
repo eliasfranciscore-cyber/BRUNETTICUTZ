@@ -441,11 +441,6 @@
 .essentials-drawer-contact input::placeholder { color: var(--muted-2); }
 .essentials-drawer-contact input:focus { outline: none; border-color: var(--gold-line, var(--gold)); }
 
-/* Espacio inferior para el CTA flotante móvil (site-nav-cta-bar). */
-@media (max-width: 899px) {
-  .essentials-page .mfooter { padding-bottom: 5rem; }
-}
-
 /* ---------- ERROR DE PAGO (drawer) ---------- */
 .essentials-pay-error {
   margin: 0 0 0.6rem;
