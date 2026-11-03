@@ -225,8 +225,8 @@
     "semantic_hash": ""
   },
   "src/components/SiteNav.jsx": {
-    "mtime": 1793736421.3122873,
-    "ast_hash": "5c24d6d09386d0f9bb4b1446fdebc5f3",
+    "mtime": 1793742694.9476304,
+    "ast_hash": "b20b31ff6b4fce4b0c5de24922fcab59",
     "semantic_hash": ""
   },
   "src/components/brunetti.jsx": {
@@ -235,8 +235,8 @@
     "semantic_hash": ""
   },
   "src/components/theme.jsx": {
-    "mtime": 1792970322.9602165,
-    "ast_hash": "eef16b15490e080d090576b90ed9f5e3",
+    "mtime": 1793742744.2555451,
+    "ast_hash": "011f0c9e77d94305cd5e16de6e6fdbba",
     "semantic_hash": ""
   },
   "src/components/ui.jsx": {
@@ -270,8 +270,8 @@
     "semantic_hash": ""
   },
   "src/main.jsx": {
-    "mtime": 1792967470.3784719,
-    "ast_hash": "9ff11a1f9f62fd6d7f7518e181cb96a1",
+    "mtime": 1793737826.398235,
+    "ast_hash": "bfae6761a756f546abcaf2a0292bd699",
     "semantic_hash": ""
   },
   "src/pages/Account.jsx": {
@@ -300,8 +300,8 @@
     "semantic_hash": ""
   },
   "src/pages/Home.jsx": {
-    "mtime": 1793736533.221841,
-    "ast_hash": "849ff9790766896dea0499fd8f3c8ae4",
+    "mtime": 1793742694.3197095,
+    "ast_hash": "85d81bc4d3dd927ca130e15100140d86",
     "semantic_hash": ""
   },
   "src/pages/Login.jsx": {
@@ -340,8 +340,8 @@
     "semantic_hash": "8821dc65ef6d88a32b3d71aa793563c1"
   },
   "CLAUDE.md": {
-    "mtime": 1793736719.5227342,
-    "ast_hash": "090711eaa9c1cee6e64cee12e132d306",
+    "mtime": 1793742757.2032065,
+    "ast_hash": "aff15d6f8f68af6f6bce8c04d33a1a8a",
     "semantic_hash": ""
   },
   "IMPLEMENTATION_PLAN.md": {
@@ -2545,8 +2545,8 @@
     "semantic_hash": ""
   },
   "src/features.js": {
-    "mtime": 1793386973.143911,
-    "ast_hash": "cf2dbb267eae514308b3084e6a1bf4df",
+    "mtime": 1793742743.5631053,
+    "ast_hash": "951b05742bcbc536cc90319df170640e",
     "semantic_hash": ""
   },
   "src/installPrompt.js": {
@@ -2780,8 +2780,8 @@
     "semantic_hash": ""
   },
   "public/boot.js": {
-    "mtime": 1793387195.0158503,
-    "ast_hash": "1c8eb740b9e2ab1831dbdb3b1f5e6893",
+    "mtime": 1793742751.3424206,
+    "ast_hash": "19f90155383aa307fcaffb372c8d9c02",
     "semantic_hash": ""
   },
   "scripts/academy-sync.mjs": {
@@ -3747,6 +3747,11 @@
   "AGENTS.md": {
     "mtime": 1793583012.582461,
     "ast_hash": "3efedd0d518c519724d6bef2eb39a426",
+    "semantic_hash": ""
+  },
+  "public/assets/asesoria/universo-asesoria.webp": {
+    "mtime": 1793742681.0275822,
+    "ast_hash": "ea60f461cc8253aff09f463d65d032d3",
     "semantic_hash": ""
   }
 }

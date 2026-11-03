@@ -195,7 +195,7 @@
   "193": "academy-sync.mjs",
   "194": "AcademyRoot.jsx",
   "195": "index.mjs",
-  "196": "InscripcionesTab",
+  "196": "feed",
   "197": "SinCerrar 2.jsx",
   "198": "useTheme",
   "199": "fixtures 2.mjs",
@@ -233,6 +233,6 @@
   "231": "ActivityHeatmap.jsx",
   "232": "RouteBoundary",
   "233": "siteUrl",
-  "234": "postSave",
+  "234": "staffRow",
   "235": "toEmbedUrl"
 }
