@@ -1,0 +1,37 @@
+{
+  "kicker": "Universo Brunetti",
+  "h2": "Del estudio",
+  "h2Accent": "a tu próxima etapa.",
+  "tiles": {
+    "asesoria": {
+      "eyebrow": "Image Studio",
+      "title": "Asesoría de imagen",
+      "body": "Tu imagen no se improvisa. Se diagnostica, se diseña y se aprende a llevar.",
+      "cta": "Conocer la asesoría"
+    },
+    "metodo": {
+      "eyebrow": "Academy",
+      "title": "Método Brunetti",
+      "body": "El protocolo que uso en mi silla, en 6 módulos y 21 lecciones online. Para barberos que ya cortan bien y siguen cobrando poco.",
+      "cta": "Ver el método"
+    },
+    "workshop": {
+      "eyebrow": "Presencial",
+      "title": "Workshop",
+      "body": "Una jornada intensiva para barberos que quieren verse premium, comunicar mejor y convertir seguidores en agenda real.",
+      "cta": "Ver próxima edición"
+    },
+    "essentials": {
+      "eyebrow": "Selección Brunetti",
+      "title": "Essentials",
+      "body": "Productos y piezas elegidas para llevar la experiencia Brunetti fuera del estudio.",
+      "cta": "Explorar Essentials"
+    },
+    "trabajo": {
+      "eyebrow": "Explora",
+      "title": "El trabajo Brunetticutz",
+      "body": "Visagismo, cortes a medida, barba y cambios de imagen: lo que pasa en la silla de Bruno.",
+      "cta": "Ver el trabajo"
+    }
+  }
+}

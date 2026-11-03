@@ -95,6 +95,8 @@ export default function SiteNav({ onSection, scrolled: scrolledProp }) {
     else goSection(id)
   }
 
+  const isActive = (id) => (id === "workshop" && isWorkshop) || (id === "cursos" && isCursos) || (id === "metodo" && isMetodo) || (id === "asesoria" && isAsesoria) || (id === "style" && isStyle) || (id === "essentials" && isEssentials)
+
   const reserveLabel = isWorkshop ? "Reservar asiento" : isCursos || isMetodo ? "Inscribirme" : isAsesoria ? "Reservar asesoría" : "Reservar hora"
   const reserve = () => {
     setMenuOpen(false)
@@ -135,24 +137,26 @@ export default function SiteNav({ onSection, scrolled: scrolledProp }) {
             alt="Brunetticutz"
           />
         </a>
-        <nav className="home-nav-links">
+        <nav className="home-nav-links" aria-label="Secciones">
           {LINKS.map(([id, label]) => (
             <button
               key={id}
               onClick={() => handleNav(id)}
-              className="nav-link"
-              style={(id === "workshop" && isWorkshop) || (id === "cursos" && isCursos) || (id === "metodo" && isMetodo) || (id === "asesoria" && isAsesoria) || (id === "style" && isStyle) || (id === "essentials" && isEssentials) ? { color: "var(--gold-lt)" } : undefined}
+              className={`nav-link${isActive(id) ? " is-active" : ""}`}
+              aria-current={isActive(id) ? "page" : undefined}
             >
               {label}
             </button>
           ))}
-          <button className="btn btn-ghost btn-sm site-nav-barber-desktop" onClick={() => navigate("/ingreso")} aria-label="Acceso interno">
+        </nav>
+        <div className="site-nav-actions">
+          <button className="site-nav-barber-desktop" onClick={() => navigate("/ingreso")} aria-label="Acceso interno">
             <Icon name="key" size={16} />
           </button>
           <button className="btn btn-gold btn-sm site-nav-reserve-desktop" onClick={() => navigate("/login")}>
             <Icon name="calendar" size={14} /> Reservar
           </button>
-        </nav>
+        </div>
         <button
           className="site-nav-burger"
           aria-label={menuOpen ? "Cerrar menú" : "Abrir menú"}
@@ -171,7 +175,7 @@ export default function SiteNav({ onSection, scrolled: scrolledProp }) {
             key={id}
             role="menuitem"
             onClick={() => handleNav(id)}
-            className={(id === "workshop" && isWorkshop) || (id === "cursos" && isCursos) || (id === "metodo" && isMetodo) || (id === "asesoria" && isAsesoria) || (id === "style" && isStyle) || (id === "essentials" && isEssentials) ? "is-active" : ""}
+            className={isActive(id) ? "is-active" : ""}
           >
             {label}
           </button>

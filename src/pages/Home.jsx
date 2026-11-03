@@ -6,8 +6,6 @@ import ModuleFooter from '../components/ModuleFooter.jsx'
 import { Lamp } from '../components/ui/lamp.jsx'
 import { ContainerScroll } from '../components/ui/container-scroll-animation.jsx'
 import { InteractiveSelector } from '../components/ui/interactive-selector.jsx'
-import { Sparkles } from '../components/ui/sparkles.jsx'
-import { useTheme } from '../components/theme.jsx'
 import { CLP } from '../data.js'
 import { FEATURES } from '../features.js'
 import { EditableText, EditContext } from '../components/edit/EditableText.jsx'
@@ -19,7 +17,7 @@ import SOBRE from '../data/content/home-sobre.json'
 import SERVICIOS_INTRO from '../data/content/home-servicios.json'
 import TRANSFORMACIONES from '../data/content/home-transformaciones.json'
 import EXPERIENCIAS from '../data/content/home-experiencias.json'
-import CURSOS_TEASER from '../data/content/home-cursos-teaser.json'
+import UNIVERSO from '../data/content/home-universo.json'
 import TESTIMONIOS_INTRO from '../data/content/home-testimonios.json'
 import CONTACTO from '../data/content/home-contacto.json'
 
@@ -118,6 +116,20 @@ function toDisplayService(svc, featuredId) {
 const CARD_IMAGES = ['/assets/bruno-feature.jpg', '/assets/gallery-1.jpg', '/assets/gallery-2.jpg', '/assets/gallery-3.jpg', '/assets/workshop-2026.jpg', '/assets/bruno-portrait.jpg']
 const CARDS = EXPERIENCIAS.cards.map((c, i) => ({ ...c, img: CARD_IMAGES[i] }))
 
+// Universo Brunetti: un solo módulo de accesos directos que reemplazó al
+// teaser de cursos y al carrusel "Explora" (2026-11-03). Foto y logo son rutas
+// fijas; el texto vive en home-universo.json, por clave. "trabajo" no navega:
+// abre el visor de las tarjetas de home-experiencias.json (el antiguo
+// carrusel). Si los accesos quedan impares, el último va a todo el ancho.
+const UNIVERSO_TILES = [
+  FEATURES.imageStudio && { key: 'asesoria', to: '/asesoria', img: '/assets/asesoria/informe-2.jpg', logo: '/assets/brunetti-asesoria-wordmark.webp' },
+  { key: 'metodo', to: '/metodo', img: '/assets/workshop-2026.jpg', logo: '/assets/brunetti-cursos-wordmark.webp' },
+  { key: 'workshop', to: '/workshop', img: '/assets/workshop-gallery/wk-08.webp', logo: '/assets/brunetti-workshop-wordmark.webp' },
+  { key: 'essentials', to: '/essentials', img: '/assets/products/polera-barber-club-1.png', logo: '/assets/brunetti-hero-wordmark.webp' },
+  { key: 'trabajo' },
+].filter(Boolean)
+const TRABAJO_STRIP = CARD_IMAGES.slice(0, 4)
+
 // Antes las 4 reseñas reutilizaban fotos de Bruno (el barbero) en vez de
 // clientes reales. Se reemplazan por fotos de la galería de "Tu estilo"
 // (/tu-estilo), eligiendo una persona distinta y reconocible por reseña.
@@ -137,15 +149,9 @@ export default function Home() {
   const [modal, setModal] = useState(null) // índice de CARDS o null
   const [tmIdx, setTmIdx] = useState(0)
   const [tmReveal, setTmReveal] = useState(0) // contador para re-disparar animación de palabras
-  const trackRef = useRef(null)
   const servTrackRef = useRef(null)
   const [services, setServices] = useState(FALLBACK_SERVICES)
   const { editing } = useContext(EditContext)
-  const { theme } = useTheme()
-  /* Las partículas son un efecto de fondo OSCURO: sobre la crema del modo
-     claro se leían como suciedad encima del texto. En claro no se montan (ni
-     canvas ni requestAnimationFrame). */
-  const showSparkles = theme !== 'light'
 
   useBrunettiFx(rootRef)
 
@@ -250,24 +256,32 @@ export default function Home() {
     }
   }, [])
 
-  /* ---- Carousel: cerrar modal con Escape + bloquear scroll ---- */
+  /* ---- Visor "El trabajo": Escape cierra, flechas pasan + bloquear scroll ---- */
+  const isOpen = modal !== null
+  const stepModal = (dir) => setModal((i) => (i + dir + CARDS.length) % CARDS.length)
   useEffect(() => {
-    if (modal === null) return
+    if (!isOpen) return
     document.body.style.overflow = 'hidden'
-    const onKey = (e) => { if (e.key === 'Escape') setModal(null) }
+    const onKey = (e) => {
+      if (e.key === 'Escape') setModal(null)
+      else if (e.key === 'ArrowRight') stepModal(1)
+      else if (e.key === 'ArrowLeft') stepModal(-1)
+    }
     document.addEventListener('keydown', onKey)
     return () => { document.body.style.overflow = ''; document.removeEventListener('keydown', onKey) }
-  }, [modal])
+  }, [isOpen])
 
-  // Un paso = una tarjeta + el gap (1rem). Sirve para los dos carriles:
-  // Experiencias (.ac-card, por defecto) y Servicios (.bserv).
-  const scrollTrack = (dir, ref = trackRef, cardSelector = '.ac-card') => {
-    const track = ref.current
+  // Un paso = una tarjeta + el gap (1rem) del carril de Servicios.
+  const scrollTrack = (dir) => {
+    const track = servTrackRef.current
     if (!track) return
-    const card = track.querySelector(cardSelector)
+    const card = track.querySelector('.bserv')
     const step = card ? card.offsetWidth + 16 : 300
     track.scrollBy({ left: dir * step, behavior: 'smooth' })
   }
+
+  // En modo edición un click selecciona el texto del acceso, no navega.
+  const goTile = (to) => (e) => { e.preventDefault(); if (!editing) navigate(to) }
 
   const marquee = (
     <span>
@@ -337,7 +351,6 @@ export default function Home() {
         </section>
 
         <div className="bru-sparkles-zone">
-          {showSparkles && <Sparkles className="bru-sparkles--bg" />}
 
         {/* ============ MARQUEE ============ */}
         <div className="bmarquee" aria-hidden="true">
@@ -433,10 +446,10 @@ export default function Home() {
                 Con 3 o menos no hay nada que scrollear. */}
             {services.length > 3 && (
               <div className="ac-arrows">
-                <button className="ac-arrow" type="button" aria-label="Servicio anterior" onClick={() => scrollTrack(-1, servTrackRef, '.bserv')}>
+                <button className="ac-arrow" type="button" aria-label="Servicio anterior" onClick={() => scrollTrack(-1)}>
                   <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 </button>
-                <button className="ac-arrow" type="button" aria-label="Servicio siguiente" onClick={() => scrollTrack(1, servTrackRef, '.bserv')}>
+                <button className="ac-arrow" type="button" aria-label="Servicio siguiente" onClick={() => scrollTrack(1)}>
                   <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 </button>
               </div>
@@ -480,53 +493,52 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ============ EXPERIENCIAS (carousel) ============ */}
-        <section className="feature-section apple-carousel" id="experiencias">
-          <div className="feature-head" data-reveal>
-            <p className="kicker"><EditableText file="home-experiencias" path="kicker">{EXPERIENCIAS.kicker}</EditableText></p>
-            <h2><EditableText file="home-experiencias" path="h2" as="span">{EXPERIENCIAS.h2}</EditableText></h2>
-            <p><EditableText file="home-experiencias" path="body" as="span">{EXPERIENCIAS.body}</EditableText></p>
-          </div>
-          <div className="ac-arrows">
-            <button className="ac-arrow" type="button" aria-label="Anterior" onClick={() => scrollTrack(-1)}>
-              <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            </button>
-            <button className="ac-arrow" type="button" aria-label="Siguiente" onClick={() => scrollTrack(1)}>
-              <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" /></svg>
-            </button>
-          </div>
-          <div className="ac-track" ref={trackRef}>
-            {CARDS.map((c, i) => (
-              <article className="ac-card" tabIndex={0} key={i}
-                onClick={() => setModal(i)}
-                onKeyDown={(e) => { if (e.key === 'Enter') setModal(i) }}>
-                <img src={c.img} alt={c.title} loading="lazy" />
-                <div className="ac-text">
-                  <p className="ac-cat"><EditableText file="home-experiencias" path={`cards.${i}.cat`}>{c.cat}</EditableText></p>
-                  <h3 className="ac-title"><EditableText file="home-experiencias" path={`cards.${i}.title`}>{c.title}</EditableText></h3>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        {/* ============ CURSOS TEASER ============ */}
-        <section className="bsection" id="cursos-teaser">
+        {/* ============ UNIVERSO BRUNETTI (accesos directos) ============ */}
+        <section id="universo" className="bsection buni">
           <div className="bwrap">
-            <div className="bteaser" data-reveal="scale">
-              <div className="bteaser-bg"><Editable as="img" editId="home-cursos:teaserBg" src="/assets/workshop-2026.jpg" alt="Workshop Brunetti con su comunidad de barberos" loading="lazy" decoding="async" /></div>
-              <div className="bteaser-inner">
-                <Lamp className="bru-lamp--teaser" />
-                <p className="kicker"><EditableText file="home-cursos-teaser" path="kicker">{CURSOS_TEASER.kicker}</EditableText></p>
-                <h2><EditableText file="home-cursos-teaser" path="h2" as="span">{CURSOS_TEASER.h2}</EditableText></h2>
-                <p><EditableText file="home-cursos-teaser" path="body" as="span">{CURSOS_TEASER.body}</EditableText></p>
-                <div className="bteaser-modchips">
-                  <span><EditableText file="home-cursos-teaser" path="chip1">{CURSOS_TEASER.chip1}</EditableText></span>
-                  <span><EditableText file="home-cursos-teaser" path="chip2">{CURSOS_TEASER.chip2}</EditableText></span>
-                  <span><EditableText file="home-cursos-teaser" path="chip3">{CURSOS_TEASER.chip3}</EditableText></span>
-                </div>
-                <a className="btn btn-primary" onClick={goCursos}><EditableText file="home-cursos-teaser" path="cta">{CURSOS_TEASER.cta}</EditableText></a>
-              </div>
+            <div className="buni-head" data-reveal>
+              <p className="kicker"><EditableText file="home-universo" path="kicker">{UNIVERSO.kicker}</EditableText></p>
+              <h2>
+                <EditableText file="home-universo" path="h2" as="span">{UNIVERSO.h2}</EditableText>{' '}
+                <em><EditableText file="home-universo" path="h2Accent" as="span">{UNIVERSO.h2Accent}</EditableText></em>
+              </h2>
+            </div>
+            <div className="buni-grid" data-reveal>
+              {UNIVERSO_TILES.map((t) => {
+                const copy = UNIVERSO.tiles[t.key]
+                const text = (field) => <EditableText file="home-universo" path={`tiles.${t.key}.${field}`}>{copy[field]}</EditableText>
+                const body = (
+                  <div className="buni-copy">
+                    <small>{text('eyebrow')}</small>
+                    <h3>{text('title')}</h3>
+                    <p>{text('body')}</p>
+                    <span className="buni-cta">{text('cta')} <span aria-hidden="true">↗</span></span>
+                  </div>
+                )
+                if (t.key === 'trabajo') {
+                  // En modo edición abre solo desde las fotos: el texto se selecciona.
+                  const open = (e) => { if (!editing || !e.target.closest('.buni-copy')) setModal(0) }
+                  return (
+                    <div className="buni-tile buni-tile--trabajo" role="button" tabIndex={0} key={t.key}
+                      onClick={open}
+                      onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); setModal(0) } }}>
+                      <span className="buni-strip" aria-hidden="true">
+                        {TRABAJO_STRIP.map((src) => <img src={src} alt="" loading="lazy" decoding="async" key={src} />)}
+                      </span>
+                      <span className="buni-shade" />
+                      {body}
+                    </div>
+                  )
+                }
+                return (
+                  <a className={`buni-tile buni-tile--${t.key}`} href={t.to} onClick={goTile(t.to)} key={t.key}>
+                    <Editable as="img" editId={`home-universo:${t.key}`} className="buni-photo" src={t.img} alt="" loading="lazy" decoding="async" />
+                    <span className="buni-shade" />
+                    <img className="buni-logo" src={t.logo} alt="" loading="lazy" decoding="async" />
+                    {body}
+                  </a>
+                )
+              })}
             </div>
           </div>
         </section>
@@ -637,8 +649,8 @@ export default function Home() {
         primaryLabel="Reservar hora"
       />
 
-      {/* ============ MODAL CARRUSEL ============ */}
-      <div className={`ac-modal${modal !== null ? ' is-open' : ''}`} role="dialog" aria-modal="true">
+      {/* ============ VISOR "EL TRABAJO" (desde Universo) ============ */}
+      <div className={`ac-modal${modal !== null ? ' is-open' : ''}`} role="dialog" aria-modal="true" aria-label={UNIVERSO.tiles.trabajo.title}>
         <div className="ac-modal-scrim" onClick={() => setModal(null)} />
         <div className="ac-modal-card">
           <button className="ac-close" type="button" aria-label="Cerrar" onClick={() => setModal(null)}>
@@ -651,6 +663,15 @@ export default function Home() {
                 <p className="ac-cat"><EditableText file="home-experiencias" path={`cards.${modal}.cat`}>{CARDS[modal].cat}</EditableText></p>
                 <h3><EditableText file="home-experiencias" path={`cards.${modal}.title`} as="span">{CARDS[modal].title}</EditableText></h3>
                 <p className="ac-m-body-text"><EditableText file="home-experiencias" path={`cards.${modal}.body`} as="span">{CARDS[modal].body}</EditableText></p>
+                <div className="ac-m-nav">
+                  <button className="ac-arrow" type="button" aria-label="Anterior" onClick={() => stepModal(-1)}>
+                    <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  </button>
+                  <span className="ac-m-count">{modal + 1} / {CARDS.length}</span>
+                  <button className="ac-arrow" type="button" aria-label="Siguiente" onClick={() => stepModal(1)}>
+                    <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                  </button>
+                </div>
               </div>
             </>
           )}

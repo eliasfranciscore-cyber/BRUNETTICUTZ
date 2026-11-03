@@ -16,7 +16,6 @@ import SiteNav from '../components/SiteNav.jsx'
 import ModuleFooter from '../components/ModuleFooter.jsx'
 import { Icon } from '../components/ui.jsx'
 import { useBrunettiFx, scrollToId } from '../components/brunetti.jsx'
-import { Sparkles as SiteSparkles } from '../components/ui/sparkles.jsx'
 // Botón del carrito, modal y cajón lateral: el mismo gesto de compra que
 // Essentials (la vitrina usa sus clases essentials-*).
 import '../styles/essentials.css'
@@ -26,9 +25,11 @@ import '../styles/essentials.css'
 import '../styles/cursos-azul.css'
 import '../styles/cursos-vitrina.css'
 
-// Partículas del fondo en el azul de Cursos (#6b74f0), no en el dorado por defecto.
-function Sparkles(props) {
-  return <SiteSparkles color="107, 116, 240" {...props} />
+// Sin partículas de fondo (2026-11-03, limpieza visual de las páginas
+// anexas): la vitrina compartida sigue montando <Sparkles>, así que el host
+// lo entrega vacío en vez de tocar el código portable.
+function Sparkles() {
+  return null
 }
 
 export { SiteNav, ModuleFooter, Icon, Sparkles, scrollToId }

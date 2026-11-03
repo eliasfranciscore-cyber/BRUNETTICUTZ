@@ -427,7 +427,8 @@ Key files: `src/components/edit/` → `context.js` (shared contexts), `Overrides
 **Coverage:** all `EditableText` usages are editable everywhere (text move/font/color/position come
 for free). Fixed editorial images are tagged with `<Editable as="img" editId="<page>:<name>" …/>`:
 Home (`home-hero:cutout`, `home-hero:bg`, `home-sobre:figure`, `home-estilo:teaserBg`,
-`home-cursos:teaserBg`, `home:compareBefore/After`), Cursos (`cursos:heroCutout`, `cursos:heroBg`),
+`home:compareBefore/After`, and the Universo Brunetti tiles `home-universo:<asesoria|metodo|workshop|essentials>`
+— their copy lives in `home-universo.json`), Cursos (`cursos:heroCutout`, `cursos:heroBg`),
 Encuentra tu estilo (`estilo-hero:<i>`, `estilo:ctaBg`), Workshop (`workshop:hero`, `workshop:logo`,
 `workshop:pricingBg`). Data-driven galleries/thumbnails (mapped `SmartImg` grids, recommendation
 cards, testimonial photos) are intentionally NOT tagged — their images come from data files

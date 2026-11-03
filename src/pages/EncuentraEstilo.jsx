@@ -6,7 +6,6 @@ import ModuleFooter from '../components/ModuleFooter.jsx'
 import { FACE_SHAPES, GALLERY_CATS, GALLERY, HERO_PHOTOS, u } from '../data/estilo.js'
 import { EditableText } from '../components/edit/EditableText.jsx'
 import { Editable } from '../components/edit/Editable.jsx'
-import { Sparkles } from '../components/ui/sparkles.jsx'
 import ESTILO from '../data/content/estilo.json'
 import '../styles/estilo.css'
 
@@ -316,10 +315,7 @@ export default function EncuentraEstilo() {
       <div className="ete" data-theme={theme}>
         <div className="ete-shell">
           <Hero />
-          {/* Fondo de partículas doradas para el cuerpo (hero fuera). Es un
-              efecto de fondo oscuro: en claro no se monta. */}
           <div className="bru-sparkles-zone">
-            {theme !== 'light' && <Sparkles className="bru-sparkles--bg" color="201, 161, 78" />}
             <Visagismo onReserveService={reserveService} />
             <Galeria />
             <CtaBand onReserveService={reserveService} />

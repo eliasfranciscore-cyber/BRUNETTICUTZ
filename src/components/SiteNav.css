@@ -1,39 +1,16 @@
 /* ============================================================
    SiteNav — navegación global persistente (móvil + escritorio)
-   Base del navbar (.home-nav / .home-nav-links / .nav-link / .brandmark)
-   vive en pimp.css. Aquí van el menú móvil, la barra CTA inferior y
-   los ajustes responsive. Breakpoint del sitio: 900px.
+   Base del navbar (.home-nav / .home-nav-links / .nav-link) vive en
+   pimp.css; acá va el diseño propiamente tal, el menú móvil y la barra CTA
+   inferior. Breakpoint del sitio: 900px.
+
+   Rediseño "Cristal" (2026-11-03, elegido entre dos propuestas): sin bordes
+   ni brillos. Una píldora translúcida flota sobre el contenido y se
+   materializa al hacer scroll (desenfoque + escala); los enlaces son
+   cápsulas con un fondo tenue al pasar y en la sección activa.
    ============================================================ */
 
-/* Botón de menú (hamburguesa) — sólo móvil */
-.site-nav-burger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 auto;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--hair);
-  color: var(--ink);
-  cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease;
-}
-.site-nav-burger:hover {
-  border-color: var(--gold-line);
-  background: rgba(201, 161, 78, 0.08);
-}
-@media (min-width: 900px) {
-  .site-nav-burger { display: none; }
-}
-
-/* ------------------------------------------------------------------
-   Logotipo del navbar: wordmark real (imagen), uno por módulo (dorado en
-   Home/Tu estilo, morado en Workshop, azul en Cursos — ver SiteNav.jsx).
-   Todo escala desde una sola font-size en el contenedor (.site-nav-brand);
-   el logo usa em → moverlo entre desktop/móvil es cambiar UN número.
-   ------------------------------------------------------------------ */
+/* ---------- Común ---------- */
 .home-nav .site-nav-brand {
   flex: 0 0 auto;
   display: inline-flex;
@@ -43,25 +20,15 @@
   text-decoration: none;
 }
 .home-nav.is-scrolled .site-nav-brand { font-size: 14.5px; }
-
 .home-nav .site-nav-brand-word {
   height: 2.5em;
   width: auto;
   display: block;
   filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.4));
+  transition: height 0.3s var(--ease-out, ease);
 }
 
-/* En desktop el logo debe quedar DENTRO de la píldora translúcida del navbar.
-   La píldora (.home-nav.is-scrolled::before) arranca en clamp(.7rem,4vw,2.1rem)
-   = 2.1rem desde el borde de la barra en todo desktop (≥900px). El padding-izq
-   de la barra es 0.2rem, así que para dejar el logo ~0.6rem dentro de la píldora:
-   2.1rem (píldora) − 0.2rem (padding barra) + 0.6rem (aire) ≈ 2.5rem. */
-@media (min-width: 900px) {
-  .home-nav .site-nav-brand { padding-left: 3.4rem; }
-}
-
-/* Navbar siempre translúcido: SÓLO el pill redondeado (.home-nav.is-scrolled::before).
-   Sin relleno ni desenfoque de ancho completo "por fuera" del pill. */
+/* El fondo "por fuera" de la píldora (pimp.css) no se usa en ningún diseño. */
 .home-nav.is-scrolled {
   background: transparent;
   border-bottom-color: transparent;
@@ -69,23 +36,126 @@
   -webkit-backdrop-filter: none;
 }
 
-/* En móvil: brand centrada absolutamente, hamburguesa a la derecha */
+/* La píldora de pimp.css (borde dorado + glow) se redefine entera acá: queda
+   siempre montada y se materializa (opacidad + escala) en vez de aparecer de
+   golpe. Sin borde ni brillo. */
+.home-nav::before,
+.home-nav.is-scrolled::before {
+  content: "";
+  position: absolute;
+  inset: 0.2rem clamp(0.7rem, 4vw, 2.1rem) auto;
+  height: 62px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(16, 15, 13, 0.62);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
+  box-shadow: 0 14px 34px -18px rgba(0, 0, 0, 0.6);
+  z-index: -1;
+  opacity: 0;
+  transform: scale(0.985);
+  transition: opacity 0.35s ease, transform 0.45s var(--ease-out, ease);
+  pointer-events: none;
+}
+.home-nav.is-scrolled::before { opacity: 1; transform: none; }
+[data-theme="light"] .home-nav::before,
+[data-theme="light"] .home-nav.is-scrolled::before {
+  background: rgba(255, 253, 248, 0.78);
+  box-shadow: 0 14px 34px -20px rgba(60, 40, 8, 0.32);
+}
+
+.site-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 0 0 auto;
+}
+/* El botón dorado del navbar va sin su sombra/brillo dorado. */
+.site-nav-actions .site-nav-reserve-desktop,
+.site-nav-actions .site-nav-reserve-desktop:hover { box-shadow: none; }
+
+/* Acceso interno: solo ícono, sin borde. */
+.site-nav-barber-desktop {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.1s ease-out;
+}
+.site-nav-barber-desktop:hover { background: rgba(128, 128, 128, 0.14); color: var(--ink); }
+.site-nav-barber-desktop:active { transform: scale(0.94); }
+
+/* Enlaces: base común. */
+.home-nav .nav-link {
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  font-family: var(--font-body);
+  transition: background 0.2s ease, color 0.2s ease, transform 0.1s ease-out;
+}
+.home-nav .nav-link:hover { color: var(--ink); }
+.home-nav .nav-link.is-active { color: var(--gold-lt); }
+.home-nav .nav-link:active { transform: scale(0.96); }
+
+/* Hamburguesa — sólo móvil, sin borde. */
+.site-nav-burger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease-out;
+}
+.site-nav-burger:hover { background: rgba(128, 128, 128, 0.14); }
+.site-nav-burger:active { transform: scale(0.94); }
+@media (min-width: 900px) {
+  .site-nav-burger { display: none; }
+}
+
+/* ---------- Escritorio ---------- */
+@media (min-width: 900px) {
+  /* El logo queda DENTRO de la píldora: arranca a clamp(.7rem,4vw,2.1rem)
+     = 2.1rem del borde en todo desktop y la barra tiene 0.2rem de padding. */
+  .home-nav .site-nav-brand { padding-left: 3.4rem; }
+  .home-nav-links { margin-left: auto; gap: 0.15rem; }
+  .home-nav .nav-link {
+    padding: 0.5rem 0.8rem;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+  .home-nav .nav-link:hover { background: rgba(128, 128, 128, 0.12); }
+  .home-nav .nav-link.is-active { background: rgba(128, 128, 128, 0.14); font-weight: 600; }
+  .site-nav-actions { margin-left: 0.6rem; padding-right: 0.3rem; }
+}
+
+/* ---------- Móvil ---------- */
 @media (max-width: 899px) {
   .home-nav {
     align-items: center;
     justify-content: center;
-    /* padding uniforme arriba/abajo; left/right se anulan porque la brand va absoluta.
-       El top suma safe-area-inset-top: en Safari normal es 0px (sin cambio visual),
-       pero como app instalada en iOS (PWA a pantalla completa) empuja la barra
-       fuera del notch/Dynamic Island para que el logo y la hamburguesa queden
-       accesibles. */
+    /* El top suma safe-area-inset-top: en Safari normal es 0px, pero como app
+       instalada en iOS (PWA a pantalla completa) empuja la barra fuera del
+       notch/Dynamic Island. */
     padding: calc(0.9rem + env(safe-area-inset-top, 0px)) clamp(1rem, 4vw, 1.4rem) 0.9rem;
     min-height: 76px;
   }
-  /* Brand centrada con absolute → 100% simétrica dentro de la pill.
-     font-size con clamp: ~19px en teléfonos normales (375px) pero encoge en
-     pantallas muy estrechas para que el wordmark (nowrap, centrado) nunca
-     alcance la hamburguesa absoluta de la derecha. */
+  /* Brand centrada con absolute → simétrica. El clamp encoge el wordmark en
+     pantallas muy estrechas para que nunca alcance la hamburguesa. */
   .home-nav .site-nav-brand {
     position: absolute;
     left: 50%;
@@ -95,20 +165,20 @@
     pointer-events: auto;
   }
   .home-nav.is-scrolled .site-nav-brand { font-size: 16px; }
-  .home-nav-links { display: none; }
-  .site-nav-reserve-desktop { display: none !important; }
-  .site-nav-barber-desktop { display: none !important; }
+  .home-nav-links,
+  .site-nav-actions { display: none; }
   .site-nav-burger {
     position: absolute;
     right: clamp(1.5rem, 7vw, 2.4rem);
     top: 50%;
     transform: translateY(-50%);
   }
+  .site-nav-burger:active { transform: translateY(-50%) scale(0.94); }
 }
 
-/* Menú desplegable (sheet) — sólo móvil.
-   Por defecto (oscuro) usa panel oscuro + texto blanco; en modo claro se
-   re-mapea más abajo a fondo crema + tinta oscura para seguir el tema. */
+/* ---------- Menú desplegable (sheet) — sólo móvil ----------
+   Nace desde la hamburguesa (transform-origin arriba a la derecha) y vuelve
+   por el mismo camino. Sin borde ni divisores: el espacio separa. */
 .site-nav-sheet {
   position: fixed;
   top: calc(env(safe-area-inset-top, 0px) + 74px);
@@ -116,23 +186,23 @@
   right: clamp(0.7rem, 4vw, 2.1rem);
   z-index: 55;
   display: grid;
-  border-radius: 22px;
-  background: rgba(12, 11, 10, 0.72);
-  backdrop-filter: blur(28px) saturate(160%);
-  -webkit-backdrop-filter: blur(28px) saturate(160%);
-  border: 1px solid rgba(214, 178, 102, 0.22);
+  border: 0;
+  border-radius: 24px;
+  background: rgba(16, 15, 13, 0.82);
+  -webkit-backdrop-filter: blur(28px) saturate(170%);
+  backdrop-filter: blur(28px) saturate(170%);
   box-shadow: 0 26px 60px -24px rgba(0, 0, 0, 0.72);
-  padding: 0.3rem 1.1rem 0.5rem;
+  padding: 0.5rem 0.6rem;
   overflow: hidden;
-  transform: translateY(-10px) scale(0.98);
-  transform-origin: top center;
+  transform: translateY(-6px) scale(0.96);
+  transform-origin: top right;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: transform 0.26s cubic-bezier(0.2, 0.7, 0.3, 1), opacity 0.26s ease, visibility 0.26s;
+  transition: transform 0.3s var(--ease-out, ease), opacity 0.22s ease, visibility 0.3s;
 }
 .site-nav-sheet.is-open {
-  transform: translateY(0) scale(1);
+  transform: none;
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
@@ -141,74 +211,49 @@
   text-align: left;
   background: none;
   border: 0;
-  /* El sheet tiene backdrop oscuro siempre → texto blanco en claro y oscuro */
-  color: rgba(255, 255, 255, 0.85);
+  border-radius: 14px;
+  color: rgba(255, 255, 255, 0.86);
   font-family: var(--font-display);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   font-size: 1.02rem;
-  padding: 0.95rem 0.3rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0.8rem 0.8rem;
   cursor: pointer;
+  transition: background 0.15s ease;
 }
-.site-nav-sheet button:last-child { border-bottom: 0; }
-/* Activo: en cursos/workshop toma el color de acento (claro) del módulo */
-.site-nav-sheet button.is-active { color: var(--gold-lt); }
-
-/* Modo claro: el sheet sigue el tema — fondo crema translúcido + tinta oscura,
-   no el panel oscuro fijo. (data-theme vive en <html>, ancestro del sheet.) */
-[data-theme="light"] .site-nav-sheet {
-  background: rgba(255, 253, 248, 0.86);
-  border-color: rgba(40, 33, 18, 0.14);
-  box-shadow: 0 26px 60px -24px rgba(60, 40, 8, 0.28);
-}
-[data-theme="light"] .site-nav-sheet button {
-  color: var(--ink);
-  border-bottom-color: rgba(40, 33, 18, 0.08);
-}
-/* Acceso barberos */
+.site-nav-sheet button:active { background: rgba(255, 255, 255, 0.08); }
+.site-nav-sheet button.is-active { color: var(--gold-lt); background: rgba(255, 255, 255, 0.06); }
 .site-nav-sheet .site-nav-sheet-barber {
   display: flex;
   align-items: center;
   gap: 0.55rem;
-  margin-top: 0.4rem;
+  margin-top: 0.3rem;
   color: var(--gold);
-  border-bottom: 0;
 }
 .site-nav-sheet .site-nav-sheet-barber svg { flex: 0 0 auto; }
+/* Modo claro: el sheet sigue el tema. (data-theme vive en <html>.) */
+[data-theme="light"] .site-nav-sheet {
+  background: rgba(255, 253, 248, 0.9);
+  box-shadow: 0 26px 60px -24px rgba(60, 40, 8, 0.28);
+}
+[data-theme="light"] .site-nav-sheet button { color: var(--ink); }
+[data-theme="light"] .site-nav-sheet button:active,
+[data-theme="light"] .site-nav-sheet button.is-active { background: rgba(0, 0, 0, 0.05); }
 @media (min-width: 900px) {
   .site-nav-sheet { display: none; }
 }
 
 /* ------------------------------------------------------------------
-   Banda 900–1110px: desde los 900px (donde deja de haber hamburguesa) la
-   barra lleva los nueve enlaces + acceso interno + "Reservar" y va sin
-   holgura: con el gap fluido de pimp.css (1.5vw) y el tamaño normal de los
-   enlaces, "Reservar" queda pegado o cortado contra el borde derecho. La
-   banda anterior (900–1040px, solo interlineado/cuerpo de los enlaces) no
-   alcanzaba: medido con fuentes cargadas, el CTA seguía saliéndose entre
-   ~930 y ~1000px. Se ensancha hasta 1110px y se aprieta también el gap y
-   el botón Reservar; arriba de 1110px el gap fluido ya da de sobra y no se
-   toca nada. El padding-izq de la marca tampoco se toca: está calzado con
-   la geometría de la píldora (ver comentario más arriba).
+   Banda 900–1110px: desde los 900px la barra lleva los enlaces + acceso
+   interno + "Reservar" sin holgura. Se aprietan los enlaces y el botón para
+   que "Reservar" no quede cortado contra el borde derecho.
    ------------------------------------------------------------------ */
 @media (min-width: 900px) and (max-width: 1110px) {
-  .home-nav-links { gap: clamp(0.3rem, 0.6vw, 0.6rem); }
-  .home-nav .nav-link { font-size: 0.74rem; letter-spacing: 0; }
-  .home-nav-links .site-nav-reserve-desktop {
+  .home-nav .nav-link { padding: 0.45rem 0.5rem; font-size: 0.76rem; letter-spacing: 0; }
+  .site-nav-actions .site-nav-reserve-desktop {
     padding: 0.55rem 0.85rem;
     letter-spacing: 0.03em;
     gap: 0.35rem;
   }
-}
-
-/* Botón acceso interno — solo ícono, cuadrado */
-.site-nav-barber-desktop {
-  width: 36px;
-  height: 36px;
-  padding: 0 !important;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 
 /* Backdrop para cerrar el menú */
@@ -251,4 +296,20 @@
   .home-scroll { padding-bottom: 5rem; }
   .wks-shell { padding-bottom: 5rem; }
   .estilo-page .mfooter { padding-bottom: 5rem; }
+}
+
+/* Accesibilidad: sin transparencia → materiales sólidos; sin movimiento →
+   solo fundidos. */
+@media (prefers-reduced-transparency: reduce) {
+  .home-nav::before,
+  .home-nav.is-scrolled::before { background: rgb(16, 15, 13); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  [data-theme="light"] .home-nav::before,
+  [data-theme="light"] .home-nav.is-scrolled::before { background: rgb(255, 253, 248); }
+  .site-nav-sheet { background: rgb(16, 15, 13); -webkit-backdrop-filter: none; backdrop-filter: none; }
+  [data-theme="light"] .site-nav-sheet { background: rgb(255, 253, 248); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-nav::before,
+  .home-nav.is-scrolled::before,
+  .site-nav-sheet { transform: none !important; }
 }

@@ -3,8 +3,6 @@ import SiteNav from '../components/SiteNav.jsx'
 import ModuleFooter from '../components/ModuleFooter.jsx'
 import { Icon } from '../components/ui.jsx'
 import { useBrunettiFx, scrollToId } from '../components/brunetti.jsx'
-import { useTheme } from '../components/theme.jsx'
-import { Sparkles } from '../components/ui/sparkles.jsx'
 import { InteractiveSelector } from '../components/ui/interactive-selector.jsx'
 import { CLP } from '../data.js'
 import { readCart, addToCart, setQty, removeFromCart, clearCart, cartCount } from '../cartStore.js'
@@ -56,7 +54,6 @@ function rememberEmail(email) {
 
 export default function Essentials() {
   const rootRef = useRef(null)
-  const { theme } = useTheme()
   const [products, setProducts] = useState([])
   // ¿Hay pasarela viva? Lo dice el servidor (sin MP_ACCESS_TOKEN, o con la
   // base caída y el catálogo de respaldo, viene en false): ofrecer un botón
@@ -261,10 +258,7 @@ export default function Essentials() {
           </section>
         )}
 
-        {/* Fondo de partículas doradas, igual que Home/Cursos (hero fuera). */}
         <div className="bru-sparkles-zone">
-          {/* Solo en oscuro: es un efecto pensado para fondo negro. */}
-          {theme !== 'light' && <Sparkles className="bru-sparkles--bg" />}
 
         {/* ============ SELECTOR INTERACTIVO DE PRODUCTOS (igual que Visagismo en Home) ============ */}
         {!loading && products.length > 0 && (

@@ -4,9 +4,7 @@ import SiteNav from '../components/SiteNav.jsx'
 import ModuleFooter from '../components/ModuleFooter.jsx'
 import WhatsAppFab from '../components/WhatsAppFab.jsx'
 import { Icon } from '../components/ui.jsx'
-import { Sparkles } from '../components/ui/sparkles.jsx'
 import { useBrunettiFx, scrollToId } from '../components/brunetti.jsx'
-import { useTheme } from '../components/theme.jsx'
 import { EditableText } from '../components/edit/EditableText.jsx'
 import { CLP, cleanPhone, waShopHref } from '../data.js'
 import { useAcademyCatalog } from '../academy/catalog.js'
@@ -114,7 +112,6 @@ export default function Metodo() {
   const rootRef = useRef(null)
   const location = useLocation()
   const navigate = useNavigate()
-  const { theme } = useTheme()
   const offer = useMetodoOffer()
   const workshopPrice = useWorkshopPrice()
   // El enlace del correo (?leccion=gratis) abre la lección sin pedir datos.
@@ -193,7 +190,6 @@ export default function Metodo() {
         </section>
 
         <div className="bru-sparkles-zone">
-          {theme !== 'light' && <Sparkles className="bru-sparkles--bg" color="107, 116, 240" />}
 
           {/* ============ PARA QUIÉN ============ */}
           <section className="bsection metodo-fit">
