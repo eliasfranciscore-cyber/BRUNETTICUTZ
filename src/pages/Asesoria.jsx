@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import SiteNav from '../components/SiteNav.jsx'
 import ModuleFooter from '../components/ModuleFooter.jsx'
 import WhatsAppFab from '../components/WhatsAppFab.jsx'
@@ -248,6 +248,10 @@ export default function Asesoria() {
               Puedes pedir ver tus datos o que los eliminemos —fotos e informes incluidos— escribiéndonos por{' '}
               <a href={waShopHref('Hola, quiero ver o eliminar mis datos de la asesoría de imagen.')} target="_blank" rel="noopener noreferrer">WhatsApp</a>.
               Los pagos los procesa Mercado Pago: no guardamos los datos de tu tarjeta.
+            </p>
+            <p>
+              El detalle completo —plazos, proveedores y cómo ejercer tus derechos— está en nuestra{' '}
+              <Link to="/privacidad">política de privacidad y protección de datos</Link>.
             </p>
           </div>
         </section>

@@ -15,6 +15,7 @@
     { "source": "/cursos", "destination": "/cursos.html" },
     { "source": "/workshop", "destination": "/workshop.html" },
     { "source": "/asesoria", "destination": "/asesoria.html" },
+    { "source": "/privacidad", "destination": "/privacidad.html" },
     { "source": "/((?!assets/).*)", "destination": "/index.html" }
   ],
   "headers": [

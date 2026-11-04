@@ -2,7 +2,7 @@
    Drop-in para Vite. Requiere react-router-dom. Importa su propio CSS y datos.
    Logo esperado en /public/assets/brunetti-logo-icon.svg (degrada si falta). */
 import React, { useState, useEffect, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import Lenis from 'lenis'
 import { WORKSHOP, WORKSHOP_GALLERY, formatWorkshopDate, WORKSHOP_TBD } from '../data/workshop.js'
@@ -1099,6 +1099,7 @@ function Footer({ onReserve }) {
 
         <div className="wks-footer-bottom">
           <span>© 2026 ASCENSIÓN · por Brunetti</span>
+          <Link className="wks-footer-legal" to="/privacidad">Privacidad y protección de datos</Link>
           <span>Edición barbería premium · {m.paymentsEnabled ? m.dateLabel : WORKSHOP_TBD}</span>
         </div>
       </div>

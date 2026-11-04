@@ -1,0 +1,99 @@
+/* ============================================================
+   /privacidad — Política de privacidad y protección de datos.
+   Página de lectura: una columna angosta, sin bordes ni sombras
+   (el sitio público es plano, ver flat.css); los bloques se separan
+   con fondos tenues y aire.
+   ============================================================ */
+
+.priv-page { min-height: 100dvh; }
+/* En el celular el sitio centra el texto de <main>; un texto legal se lee mejor alineado a la izquierda. */
+.brunetti-site.priv-page main { text-align: left; }
+
+.priv-wrap { max-width: 780px; }
+
+/* ---------- encabezado ---------- */
+.priv-hero { padding: clamp(7rem, 14vw, 9.5rem) 0 clamp(2rem, 5vw, 3rem); }
+.priv-hero h1 {
+  margin: 0 0 1rem;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  text-wrap: balance;
+}
+.priv-lede { margin: 0 0 1rem; max-width: 62ch; font-size: clamp(1rem, 2.2vw, 1.12rem); line-height: 1.6; color: var(--ink-2); }
+.priv-meta { margin: 0; font-size: 0.82rem; color: var(--ink-3, var(--muted)); }
+
+/* ---------- resumen + índice ---------- */
+.priv-summary,
+.priv-toc {
+  margin: 0 0 1rem;
+  padding: 1.4rem 1.5rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+}
+.priv-summary h2 { margin: 0 0 0.8rem; font-family: var(--font-display); font-size: 1.05rem; font-weight: 600; color: var(--ink); }
+.priv-summary ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 0.55rem; }
+.priv-summary li { color: var(--ink-2); line-height: 1.55; font-size: 0.95rem; }
+.priv-summary li::marker { color: var(--gold-bright); }
+
+.priv-toc { margin-bottom: clamp(2.5rem, 6vw, 3.5rem); }
+.priv-toc-h { display: block; margin: 0 0 0.7rem; font-size: 0.72rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-3, var(--muted)); }
+.priv-toc ol { margin: 0; padding-left: 1.4rem; columns: 2 16rem; column-gap: 2rem; }
+.priv-toc li { margin: 0 0 0.4rem; break-inside: avoid; color: var(--ink-3, var(--muted)); font-size: 0.9rem; }
+.priv-toc a { color: var(--ink-2); text-decoration: none; }
+.priv-toc a:hover { color: var(--gold-bright); }
+
+/* ---------- cuerpo ---------- */
+.priv-body { padding-bottom: clamp(4rem, 9vw, 6rem); }
+.priv-section { scroll-margin-top: 96px; padding: clamp(1.8rem, 4vw, 2.4rem) 0 0; }
+.priv-section + .priv-section { margin-top: clamp(1.2rem, 3vw, 1.8rem); }
+.priv-section h2 {
+  display: flex; align-items: baseline; gap: 0.8rem;
+  margin: 0 0 1rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 3vw, 1.6rem);
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.priv-n { flex: none; font-size: 0.8rem; font-weight: 500; letter-spacing: 0.08em; color: var(--gold-bright); font-variant-numeric: tabular-nums; }
+.priv-section h3 { margin: 1.6rem 0 0.7rem; font-family: var(--font-display); font-size: 1.05rem; font-weight: 600; color: var(--ink); }
+.priv-section p { margin: 0 0 0.9rem; color: var(--ink-2); line-height: 1.7; font-size: 0.97rem; }
+.priv-section strong { color: var(--ink); font-weight: 600; }
+.priv-section a, .priv-summary a { color: var(--gold-bright); text-underline-offset: 3px; }
+
+.priv-list, .priv-rights, .priv-steps { margin: 0 0 1rem; padding-left: 1.2rem; display: grid; gap: 0.7rem; }
+.priv-list li, .priv-rights li, .priv-steps li { color: var(--ink-2); line-height: 1.65; font-size: 0.97rem; }
+.priv-list ul { margin: 0.6rem 0 0; padding-left: 1.1rem; display: grid; gap: 0.35rem; }
+.priv-list li::marker, .priv-rights li::marker { color: var(--gold-bright); }
+.priv-steps li::marker { color: var(--gold-bright); font-weight: 600; }
+
+.priv-dl { display: grid; grid-template-columns: minmax(9rem, auto) 1fr; gap: 0.6rem 1.4rem; margin: 0 0 1rem; padding: 1.1rem 1.3rem; border-radius: 14px; background: rgba(255, 255, 255, 0.04); }
+.priv-dl dt { color: var(--ink-3, var(--muted)); font-size: 0.85rem; padding-top: 0.1rem; }
+.priv-dl dd { margin: 0; color: var(--ink-2); font-size: 0.95rem; line-height: 1.55; }
+
+/* finalidades: tabla de dos columnas que en el celular se apila */
+.priv-table { margin: 0 0 1.2rem; border-radius: 14px; overflow: hidden; background: rgba(255, 255, 255, 0.03); }
+.priv-tr { display: grid; grid-template-columns: 1.25fr 1fr; gap: 1.2rem; padding: 0.85rem 1.2rem; }
+.priv-tr:nth-child(even) { background: rgba(255, 255, 255, 0.03); }
+.priv-tr span { color: var(--ink-2); font-size: 0.92rem; line-height: 1.55; }
+.priv-tr span:last-child { color: var(--ink-3, var(--muted)); }
+.priv-th { background: rgba(255, 255, 255, 0.06); }
+.priv-th span, .priv-th span:last-child { font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-3, var(--muted)); }
+
+@media (max-width: 640px) {
+  .priv-tr { grid-template-columns: 1fr; gap: 0.3rem; }
+  .priv-th { display: none; }
+  .priv-dl { grid-template-columns: 1fr; gap: 0.15rem; }
+  .priv-dl dd { margin-bottom: 0.6rem; }
+}
+
+[data-theme="light"] .priv-summary,
+[data-theme="light"] .priv-toc,
+[data-theme="light"] .priv-dl,
+[data-theme="light"] .priv-table { background: rgba(0, 0, 0, 0.035); }
+[data-theme="light"] .priv-tr:nth-child(even) { background: rgba(0, 0, 0, 0.025); }
+[data-theme="light"] .priv-th { background: rgba(0, 0, 0, 0.05); }

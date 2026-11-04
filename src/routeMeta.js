@@ -41,6 +41,11 @@ export const ROUTE_META = {
     description: 'Diagnóstico de rostro, cráneo y cabello con Bruno «Brunetti» Herrera: tus cortes, tus productos y tu rutina en un informe personalizado. Presencial en Maipú u online.',
     image: '/assets/asesoria/og-asesoria.jpg',
   },
+  '/privacidad': {
+    title: 'Privacidad y protección de datos · Brunetti',
+    description: 'Política de privacidad de Brunetti (brunetticutz.cl): qué datos tratamos, para qué, con quién los compartimos, cuánto los guardamos y cómo ejercer tus derechos según la Ley 21.719.',
+    image: null,
+  },
   '/workshop': {
     title: 'Workshop Contenido que Vende · para barberos',
     description: 'Una jornada intensiva para barberos que ya dominan la técnica: sube tu valor percibido, convierte Instagram en agenda real y aprende a grabar y editar desde el celular.',

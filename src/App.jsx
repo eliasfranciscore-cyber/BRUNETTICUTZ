@@ -119,6 +119,7 @@ const ResetPassword = lazy(() => import('./pages/ResetPassword.jsx'))
 const Asesoria = lazy(() => import('./pages/Asesoria.jsx'))
 const AsesoriaGracias = lazy(() => import('./pages/AsesoriaGracias.jsx'))
 const AsesoriaDatos = lazy(() => import('./pages/AsesoriaDatos.jsx'))
+const Privacidad = lazy(() => import('./pages/Privacidad.jsx'))
 
 function RouteFallback() {
   return (
@@ -148,6 +149,7 @@ export default function App() {
               {FEATURES.imageStudio && <Route path="/asesoria/datos" element={<AsesoriaDatos />} />}
               <Route path="/essentials" element={<Essentials />} />
               <Route path="/essentials/gracias" element={<EssentialsGracias />} />
+              <Route path="/privacidad" element={<Privacidad />} />
               <Route path="/encuentra-tu-estilo" element={<Navigate to={FEATURES.tuEstilo ? '/style' : '/'} replace />} />
               <Route path="/login"    element={<Login />} />
               <Route path="/reservar" element={<Booking />} />

@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom'
 
 /* ============================================================
    Footer compartido (estilo del workshop) para Home y Cursos.
@@ -6,6 +7,8 @@ import React from 'react'
    vía las variables --gold* (dorado en Home, azul en /cursos).
    El logo ASCENSIÓN es exclusivo del workshop, así que aquí va
    la marca BRUNETTI. Sin direcciones.
+   Al final, el enlace a /privacidad (Ley 21.719: la política tiene que
+   estar siempre a la vista en el sitio).
    ============================================================ */
 
 const ICONS = {
@@ -72,6 +75,7 @@ export default function ModuleFooter({
 
         <div className="mfooter-bottom">
           <span>{bottomLeft}</span>
+          <Link className="mfooter-legal" to="/privacidad">Privacidad y protección de datos</Link>
           <span>{bottomRight}</span>
         </div>
       </div>

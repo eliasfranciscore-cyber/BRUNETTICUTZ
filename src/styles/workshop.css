@@ -727,6 +727,8 @@
 .wks-footer-contact a { display: inline-flex; align-items: center; gap: 0.6rem; color: var(--wk-ink-soft); transition: color .2s; }
 .wks-footer-contact a:hover { color: var(--wk-gold-lt); }
 .wks-footer-bottom { border-top: 1px solid var(--wk-hair); padding-block: 1.3rem; display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: space-between; color: var(--wk-muted-2); font-size: 0.76rem; }
+.wks-footer-legal { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.wks-footer-legal:hover { color: var(--wk-gold-lt); }
 
 /* sticky mobile CTA */
 .wks-sticky-cta {
