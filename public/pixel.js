@@ -16,7 +16,15 @@
    mira nada del alumno: se consulta el estado del pedido (el mismo GET
    público que usa la página) y, si quedó pagado, se marca UNA compra
    (Purchase) por referencia. Su regla de CSP en vercel.json deja pasar a
-   Facebook solo en esa ruta. */
+   Facebook solo en esa ruta.
+
+   Solo con consentimiento (Ley 21.719): sin un "sí" en el aviso de cookies
+   (src/components/CookieConsent.jsx) no se carga nada de Facebook. La
+   respuesta está en localStorage.cookie_consent (misma regla que
+   src/consent.js: {ads, v: 1, at}, vale 12 meses) y el evento
+   'cookie-consent' avisa cuando la persona responde sin recargar: con un
+   "sí" se carga en ese momento; con un "no" después de haberlo aceptado,
+   Meta deja de recibir eventos (fbq consent revoke). */
 (function () {
   var PIXEL_ID = '837101656042970';
   var path;
@@ -29,49 +37,69 @@
   var gracias = path === '/cursos/gracias' || path === '/cursos/gracias/';
   if (path.indexOf('/cursos/') === 0 && !gracias) return;
 
-  !function(f,b,e,v,n,t,s)
-  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-  n.queue=[];t=b.createElement(e);t.async=!0;
-  t.src=v;s=b.getElementsByTagName(e)[0];
-  s.parentNode.insertBefore(t,s)}(window, document,'script',
-  'https://connect.facebook.net/en_US/fbevents.js');
-  fbq('init', PIXEL_ID);
-  fbq('track', 'PageView');
-
-  if (!gracias) return;
-
-  /* Compra: el pedido se confirma por el webhook, a veces unos segundos
-     después de volver. Se pregunta cada 4 s, hasta 8 veces; un estado que no
-     sea "pendiente" corta. La marca en localStorage evita contarla dos veces
-     si la persona recarga la página. */
-  var ref;
-  try { ref = new URLSearchParams(location.search).get('ref') || ''; } catch (e) { return; }
-  if (!/^aca-[0-9a-f]{32}$/.test(ref)) return;
-  var mark = 'bc_px_purchase:' + ref;
-  try { if (localStorage.getItem(mark)) return; } catch (e) { /* sin storage: se marca igual */ }
-
-  var tries = 0;
-  function check() {
-    tries += 1;
-    fetch('/api/mp-payments?status=1&ref=' + encodeURIComponent(ref), { credentials: 'same-origin' })
-      .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (d) {
-        if (d && d.status === 'pagada') {
-          try { localStorage.setItem(mark, '1'); } catch (e) {}
-          fbq('track', 'Purchase', {
-            value: Number(d.total) || 0,
-            currency: 'CLP',
-            content_type: 'product',
-            content_ids: [d.course && d.course.slug ? d.course.slug : 'curso'],
-            content_name: d.course && d.course.title ? d.course.title : undefined,
-          });
-          return;
-        }
-        if ((!d || d.status === 'pendiente') && tries < 8) setTimeout(check, 4000);
-      })
-      .catch(function () { if (tries < 8) setTimeout(check, 4000); });
+  function granted() {
+    try {
+      var c = JSON.parse(localStorage.getItem('cookie_consent') || 'null');
+      return !!(c && c.ads === true && c.v === 1 && Date.now() - Date.parse(c.at) < 365 * 864e5);
+    } catch (e) { return false; }
   }
-  setTimeout(check, 1500);
+
+  var started = false;
+  if (granted()) start();
+  window.addEventListener('cookie-consent', function (ev) {
+    var ads = !!(ev.detail && ev.detail.ads);
+    if (!started) { if (ads) start(); return; }
+    try { fbq('consent', ads ? 'grant' : 'revoke'); } catch (e) {}
+  });
+
+  function start() {
+    started = true;
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('consent', 'grant');
+    fbq('init', PIXEL_ID);
+    fbq('track', 'PageView');
+    if (gracias) purchase();
+  }
+
+  function purchase() {
+    /* Compra: el pedido se confirma por el webhook, a veces unos segundos
+       después de volver. Se pregunta cada 4 s, hasta 8 veces; un estado que no
+       sea "pendiente" corta. La marca en localStorage evita contarla dos veces
+       si la persona recarga la página. */
+    var ref;
+    try { ref = new URLSearchParams(location.search).get('ref') || ''; } catch (e) { return; }
+    if (!/^aca-[0-9a-f]{32}$/.test(ref)) return;
+    var mark = 'bc_px_purchase:' + ref;
+    try { if (localStorage.getItem(mark)) return; } catch (e) { /* sin storage: se marca igual */ }
+
+    var tries = 0;
+    function check() {
+      tries += 1;
+      fetch('/api/mp-payments?status=1&ref=' + encodeURIComponent(ref), { credentials: 'same-origin' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (d) {
+          if (d && d.status === 'pagada') {
+            try { localStorage.setItem(mark, '1'); } catch (e) {}
+            fbq('track', 'Purchase', {
+              value: Number(d.total) || 0,
+              currency: 'CLP',
+              content_type: 'product',
+              content_ids: [d.course && d.course.slug ? d.course.slug : 'curso'],
+              content_name: d.course && d.course.title ? d.course.title : undefined,
+            });
+            return;
+          }
+          if ((!d || d.status === 'pendiente') && tries < 8) setTimeout(check, 4000);
+        })
+        .catch(function () { if (tries < 8) setTimeout(check, 4000); });
+    }
+    setTimeout(check, 1500);
+  }
 })();

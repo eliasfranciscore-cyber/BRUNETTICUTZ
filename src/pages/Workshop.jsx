@@ -5,6 +5,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import Lenis from 'lenis'
+import { openConsent } from '../consent.js'
 import { WORKSHOP, WORKSHOP_GALLERY, formatWorkshopDate, WORKSHOP_TBD } from '../data/workshop.js'
 import SiteNav from '../components/SiteNav.jsx'
 import { addLocalEnrollment } from '../enrollmentsStore.js'
@@ -1099,7 +1100,10 @@ function Footer({ onReserve }) {
 
         <div className="wks-footer-bottom">
           <span>© 2026 ASCENSIÓN · por Brunetti</span>
-          <Link className="wks-footer-legal" to="/privacidad">Privacidad y protección de datos</Link>
+          <span className="wks-footer-legal-links">
+            <Link className="wks-footer-legal" to="/privacidad">Privacidad y protección de datos</Link>
+            <button type="button" className="wks-footer-legal" onClick={openConsent}>Preferencias de cookies</button>
+          </span>
           <span>Edición barbería premium · {m.paymentsEnabled ? m.dateLabel : WORKSHOP_TBD}</span>
         </div>
       </div>

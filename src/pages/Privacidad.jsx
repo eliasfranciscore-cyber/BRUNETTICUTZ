@@ -4,6 +4,7 @@ import SiteNav from '../components/SiteNav.jsx'
 import ModuleFooter from '../components/ModuleFooter.jsx'
 import { scrollToId } from '../components/brunetti.jsx'
 import { waShopHref } from '../data.js'
+import { openConsent } from '../consent.js'
 import '../styles/privacidad.css'
 
 /* ================================================================
@@ -27,7 +28,7 @@ import '../styles/privacidad.css'
    pimpstudio.cl); un campo vacío no se muestra.
    ================================================================ */
 
-const POLICY = { version: '1.0', date: '4 de noviembre de 2026' }
+const POLICY = { version: '1.1', date: '4 de noviembre de 2026' }
 
 const RESPONSABLE = {
   nombre: 'Bruno Benjamín Herrera Aranda',
@@ -97,6 +98,7 @@ export default function Privacidad() {
               <li>No vendemos tus datos ni los usamos para otra cosa que lo que aquí se explica.</li>
               <li>Los pagos los procesa Mercado Pago: nunca vemos ni guardamos los datos de tu tarjeta.</li>
               <li>Tus fotos de la asesoría de imagen son privadas y solo se suben con tu consentimiento expreso.</li>
+              <li>El píxel de Meta, que mide nuestros anuncios, solo se activa si lo aceptas en el aviso de cookies.</li>
               <li>
                 Puedes pedir ver, corregir, borrar o llevarte tus datos cuando quieras, gratis, por{' '}
                 <a href={wa} target="_blank" rel="noopener noreferrer">WhatsApp</a>
@@ -167,7 +169,7 @@ export default function Privacidad() {
                 </li>
                 <li>
                   <strong>Visitantes del sitio.</strong> Datos técnicos de navegación (páginas vistas, dispositivo,
-                  identificadores de cookies) para medir el sitio y los anuncios; ver <a href="#medicion" onClick={(e) => { e.preventDefault(); scrollToId('medicion') }}>Cookies, píxel y medición</a>.
+                  identificadores de cookies) para medir el sitio y, si lo aceptas, los anuncios; ver <a href="#medicion" onClick={(e) => { e.preventDefault(); scrollToId('medicion') }}>Cookies, píxel y medición</a>.
                 </li>
                 <li>
                   <strong>El equipo.</strong> Los datos de acceso al panel interno de quienes trabajan en la barbería.
@@ -189,7 +191,8 @@ export default function Privacidad() {
                   ['Sumar estrellas en la tarjeta de fidelidad compartida con Pimp Studio y canjear beneficios.', 'Interés legítimo en darte el beneficio por tus visitas; puedes oponerte y dejar de participar.'],
                   ['Enviarte la lección de muestra o información del curso que pediste.', 'Tu consentimiento, al dejar tus datos.'],
                   ['Pedirte una reseña después de tu visita.', 'Interés legítimo en mejorar la atención; puedes oponerte.'],
-                  ['Medir las visitas al sitio y el resultado de nuestros anuncios.', 'Interés legítimo en saber qué funciona; puedes oponerte (ver Cookies).'],
+                  ['Contar las visitas al sitio de forma agregada, sin cookies.', 'Interés legítimo en saber qué funciona.'],
+                  ['Medir el resultado de nuestros anuncios con el píxel de Meta.', 'Tu consentimiento, que das o niegas en el aviso de cookies y puedes retirar cuando quieras.'],
                   ['Proteger el sitio: bloquear intentos de acceso repetidos y prevenir abusos.', 'Interés legítimo en la seguridad del servicio.'],
                   ['Llevar la contabilidad y cumplir obligaciones tributarias.', 'Cumplimiento de una obligación legal.'],
                 ].map(([fin, base]) => (
@@ -253,7 +256,7 @@ export default function Privacidad() {
                 <li><strong>Interesados en cursos o el Workshop que no compraron:</strong> hasta 2 años desde el último contacto, o antes si pides la baja.</li>
                 <li><strong>Cuenta de la Academy:</strong> mientras la tengas activa; al cerrarla eliminamos tu perfil y tus mensajes.</li>
                 <li><strong>Fotos, videos e informes de la asesoría de imagen:</strong> hasta 2 años desde tu última asesoría, o antes si pides que los borremos.</li>
-                <li><strong>Datos de medición:</strong> la cookie del píxel de Meta dura hasta 90 días; el origen de tu visita (campaña) se borra al cerrar el navegador.</li>
+                <li><strong>Datos de medición:</strong> la cookie del píxel de Meta dura hasta 90 días (y la borramos si retiras tu consentimiento); tu respuesta al aviso de cookies se guarda 12 meses en tu navegador; el origen de tu visita (campaña) se borra al cerrar el navegador.</li>
               </ul>
               <p>Al vencer un plazo, los datos se eliminan o se anonimizan de forma que ya no te identifiquen.</p>
             </Section>
@@ -271,22 +274,25 @@ export default function Privacidad() {
               <ul className="priv-list">
                 <li>
                   <strong>Píxel de Meta.</strong> Registra las páginas que visitas y acciones como iniciar una compra o
-                  dejar tus datos, para medir y mostrar nuestros anuncios en Facebook e Instagram. Usa cookies de Meta. No
-                  corre dentro de la app de alumnos de la Academy. Puedes bloquearlo desde la configuración de cookies de
-                  tu navegador o desde la configuración de anuncios de tu cuenta de Meta.
+                  dejar tus datos, para medir y mostrar nuestros anuncios en Facebook e Instagram. Usa cookies de Meta.
+                  Solo se activa si lo aceptas en el aviso de cookies: si lo rechazas o no respondes, el sitio no carga
+                  nada de Meta. Puedes retirar tu consentimiento cuando quieras desde «Preferencias de cookies», al pie de
+                  cada página o con el botón de abajo: el píxel deja de enviar datos y borramos sus cookies de este sitio.
+                  Te volvemos a preguntar a los 12 meses. No corre dentro de la app de alumnos de la Academy.
                 </li>
                 <li>
                   <strong>Vercel Web Analytics.</strong> Cuenta visitas de forma agregada, sin cookies y sin identificarte.
                 </li>
                 <li>
                   <strong>Almacenamiento de tu navegador.</strong> Guardamos en tu propio dispositivo lo necesario para que
-                  el sitio funcione: tu sesión, el carrito, el tema de colores y el origen de tu visita. No sale de tu
-                  navegador salvo cuando envías un formulario.
+                  el sitio funcione: tu sesión, el carrito, el tema de colores, el origen de tu visita y tu respuesta al
+                  aviso de cookies. No necesita tu consentimiento y no sale de tu navegador salvo cuando envías un formulario.
                 </li>
                 <li>
                   <strong>Videos de YouTube.</strong> Se cargan en su modo de privacidad mejorada siempre que es posible.
                 </li>
               </ul>
+              <button type="button" className="priv-cc-btn" onClick={openConsent}>Cambiar mis preferencias de cookies</button>
             </Section>
 
             <Section id="automatizadas">

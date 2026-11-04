@@ -2885,7 +2885,8 @@ img.mfooter-wordmark {
 .mfooter-link { background: none; border: 0; padding: 0; text-align: left; cursor: pointer; display: inline-flex; align-items: center; gap: 0.55rem; color: var(--ink-2, var(--ink-soft)); font-family: var(--font-body, "Sora", sans-serif); font-size: 0.92rem; transition: color .2s; }
 .mfooter-link:hover { color: var(--gold-bright); }
 .mfooter-bottom { border-top: 1px solid var(--hair); padding-block: 1.2rem; display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: space-between; color: var(--muted-2, var(--muted)); font-size: 0.76rem; }
-.mfooter-legal { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.mfooter-legal-links { display: inline-flex; flex-wrap: wrap; gap: 0.4rem 1.1rem; }
+.mfooter-legal { padding: 0; border: 0; background: none; font: inherit; color: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .mfooter-legal:hover { color: var(--gold-bright); }
 @media (max-width: 759px) { .mfooter-brand, .mfooter-col { justify-items: center; text-align: center; } .mfooter-word, .mfooter-link { justify-content: center; } }
 

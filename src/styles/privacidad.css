@@ -97,3 +97,18 @@
 [data-theme="light"] .priv-table { background: rgba(0, 0, 0, 0.035); }
 [data-theme="light"] .priv-tr:nth-child(even) { background: rgba(0, 0, 0, 0.025); }
 [data-theme="light"] .priv-th { background: rgba(0, 0, 0, 0.05); }
+
+/* "Cambiar mis preferencias de cookies" (sección Cookies): reabre el aviso. */
+.priv-cc-btn {
+  margin: 0.4rem 0 0;
+  padding: 0.7rem 1.2rem;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ink);
+  font: 600 0.9rem/1.2 var(--font-body, "Sora", sans-serif);
+  cursor: pointer;
+}
+.priv-cc-btn:hover { background: rgba(255, 255, 255, 0.14); }
+[data-theme="light"] .priv-cc-btn { background: rgba(0, 0, 0, 0.06); }
+[data-theme="light"] .priv-cc-btn:hover { background: rgba(0, 0, 0, 0.1); }

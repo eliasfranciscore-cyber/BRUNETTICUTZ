@@ -4,6 +4,7 @@ import Home from './pages/Home.jsx'
 import { ThemeProvider, FloatingThemeToggle } from './components/theme.jsx'
 import EditProvider from './components/edit/EditProvider.jsx'
 import OverridesProvider from './components/edit/OverridesProvider.jsx'
+import CookieConsent from './components/CookieConsent.jsx'
 import { FEATURES } from './features.js'
 import { ACADEMY_BASE } from './academy/hostConfig.js'
 import { r as academyRoutes, isUnderBase as inAcademy } from './academy/routes.js'
@@ -163,6 +164,7 @@ export default function App() {
             </Routes>
           </Suspense>
           <FloatingThemeToggle />
+          <CookieConsent />
         </div>
       </EditProvider>
       </OverridesProvider>
