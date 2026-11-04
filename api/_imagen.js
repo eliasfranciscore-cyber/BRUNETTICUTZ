@@ -12,9 +12,11 @@
      PATCH  ?mode=imagen&id=                    guarda datos, ingreso, diagnóstico, cierre o estado
      POST   ?mode=imagen&id=&paid=1             marca el pago hecho fuera de la web
      DELETE ?mode=imagen&id=                    la borra con sus fotos e informes (eliminación de datos)
-   Fotos (Blob privado)
-     POST   ?mode=imagen&upload=1               { id, angle, dataUrl[, consent] }
-     GET    ?mode=imagen&photo=                 la foto, por proxy
+   Fotos y videos (Blob privado)
+     POST   ?mode=imagen&upload=1               { id, angle, dataUrl[, consent] } (las del cliente o antes/después)
+     POST   ?mode=imagen&videoToken=1           handleUpload de @vercel/blob: token para subir un video directo
+     POST   ?mode=imagen&video=1                { id, slot, url } registra el video ya subido
+     GET    ?mode=imagen&photo=                 la foto, por proxy; un video responde { url } firmado
      DELETE ?mode=imagen&photo=
    Recomendaciones
      POST   ?mode=imagen&id=&suggest=1          corre las reglas (api/_imagenRules.js)
@@ -46,10 +48,10 @@ import { suggest } from "./_imagenRules.js"
 import {
   DATE_RE, MAX_PHOTOS, SHARE_DAYS, text, newToken, formUrl, shareUrl,
   toConsultation, toPhoto, toProduct, toRec, toReport, toEvent, logEvent,
-  putPrivate, readPrivate, deletePrivate, sendFile, parsePhoto, cleanIntake,
+  putPrivate, readPrivate, headPrivate, presignPrivateGet, deletePrivate, sendFile, parsePhoto, cleanIntake,
 } from "./_imagenCore.js"
 import {
-  MODALITIES, ANGLES, SKULL, HAIR, CATEGORIES, HOLDS, SHINES, HAIR_TYPES, THICKNESSES, CONDITIONS,
+  MODALITIES, ANGLES, SHOTS, VIDEO_TYPES, VIDEO_MAX_MB, SKULL, HAIR, CATEGORIES, HOLDS, SHINES, HAIR_TYPES, THICKNESSES, CONDITIONS,
   PRODUCT_NEEDS, REC_KINDS, KIND_GROUP, CONSENT_VERSION,
 } from "../src/imagen/vocab.js"
 
@@ -65,6 +67,13 @@ const subset = (list, options, max = 20) => (Array.isArray(list) ? list : []).fi
 const KIND_IDS = REC_KINDS.map((k) => k.id)
 const PRODUCT_KINDS = REC_KINDS.filter((k) => k.product).map((k) => k.id)
 const CATEGORY_IDS = CATEGORIES.map((c) => c.id)
+const PHOTO_SLOTS = [...ANGLES.map((a) => a.id), ...SHOTS.filter((s) => s.kind === "photo").map((s) => s.id)]
+const VIDEO_SLOTS = SHOTS.filter((s) => s.kind === "video").map((s) => s.id)
+const VIDEO_MAX_BYTES = VIDEO_MAX_MB * 1024 * 1024
+// Lo que pide el navegador (imagen/<id>/<casillero>.<ext>) y lo que queda
+// guardado (el Blob le suma un sufijo al azar).
+const videoPath = (cid, slot, suffix) => new RegExp(`^imagen/${cid}/${slot}${suffix ? "(-[A-Za-z0-9]+)?" : ""}\\.(mp4|mov|webm)$`)
+const isVideoRow = (row) => String(row?.content_type || "").startsWith("video/")
 
 function yesterdayKey() {
   const today = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date())
@@ -379,6 +388,38 @@ async function shareReport(sql, row, session, res) {
   })
 }
 
+/* ---------- videos: subida directa del navegador al Blob privado ----------
+   El navegador pide un token acá (con la sesión del panel) y sube el archivo
+   directo al Blob; después lo registra con ?video=1, que revisa que exista,
+   su tipo y su peso. No se usa onUploadCompleted: esa llamada viene de
+   Vercel sin la sesión, y el registro explícito alcanza. */
+async function videoToken(sql, req, res, body) {
+  if (body?.type !== "blob.generate-client-token") return res.status(400).json({ ok: false, error: "Solicitud inválida" })
+  const fail = (status, error) => Object.assign(new Error(error), { status })
+  try {
+    const { handleUpload } = await import("@vercel/blob/client")
+    const json = await handleUpload({
+      body,
+      request: req,
+      token: process.env.BLOB_READ_WRITE_TOKEN || undefined,
+      onBeforeGenerateToken: async (pathname, clientPayload) => {
+        let p = {}
+        try { p = JSON.parse(clientPayload || "{}") } catch { /* queda vacío */ }
+        const cid = posInt(p.id)
+        const c = cid ? await getConsultation(sql, cid) : null
+        if (!c) throw fail(404, "Asesoría no encontrada")
+        if (!VIDEO_SLOTS.includes(p.slot) || !videoPath(cid, p.slot, false).test(pathname)) throw fail(400, "Casillero inválido")
+        if (!c.consentAt) throw fail(400, "Falta el consentimiento del cliente para guardar sus fotos.")
+        return { allowedContentTypes: VIDEO_TYPES, maximumSizeInBytes: VIDEO_MAX_BYTES, addRandomSuffix: true, validUntil: Date.now() + 30 * 60 * 1000 }
+      },
+    })
+    return res.json(json)
+  } catch (err) {
+    if (!err.status) console.error("imagen: no se generó el token del video:", err?.message || err)
+    return res.status(err.status || 503).json({ ok: false, error: err.status ? err.message : "El almacenamiento de videos no está disponible. Avísale a quien administra el sitio." })
+  }
+}
+
 /* ---------- sesión ---------- */
 const actorOf = (session) => (Number.isInteger(Number(session?.id)) && Number(session.id) > 0 ? Number(session.id) : null)
 
@@ -405,6 +446,16 @@ export async function handleImagen(req, res, sql) {
       const photoId = posInt(q.photo)
       const [row] = photoId ? await sql`SELECT * FROM image_photos WHERE id = ${photoId}` : []
       if (!row) return res.status(404).json({ ok: false, error: "Foto no encontrada" })
+      if (req.method === "GET" && isVideoRow(row)) {
+        // Un video no pasa por la función: se reproduce desde el Blob con un link firmado.
+        try {
+          const signed = await presignPrivateGet(row.blob_url)
+          return signed ? res.json({ ok: true, ...signed }) : res.status(404).json({ ok: false, error: "Video no encontrado" })
+        } catch (err) {
+          console.error("imagen: no se firmó el video:", err?.message || err)
+          return res.status(503).json({ ok: false, error: "No se pudo abrir el video. Prueba de nuevo en un rato." })
+        }
+      }
       if (req.method === "GET") {
         const file = await readPrivate(row.blob_url)
         return file ? sendFile(res, file) : res.status(404).json({ ok: false, error: "Foto no encontrada" })
@@ -412,7 +463,7 @@ export async function handleImagen(req, res, sql) {
       if (req.method === "DELETE") {
         await sql`DELETE FROM image_photos WHERE id = ${photoId}`
         await deletePrivate([row.blob_url])
-        await logEvent(sql, row.consultation_id, { actor: "barbero", actorId: actor, action: "foto_borrada", detail: { angle: row.angle } })
+        await logEvent(sql, row.consultation_id, { actor: "barbero", actorId: actor, action: isVideoRow(row) ? "video_borrado" : "foto_borrada", detail: { angle: row.angle } })
         return res.json({ ok: true })
       }
       return res.status(405).json({ ok: false, error: "Method not allowed" })
@@ -421,7 +472,7 @@ export async function handleImagen(req, res, sql) {
       const cid = posInt(body.id)
       const c = cid ? await getConsultation(sql, cid) : null
       if (!c) return res.status(404).json({ ok: false, error: "Asesoría no encontrada" })
-      if (!ANGLES.some((a) => a.id === body.angle)) return res.status(400).json({ ok: false, error: "Ángulo inválido" })
+      if (!PHOTO_SLOTS.includes(body.angle)) return res.status(400).json({ ok: false, error: "Ángulo inválido" })
       if (!c.consentAt && !body.consent) return res.status(400).json({ ok: false, error: "Falta el consentimiento del cliente para guardar sus fotos." })
       const photo = parsePhoto(body.dataUrl)
       if (photo.error) return res.status(400).json({ ok: false, error: photo.error })
@@ -442,6 +493,33 @@ export async function handleImagen(req, res, sql) {
         VALUES (${cid}, ${body.angle}, ${blob.url}, ${photo.contentType}, ${`barbero:${actor ?? "?"}`}) RETURNING *`
       await sql`UPDATE image_consultations SET updated_at = NOW() WHERE id = ${cid}`
       await logEvent(sql, cid, { actor: "barbero", actorId: actor, action: "foto", detail: { angle: body.angle } })
+      return res.status(201).json({ ok: true, photo: toPhoto(row) })
+    }
+    if (req.method === "POST" && q.videoToken) return await videoToken(sql, req, res, body)
+    if (req.method === "POST" && q.video) {
+      const cid = posInt(body.id)
+      const c = cid ? await getConsultation(sql, cid) : null
+      if (!c) return res.status(404).json({ ok: false, error: "Asesoría no encontrada" })
+      if (!VIDEO_SLOTS.includes(body.slot)) return res.status(400).json({ ok: false, error: "Casillero inválido" })
+      if (!c.consentAt) return res.status(400).json({ ok: false, error: "Falta el consentimiento del cliente para guardar sus fotos." })
+      const meta = await headPrivate(String(body.url || ""))
+      if (!meta || !videoPath(cid, body.slot, true).test(meta.pathname)) return res.status(400).json({ ok: false, error: "No se encontró el video subido. Prueba de nuevo." })
+      const existing = await sql`SELECT * FROM image_photos WHERE consultation_id = ${cid}`
+      const same = existing.find((p) => p.angle === body.slot)
+      if (same?.blob_url === meta.url) return res.json({ ok: true, photo: toPhoto(same) }) // reintento del mismo registro
+      const reject = async (error) => { await deletePrivate([meta.url]); return res.status(400).json({ ok: false, error }) }
+      if (!VIDEO_TYPES.includes(meta.contentType)) return await reject("El video tiene que ser MP4, MOV o WebM")
+      if (meta.size > VIDEO_MAX_BYTES) return await reject(`Video muy pesado (máx. ${VIDEO_MAX_MB} MB)`)
+      if (!same && existing.length >= MAX_PHOTOS) return await reject(`Máximo ${MAX_PHOTOS} archivos por asesoría`)
+      if (same) {
+        await sql`DELETE FROM image_photos WHERE id = ${same.id}`
+        await deletePrivate([same.blob_url])
+      }
+      const [row] = await sql`
+        INSERT INTO image_photos (consultation_id, angle, blob_url, content_type, uploaded_by)
+        VALUES (${cid}, ${body.slot}, ${meta.url}, ${meta.contentType}, ${`barbero:${actor ?? "?"}`}) RETURNING *`
+      await sql`UPDATE image_consultations SET updated_at = NOW() WHERE id = ${cid}`
+      await logEvent(sql, cid, { actor: "barbero", actorId: actor, action: "video", detail: { angle: body.slot } })
       return res.status(201).json({ ok: true, photo: toPhoto(row) })
     }
 

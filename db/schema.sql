@@ -940,7 +940,7 @@ CREATE INDEX IF NOT EXISTS idx_image_consultations_phone ON image_consultations 
 CREATE TABLE IF NOT EXISTS image_photos (
   id               SERIAL PRIMARY KEY,
   consultation_id  INTEGER NOT NULL REFERENCES image_consultations(id) ON DELETE CASCADE,
-  angle            VARCHAR(20) NOT NULL,   -- frontal | perfil_izq | perfil_der | posterior | superior
+  angle            VARCHAR(20) NOT NULL,   -- cliente: frontal | perfil_izq | perfil_der | posterior | superior; Bruno: antes_/despues_ + frente | perfil | video
   blob_url         TEXT NOT NULL,          -- Blob privado
   content_type     VARCHAR(40),
   uploaded_by      VARCHAR(60),            -- cliente | barbero:<id>

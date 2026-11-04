@@ -101,6 +101,22 @@ export function useAuthedImage(url, authHeaders) {
   return src
 }
 
+// Un video privado: la API responde un link firmado del Blob (vence en una
+// hora) y el <video> lo reproduce directo, sin pasar por la función.
+export function useSignedVideo(url, authHeaders) {
+  const [src, setSrc] = useState(null)
+  useEffect(() => {
+    if (!url) { setSrc(null); return undefined }
+    let live = true
+    fetch(url, { headers: authHeaders() })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => { if (live && json?.url) setSrc(json.url) })
+      .catch(() => {})
+    return () => { live = false }
+  }, [url]) // eslint-disable-line react-hooks/exhaustive-deps
+  return src
+}
+
 /* Abre un PDF que necesita la sesión: se baja como blob y se abre en otra
    pestaña. La ventana se abre ANTES del await (si no, Safari la bloquea por
    no venir directo del toque). */

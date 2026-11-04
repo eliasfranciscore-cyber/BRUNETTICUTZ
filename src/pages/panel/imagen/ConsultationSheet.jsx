@@ -4,12 +4,14 @@ import {
 } from '../../../components/panel/index.js'
 import { Icon } from '../../../components/ui.jsx'
 import {
-  MODALITIES, ANGLES, INTAKE, SKULL, HAIR, HAIR_FROM_INTAKE, REC_KINDS, CATEGORIES, KIND_GROUP, labelOf,
+  MODALITIES, ANGLES, SHOTS, SHOT_STAGES, VIDEO_MAX_SECONDS, INTAKE, SKULL, HAIR, HAIR_FROM_INTAKE, REC_KINDS, CATEGORIES, KIND_GROUP,
+  labelOf, shotLabel,
 } from '../../../imagen/vocab.js'
 import { photoToJpeg } from '../../../imagen/photo.js'
+import { uploadVideo } from '../../../imagen/video.js'
 import {
   API, EMAIL_RE, SHAPES, shapeById, faceSnapshot, FaceGlyph, fmtDay, fmtStamp, clp, addDaysKey, todayKey,
-  StatusChip, PaymentChip, modalityLabel, useAuthedImage, openAuthedPdf,
+  StatusChip, PaymentChip, modalityLabel, useAuthedImage, useSignedVideo, openAuthedPdf,
 } from './shared.jsx'
 
 /* Ficha de una asesoría: datos, lo que contó el cliente, fotos, diagnóstico,
@@ -25,7 +27,8 @@ const fieldsOf = (kind) => (kind === 'corte' ? CUT_FIELDS : PRODUCT_KINDS.includ
 
 const EVENT_TEXT = {
   creada: 'Creó la asesoría', checkout: 'Inició el pago en la web', pago: 'Pago confirmado', correo_formulario: 'Se le envió el enlace del formulario',
-  consentimiento: 'Consentimiento para guardar fotos', foto: 'Subió una foto', foto_borrada: 'Borró una foto', datos_enviados: 'Envió sus datos',
+  consentimiento: 'Consentimiento para guardar fotos', foto: 'Subió una foto', foto_borrada: 'Borró una foto',
+  video: 'Subió un video', video_borrado: 'Borró un video', datos_enviados: 'Envió sus datos',
   diagnostico: 'Registró el diagnóstico', sugerencias: 'Generó sugerencias', rec_aprobada: 'Aprobó', rec_descartada: 'Descartó',
   rec_sugerida: 'Volvió a sugerida', rec_editada: 'Editó y aprobó', rec_manual: 'Agregó a mano', rec_borrada: 'Borró',
   informe: 'Generó el informe', envio_correo: 'Envió el informe por correo', envio_whatsapp: 'Compartió el informe por WhatsApp', estado: 'Cambió el estado',
@@ -33,7 +36,7 @@ const EVENT_TEXT = {
 const ACTOR = { cliente: 'Cliente', sistema: 'Sistema' }
 function eventLine(e) {
   const d = e.detail || {}
-  const extra = d.title ? `: ${d.title}` : d.angle ? ` (${labelOf(ANGLES, d.angle).toLowerCase()})` : d.version ? ` v${d.version}` : d.face ? ` (${d.face})` : d.amount != null ? ` · ${clp(d.amount)}` : d.to ? ` → ${d.to}` : ''
+  const extra = d.title ? `: ${d.title}` : d.angle ? ` (${(shotLabel(d.angle) || labelOf(ANGLES, d.angle)).toLowerCase()})` : d.version ? ` v${d.version}` : d.face ? ` (${d.face})` : d.amount != null ? ` · ${clp(d.amount)}` : d.to ? ` → ${d.to}` : ''
   return `${EVENT_TEXT[e.action] || e.action}${extra}`
 }
 
@@ -47,6 +50,7 @@ export default function ConsultationSheet({ id, onClose, call, authHeaders, toas
   const [warnings, setWarnings] = useState([])
   const [catalog, setCatalog] = useState(null)
   const [confirm, setConfirm] = useState(null) // { kind, report? }
+  const [progress, setProgress] = useState(null) // % del video que se está subiendo
   const loadedId = useRef(null)
 
   useEffect(() => {
@@ -78,6 +82,13 @@ export default function ConsultationSheet({ id, onClose, call, authHeaders, toas
     try { await fn(...args) } catch (err) { setError(err.message || 'Algo falló.') } finally { setBusy('') }
   }
   const refresh = async () => apply(await call(`${API}&id=${id}`))
+  // Tras subir o borrar un archivo: trae fotos e historial sin pisar lo que se
+  // está escribiendo (el video de después se graba con el diagnóstico a medias).
+  const refreshMedia = async () => {
+    const json = await call(`${API}&id=${id}`)
+    setData((cur) => ({ ...cur, photos: json.photos, events: json.events, consultation: json.consultation }))
+    onChanged(json.consultation)
+  }
 
   async function save({ quiet = false } = {}) {
     if (!dirty) return
@@ -124,11 +135,21 @@ export default function ConsultationSheet({ id, onClose, call, authHeaders, toas
     if (!file) return
     const dataUrl = await photoToJpeg(file)
     await call(`${API}&upload=1`, { method: 'POST', body: { id, angle, dataUrl, consent: Boolean(c?.consentAt) || undefined } })
-    await refresh()
+    await refreshMedia()
+  })()
+  const onVideo = (slot, file) => run(`photo-${slot}`, async () => {
+    if (!file) return
+    setProgress(null)
+    try {
+      await uploadVideo({ file, id, slot, api: API, call, authHeaders, onProgress: setProgress })
+    } finally {
+      setProgress(null)
+    }
+    await refreshMedia()
   })()
   const onPhotoDelete = (photo) => run(`photo-${photo.angle}`, async () => {
     await call(`${API}&photo=${photo.id}`, { method: 'DELETE' })
-    await refresh()
+    await refreshMedia()
   })()
 
   const onPaid = (body) => run('paid', async () => {
@@ -270,7 +291,7 @@ export default function ConsultationSheet({ id, onClose, call, authHeaders, toas
               </div>
             </Section>
 
-            <Section n={3} title="Fotografías" note="Frontal, ambos perfiles y posterior (más la superior si hace falta). Se guardan en privado.">
+            <Section n={3} title="Fotos y videos" note={`Antes del corte, dos fotos y un video corto (hasta ${VIDEO_MAX_SECONDS} s); al terminar, lo mismo. Se guardan en privado.`}>
               {!c.consentAt ? (
                 <List>
                   <ToggleRow title="El cliente autorizó guardar sus fotos" description="Para usarlas solo en esta asesoría. Queda registrado con la fecha." checked={false}
@@ -279,13 +300,36 @@ export default function ConsultationSheet({ id, onClose, call, authHeaders, toas
               ) : (
                 <p className="pn-img-muted"><Icon name="shield" size={13} /> Consentimiento {c.consentBy === 'cliente' ? 'del cliente' : 'registrado en el local'} · {fmtStamp(c.consentAt, true)}</p>
               )}
-              <div className="pn-img-photos">
-                {ANGLES.map((a) => (
-                  <PhotoSlot key={a.id} angle={a} photo={data.photos.find((p) => p.angle === a.id)} authHeaders={authHeaders}
-                    disabled={!c.consentAt || Boolean(busy)} busy={busy === `photo-${a.id}`}
-                    onPick={(f) => onPhoto(a.id, f)} onDelete={onPhotoDelete} />
-                ))}
-              </div>
+              {SHOT_STAGES.map((stage) => (
+                <div key={stage.id} className="pn-img-shots">
+                  <h4 className="pn-img-sub">{stage.label}</h4>
+                  <div className="pn-img-photos is-shots">
+                    {SHOTS.filter((s) => s.stage === stage.id).map((s) => {
+                      const Slot = s.kind === 'video' ? VideoSlot : PhotoSlot
+                      return (
+                        <Slot key={s.id} angle={s} photo={data.photos.find((p) => p.angle === s.id)} authHeaders={authHeaders}
+                          disabled={!c.consentAt || Boolean(busy)} busy={busy === `photo-${s.id}`} progress={progress}
+                          onPick={(f) => (s.kind === 'video' ? onVideo(s.id, f) : onPhoto(s.id, f))} onDelete={onPhotoDelete} />
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+              {/* Las de diagnóstico (frontal, perfiles, posterior), casi siempre del
+                  formulario del cliente: en una online son la base del diagnóstico;
+                  en una presencial, solo si hay alguna (las de antes de este cambio). */}
+              {(c.modality === 'online' || data.photos.some((p) => ANGLES.some((a) => a.id === p.angle))) && (
+                <div className="pn-img-shots">
+                  <h4 className="pn-img-sub">Fotos de diagnóstico</h4>
+                  <div className="pn-img-photos">
+                    {ANGLES.map((a) => (
+                      <PhotoSlot key={a.id} angle={a} photo={data.photos.find((p) => p.angle === a.id)} authHeaders={authHeaders}
+                        disabled={!c.consentAt || Boolean(busy)} busy={busy === `photo-${a.id}`}
+                        onPick={(f) => onPhoto(a.id, f)} onDelete={onPhotoDelete} />
+                    ))}
+                  </div>
+                </div>
+              )}
             </Section>
 
             <Section n={4} title="Diagnóstico" note={c.diagnosedAt ? `Registrado por Bruno · ${fmtStamp(c.diagnosedAt, true)}` : 'Lo registra Bruno. Es la base de las sugerencias.'}>
@@ -521,7 +565,7 @@ function PhotoSlot({ angle, photo, authHeaders, disabled, busy, onPick, onDelete
     <div className={`pn-img-photo${photo ? ' has-img' : ''}${disabled ? ' is-off' : ''}`}>
       <label>
         {src ? <img src={src} alt={angle.label} /> : <Icon name="camera" size={22} />}
-        <span className="pn-img-photo-tag">{busy ? 'Subiendo…' : angle.label}{!angle.required && !photo ? ' (opcional)' : ''}</span>
+        <span className="pn-img-photo-tag">{busy ? 'Subiendo…' : angle.label}{angle.required === false && !photo ? ' (opcional)' : ''}</span>
         <input type="file" accept="image/*" capture="environment" disabled={disabled}
           onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; onPick(f) }} />
       </label>
@@ -530,6 +574,38 @@ function PhotoSlot({ angle, photo, authHeaders, disabled, busy, onPick, onDelete
           <Icon name="close" size={13} />
         </button>
       )}
+    </div>
+  )
+}
+
+// Un video ya subido se reproduce desde el Blob con un link firmado (no pasa
+// por la API). Para cambiarlo, se borra y se sube otro.
+function VideoSlot({ angle, photo, authHeaders, disabled, busy, progress, onPick, onDelete }) {
+  const src = useSignedVideo(photo ? `${API}&photo=${photo.id}` : null, authHeaders)
+  const tag = busy ? (progress != null ? `Subiendo ${progress}%` : 'Preparando…') : angle.label
+  if (photo) {
+    return (
+      <div className="pn-img-photo has-img is-video">
+        <div className="pn-img-video">
+          {src ? <video src={src} controls playsInline muted preload="metadata" aria-label={shotLabel(angle.id)} /> : <Icon name="video" size={22} />}
+          <span className="pn-img-photo-tag">{tag}</span>
+        </div>
+        {!disabled && (
+          <button type="button" className="pn-img-photo-x" aria-label={`Borrar ${shotLabel(angle.id).toLowerCase()}`} onClick={() => onDelete(photo)}>
+            <Icon name="close" size={13} />
+          </button>
+        )}
+      </div>
+    )
+  }
+  return (
+    <div className={`pn-img-photo${disabled ? ' is-off' : ''}`}>
+      <label>
+        <Icon name="video" size={22} />
+        <span className="pn-img-photo-tag">{busy ? tag : `${angle.label} · ${VIDEO_MAX_SECONDS} s`}</span>
+        <input type="file" accept="video/mp4,video/quicktime,video/webm,video/*" disabled={disabled}
+          onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; onPick(f) }} />
+      </label>
     </div>
   )
 }

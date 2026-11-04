@@ -60,7 +60,9 @@ export async function handleImagenForm(req, res, sql) {
     const [row] = await sql`SELECT * FROM image_consultations WHERE form_token = ${token}`
     const c = toConsultation(row)
     if (!c) return res.status(404).json({ ok: false, error: "Enlace no válido" })
-    const photos = await sql`SELECT * FROM image_photos WHERE consultation_id = ${c.id} ORDER BY created_at`
+    // Solo las del cliente: las de antes y después (y sus videos) son de Bruno.
+    const photos = (await sql`SELECT * FROM image_photos WHERE consultation_id = ${c.id} ORDER BY created_at`)
+      .filter((p) => ANGLES.some((a) => a.id === p.angle))
     const state = publicState(c, photos)
 
     if (q.photo) {

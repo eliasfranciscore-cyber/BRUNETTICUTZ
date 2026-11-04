@@ -22,7 +22,9 @@ export const SITE_URL = (process.env.SITE_URL || "https://brunetticutz.cl").repl
 export const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 export const TOKEN_RE = /^[a-f0-9]{32}$/
 export const SHARE_DAYS = 30
-export const MAX_PHOTOS = 8
+// Uno por casillero: las 5 del cliente y las 4 fotos + 2 videos de antes y
+// después, con holgura.
+export const MAX_PHOTOS = 12
 export const MAX_PHOTO_BYTES = 8 * 1024 * 1024
 
 export const newToken = () => crypto.randomBytes(16).toString("hex")
@@ -51,7 +53,7 @@ export function toConsultation(r) {
   }
 }
 
-export const toPhoto = (r) => (r ? { id: r.id, angle: r.angle, uploadedBy: r.uploaded_by, createdAt: r.created_at } : null)
+export const toPhoto = (r) => (r ? { id: r.id, angle: r.angle, contentType: r.content_type, uploadedBy: r.uploaded_by, createdAt: r.created_at } : null)
 
 export function toProduct(r) {
   if (!r) return null
@@ -124,6 +126,42 @@ export async function readPrivate(url) {
   const result = await get(url, { access: "private", token: blobToken(), abortSignal: AbortSignal.timeout(10000) })
   if (!result || result.statusCode !== 200 || !result.stream) return null
   return { buffer: Buffer.from(await new Response(result.stream).arrayBuffer()), contentType: String(result.blob?.contentType || "").split(";")[0] }
+}
+
+// Un archivo privado que subió el navegador directo (los videos): existe, de
+// qué tipo es y cuánto pesa. null si no está o la URL no es del Blob.
+export async function headPrivate(url) {
+  const pathname = blobPathname(url)
+  if (!pathname) return null
+  const { head } = await import("@vercel/blob")
+  try {
+    const meta = await head(url, { token: blobToken() })
+    return { url: meta.url, pathname, size: Number(meta.size) || 0, contentType: String(meta.contentType || "").split(";")[0] }
+  } catch {
+    return null
+  }
+}
+
+// Link firmado y de corta duración para reproducir un video privado sin
+// pasarlo por la función (que corta la respuesta en 4,5 MB).
+export async function presignPrivateGet(url, minutes = 60) {
+  const pathname = blobPathname(url)
+  if (!pathname) return null
+  const { issueSignedToken, presignUrl } = await import("@vercel/blob")
+  const validUntil = Date.now() + minutes * 60 * 1000
+  const signed = await issueSignedToken({ pathname, operations: ["get"], validUntil, token: blobToken() })
+  const { presignedUrl } = await presignUrl(signed, { operation: "get", pathname, access: "private", validUntil })
+  return { url: presignedUrl, validUntil }
+}
+
+export function blobPathname(url) {
+  try {
+    const u = new URL(url)
+    if (u.protocol !== "https:" || !u.hostname.endsWith(".blob.vercel-storage.com")) return null
+    return decodeURIComponent(u.pathname.replace(/^\/+/, ""))
+  } catch {
+    return null
+  }
 }
 
 export async function deletePrivate(urls) {

@@ -10,7 +10,7 @@ import crypto from 'node:crypto'
 import { suggest } from '../../api/_imagenRules.js'
 import { cleanIntake } from '../../api/_imagenCore.js'
 import { addDays } from './fixtures.mjs'
-import { ANGLES, REC_KINDS, CATEGORIES, KIND_GROUP, CONSENT_VERSION } from '../../src/imagen/vocab.js'
+import { ANGLES, SHOTS, VIDEO_TYPES, REC_KINDS, CATEGORIES, KIND_GROUP, CONSENT_VERSION } from '../../src/imagen/vocab.js'
 
 const E = (status, error, extra = {}) => [status, { ok: false, error, ...extra }]
 const OK = (data = {}) => [200, { ok: true, ...data }]
@@ -59,7 +59,7 @@ function full(st, id) {
   if (!c) return null
   return {
     consultation: withLinks(c),
-    photos: im.photos.filter((p) => p.consultationId === id).map(({ id: pid, angle, uploadedBy, createdAt }) => ({ id: pid, angle, uploadedBy, createdAt })),
+    photos: im.photos.filter((p) => p.consultationId === id).map(({ id: pid, angle, contentType, uploadedBy, createdAt }) => ({ id: pid, angle, contentType: contentType || 'image/jpeg', uploadedBy, createdAt })),
     recs: im.recs.filter((r) => r.consultationId === id).sort((a, b) => a.position - b.position || a.id - b.id),
     reports: im.reports.filter((r) => r.consultationId === id).sort((a, b) => b.version - a.version).map(reportOut),
     events: im.events.filter((e) => e.consultationId === id).slice(0, 100),
@@ -136,17 +136,35 @@ export async function imagenApi(c) {
   if (q.photo) {
     const p = im.photos.find((x) => x.id === Number(q.photo))
     if (!p) return E(404, 'Foto no encontrada')
+    const isVideo = String(p.contentType || '').startsWith('video/')
+    // Un video responde un link (en producción, firmado del Blob); acá, el mismo dataURL.
+    if (method === 'GET' && isVideo) return OK({ url: p.src, validUntil: Date.now() + 3600000 })
     if (method === 'GET') return photoBytes(p)
     if (method === 'DELETE') {
       im.photos = im.photos.filter((x) => x !== p)
-      logEvent(st, p.consultationId, { actor: 'barbero', action: 'foto_borrada', detail: { angle: p.angle } })
+      logEvent(st, p.consultationId, { actor: 'barbero', action: isVideo ? 'video_borrado' : 'foto_borrada', detail: { angle: p.angle } })
       return OK()
     }
+  }
+  // Sin Blob en el mock: el video llega entero en el JSON (src/imagen/video.js).
+  if (method === 'POST' && q.video) {
+    const cons = find(Number(body.id))
+    if (!cons) return E(404, 'Asesoría no encontrada')
+    if (!SHOTS.some((s) => s.kind === 'video' && s.id === body.slot)) return E(400, 'Casillero inválido')
+    if (!cons.consentAt) return E(400, 'Falta el consentimiento del cliente para guardar sus fotos.')
+    const m = /^data:([\w/.+-]+);base64,/.exec(String(body.dataUrl || ''))
+    if (!m || !VIDEO_TYPES.includes(m[1])) return E(400, 'El video tiene que ser MP4, MOV o WebM')
+    im.photos = im.photos.filter((x) => !(x.consultationId === cons.id && x.angle === body.slot))
+    const video = { id: next(im, 'photo'), consultationId: cons.id, angle: body.slot, src: body.dataUrl, contentType: m[1], uploadedBy: 'barbero:6', createdAt: iso() }
+    im.photos.push(video)
+    cons.updatedAt = iso()
+    logEvent(st, cons.id, { actor: 'barbero', action: 'video', detail: { angle: body.slot } })
+    return [201, { ok: true, photo: { id: video.id, angle: video.angle, contentType: video.contentType } }]
   }
   if (method === 'POST' && q.upload) {
     const cons = find(Number(body.id))
     if (!cons) return E(404, 'Asesoría no encontrada')
-    if (!ANGLES.some((a) => a.id === body.angle)) return E(400, 'Ángulo inválido')
+    if (!ANGLES.some((a) => a.id === body.angle) && !SHOTS.some((s) => s.kind === 'photo' && s.id === body.angle)) return E(400, 'Ángulo inválido')
     if (!cons.consentAt && !body.consent) return E(400, 'Falta el consentimiento del cliente para guardar sus fotos.')
     if (!/^data:image\/(png|jpeg|jpg);base64,/.test(String(body.dataUrl || ''))) return E(400, 'La foto tiene que ser JPEG o PNG')
     if (!cons.consentAt) Object.assign(cons, { consentAt: iso(), consentBy: 'barbero:6', consentVersion: CONSENT_VERSION })
@@ -421,8 +439,11 @@ export function product(p, id) {
 }
 
 /* ---------- público: formulario e informe ---------- */
+// Solo las del cliente: las de antes y después son de Bruno.
+const clientPhotos = (st, cons) => store(st).photos.filter((p) => p.consultationId === cons.id && ANGLES.some((a) => a.id === p.angle))
+
 function publicState(st, cons) {
-  const photos = store(st).photos.filter((p) => p.consultationId === cons.id)
+  const photos = clientPhotos(st, cons)
   return {
     name: cons.name, email: cons.email, phone: cons.phone, age: cons.age, modality: cons.modality, status: cons.status,
     paymentStatus: cons.paymentStatus, paid: cons.paymentStatus === 'pagada',
@@ -440,7 +461,7 @@ export async function imagenFormApi(c) {
   if (!cons) return E(404, 'Enlace no válido')
   const state = publicState(st, cons)
   if (q.photo) {
-    const p = im.photos.find((x) => x.id === Number(q.photo) && x.consultationId === cons.id)
+    const p = clientPhotos(st, cons).find((x) => x.id === Number(q.photo))
     if (!p) return E(404, 'Foto no encontrada')
     if (method === 'GET') return photoBytes(p)
     if (method === 'DELETE') {

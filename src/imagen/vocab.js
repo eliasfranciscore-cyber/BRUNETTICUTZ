@@ -33,6 +33,30 @@ export const ANGLES = [
   { id: 'superior', label: 'Superior', hint: 'Opcional: la coronilla desde arriba.', required: false },
 ]
 
+// Antes y después: los toma Bruno en el local, dos fotos y un video corto de
+// cada momento. Van en la misma tabla que las del cliente (image_photos.angle),
+// un registro por casillero; el formulario público no los acepta.
+export const SHOTS = [
+  { id: 'antes_frente', stage: 'antes', kind: 'photo', label: 'Frente', hint: 'De frente, antes del corte.' },
+  { id: 'antes_perfil', stage: 'antes', kind: 'photo', label: 'Perfil', hint: 'De lado, antes del corte.' },
+  { id: 'antes_video', stage: 'antes', kind: 'video', label: 'Video', hint: 'Un giro corto de la cabeza, antes del corte.' },
+  { id: 'despues_frente', stage: 'despues', kind: 'photo', label: 'Frente', hint: 'De frente, con el corte terminado.' },
+  { id: 'despues_perfil', stage: 'despues', kind: 'photo', label: 'Perfil', hint: 'De lado, con el corte terminado.' },
+  { id: 'despues_video', stage: 'despues', kind: 'video', label: 'Video', hint: 'Un giro corto de la cabeza, con el corte terminado.' },
+]
+export const SHOT_STAGES = [{ id: 'antes', label: 'Antes' }, { id: 'despues', label: 'Después' }]
+export const shotLabel = (id) => {
+  const s = SHOTS.find((x) => x.id === id)
+  return s ? `${labelOf(SHOT_STAGES, s.stage)} · ${s.label.toLowerCase()}` : ''
+}
+
+// Videos: van directo del navegador al Blob privado (no caben en el cuerpo de
+// una función de Vercel, que corta en 4,5 MB). 15 segundos en 1080p pesan
+// ~15 MB; en 4K a 30 cuadros, ~45.
+export const VIDEO_MAX_SECONDS = 20
+export const VIDEO_MAX_MB = 60
+export const VIDEO_TYPES = ['video/mp4', 'video/quicktime', 'video/webm']
+
 export const PHOTO_TIPS = [
   'Luz natural de frente (junto a una ventana), sin contraluz.',
   'Sin filtros, sin modo retrato y sin gorro ni lentes.',

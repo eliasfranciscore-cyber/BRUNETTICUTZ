@@ -57,7 +57,17 @@
 /* Fotos de diagnóstico: 5 ángulos. */
 .pn-img-photos { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
 @media (max-width: 760px) { .pn-img-photos { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.pn-img-photos.is-shots { grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 540px; }
+.pn-img-shots { display: grid; gap: 8px; margin-top: 10px; }
 .pn-img-photo { position: relative; }
+/* Video ya subido: el reproductor ocupa el casillero y la etiqueta sube arriba
+   para no tapar los controles. */
+.pn-img-video {
+  position: relative; display: grid; place-items: center; aspect-ratio: 3 / 4; width: 100%; overflow: hidden;
+  border: 1.5px solid var(--pn-line); border-radius: var(--pn-r); background: #000; color: var(--pn-text-3);
+}
+.pn-img-video video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
+.pn-img-photo.is-video .pn-img-photo-tag { top: 6px; bottom: auto; right: 38px; }
 .pn-img-photo label {
   position: relative; display: grid; place-items: center; aspect-ratio: 3 / 4; width: 100%; overflow: hidden;
   border: 1.5px dashed var(--pn-line-2); border-radius: var(--pn-r); background: var(--pn-card-2); color: var(--pn-text-3); cursor: pointer;
