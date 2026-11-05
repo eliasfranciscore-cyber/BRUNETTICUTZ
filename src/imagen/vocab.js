@@ -154,6 +154,20 @@ export const REC_KINDS = [
 // Qué categorías del catálogo valen para cada tipo de recomendación de producto.
 export const KIND_GROUP = { peinado: 'peinado', champu: 'champu', acondicionador: 'acondicionador' }
 
+// Un producto que no está en el catálogo se escribe a mano: el nombre es el
+// título de la recomendación y el link de compra va en detail.link. Solo
+// http(s); sin protocolo se asume https. Inválido → null.
+export function cleanLink(v) {
+  const s = String(v || '').trim()
+  if (!s || s.length > 500 || /\s/.test(s)) return null
+  try {
+    const url = new URL(/^https?:\/\//i.test(s) ? s : `https://${s}`)
+    return ['http:', 'https:'].includes(url.protocol) && url.hostname.includes('.') ? url.href : null
+  } catch {
+    return null
+  }
+}
+
 export const labelOf = (list, id) => list.find((x) => x.id === id)?.label || id || ''
 
 // sessionStorage: el token que /asesoria guarda antes de ir a Mercado Pago y

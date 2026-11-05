@@ -10,7 +10,7 @@ import crypto from 'node:crypto'
 import { suggest } from '../../api/_imagenRules.js'
 import { cleanIntake } from '../../api/_imagenCore.js'
 import { addDays } from './fixtures.mjs'
-import { ANGLES, SHOTS, VIDEO_TYPES, REC_KINDS, CATEGORIES, KIND_GROUP, CONSENT_VERSION } from '../../src/imagen/vocab.js'
+import { ANGLES, SHOTS, VIDEO_TYPES, REC_KINDS, CATEGORIES, KIND_GROUP, CONSENT_VERSION, cleanLink } from '../../src/imagen/vocab.js'
 
 const E = (status, error, extra = {}) => [status, { ok: false, error, ...extra }]
 const OK = (data = {}) => [200, { ok: true, ...data }]
@@ -21,6 +21,11 @@ const TOKEN_RE = /^[a-f0-9]{32}$/
 const SITE = 'http://localhost:3000'
 const KIND_ORDER = Object.fromEntries(REC_KINDS.map((k, i) => [k.id, i]))
 const PRODUCT_KINDS = REC_KINDS.filter((k) => k.product).map((k) => k.id)
+// El link de un producto escrito a mano, limpio como en api/_imagen.js.
+const recDetail = (kind, raw) => {
+  const { link, ...rest } = raw || {}
+  return PRODUCT_KINDS.includes(kind) && cleanLink(link) ? { ...rest, link: cleanLink(link) } : rest
+}
 const cleanPhone = (v) => {
   let d = String(v || '').replace(/\D/g, '')
   if (d.length > 9 && d.startsWith('56')) d = d.slice(2)
@@ -73,7 +78,12 @@ function snapshot(st, c, version) {
     .sort((a, b) => (KIND_ORDER[a.kind] - KIND_ORDER[b.kind]) || a.position - b.position)
     .map((r) => {
       const p = r.productId ? byId.get(r.productId) : null
-      return { kind: r.kind, title: r.title, detail: r.detail, reason: r.reason, product: p ? { name: p.name, brand: p.brand, category: p.category, soldHere: p.soldHere, price: p.price, buyUrl: p.buyUrl, imgUrl: p.imgUrl } : null }
+      return {
+        kind: r.kind, title: r.title, detail: r.detail, reason: r.reason,
+        product: p ? { name: p.name, brand: p.brand, category: p.category, soldHere: p.soldHere, price: p.price, buyUrl: p.buyUrl, imgUrl: p.imgUrl }
+          : PRODUCT_KINDS.includes(r.kind) ? { name: r.title, brand: null, category: null, soldHere: false, price: null, buyUrl: cleanLink(r.detail?.link), imgUrl: null }
+          : null,
+      }
     })
   return {
     version, generatedAt: iso(),
@@ -187,9 +197,13 @@ export async function imagenApi(c) {
     const editing = ['title', 'detail', 'reason', 'productId'].some((k) => body[k] !== undefined)
     if (editing) {
       if (body.title) r.title = String(body.title).slice(0, 200)
-      if (body.detail !== undefined) r.detail = body.detail || {}
+      if (body.detail !== undefined) r.detail = recDetail(r.kind, body.detail)
       if (body.reason !== undefined) r.reason = body.reason || null
-      if (body.productId !== undefined && PRODUCT_KINDS.includes(r.kind)) r.productId = Number(body.productId) || r.productId
+      if (body.productId !== undefined && PRODUCT_KINDS.includes(r.kind)) {
+        const pid = Number(body.productId) || null
+        if (pid && !im.products.some((x) => x.id === pid)) return E(400, 'Ese producto ya no está en el catálogo')
+        r.productId = pid
+      }
       if (r.source !== 'manual') r.edited = true
       if (!body.status) r.status = 'aprobada'
     }
@@ -288,16 +302,16 @@ export async function imagenApi(c) {
     if (!kind) return E(400, 'Tipo de recomendación inválido')
     let title = String(body.title || '').trim()
     let productId = null
-    if (PRODUCT_KINDS.includes(kind)) {
+    if (PRODUCT_KINDS.includes(kind) && Number(body.productId)) {
       const cats = CATEGORIES.filter((x) => x.group === KIND_GROUP[kind]).map((x) => x.id)
       const p = im.products.find((x) => x.id === Number(body.productId) && cats.includes(x.category))
-      if (!p) return E(400, 'Elige un producto del catálogo')
+      if (!p) return E(400, 'Ese producto ya no está en el catálogo')
       productId = p.id
       title ||= [p.brand, p.name].filter(Boolean).join(' ')
     }
-    if (!title) return E(400, 'Escribe la recomendación')
+    if (!title) return E(400, PRODUCT_KINDS.includes(kind) ? 'Escribe el nombre del producto' : 'Escribe la recomendación')
     const position = Math.max(0, ...im.recs.filter((r) => r.consultationId === id).map((r) => r.position)) + 1
-    const rec = { id: next(im, 'rec'), consultationId: id, kind, productId, title, detail: body.detail || {}, reason: body.reason || null, source: 'manual', ruleId: null, status: 'aprobada', edited: false, decidedBy: 6, decidedByName: 'Bruno Herrera', decidedAt: iso(), position }
+    const rec = { id: next(im, 'rec'), consultationId: id, kind, productId, title, detail: recDetail(kind, body.detail), reason: body.reason || null, source: 'manual', ruleId: null, status: 'aprobada', edited: false, decidedBy: 6, decidedByName: 'Bruno Herrera', decidedAt: iso(), position }
     im.recs.push(rec)
     logEvent(st, id, { actor: 'barbero', action: 'rec_manual', detail: { kind, title } })
     return [201, { ok: true, rec }]

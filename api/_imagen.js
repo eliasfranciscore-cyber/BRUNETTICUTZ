@@ -52,7 +52,7 @@ import {
 } from "./_imagenCore.js"
 import {
   MODALITIES, ANGLES, SHOTS, VIDEO_TYPES, VIDEO_MAX_MB, SKULL, HAIR, CATEGORIES, HOLDS, SHINES, HAIR_TYPES, THICKNESSES, CONDITIONS,
-  PRODUCT_NEEDS, REC_KINDS, KIND_GROUP, CONSENT_VERSION,
+  PRODUCT_NEEDS, REC_KINDS, KIND_GROUP, CONSENT_VERSION, cleanLink,
 } from "../src/imagen/vocab.js"
 
 const TZ = "America/Santiago"
@@ -123,6 +123,7 @@ function readDetail(raw, kind) {
     if (v) out[key] = v
   }
   if (kind === "corte") out.refImg = refImg(r.refImg)
+  if (PRODUCT_KINDS.includes(kind) && cleanLink(r.link)) out.link = cleanLink(r.link)
   if (kind === "mantenimiento" && Number(r.weeks) > 0) out.weeks = Math.min(26, Math.round(Number(r.weeks)))
   return out
 }
@@ -265,6 +266,7 @@ const KIND_ORDER = Object.fromEntries(REC_KINDS.map((k, i) => [k.id, i]))
 
 // Lo que entra al PDF: el diagnóstico y SOLO las recomendaciones aprobadas,
 // con los datos del producto tal como están ahora (precio, si se vende acá).
+// Un producto escrito a mano (sin catálogo) va con su nombre y su link.
 async function reportSnapshot(sql, c, version) {
   const [recs, catalog] = await Promise.all([loadRecs(sql, c.id), loadCatalog(sql)])
   const byId = new Map(catalog.map((p) => [p.id, p]))
@@ -275,7 +277,9 @@ async function reportSnapshot(sql, c, version) {
       const p = r.productId ? byId.get(r.productId) : null
       return {
         kind: r.kind, title: r.title, detail: r.detail, reason: r.reason,
-        product: p ? { name: p.name, brand: p.brand, category: p.category, soldHere: p.soldHere, price: p.price, buyUrl: p.buyUrl, imgUrl: p.imgUrl } : null,
+        product: p ? { name: p.name, brand: p.brand, category: p.category, soldHere: p.soldHere, price: p.price, buyUrl: p.buyUrl, imgUrl: p.imgUrl }
+          : PRODUCT_KINDS.includes(r.kind) ? { name: r.title, brand: null, category: null, soldHere: false, price: null, buyUrl: cleanLink(r.detail?.link), imgUrl: null }
+          : null,
       }
     })
   return {
@@ -545,11 +549,12 @@ export async function handleImagen(req, res, sql) {
           title = text(body.title, 200) || row.title
           detail = body.detail !== undefined ? readDetail(body.detail, row.kind) : detail
           reason = body.reason !== undefined ? text(body.reason, 800) : reason
+          // productId vacío = producto escrito a mano (fuera del catálogo).
           if (body.productId !== undefined && PRODUCT_KINDS.includes(row.kind)) {
             const pid = posInt(body.productId)
             const [p] = pid ? await sql`SELECT id FROM image_products WHERE id = ${pid}` : []
-            if (!p) return res.status(400).json({ ok: false, error: "Elige un producto del catálogo" })
-            productId = p.id
+            if (pid && !p) return res.status(400).json({ ok: false, error: "Ese producto ya no está en el catálogo" })
+            productId = p?.id ?? null
           }
           // Editar es aprobar con cambios (queda marcado para los indicadores).
           if (!body.status) status = "aprobada"
@@ -635,15 +640,16 @@ export async function handleImagen(req, res, sql) {
       if (!kind) return res.status(400).json({ ok: false, error: "Tipo de recomendación inválido" })
       let productId = null
       let title = text(body.title, 200)
-      if (PRODUCT_KINDS.includes(kind)) {
-        // Regla del documento: un producto se elige del catálogo, nunca se inventa.
-        const pid = posInt(body.productId)
-        const [p] = pid ? await sql`SELECT * FROM image_products WHERE id = ${pid} AND category = ANY(${CATEGORIES.filter((cat) => cat.group === KIND_GROUP[kind]).map((cat) => cat.id)}::text[])` : []
-        if (!p) return res.status(400).json({ ok: false, error: "Elige un producto del catálogo" })
+      // Un producto sale del catálogo o lo escribe Bruno a mano (nombre + link):
+      // las sugerencias automáticas sí usan solo el catálogo.
+      const pid = PRODUCT_KINDS.includes(kind) ? posInt(body.productId) : null
+      if (pid) {
+        const [p] = await sql`SELECT * FROM image_products WHERE id = ${pid} AND category = ANY(${CATEGORIES.filter((cat) => cat.group === KIND_GROUP[kind]).map((cat) => cat.id)}::text[])`
+        if (!p) return res.status(400).json({ ok: false, error: "Ese producto ya no está en el catálogo" })
         productId = p.id
         title = title || [p.brand, p.name].filter(Boolean).join(" ")
       }
-      if (!title) return res.status(400).json({ ok: false, error: "Escribe la recomendación" })
+      if (!title) return res.status(400).json({ ok: false, error: PRODUCT_KINDS.includes(kind) ? "Escribe el nombre del producto" : "Escribe la recomendación" })
       const [{ pos }] = await sql`SELECT COALESCE(max(position), 0) + 1 AS pos FROM image_recommendations WHERE consultation_id = ${id}`
       const [row] = await sql`
         INSERT INTO image_recommendations (consultation_id, kind, product_id, title, detail, reason, source, status, decided_by, decided_at, position)

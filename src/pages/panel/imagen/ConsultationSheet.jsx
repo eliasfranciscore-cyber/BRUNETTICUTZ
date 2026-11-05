@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  Sheet, Button, IconButton, Field, Chip, InlineAlert, ConfirmDialog, ActionMenu, SkeletonRows, ChoiceGrid, List, ToggleRow, Note,
+  Sheet, Button, IconButton, Field, Chip, InlineAlert, ConfirmDialog, ActionMenu, SkeletonRows, ChoiceGrid, List, ToggleRow, Note, Segmented,
 } from '../../../components/panel/index.js'
 import { Icon } from '../../../components/ui.jsx'
 import {
   MODALITIES, ANGLES, SHOTS, SHOT_STAGES, VIDEO_MAX_SECONDS, INTAKE, SKULL, HAIR, HAIR_FROM_INTAKE, REC_KINDS, CATEGORIES, KIND_GROUP,
-  labelOf, shotLabel,
+  labelOf, shotLabel, cleanLink,
 } from '../../../imagen/vocab.js'
 import { photoToJpeg } from '../../../imagen/photo.js'
 import { uploadVideo } from '../../../imagen/video.js'
@@ -24,6 +24,9 @@ const CUT_FIELDS = [['largo', 'Largo'], ['volumen', 'Volumen'], ['textura', 'Tex
 const PRODUCT_FIELDS = [['cantidad', 'Cantidad'], ['aplicacion', 'Cómo aplicarlo'], ['modoDeUso', 'Modo de uso'], ['frecuencia', 'Frecuencia']]
 const PRODUCT_KINDS = REC_KINDS.filter((k) => k.product).map((k) => k.id)
 const fieldsOf = (kind) => (kind === 'corte' ? CUT_FIELDS : PRODUCT_KINDS.includes(kind) ? PRODUCT_FIELDS : [])
+const hostOf = (url) => {
+  try { return new URL(url).hostname.replace(/^www\./, '') } catch { return url }
+}
 
 const EVENT_TEXT = {
   creada: 'Creó la asesoría', checkout: 'Inició el pago en la web', pago: 'Pago confirmado', correo_formulario: 'Se le envió el enlace del formulario',
@@ -394,6 +397,7 @@ export default function ConsultationSheet({ id, onClose, call, authHeaders, toas
               {warnings.length > 0 && (
                 <InlineAlert tone="warn" title="Revisa el catálogo" onClose={() => setWarnings([])}>
                   <ul className="pn-img-warn">{warnings.map((w) => <li key={w}>{w}</li>)}</ul>
+                  <p className="pn-img-muted">Si no lo tienes en el catálogo, agrégalo con <b>Agregar → Escribir a mano</b> (nombre y link).</p>
                 </InlineAlert>
               )}
               {REC_KINDS.map((k) => (
@@ -656,9 +660,13 @@ function RecCard({ rec, kind, catalog, busy, onAction, onDelete }) {
           {rec.detail?.refImg && <img src={rec.detail.refImg} alt="" loading="lazy" />}
           <div>
             <strong>{rec.title}</strong>
-            {product && (
+            {product ? (
               <span className="pn-img-rec-prod">
                 {labelOf(CATEGORIES, product.category)} · {product.soldHere ? `En la barbería${product.price ? ` ${clp(product.price)}` : ''}${product.stock === 0 ? ' · sin stock' : ''}` : 'Solo recomendado'}
+              </span>
+            ) : PRODUCT_KINDS.includes(rec.kind) && (
+              <span className="pn-img-rec-prod">
+                Fuera del catálogo{rec.detail?.link && <> · <a href={rec.detail.link} target="_blank" rel="noopener noreferrer">{hostOf(rec.detail.link)}</a></>}
               </span>
             )}
           </div>
@@ -698,6 +706,12 @@ function RecEditor({ kind, catalog, initial, busy, onCancel, onSave }) {
   const [reason, setReason] = useState(initial.reason || '')
   const [detail, setDetail] = useState(initial.detail || {})
   const [productId, setProductId] = useState(initial.productId || '')
+  // El producto sale del catálogo o se escribe a mano (nombre + link). Uno ya
+  // guardado sin catálogo, o un tipo sin productos en el catálogo, parte a mano.
+  const [source, setSource] = useState((initial.productId || (!initial.id && options.length)) ? 'catalog' : 'manual')
+  const manual = isProduct && source === 'manual'
+  const [link, setLink] = useState(initial.detail?.link || '')
+  const linkOk = !link.trim() || Boolean(cleanLink(link))
   const [steps, setSteps] = useState((initial.detail?.steps || []).join('\n'))
   const pickProduct = (pid) => {
     setProductId(pid)
@@ -706,26 +720,40 @@ function RecEditor({ kind, catalog, initial, busy, onCancel, onSave }) {
     setTitle([p.brand, p.name].filter(Boolean).join(' '))
     setDetail((d) => ({ ...d, cantidad: d.cantidad || p.amount || '', aplicacion: d.aplicacion || p.application || '', modoDeUso: d.modoDeUso || p.usage || '', frecuencia: d.frecuencia || p.frequency || '' }))
   }
-  const ready = isProduct ? Boolean(productId) : Boolean(title.trim())
+  const ready = manual ? Boolean(title.trim()) && linkOk : isProduct ? Boolean(productId) : Boolean(title.trim())
   const submit = () => {
-    const body = { title: title.trim(), reason: reason.trim() || null, detail: kind.id === 'rutina' ? { steps: steps.split('\n').map((s) => s.trim()).filter(Boolean) } : { ...initial.detail, ...detail } }
-    if (isProduct) body.productId = Number(productId)
+    const kept = { ...initial.detail, ...detail }
+    delete kept.link
+    const body = { title: title.trim(), reason: reason.trim() || null, detail: kind.id === 'rutina' ? { steps: steps.split('\n').map((s) => s.trim()).filter(Boolean) } : kept }
+    if (manual && cleanLink(link)) body.detail.link = cleanLink(link)
+    if (isProduct) body.productId = manual ? null : Number(productId)
     onSave(body)
   }
   return (
     <div className="pn-img-rec is-editing">
       <div className="pn-stack">
         {isProduct && (
-          <Field label="Producto del catálogo" htmlFor={`img-rp-${kind.id}`} hint={options.length ? null : 'No hay productos de este tipo en el catálogo: agrégalos en Catálogo.'}>
+          <Segmented size="sm" className="pn-img-rec-src" ariaLabel="De dónde sale el producto" value={source} onChange={setSource}
+            options={[{ value: 'catalog', label: 'Del catálogo' }, { value: 'manual', label: 'Escribir a mano' }]} />
+        )}
+        {isProduct && !manual && (
+          <Field label="Producto del catálogo" htmlFor={`img-rp-${kind.id}`} hint={options.length ? null : 'No hay productos de este tipo en el catálogo: escríbelo a mano o agrégalo en Catálogo.'}>
             <select id={`img-rp-${kind.id}`} className="input" value={productId} onChange={(e) => pickProduct(e.target.value)}>
               <option value="">Elige un producto…</option>
               {options.map((p) => <option key={p.id} value={p.id}>{[p.brand, p.name].filter(Boolean).join(' ')}{p.soldHere ? ' · en la barbería' : ''}</option>)}
             </select>
           </Field>
         )}
-        <Field label={isProduct ? 'Cómo aparece en el informe' : kind.single} htmlFor={`img-rt-${kind.id}`}>
-          <input id={`img-rt-${kind.id}`} className="input" value={title} maxLength={200} onChange={(e) => setTitle(e.target.value)} />
+        <Field label={manual ? 'Nombre del producto' : isProduct ? 'Cómo aparece en el informe' : kind.single} htmlFor={`img-rt-${kind.id}`}>
+          <input id={`img-rt-${kind.id}`} className="input" value={title} maxLength={200} placeholder={manual ? 'Ej.: Reuzel Pomada Matte' : undefined} onChange={(e) => setTitle(e.target.value)} />
         </Field>
+        {manual && (
+          <Field label="Link del producto" htmlFor={`img-rl-${kind.id}`} optional hint={linkOk ? 'Dónde comprarlo: sale en el informe.' : null}
+            error={linkOk ? null : 'Revisa el link (ej.: https://tienda.cl/producto)'}>
+            <input id={`img-rl-${kind.id}`} className="input" type="url" inputMode="url" autoCapitalize="off" autoCorrect="off" spellCheck={false}
+              placeholder="https://…" maxLength={500} value={link} onChange={(e) => setLink(e.target.value)} />
+          </Field>
+        )}
         {fieldsOf(kind.id).length > 0 && (
           <div className="pn-img-grid">
             {fieldsOf(kind.id).map(([k, label]) => (

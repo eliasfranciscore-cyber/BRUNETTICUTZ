@@ -34,7 +34,7 @@ import fs from "node:fs/promises"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
 import {
-  PDFDocument, rgb, pushGraphicsState, popGraphicsState, moveTo, lineTo, appendBezierCurve,
+  PDFDocument, PDFString, rgb, pushGraphicsState, popGraphicsState, moveTo, lineTo, appendBezierCurve,
   closePath, clip, endPath, setCharacterSpacing,
 } from "pdf-lib"
 import fontkit from "@pdf-lib/fontkit"
@@ -195,6 +195,14 @@ export async function buildImagenPdf(snap = {}, { draft = false } = {}) {
     page.drawText(s, { x: left, y: H - y - size * 0.78, size, font, color, opacity })
     if (track) page.pushOperators(setCharacterSpacing(0))
     return w
+  }
+  // Zona que se puede tocar para abrir un link (en el visor del PDF).
+  const linkArea = (url, { x, y, w, h }) => {
+    if (!/^https?:\/\//.test(String(url || "")) || !w) return
+    page.node.addAnnot(pdf.context.register(pdf.context.obj({
+      Type: "Annot", Subtype: "Link", Rect: [x, H - y - h, x + w, H - y], Border: [0, 0, 0],
+      A: { Type: "Action", S: "URI", URI: PDFString.of(url) },
+    })))
   }
   // Título con relieve: un brillo blanco debajo, como el cromo.
   const embossed = (str, opts) => {
@@ -582,10 +590,14 @@ export async function buildImagenPdf(snap = {}, { draft = false } = {}) {
       page.drawLine({ start: { x: M, y: H - (y + rowH - 6) }, end: { x: W - M, y: H - (y + rowH - 6) }, thickness: 0.4, color: T.accent, opacity: 0.4 })
       text([p.brand, p.name].filter(Boolean).join(" "), { x: M, y: y + 2, size: 9.6, font: F.semi, maxWidth: W - 2 * M - 210 })
       text(labelOf(CATEGORIES, p.category), { x: M, y: y + 14, size: 8, font: F.regular, color: T.muted })
-      const link = p.soldHere ? `${SITE}/essentials` : (p.buyUrl || "").replace(/^https?:\/\//, "").replace(/\/$/, "")
+      const href = p.soldHere ? `${SITE_URL}/essentials` : p.buyUrl || ""
+      const link = href.replace(/^https?:\/\//, "").replace(/\/$/, "")
       const where = p.soldHere ? [p.price ? clp(p.price) : "", "En la barbería"].filter(Boolean).join("  ·  ") : "Solo recomendado"
       text(where, { x: W - M, y: y + 2, size: 9, font: F.semi, color: T.accent, align: "right", maxWidth: 200 })
-      if (link) text(link, { x: W - M, y: y + 14, size: 8, font: F.regular, color: T.muted, align: "right", maxWidth: 200 })
+      if (link) {
+        const w = text(link, { x: W - M, y: y + 14, size: 8, font: F.regular, color: T.muted, align: "right", maxWidth: 200 })
+        linkArea(href, { x: W - M - w, y: y + 12, w, h: 12 })
+      }
       y += rowH
     }
     y += 12
