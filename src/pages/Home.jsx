@@ -309,7 +309,13 @@ export default function Home() {
             con un grado oscuro de cine, y la frase abajo como el titular de
             una portada. */}
         <section id="hero" className="bportada">
-          <Editable as="img" editId="home-hero:photo" className="bportada-photo" src="/assets/bruno-hero.jpg" alt="Bruno Herrera cortando el pelo a un cliente" fetchpriority="high" decoding="async" />
+          {/* En escritorio va una versión ancha: el muro de la izquierda está
+              extendido con IA (Bruno es la foto original), para que la foto
+              cubra todo el hero en vez de quedar en un costado. */}
+          <picture>
+            <source media="(min-width: 900px)" srcSet="/assets/bruno-portada-ancha.jpg" />
+            <Editable as="img" editId="home-hero:photo" className="bportada-photo" src="/assets/bruno-portada.jpg" alt="Bruno Herrera frente a un mural de graffiti" fetchpriority="high" decoding="async" />
+          </picture>
           <div className="bportada-shade" aria-hidden="true" />
           <div className="bportada-copy">
             <p className="bportada-kicker"><EditableText file="home-hero" path="kicker">{HERO.kicker}</EditableText></p>
